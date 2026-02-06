@@ -1,0 +1,154 @@
+# MusicMaster Development Tasks
+
+- [x] Refinements
+    - [x] Adjust back button to match Album View
+    - [x] Remove "Verified Artist" badge
+    - [x] Reduce Artist title size
+    - [x] Fix image positioning (object-top)
+    - [x] Move all content to top overlay (Name, Stats, Bio)
+    - [x] Remove Library Overview sidebar
+    - [x] Refine Album Card (small play icon in corner)
+    - [x] Implement Top Tracks section
+    - [x] Functional Discography sorting (Year/Popularity)
+- [x] Layout & Interactivity Refinements
+    - [x] Make album names in Popular Tracks clickable
+    - [x] Tighten vertical spacing between sections
+- [x] Artist View Visual Polish
+    - [x] Redesign header with Play/Shuffle buttons
+    - [x] Add metadata pills (Albums, Tracks, Genres)
+    - [x] Implement hover play icons in Popular Tracks
+    - [x] Update sorting UI with toggleable direction & icons
+    - [x] Add Heart button for artist favoriting
+    - [x] Simplify Back button text
+    - [x] Implement "Related Artists" using Last.fm API
+- [x] Artist Playback & Actions (UI Only)
+    - [x] Create `player.ts` playback store
+    - [x] Add Play/Shuffle buttons to Artist Header
+    - [x] Implement hover play buttons in Top Tracks
+    - [x] Hook up PlayerBar to store
+- [x] Playback Engine Implementation (Core)
+    - [x] Create robust `player.ts` store (Zustand + HTML5 Audio)
+    - [x] Implement direct file playback (`asset://`)
+    - [x] Implement basic queue management
+    - [x] Hook up Artist View Play/Shuffle to engine
+    - [x] Hook up Track List Play to engine
+- [x] Playback Debugging (Priority)
+    - [x] Fix `media-src` CSP blocking `asset://` audio
+    - [x] Fix `AlbumCard` missing `onPlay` implementation in `ArtistDetailView`
+    - [x] Fix `player.ts` URI encoding for spaces in filenames
+    - [x] Fix `main/index.ts` protocol handler URI decoding
+    - [x] Patch `player.ts` with verbose error logging & `AbortError` handling
+    - [x] Instrument `ArtistDetailView` with debug logs
+    - [x] Port `onPlayAlbum` logic from MusicWest to `AlbumDetailView` and `ArtistDetailView`
+    - [x] Fix `ArtistDetailView` layout `pointer-events` blocking clicks
+- [x] Next Steps
+    - [x] Implement Play button in Album Cards (`AlbumsView`)
+    - [x] Fix missing cover art in Player Bar (Fallback to Album cover)
+    - [x] Highlight currently playing track (Album/Artist View)
+    - [x] Add Quality Info (Format/Bitrate) to Player Bar
+    - [x] Add Rating/Love controls to Player Bar
+- [x] Data Persistence & Session Recovery
+    - [x] Create `playback_state` table in DB
+    - [x] Implement Settings persistence (Save/Load)
+    - [x] Implement Session persistence (Queue, Current Track, Volume, Position)
+    - [x] Update Stores to sync with IPC
+    - [x] Double-click to play (Album/Artist/Tracks views)
+    - [x] Settings: Enable/Disable Queue Modal (Always ask vs Default)
+    - [x] Implement Queue Modal (Play Next, Play Last, Replace)
+    - [x] Refine Audio Quality display (Sample Rate/Bit Depth)
+    - [x] Visualizer?
+    - [x] Lyrics?
+- [x] Refine UI Aesthetics
+  - [x] Remove play icons from artist cards in `ArtistsView.tsx`
+  - [x] Remove play icons from `AlbumCard.tsx`
+  - [x] Retain hover effects (dimming, scaling)
+- [x] Implement Session Persistence
+  - [x] Update database schema (`playback_state` table)
+  - [x] Implement IPC handlers for persistence in `ipc.ts`
+  - [x] Expose persistence APIs in `preload/index.ts`
+  - [x] Update `SettingsStore` to persist user settings
+  - [x] Update `PlayerStore` to persist playback state (queue, track, volume, position)
+  - [x] Initialize persistence on app startup in `App.tsx`
+- [x] Playlist System (Initial)
+    - [x] Create `playlists` and `playlist_tracks` tables
+    - [x] Implement CRUD IPC handlers for playlists
+    - [x] Create `usePlaylists` store (Zustand)
+    - [x] Implement `QueueDrawer` with Save/Load
+    - [x] Update `PlaylistsView` with real data
+    - [x] Add "Add to Playlist" to UI components
+- [x] Playlist System Overhaul (MusicWest Parity)
+    - [x] Implement Drag-and-Drop Reordering in `QueuePanel`
+    - [x] Implement Add-to-Queue by Dragging from main views
+    - [x] Visual Refinement: Track thumbnails in Queue/Playlist lists
+    - [x] Visual Refinement: Playlist cover art generation (Mosaic)
+    - [x] Persistence: Ensure reordering is saved for playlists in DB
+    - [x] UI: Add "Clear Queue" and "Shuffle Queue" to `QueuePanel`
+    - [x] **Phase 2: Layout & Panel Integration**
+        - [x] Redesign `App.tsx` layout for side-integrated `QueuePanel`
+        - [x] Implement Resizable handle for `QueuePanel`
+        - [x] Implement "Played" (History) tab with >50% duration rule
+        - [x] Update `PlayerBar` to toggle panel instead of modal
+        - [x] Implement Cover-based play/pause and double-click cleanup logic
+        - [x] Implement refined Shuffle (preserving current track)
+        - [x] Implement non-blur "Clear Queue" confirmation
+        - [x] persistence for `Played` history
+    - [x] **Phase 3: UI refinements & bug fixes**
+        - [x] Fix `AlbumCard` Quick Play (Exposed IPC & Preload APIs, added store fallback)
+        - [x] Standardize cover art protocol to `asset:///` everywhere
+        - [x] Add SAVE and LOAD buttons/modals to `QueuePanel`
+        - [x] Make Ratings/Hearts always visible in Queue
+        - [x] Prevent text selection during panel resizing
+        - [x] Fix Drag and Drop (Red triangle issue)
+- [x] Remove blur & enable Modal dragging
+- [x] Redesign Artist View
+- [x] Implement Artist Play Options Modal
+    - [x] Create `ArtistPlayModal`
+    - [x] Add Play Button to `ArtistCard`
+    - [x] Implement Play/Shuffle/Loved logic in `ArtistsView`
+- [x] Redesign Queue Header (Icon-only buttons)
+- [x] Fix Heart/Rating Sync Logic (Universal)
+- [x] Apply Universal Logic to Albums (Rate=Love Sync)
+- [x] Fix Queue Item Play Button
+- [x] Fix Queue Reordering & Album Drag Drop
+- [x] Fix Album Grid Responsiveness
+- [x] Implement Album Play Options Modal (Prevent Auto-Play)
+- [x] Fix Album Heart Button (Blue Ribbon Style UI)
+- [x] Fix Player Bar Navigation (Title/Artist) & Heart
+- [x] Implement Play/Shuffle Confirmation Modal (Replace vs Append)
+- [x] Implement Artist Heart Hover Effect
+- [ ] Implement Album Detail View
+- [ ] Add Queue Management Blue Triangle Rating Badge on Album Cards
+- [x] Shrink Album Card Play Button
+- [x] Enable Drag & Drop reordering in Queue playlist
+- [x] Fix Album Grid crowding issue
+- [x] Refine Artist Bio height and toggle button
+- [x] Implement Smart Shuffle (Artist separation)
+- [x] Fix Popular Tracks sorting stability
+- [ ] **Phase 4: Future Roadmap & Extended Features**
+    - [ ] **Audio Core Enhancements**
+        - [ ] Exclusive Mode: WASAPI (Windows) / ASIO integration for bit-perfect playback
+        - [ ] Gapless Playback: Seamless transitions between tracks
+        - [ ] ReplayGain: Normalize volume across tracks using metadata
+        - [ ] Android Mixer Bypass: Direct hardware access for mobile app
+    - [ ] **Smart Features & AI**
+        - [ ] "Sonic Analysis": Waveform analysis for "Play similar sounding tracks"
+        - [ ] "Aura" Visualizer: Dynamic colors based on mood/audio analysis
+        - [ ] Smart Shuffle: Continue improving AI-based randomness (Anti-repetition)
+    - [ ] **Library Management**
+        - [ ] Fast Watch Folder: Auto-detect new/changed files
+        - [ ] Rescan: "Rescan Tags" option in right-click context menu
+        - [ ] Genre Hierarchies: Tree view for sub-genres
+    - [ ] **UI/UX Customization**
+        - [ ] Settings: Default "About the Album" visibility (Show/Hide)
+        - [ ] Settings: Global text size adjustment
+        - [ ] Album Detail: "More from this Artist" section (Sorted by Year)
+        - [ ] Taskbar Controls: Prev/Play/Next buttons in OS taskbar preview
+    - [ ] **Sync & Integration**
+        - [ ] ListenBrainz/Last.fm Sync: Two-way sync for Playcount (50% rule), Ratings, and Hearts
+    - [ ] **Universal Shortcuts**
+        - [ ] `Space`: Play/Pause
+        - [ ] `Enter`: Confirm/Ok
+        - [ ] `Esc`: Cancel/Close
+        - [ ] `Backspace`: Go Back
+        - [ ] `Shift+Enter`: Edit Selected Tracks
+        - [ ] `Tab`: Navigate inputs
