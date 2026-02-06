@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import type { Track } from '../types'
+import { calculateReplayGain } from '../utils/replayGain'
+import { useSettings } from './settings'
 
 type PlayMode = 'normal' | 'repeat-all' | 'repeat-one'
 
@@ -7,7 +9,7 @@ interface PlayerState {
     queue: Track[]
     currentIndex: number
     isPlaying: boolean
-    volume: number          // 0 to 1
+    volume: number          // 0 to 1 (user volume)
     progress: number        // 0 to 100 (percentage for simplified UI)
     currentTime: number     // current seconds
     duration: number        // total seconds
@@ -15,7 +17,8 @@ interface PlayerState {
     repeatMode: PlayMode
     currentTrack: Track | null
     history: Track[]
-    historyTrackIds: Set<string> // To avoid duplicates in current session if needed, or just use a list
+    historyTrackIds: Set<string>
+    replayGainApplied: number  // 0 to 1+ (calculated from ReplayGain metadata)
 
     // Actions
     playTrack: (track: Track) => void
@@ -167,14 +170,20 @@ export const usePlayer = create<PlayerState>((set, get) => {
         currentTrack: null,
         history: [],
         historyTrackIds: new Set(),
+        replayGainApplied: 1,
 
         playTrack: (track) => {
+            // Calculate ReplayGain based on current settings
+            const mode = useSettings.getState().replayGainMode
+            const replayGain = calculateReplayGain(track, mode)
+            
             set({
                 queue: [track],
                 currentIndex: 0,
                 currentTrack: track,
                 currentTime: 0,
-                progress: 0
+                progress: 0,
+                replayGainApplied: replayGain
             })
             loadAndPlay(track)
             persistSession()
@@ -183,13 +192,18 @@ export const usePlayer = create<PlayerState>((set, get) => {
         playAlbum: (tracks, startIndex = 0) => {
             if (!tracks.length) return
             const targetTrack = tracks[startIndex] || tracks[0]
+            
+            // Calculate ReplayGain based on current settings
+            const mode = useSettings.getState().replayGainMode
+            const replayGain = calculateReplayGain(targetTrack, mode)
 
             set({
                 queue: tracks,
                 currentIndex: startIndex,
                 currentTrack: targetTrack,
                 currentTime: 0,
-                progress: 0
+                progress: 0,
+                replayGainApplied: replayGain
             })
             loadAndPlay(targetTrack)
             persistSession()
@@ -238,9 +252,6 @@ export const usePlayer = create<PlayerState>((set, get) => {
             if (queue.length === 0) return
 
             let nextIndex = currentIndex + 1
-            // If shuffle is active, we rely on the queue ALREADY being shuffled by shuffleSubsequent
-            // So we simply move to the next index. 
-            // The old logic of checking isShuffle and picking random caused repeats.
 
             if (nextIndex >= queue.length) {
                 if (repeatMode === 'repeat-all') {
@@ -254,7 +265,16 @@ export const usePlayer = create<PlayerState>((set, get) => {
             }
 
             const nextTrack = queue[nextIndex]
-            set({ currentIndex: nextIndex, currentTrack: nextTrack, currentTime: 0, progress: 0 })
+            const mode = useSettings.getState().replayGainMode
+            const replayGain = calculateReplayGain(nextTrack, mode)
+            
+            set({ 
+                currentIndex: nextIndex, 
+                currentTrack: nextTrack, 
+                currentTime: 0, 
+                progress: 0,
+                replayGainApplied: replayGain
+            })
             loadAndPlay(nextTrack)
             persistSession()
         },
@@ -271,7 +291,16 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
             const prevTrack = queue[prevIndex]
             if (prevTrack) {
-                set({ currentIndex: prevIndex, currentTrack: prevTrack, currentTime: 0, progress: 0 })
+                const mode = useSettings.getState().replayGainMode
+                const replayGain = calculateReplayGain(prevTrack, mode)
+                
+                set({ 
+                    currentIndex: prevIndex, 
+                    currentTrack: prevTrack, 
+                    currentTime: 0, 
+                    progress: 0,
+                    replayGainApplied: replayGain
+                })
                 loadAndPlay(prevTrack)
             }
             persistSession()
@@ -286,7 +315,11 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
         setVolume: (val) => {
             const clamped = Math.max(0, Math.min(1, val))
-            audio.volume = clamped
+            const { replayGainApplied } = get()
+            // Combine user volume with ReplayGain
+            // Clamp final volume to prevent clipping
+            const finalVolume = Math.min(1, clamped * replayGainApplied)
+            audio.volume = finalVolume
             set({ volume: clamped })
             persistSession()
         },
@@ -386,13 +419,17 @@ export const usePlayer = create<PlayerState>((set, get) => {
             const targetTrack = queue[index]
             if (!targetTrack) return
 
+            const mode = useSettings.getState().replayGainMode
+            const replayGain = calculateReplayGain(targetTrack, mode)
+
             const newQueue = queue.slice(index)
             set({
                 queue: newQueue,
                 currentIndex: 0,
                 currentTrack: targetTrack,
                 currentTime: 0,
-                progress: 0
+                progress: 0,
+                replayGainApplied: replayGain
             })
             loadAndPlay(targetTrack)
             persistSession()
@@ -451,6 +488,10 @@ export const usePlayer = create<PlayerState>((set, get) => {
                     const { queue, currentIndex, volume, isShuffle, repeatMode, currentTime } = session
                     const track = queue && currentIndex >= 0 ? queue[currentIndex] : null
 
+                    // Calculate ReplayGain for current track
+                    const mode = useSettings.getState().replayGainMode
+                    const replayGain = track ? calculateReplayGain(track, mode) : 1
+
                     set({
                         queue: queue || [],
                         currentIndex: currentIndex ?? -1,
@@ -458,10 +499,13 @@ export const usePlayer = create<PlayerState>((set, get) => {
                         isShuffle: !!isShuffle,
                         repeatMode: repeatMode || 'normal',
                         currentTime: currentTime || 0,
-                        currentTrack: track
+                        currentTrack: track,
+                        replayGainApplied: replayGain
                     })
 
-                    audio.volume = volume ?? 1
+                    // Apply final volume with ReplayGain
+                    const finalVolume = Math.min(1, (volume ?? 1) * replayGain)
+                    audio.volume = finalVolume
                     if (track) {
                         let src = ''
                         if (track.filePath) {

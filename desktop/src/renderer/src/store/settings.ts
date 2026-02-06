@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { SortField, SortOrder, ViewMode } from '../types'
 
 export type TrackPlayBehavior = 'ask' | 'play_next' | 'add_last' | 'replace'
+export type ReplayGainMode = 'track' | 'album' | 'off'
 
 interface SettingsStore {
     viewMode: ViewMode
@@ -9,6 +10,7 @@ interface SettingsStore {
     sortOrder: SortOrder
     visibleSections: string[]
     trackPlayBehavior: TrackPlayBehavior
+    replayGainMode: ReplayGainMode
 
     // Actions
     setViewMode: (mode: ViewMode) => void
@@ -16,6 +18,7 @@ interface SettingsStore {
     setSortOrder: (order: SortOrder) => void
     toggleSection: (section: string) => void
     setTrackPlayBehavior: (behavior: TrackPlayBehavior) => void
+    setReplayGainMode: (mode: ReplayGainMode) => void
 
     // Persistence
     loadSettings: () => Promise<void>
@@ -27,6 +30,7 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     sortOrder: 'asc',
     visibleSections: ['recently_added', 'recently_played'],
     trackPlayBehavior: 'ask',
+    replayGainMode: 'track',
 
     setViewMode: (viewMode) => {
         set({ viewMode })
@@ -54,6 +58,10 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     setTrackPlayBehavior: (behavior) => {
         set({ trackPlayBehavior: behavior })
         window.api.settings.save('trackPlayBehavior', behavior)
+    },
+    setReplayGainMode: (mode) => {
+        set({ replayGainMode: mode })
+        window.api.settings.save('replayGainMode', mode)
     },
 
     loadSettings: async () => {

@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { FolderOpen, Trash2, Eye, EyeOff, Play } from 'lucide-react'
 import { useFolders } from '../store/folders'
 import { useLibrary } from '../store/library'
-import { useSettings, TrackPlayBehavior } from '../store/settings'
+import { useSettings, TrackPlayBehavior, ReplayGainMode } from '../store/settings'
 import { cn } from '../lib/utils'
 
 export default function SettingsView() {
@@ -185,6 +185,38 @@ export default function SettingsView() {
                             </div>
                             <p className="text-[11px] text-zinc-500 mt-1">
                                 Choose what happens when you double-click a track or select "Play" on a single item.
+                            </p>
+                        </div>
+
+                        <div className="pt-4 border-t border-zinc-800 flex flex-col gap-2">
+                            <label className="text-sm font-medium text-zinc-400">ReplayGain Normalization</label>
+                            <p className="text-[11px] text-zinc-600 mb-2">
+                                ReplayGain automatically adjusts volume for a consistent listening level across all tracks.
+                            </p>
+                            <div className="grid grid-cols-3 gap-2">
+                                {[
+                                    { id: 'off', label: 'Off' },
+                                    { id: 'track', label: 'Track Level' },
+                                    { id: 'album', label: 'Album Level' }
+                                ].map((opt) => (
+                                    <button
+                                        key={opt.id}
+                                        onClick={() => useSettings.getState().setReplayGainMode(opt.id as ReplayGainMode)}
+                                        className={cn(
+                                            "px-3 py-2 text-xs font-semibold rounded-lg border transition-all",
+                                            useSettings.getState().replayGainMode === opt.id
+                                                ? "bg-green-600 text-white border-green-500 shadow-lg shadow-green-500/20"
+                                                : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200"
+                                        )}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="text-[11px] text-zinc-500 mt-2">
+                                <strong>Track Level:</strong> Normalize each track individually<br />
+                                <strong>Album Level:</strong> Normalize per album (preserves album dynamics)<br />
+                                <strong>Off:</strong> Disable ReplayGain
                             </p>
                         </div>
                     </div>

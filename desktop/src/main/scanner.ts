@@ -4,7 +4,7 @@ import path from 'path'
 import { parseFile } from 'music-metadata'
 import { EventEmitter } from 'events'
 import chokidar, { FSWatcher } from 'chokidar'
-import { upsertTrack, deleteTrackByPath } from './database/tracks'
+import { upsertTrack, deleteTrackByPath, getTrackByPath } from './database/tracks'
 import { updateFolderLastScanned, updateFolderTrackCount } from './database/folders'
 import { aggregateAlbums } from './database/albums'
 import type { ScanProgress } from './types'
@@ -206,13 +206,18 @@ export class MusicScanner extends EventEmitter {
      */
     private async processFile(folderId: string, filePath: string): Promise<void> {
         try {
+            // First, check if this file already exists in database
+            // This allows us to preserve user ratings & loved status if they're not in the file tags
+            const existingTrack = getTrackByPath(filePath)
+
             // Parse metadata
             const metadata = await parseFile(filePath)
 
             // Extract rating and loved status from metadata
-            let rating = 0
-            let loved = false
+            let rating = existingTrack?.rating || 0  // Default: keep existing or 0
+            let loved = existingTrack?.loved || false // Default: keep existing or false
 
+            // Only update rating/loved if we find explicit metadata in the file
             if (metadata.common.rating && metadata.common.rating.length > 0) {
                 const ratingObj = metadata.common.rating[0]
                 const rawRating = ratingObj.rating || 0
@@ -230,17 +235,17 @@ export class MusicScanner extends EventEmitter {
                     ratingObj.source?.toLowerCase().includes('heart')) {
                     loved = true
                 }
-            } else {
-                // console.log(`[Scanner] ${path.basename(filePath)} No common rating found`)
             }
 
             // Fallback: check custom tags like LOVED or HEART (mostly for FLAC)
-            if (!loved) {
+            if (!loved && (!existingTrack?.loved)) {
                 const nativeLoved = metadata.native?.vorbis?.find(t => ['LOVED', 'HEART', 'FAVORITE'].includes(t.id.toUpperCase()))
                 if (nativeLoved) {
                     const val = nativeLoved.value.toString().toLowerCase()
                     loved = (val === '1' || val === 'true' || val === 'yes')
-                    console.log(`[Scanner] ${path.basename(filePath)} Loved from native tag: ${loved}`)
+                    if (loved) {
+                        console.log(`[Scanner] ${path.basename(filePath)} Loved from native tag: ${loved}`)
+                    }
                 }
             }
 
@@ -255,6 +260,34 @@ export class MusicScanner extends EventEmitter {
             // Extract MusicBrainz IDs
             const musicbrainzTrackId = metadata.common.musicbrainz_trackid
             const musicbrainzAlbumId = metadata.common.musicbrainz_albumid
+
+            // Extract ReplayGain metadata (values in dB)
+            let replayGainTrack: number | undefined
+            let replayGainAlbum: number | undefined
+            let replayGainTrackPeak: number | undefined
+            let replayGainAlbumPeak: number | undefined
+
+            // Try common metadata first
+            if (metadata.common.replaygain_track_gain) {
+                const value = parseFloat(metadata.common.replaygain_track_gain as any)
+                if (!isNaN(value)) replayGainTrack = value
+            }
+            if (metadata.common.replaygain_album_gain) {
+                const value = parseFloat(metadata.common.replaygain_album_gain as any)
+                if (!isNaN(value)) replayGainAlbum = value
+            }
+            if (metadata.common.replaygain_track_peak) {
+                const value = parseFloat(metadata.common.replaygain_track_peak as any)
+                if (!isNaN(value)) replayGainTrackPeak = value
+            }
+            if (metadata.common.replaygain_album_peak) {
+                const value = parseFloat(metadata.common.replaygain_album_peak as any)
+                if (!isNaN(value)) replayGainAlbumPeak = value
+            }
+
+            if (replayGainTrack) {
+                console.log(`[Scanner] ${path.basename(filePath)} ReplayGain Track: ${replayGainTrack} dB`)
+            }
 
             // Upsert track to database
             const albumName = (metadata.common.album || 'Unknown Album').trim()
@@ -283,7 +316,11 @@ export class MusicScanner extends EventEmitter {
                 loved,
                 releaseDate,
                 musicbrainzTrackId,
-                musicbrainzAlbumId
+                musicbrainzAlbumId,
+                replayGainTrack,
+                replayGainAlbum,
+                replayGainTrackPeak,
+                replayGainAlbumPeak
             })
         } catch (error) {
             console.error(`Failed to process file ${filePath}:`, error)

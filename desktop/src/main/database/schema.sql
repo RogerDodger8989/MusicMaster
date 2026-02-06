@@ -30,6 +30,18 @@ CREATE TABLE IF NOT EXISTS tracks (
     bitrate INTEGER,
     format TEXT CHECK(format IN ('flac', 'mp3')),
     cover_art_path TEXT,
+    sample_rate INTEGER,
+    bit_depth INTEGER,
+    rating INTEGER DEFAULT 0,
+    loved INTEGER DEFAULT 0,
+    release_date TEXT,
+    musicbrainz_track_id TEXT,
+    musicbrainz_album_id TEXT,
+    -- ReplayGain metadata (in dB)
+    replaygain_track_gain REAL,
+    replaygain_album_gain REAL,
+    replaygain_track_peak REAL,
+    replaygain_album_peak REAL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (folder_id) REFERENCES music_folders(id) ON DELETE CASCADE

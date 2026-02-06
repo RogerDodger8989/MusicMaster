@@ -21,6 +21,11 @@ export interface Track {
     releaseDate?: string
     musicbrainzTrackId?: string
     musicbrainzAlbumId?: string
+    // ReplayGain metadata (in dB)
+    replayGainTrack?: number
+    replayGainAlbum?: number
+    replayGainTrackPeak?: number
+    replayGainAlbumPeak?: number
     createdAt: Date
     updatedAt: Date
 }

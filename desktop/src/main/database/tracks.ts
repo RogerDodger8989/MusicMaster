@@ -41,6 +41,10 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
         musicbrainz_album_id = ?,
         sample_rate = ?,
         bit_depth = ?,
+        replaygain_track_gain = ?,
+        replaygain_album_gain = ?,
+        replaygain_track_peak = ?,
+        replaygain_album_peak = ?,
         updated_at = ?
       WHERE id = ?
     `)
@@ -66,6 +70,10 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
             track.musicbrainzAlbumId || null,
             track.sampleRate || null,
             track.bitDepth || null,
+            (track as any).replayGainTrack || null,
+            (track as any).replayGainAlbum || null,
+            (track as any).replayGainTrackPeak || null,
+            (track as any).replayGainAlbumPeak || null,
             now,
             id
         )
@@ -76,8 +84,10 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
         id, folder_id, file_path, file_hash, title, artist, album, album_artist,
         year, genre, track_num, disc_num, duration, bitrate, format,
         cover_art_path, rating, loved, release_date, musicbrainz_track_id,
-        musicbrainz_album_id, sample_rate, bit_depth, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        musicbrainz_album_id, sample_rate, bit_depth, replaygain_track_gain,
+        replaygain_album_gain, replaygain_track_peak, replaygain_album_peak,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
         stmt.run(
@@ -104,6 +114,10 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
             track.musicbrainzAlbumId || null,
             track.sampleRate || null,
             track.bitDepth || null,
+            (track as any).replayGainTrack || null,
+            (track as any).replayGainAlbum || null,
+            (track as any).replayGainTrackPeak || null,
+            (track as any).replayGainAlbumPeak || null,
             now,
             now
         )
@@ -167,6 +181,16 @@ export function getTrackById(id: string): Track | null {
 }
 
 /**
+ * Get track by file path
+ */
+export function getTrackByPath(filePath: string): Track | null {
+    const db = getDatabase()
+    const stmt = db.prepare('SELECT * FROM tracks WHERE file_path = ?')
+    const row = stmt.get(filePath) as DbTrack | undefined
+    return row ? dbTrackToTrack(row) : null
+}
+
+/**
  * Update track rating
  */
 export function updateTrackRating(id: string, rating: number): void {
@@ -221,6 +245,10 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
         releaseDate: dbTrack.release_date || undefined,
         musicbrainzTrackId: dbTrack.musicbrainz_track_id || undefined,
         musicbrainzAlbumId: dbTrack.musicbrainz_album_id || undefined,
+        replayGainTrack: (dbTrack as any).replaygain_track_gain || undefined,
+        replayGainAlbum: (dbTrack as any).replaygain_album_gain || undefined,
+        replayGainTrackPeak: (dbTrack as any).replaygain_track_peak || undefined,
+        replayGainAlbumPeak: (dbTrack as any).replaygain_album_peak || undefined,
         createdAt: new Date(dbTrack.created_at),
         updatedAt: new Date(dbTrack.updated_at)
     }
