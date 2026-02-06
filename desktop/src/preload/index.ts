@@ -106,6 +106,19 @@ const api = {
     removeTrack: (playlistId: string, trackId: string, position: number): Promise<boolean> =>
       ipcRenderer.invoke('playlists:removeTrack', playlistId, trackId, position),
     rename: (id: string, name: string): Promise<boolean> => ipcRenderer.invoke('playlists:rename', id, name)
+  },
+
+  // Scrobbling
+  scrobble: {
+    recordPlay: (trackId: string): Promise<boolean> => ipcRenderer.invoke('scrobble:recordPlay', trackId),
+    getPending: (): Promise<any[]> => ipcRenderer.invoke('scrobble:getPending'),
+    submitToLastFM: (scrobbleId: string, sessionKey: string): Promise<boolean> =>
+      ipcRenderer.invoke('scrobble:submitToLastFM', scrobbleId, sessionKey),
+    submitToListenBrainz: (scrobbleId: string): Promise<boolean> =>
+      ipcRenderer.invoke('scrobble:submitToListenBrainz', scrobbleId),
+    getPlayCount: (trackId: string): Promise<number> => ipcRenderer.invoke('scrobble:getPlayCount', trackId),
+    updateLastFmKey: (key: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateLastFmKey', key),
+    updateListenBrainzToken: (token: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateListenBrainzToken', token)
   }
 }
 

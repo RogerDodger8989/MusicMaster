@@ -18,6 +18,7 @@ import { useNavigation } from './store/navigation'
 import { usePlayer } from './store/player'
 import { useSettings, TrackPlayBehavior } from './store/settings'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { scrobbleService } from './services/scrobbleService'
 import { Track } from './types'
 
 function App(): React.JSX.Element {
@@ -66,7 +67,25 @@ function App(): React.JSX.Element {
   useEffect(() => {
     loadSettings()
     loadSession()
-    return initialize()
+    
+    // Start scrobble service and update API keys
+    scrobbleService.start()
+    const settings = useSettings.getState()
+    if (settings.lastfmApiKey) {
+      window.api.scrobble.updateLastFmKey(settings.lastfmApiKey).catch(err => {
+        console.error('Failed to set Last.fm key:', err)
+      })
+    }
+    if (settings.listenbrainzToken) {
+      window.api.scrobble.updateListenBrainzToken(settings.listenbrainzToken).catch(err => {
+        console.error('Failed to set ListenBrainz token:', err)
+      })
+    }
+    
+    return () => {
+      scrobbleService.stop()
+      initialize()
+    }
   }, [initialize, loadSettings, loadSession])
 
   // Setup keyboard shortcuts

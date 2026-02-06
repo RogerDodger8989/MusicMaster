@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { usePlayer } from './player'
 import type { Track, Album, Artist, ScanProgress, ViewMode, SortField, SortOrder, FilterOptions } from '../types'
 
 interface LibraryStore {

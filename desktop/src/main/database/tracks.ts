@@ -253,3 +253,108 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
         updatedAt: new Date(dbTrack.updated_at)
     }
 }
+/**
+ * Add a scrobble to the queue
+ */
+export function addScrobbleToQueue(trackId: string, artist: string, title: string, album: string | null, playedTimestamp: number): string {
+    const db = getDatabase()
+    const id = randomUUID()
+    const stmt = db.prepare(`
+        INSERT INTO scrobble_queue (id, track_id, artist, title, album, played_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `)
+    stmt.run(id, trackId, artist, title, album || null, playedTimestamp)
+    return id
+}
+
+/**
+ * Get pending scrobbles
+ */
+export function getPendingScrobbles(limit: number = 50): Array<{
+    id: string
+    trackId: string
+    artist: string
+    title: string
+    album: string | null
+    playedAt: number
+    lastfmSubmitted: boolean
+    listenbrainzSubmitted: boolean
+}> {
+    const db = getDatabase()
+    const rows = db
+        .prepare(`
+            SELECT id, track_id, artist, title, album, played_at, lastfm_submitted, listenbrainz_submitted
+            FROM scrobble_queue
+            WHERE submitted = 0
+            LIMIT ?
+        `)
+        .all(limit) as Array<any>
+
+    return rows.map((row: any) => ({
+        id: row.id,
+        trackId: row.track_id,
+        artist: row.artist,
+        title: row.title,
+        album: row.album,
+        playedAt: row.played_at,
+        lastfmSubmitted: row.lastfm_submitted === 1,
+        listenbrainzSubmitted: row.listenbrainz_submitted === 1
+    }))
+}
+
+/**
+ * Mark scrobble as submitted to a service
+ */
+export function markScrobbleSubmitted(scrobbleId: string, service: 'lastfm' | 'listenbrainz'): void {
+    const db = getDatabase()
+    const column = service === 'lastfm' ? 'lastfm_submitted' : 'listenbrainz_submitted'
+    const stmt = db.prepare(`UPDATE scrobble_queue SET ${column} = 1 WHERE id = ?`)
+    stmt.run(scrobbleId)
+
+    // Mark submitted if both services have submitted (or only enabled service has)
+    const row = db.prepare('SELECT lastfm_submitted, listenbrainz_submitted FROM scrobble_queue WHERE id = ?').get(scrobbleId) as any
+    if (row && row.listfm_submitted === 1 && row.listenbrainz_submitted === 1) {
+        db.prepare('UPDATE scrobble_queue SET submitted = 1 WHERE id = ?').run(scrobbleId)
+    }
+}
+
+/**
+ * Record a play in history
+ */
+export function recordPlayHistory(trackId: string): void {
+    const db = getDatabase()
+    const now = new Date().toISOString()
+
+    // Check if track was played today
+    const existing = db
+        .prepare(`
+            SELECT id, play_count FROM play_history
+            WHERE track_id = ? AND DATE(played_at) = DATE(?)
+        `)
+        .get(trackId, now) as { id: string; play_count: number } | undefined
+
+    if (existing) {
+        // Increment play count for today
+        const stmt = db.prepare('UPDATE play_history SET play_count = play_count + 1 WHERE id = ?')
+        stmt.run(existing.id)
+    } else {
+        // Create new play history entry
+        const id = randomUUID()
+        const stmt = db.prepare(`
+            INSERT INTO play_history (id, track_id, played_at, play_count)
+            VALUES (?, ?, ?, 1)
+        `)
+        stmt.run(id, trackId, now)
+    }
+}
+
+/**
+ * Get play count for a track
+ */
+export function getTrackPlayCount(trackId: string): number {
+    const db = getDatabase()
+    const row = db
+        .prepare('SELECT COALESCE(SUM(play_count), 0) as total FROM play_history WHERE track_id = ?')
+        .get(trackId) as { total: number } | undefined
+    return row?.total || 0
+}

@@ -27,11 +27,15 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
         duration,
         seek,
         volume,
-        setVolume
+        setVolume,
+        trackPlayCount
     } = usePlayer()
 
     const { albums, tracks: allTracks, rateTrack, toggleLoved } = useLibrary()
-    const { replayGainMode, gaplessEnabled } = useSettings()
+    const replayGainMode = useSettings(state => state.replayGainMode)
+    const gaplessEnabled = useSettings(state => state.gaplessEnabled)
+    const lastfmEnabled = useSettings(state => state.lastfmEnabled)
+    const listenbrainzEnabled = useSettings(state => state.listenbrainzEnabled)
 
     // Sync live track data to get reactive updates (like Loved status)
     const currentTrack = playerTrack ? (allTracks.find(t => t.id === playerTrack.id) || playerTrack) : null
@@ -145,6 +149,11 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                                         GAPLESS
                                     </span>
                                 )}
+                                {trackPlayCount > 0 && (
+                                    <span className="text-[9px] font-bold text-violet-400 uppercase tracking-wider">
+                                        {trackPlayCount}x PLAYED
+                                    </span>
+                                )}
                             </>
                         )}
                     </div>
@@ -246,6 +255,30 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
 
             {/* Volume Control */}
             <div className="flex items-center gap-2 flex-1 justify-end group">
+                <div className="flex gap-1 items-center">
+                    <span
+                        className={cn(
+                            "text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
+                            lastfmEnabled
+                                ? "bg-red-600 text-white shadow-lg shadow-red-600/30"
+                                : "bg-zinc-800 text-zinc-600"
+                        )}
+                        title="Last.fm Scrobbling"
+                    >
+                        L.FM
+                    </span>
+                    <span
+                        className={cn(
+                            "text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
+                            listenbrainzEnabled
+                                ? "bg-violet-600 text-white shadow-lg shadow-violet-600/30"
+                                : "bg-zinc-800 text-zinc-600"
+                        )}
+                        title="ListenBrainz Scrobbling"
+                    >
+                        LB
+                    </span>
+                </div>
                 <Volume2 className="w-5 h-5 text-zinc-500" />
                 <div
                     className="w-24 h-1 bg-zinc-800 rounded-full overflow-hidden cursor-pointer relative py-2"

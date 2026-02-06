@@ -12,6 +12,11 @@ interface SettingsStore {
     trackPlayBehavior: TrackPlayBehavior
     replayGainMode: ReplayGainMode
     gaplessEnabled: boolean
+    lastfmApiKey: string
+    lastfmSessionKey: string
+    listenbrainzToken: string
+    lastfmEnabled: boolean
+    listenbrainzEnabled: boolean
 
     // Actions
     setViewMode: (mode: ViewMode) => void
@@ -21,6 +26,11 @@ interface SettingsStore {
     setTrackPlayBehavior: (behavior: TrackPlayBehavior) => void
     setReplayGainMode: (mode: ReplayGainMode) => void
     setGaplessEnabled: (enabled: boolean) => void
+    setLastfmApiKey: (key: string) => void
+    setLastfmSessionKey: (key: string) => void
+    setListenbrainzToken: (token: string) => void
+    setLastfmEnabled: (enabled: boolean) => void
+    setListenbrainzEnabled: (enabled: boolean) => void
 
     // Persistence
     loadSettings: () => Promise<void>
@@ -34,6 +44,11 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     trackPlayBehavior: 'ask',
     replayGainMode: 'track',
     gaplessEnabled: true,
+    lastfmApiKey: '',
+    lastfmSessionKey: '',
+    listenbrainzToken: '',
+    lastfmEnabled: false,
+    listenbrainzEnabled: false,
 
     setViewMode: (viewMode) => {
         set({ viewMode })
@@ -69,6 +84,32 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     setGaplessEnabled: (enabled) => {
         set({ gaplessEnabled: enabled })
         window.api.settings.save('gaplessEnabled', enabled)
+    },
+    setLastfmApiKey: (key) => {
+        set({ lastfmApiKey: key })
+        window.api.settings.save('lastfmApiKey', key)
+        window.api.scrobble.updateLastFmKey(key).catch(err => {
+            console.error('Failed to update Last.fm key in service:', err)
+        })
+    },
+    setLastfmSessionKey: (key: string) => {
+        set({ lastfmSessionKey: key })
+        window.api.settings.save('lastfmSessionKey', key)
+    },
+    setListenbrainzToken: (token: string) => {
+        set({ listenbrainzToken: token })
+        window.api.settings.save('listenbrainzToken', token)
+        window.api.scrobble.updateListenBrainzToken(token).catch(err => {
+            console.error('Failed to update ListenBrainz token in service:', err)
+        })
+    },
+    setLastfmEnabled: (enabled) => {
+        set({ lastfmEnabled: enabled })
+        window.api.settings.save('lastfmEnabled', enabled)
+    },
+    setListenbrainzEnabled: (enabled) => {
+        set({ listenbrainzEnabled: enabled })
+        window.api.settings.save('listenbrainzEnabled', enabled)
     },
 
     loadSettings: async () => {

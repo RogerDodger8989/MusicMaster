@@ -83,6 +83,45 @@ CREATE TABLE IF NOT EXISTS scan_history (
     FOREIGN KEY (folder_id) REFERENCES music_folders(id) ON DELETE SET NULL
 );
 
+-- Scrobble Queue (for offline support)
+CREATE TABLE IF NOT EXISTS scrobble_queue (
+    id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL,
+    artist TEXT NOT NULL,
+    title TEXT NOT NULL,
+    album TEXT,
+    played_at INTEGER NOT NULL,
+    submitted INTEGER DEFAULT 0,
+    lastfm_submitted INTEGER DEFAULT 0,
+    listenbrainz_submitted INTEGER DEFAULT 0,
+    error_message TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
+);
+
+-- Play History
+CREATE TABLE IF NOT EXISTS play_history (
+    id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL,
+    played_at DATETIME NOT NULL,
+    play_count INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
+);
+
+-- Scrobbling Configuration
+CREATE TABLE IF NOT EXISTS scrobble_settings (
+    id TEXT PRIMARY KEY DEFAULT 'config',
+    lastfm_username TEXT,
+    lastfm_session_key TEXT,
+    lastfm_enabled INTEGER DEFAULT 0,
+    listenbrainz_enabled INTEGER DEFAULT 1,
+    sync_loved_status INTEGER DEFAULT 1,
+    sync_playcount INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for Performance
 CREATE INDEX IF NOT EXISTS idx_tracks_artist ON tracks(artist);
 CREATE INDEX IF NOT EXISTS idx_tracks_album ON tracks(album);

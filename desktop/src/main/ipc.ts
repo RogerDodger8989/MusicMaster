@@ -8,7 +8,7 @@ import {
     removeMusicFolder,
     updateFolderWatchStatus
 } from './database/folders'
-import { getAllTracks, updateTrackRating, updateTrackLoved, getTracksByAlbum, dbTrackToTrack } from './database/tracks'
+import { getAllTracks, updateTrackRating, updateTrackLoved, getTracksByAlbum, dbTrackToTrack, addScrobbleToQueue, getPendingScrobbles, markScrobbleSubmitted, recordPlayHistory, getTrackPlayCount } from './database/tracks'
 import {
     aggregateAlbums,
     getAllAlbums,
@@ -22,6 +22,7 @@ import {
 } from './database/albums'
 import { getAllArtists, updateArtistLoved } from './database/artists'
 import { lastFmService } from './services/lastfm'
+import { listenBrainzService } from './services/listenbrainz'
 import { writeMetadata } from './services/metadataWriter'
 import { searchLibrary } from './database/search'
 import path from 'path'
@@ -628,6 +629,139 @@ export function registerIpcHandlers(): void {
             const db = getDatabase()
             db.prepare('UPDATE playlists SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(name, id)
             return true
+        })
+
+        // Scrobbling
+        console.log('🎵 Registering scrobbling handlers...')
+
+        ipcMain.handle('scrobble:recordPlay', async (_, trackId: string) => {
+            console.log('▶️ Recording play:', trackId)
+            try {
+                recordPlayHistory(trackId)
+
+                // Get track details
+                const tracks = getAllTracks()
+                const track = tracks.find(t => t.id === trackId)
+
+                if (track) {
+                    // Add to scrobble queue
+                    const timestamp = Math.floor(Date.now() / 1000)
+                    addScrobbleToQueue(trackId, track.artist, track.title, track.album, timestamp)
+                    console.log('✅ Play recorded and added to scrobble queue')
+                }
+                return true
+            } catch (error) {
+                console.error('Failed to record play:', error)
+                return false
+            }
+        })
+
+        ipcMain.handle('scrobble:getPending', async () => {
+            console.log('📋 Getting pending scrobbles...')
+            try {
+                const pending = getPendingScrobbles()
+                console.log(`Found ${pending.length} pending scrobbles`)
+                return pending
+            } catch (error) {
+                console.error('Failed to get pending scrobbles:', error)
+                return []
+            }
+        })
+
+        ipcMain.handle('scrobble:submitToLastFM', async (_, scrobbleId: string, sessionKey: string) => {
+            console.log('📤 Submitting scrobble to Last.fm:', scrobbleId)
+            try {
+                const pending = getPendingScrobbles()
+                const scrobble = pending.find(s => s.id === scrobbleId)
+
+                if (!scrobble) {
+                    console.warn('Scrobble not found:', scrobbleId)
+                    return false
+                }
+
+                const success = await lastFmService.scrobble(
+                    sessionKey,
+                    scrobble.artist,
+                    scrobble.title,
+                    scrobble.playedAt,
+                    scrobble.album || undefined
+                )
+
+                if (success) {
+                    markScrobbleSubmitted(scrobbleId, 'lastfm')
+                    console.log('✅ Scrobble submitted to Last.fm')
+                }
+                return success
+            } catch (error) {
+                console.error('Failed to submit scrobble to Last.fm:', error)
+                return false
+            }
+        })
+
+        ipcMain.handle('scrobble:submitToListenBrainz', async (_, scrobbleId: string) => {
+            console.log('📤 Submitting scrobble to ListenBrainz:', scrobbleId)
+            try {
+                const pending = getPendingScrobbles()
+                const scrobble = pending.find(s => s.id === scrobbleId)
+
+                if (!scrobble) {
+                    console.warn('Scrobble not found:', scrobbleId)
+                    return false
+                }
+
+                const success = await listenBrainzService.submitListen(
+                    {
+                        artist_name: scrobble.artist,
+                        track_name: scrobble.title,
+                        release_name: scrobble.album || undefined
+                    },
+                    scrobble.playedAt
+                )
+
+                if (success) {
+                    markScrobbleSubmitted(scrobbleId, 'listenbrainz')
+                    console.log('✅ Scrobble submitted to ListenBrainz')
+                }
+                return success
+            } catch (error) {
+                console.error('Failed to submit scrobble to ListenBrainz:', error)
+                return false
+            }
+        })
+
+        ipcMain.handle('scrobble:getPlayCount', async (_, trackId: string) => {
+            console.log('📊 Getting play count for track:', trackId)
+            try {
+                const count = getTrackPlayCount(trackId)
+                return count
+            } catch (error) {
+                console.error('Failed to get play count:', error)
+                return 0
+            }
+        })
+
+        ipcMain.handle('scrobble:updateLastFmKey', async (_, key: string) => {
+            console.log('🔑 Updating Last.fm API key')
+            try {
+                lastFmService.setApiKey(key)
+                // Optionally save to database if you want persistence
+                return true
+            } catch (error) {
+                console.error('Failed to update Last.fm key:', error)
+                return false
+            }
+        })
+
+        ipcMain.handle('scrobble:updateListenBrainzToken', async (_, token: string) => {
+            console.log('🔑 Updating ListenBrainz token')
+            try {
+                listenBrainzService.setToken(token)
+                // Optionally save to database if you want persistence
+                return true
+            } catch (error) {
+                console.error('Failed to update ListenBrainz token:', error)
+                return false
+            }
         })
 
         console.log('✅ All IPC handlers registered successfully!')

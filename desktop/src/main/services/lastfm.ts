@@ -3,11 +3,17 @@ import { app } from 'electron'
 import path from 'path'
 import fs from 'fs/promises'
 import { existsSync } from 'fs'
+import { createHash } from 'crypto'
 import { spotifyService } from './spotify'
 
-const API_KEY = process.env.LASTFM_API_KEY
+const API_SECRET = '92c30a1a48b0e99ee46a1e82d4c4fc39' // Last.fm shared secret
 const BASE_URL = 'http://ws.audioscrobbler.com/2.0/'
 const CACHE_DIR = path.join(app.getPath('userData'), 'external_cache')
+
+// Store API key in memory with fallback to env
+let apiKey = process.env.LASTFM_API_KEY || ''
+
+const getApiKey = (): string => apiKey
 
 export interface LastFmTrackInfo {
     duration?: number
@@ -52,8 +58,9 @@ export class LastFmService {
     }
 
     private async fetch(method: string, params: Record<string, string>) {
-        if (!API_KEY) {
-            console.warn('LASTFM_API_KEY not found in .env')
+        const key = getApiKey()
+        if (!key) {
+            console.warn('LASTFM_API_KEY not found')
             return null
         }
 
@@ -61,7 +68,7 @@ export class LastFmService {
             const response = await axios.get(BASE_URL, {
                 params: {
                     method,
-                    api_key: API_KEY,
+                    api_key: key,
                     format: 'json',
                     ...params
                 }
@@ -184,6 +191,149 @@ export class LastFmService {
         const lg = images.find(img => img.size === 'large')
 
         return mega?.['#text'] || xl?.['#text'] || lg?.['#text'] || images[0]?.['#text'] || null
+    }
+
+    /**
+     * Get track info including playcount and loved status
+     */
+    async getTrackInfo(artist: string, track: string, username?: string): Promise<LastFmTrackInfo | null> {
+        const params: Record<string, string> = { artist, track }
+        if (username) params.username = username
+
+        const data = await this.fetch('track.getInfo', params)
+        return data?.track || null
+    }
+
+    /**
+     * Get MD5 hash for Last.fm authentication
+     */
+    private md5(str: string): string {
+        return createHash('md5').update(str).digest('hex')
+    }
+
+    /**
+     * Generate authentication signature for Last.fm API
+     */
+    private generateSignature(params: Record<string, string>): string {
+        // Sort params and concatenate
+        const sorted = Object.keys(params).sort()
+        let str = ''
+        for (const key of sorted) {
+            str += key + params[key]
+        }
+        str += API_SECRET
+        return this.md5(str)
+    }
+
+    /**
+     * Update now playing track
+     */
+    async updateNowPlaying(sessionKey: string, artist: string, track: string, album?: string, duration?: number): Promise<boolean> {
+        const key = getApiKey()
+        if (!key || !sessionKey) {
+            console.warn('LASTFM_API_KEY or session key missing')
+            return false
+        }
+
+        try {
+            const params: Record<string, string> = {
+                method: 'track.updateNowPlaying',
+                api_key: key,
+                artist,
+                track,
+                sk: sessionKey
+            }
+            if (album) params.album = album
+            if (duration) params.duration = duration.toString()
+
+            const signature = this.generateSignature(params)
+            params.api_sig = signature
+
+            const response = await axios.post(BASE_URL, new URLSearchParams(params))
+            return response.status === 200
+        } catch (error) {
+            console.error('Failed to update now playing:', error)
+            return false
+        }
+    }
+
+    /**
+     * Scrobble a track
+     */
+    async scrobble(
+        sessionKey: string,
+        artist: string,
+        track: string,
+        timestamp: number,
+        album?: string,
+        trackNumber?: number
+    ): Promise<boolean> {
+        const key = getApiKey()
+        if (!key || !sessionKey) {
+            console.warn('LASTFM_API_KEY or session key missing')
+            return false
+        }
+
+        try {
+            const params: Record<string, string> = {
+                method: 'track.scrobble',
+                api_key: key,
+                artist,
+                track,
+                timestamp: timestamp.toString(),
+                sk: sessionKey
+            }
+            if (album) params.album = album
+            if (trackNumber) params.trackNumber = trackNumber.toString()
+
+            const signature = this.generateSignature(params)
+            params.api_sig = signature
+
+            const response = await axios.post(BASE_URL, new URLSearchParams(params))
+            return response.status === 200
+        } catch (error) {
+            console.error('Failed to scrobble track:', error)
+            return false
+        }
+    }
+
+    /**
+     * Love/Unlove a track
+     */
+    async loveTrack(sessionKey: string, artist: string, track: string, love: boolean = true): Promise<boolean> {
+        const key = getApiKey()
+        if (!key || !sessionKey) {
+            console.warn('LASTFM_API_KEY or session key missing')
+            return false
+        }
+
+        try {
+            const method = love ? 'track.love' : 'track.unlove'
+            const params: Record<string, string> = {
+                method,
+                api_key: key,
+                artist,
+                track,
+                sk: sessionKey
+            }
+
+            const signature = this.generateSignature(params)
+            params.api_sig = signature
+
+            const response = await axios.post(BASE_URL, new URLSearchParams(params))
+            return response.status === 200
+        } catch (error) {
+            console.error(`Failed to ${love ? 'love' : 'unlove'} track:`, error)
+            return false
+        }
+    }
+
+    /**
+     * Set API key dynamically (from settings)
+     */
+    setApiKey(key: string) {
+        apiKey = key
+        console.log('Last.fm API key updated')
     }
 }
 

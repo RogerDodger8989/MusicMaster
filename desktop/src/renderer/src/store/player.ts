@@ -19,6 +19,7 @@ interface PlayerState {
     history: Track[]
     historyTrackIds: Set<string>
     replayGainApplied: number  // 0 to 1+ (calculated from ReplayGain metadata)
+    trackPlayCount: number  // Play count for current track
 
     // Actions
     playTrack: (track: Track) => void
@@ -88,9 +89,14 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
             // Add to history if 50% played
             if (currentTrack && duration > 0 && progress >= 50) {
-                const { history } = get()
-                const alreadyInHistory = history.length > 0 && history[0].id === currentTrack.id
+                const { history, historyTrackIds } = get()
+                const alreadyInHistory = historyTrackIds.has(currentTrack.id)
                 if (!alreadyInHistory) {
+                    // Record play for scrobbling
+                    window.api.scrobble.recordPlay(currentTrack.id).catch(err => {
+                        console.error('Failed to record play:', err)
+                    })
+                    historyTrackIds.add(currentTrack.id)
                     set(state => ({
                         history: [currentTrack, ...state.history.filter(t => t.id !== currentTrack.id)].slice(0, 50)
                     }))
@@ -245,6 +251,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
         history: [],
         historyTrackIds: new Set(),
         replayGainApplied: 1,
+        trackPlayCount: 0,
 
         playTrack: (track) => {
             // Calculate ReplayGain based on current settings
@@ -257,10 +264,18 @@ export const usePlayer = create<PlayerState>((set, get) => {
                 currentTrack: track,
                 currentTime: 0,
                 progress: 0,
-                replayGainApplied: replayGain
+                replayGainApplied: replayGain,
+                trackPlayCount: 0
             })
             loadAndPlay(track)
             persistSession()
+
+            // Fetch play count
+            window.api.scrobble.getPlayCount(track.id).then(count => {
+                set({ trackPlayCount: count })
+            }).catch(err => {
+                console.error('Failed to fetch play count:', err)
+            })
         },
 
         playAlbum: (tracks, startIndex = 0) => {
@@ -277,10 +292,18 @@ export const usePlayer = create<PlayerState>((set, get) => {
                 currentTrack: targetTrack,
                 currentTime: 0,
                 progress: 0,
-                replayGainApplied: replayGain
+                replayGainApplied: replayGain,
+                trackPlayCount: 0
             })
             loadAndPlay(targetTrack)
             persistSession()
+
+            // Fetch play count
+            window.api.scrobble.getPlayCount(targetTrack.id).then(count => {
+                set({ trackPlayCount: count })
+            }).catch(err => {
+                console.error('Failed to fetch play count:', err)
+            })
         },
 
         addToQueue: (track) => {
@@ -345,7 +368,8 @@ export const usePlayer = create<PlayerState>((set, get) => {
                     currentTrack: nextTrack,
                     currentTime: 0,
                     progress: 0,
-                    replayGainApplied: replayGain
+                    replayGainApplied: replayGain,
+                    trackPlayCount: 0
                 })
 
                 const oldAudio = activeAudio
@@ -373,6 +397,13 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
                 preloadNextTrack()
                 persistSession()
+
+                // Fetch play count
+                window.api.scrobble.getPlayCount(nextTrack.id).then(count => {
+                    set({ trackPlayCount: count })
+                }).catch(err => {
+                    console.error('Failed to fetch play count:', err)
+                })
                 return
             }
 
@@ -381,10 +412,18 @@ export const usePlayer = create<PlayerState>((set, get) => {
                 currentTrack: nextTrack,
                 currentTime: 0,
                 progress: 0,
-                replayGainApplied: replayGain
+                replayGainApplied: replayGain,
+                trackPlayCount: 0
             })
             loadAndPlay(nextTrack)
             persistSession()
+
+            // Fetch play count
+            window.api.scrobble.getPlayCount(nextTrack.id).then(count => {
+                set({ trackPlayCount: count })
+            }).catch(err => {
+                console.error('Failed to fetch play count:', err)
+            })
         },
 
         prev: () => {
@@ -633,6 +672,21 @@ export const usePlayer = create<PlayerState>((set, get) => {
             } catch (error) {
                 console.error('Failed to load session:', error)
             }
+        },
+
+        updateTrack: (trackId: string, updates: Partial<Track>) => {
+            const { currentTrack, queue } = get()
+            if (currentTrack && currentTrack.id === trackId) {
+                set({
+                    currentTrack: { ...currentTrack, ...updates }
+                })
+            }
+
+            // Also update in queue
+            const updatedQueue = queue.map(t =>
+                t.id === trackId ? { ...t, ...updates } : t
+            )
+            set({ queue: updatedQueue })
         }
     }
 })

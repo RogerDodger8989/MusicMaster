@@ -13,6 +13,11 @@ export default function SettingsView() {
         loadFolders()
     }, [])
 
+    useEffect(() => {
+        // Ensure settings are loaded
+        settings.loadSettings()
+    }, [])
+
     const handleAddFolder = async () => {
         try {
             console.log('handleAddFolder: Starting...')
@@ -244,8 +249,63 @@ export default function SettingsView() {
                 </div>
 
                 <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
+                    <h3 className="text-lg font-semibold text-white mb-4">Scrobbling</h3>
+                    <div className="space-y-6">
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <div>
+                                    <label className="text-sm font-medium text-zinc-400">ListenBrainz Token</label>
+                                    <p className="text-xs text-zinc-600 mt-1">Paste your ListenBrainz token and enable to scrobble</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={settings.listenbrainzEnabled}
+                                    onChange={(e) => settings.setListenbrainzEnabled(e.target.checked)}
+                                    className="w-4 h-4 cursor-pointer"
+                                    title="Enable ListenBrainz scrobbling"
+                                />
+                            </div>
+                            <input
+                                type="text"
+                                value={settings.listenbrainzToken}
+                                onChange={(e) => settings.setListenbrainzToken(e.target.value)}
+                                placeholder="Paste your ListenBrainz token..."
+                                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                            />
+                        </div>
+
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <div>
+                                    <label className="text-sm font-medium text-zinc-400">Last.fm API Key</label>
+                                    <p className="text-xs text-zinc-600 mt-1">Paste your Last.fm API key and enable to scrobble</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={settings.lastfmEnabled}
+                                    onChange={(e) => settings.setLastfmEnabled(e.target.checked)}
+                                    className="w-4 h-4 cursor-pointer"
+                                    title="Enable Last.fm scrobbling"
+                                />
+                            </div>
+                            <input
+                                type="text"
+                                value={settings.lastfmApiKey}
+                                onChange={(e) => settings.setLastfmApiKey(e.target.value)}
+                                placeholder="Paste your Last.fm API key..."
+                                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                            />
+                        </div>
+
+                        <p className="text-xs text-zinc-500">
+                            📊 <strong>Play Tracking:</strong> Each completed track play is recorded and automatically submitted to configured services.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
                     <h3 className="text-lg font-semibold text-white mb-4">Integrations</h3>
-                    <p className="text-sm text-zinc-500">Last.fm, MusicBrainz, Spotify integration coming soon...</p>
+                    <p className="text-sm text-zinc-500">MusicBrainz, Spotify integration coming soon...</p>
                 </div>
 
                 <div className="p-6 bg-red-900/10 border border-red-900/50 rounded-lg">
