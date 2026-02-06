@@ -42,8 +42,12 @@ interface PlayerState {
     loadSession: () => Promise<void>
 }
 
-// Global Audio Element
-const audio = new Audio()
+// Global Audio Elements (active + preloaded)
+let activeAudio = new Audio()
+let preloadAudio = new Audio()
+preloadAudio.preload = 'auto'
+let preloadedTrackIndex: number | null = null
+let preloadedTrack: Track | null = null
 
 // DEBUG ALERT - REMOVE AFTER FIXING
 if (typeof window !== 'undefined') {
@@ -65,38 +69,107 @@ if (typeof window !== 'undefined') {
 
 export const usePlayer = create<PlayerState>((set, get) => {
 
-    // --- Audio Event Listeners ---
-    audio.ontimeupdate = () => {
-        const { currentTrack, duration } = get()
-        const currentTime = audio.currentTime
-        const progress = (currentTime / (duration || 1)) * 100
+    const getTrackSrc = (track: Track) => {
+        if (!track.filePath) return ''
+        const normalized = track.filePath.replace(/\\/g, '/')
+        return `asset:///${encodeURI(normalized)}`
+    }
 
-        // Add to history if 50% played
-        if (currentTrack && duration > 0 && progress >= 50) {
-            const { history } = get()
-            const alreadyInHistory = history.length > 0 && history[0].id === currentTrack.id
-            if (!alreadyInHistory) {
-                set(state => ({
-                    history: [currentTrack, ...state.history.filter(t => t.id !== currentTrack.id)].slice(0, 50)
-                }))
+    const applyEffectiveVolume = (volume: number, replayGain: number) => {
+        const finalVolume = Math.min(1, Math.max(0, volume * replayGain))
+        activeAudio.volume = finalVolume
+    }
+
+    const attachAudioListeners = () => {
+        activeAudio.ontimeupdate = () => {
+            const { currentTrack, duration } = get()
+            const currentTime = activeAudio.currentTime
+            const progress = (currentTime / (duration || 1)) * 100
+
+            // Add to history if 50% played
+            if (currentTrack && duration > 0 && progress >= 50) {
+                const { history } = get()
+                const alreadyInHistory = history.length > 0 && history[0].id === currentTrack.id
+                if (!alreadyInHistory) {
+                    set(state => ({
+                        history: [currentTrack, ...state.history.filter(t => t.id !== currentTrack.id)].slice(0, 50)
+                    }))
+                }
             }
+
+            set({
+                currentTime,
+                progress,
+                duration: activeAudio.duration || 0
+            })
         }
 
-        set({
-            currentTime,
-            progress,
-            duration: audio.duration || 0
-        })
+        activeAudio.onended = () => {
+            get().next()
+        }
+
+        activeAudio.onerror = (e) => {
+            console.error("Audio Error Event:", e)
+            set({ isPlaying: false })
+        }
     }
 
-    audio.onended = () => {
-        get().next()
+    const setActiveAudio = (audioEl: HTMLAudioElement) => {
+        activeAudio.ontimeupdate = null
+        activeAudio.onended = null
+        activeAudio.onerror = null
+        activeAudio = audioEl
+        activeAudio.loop = get().repeatMode === 'repeat-one'
+        attachAudioListeners()
     }
 
-    audio.onerror = (e) => {
-        console.error("Audio Error Event:", e)
-        set({ isPlaying: false })
+    const computeNextIndex = (queue: Track[], currentIndex: number, repeatMode: PlayMode, ignoreRepeatOne = false) => {
+        if (!queue.length) return null
+        if (repeatMode === 'repeat-one' && !ignoreRepeatOne) return null
+
+        let nextIndex = currentIndex + 1
+        if (nextIndex >= queue.length) {
+            if (repeatMode === 'repeat-all') return 0
+            return null
+        }
+        return nextIndex
     }
+
+    const preloadNextTrack = () => {
+        const gaplessEnabled = useSettings.getState().gaplessEnabled
+        if (!gaplessEnabled) {
+            preloadedTrackIndex = null
+            preloadedTrack = null
+            preloadAudio.src = ''
+            return
+        }
+
+        const { queue, currentIndex, repeatMode } = get()
+        const nextIndex = computeNextIndex(queue, currentIndex, repeatMode)
+        if (nextIndex === null) {
+            preloadedTrackIndex = null
+            preloadedTrack = null
+            preloadAudio.src = ''
+            return
+        }
+
+        const nextTrack = queue[nextIndex]
+        const src = getTrackSrc(nextTrack)
+        if (!src) {
+            preloadedTrackIndex = null
+            preloadedTrack = null
+            preloadAudio.src = ''
+            return
+        }
+
+        preloadedTrackIndex = nextIndex
+        preloadedTrack = nextTrack
+        preloadAudio.src = src
+        preloadAudio.load()
+    }
+
+    // --- Audio Event Listeners ---
+    attachAudioListeners()
 
     // --- Persistence Helper ---
     let saveTimeout: any = null
@@ -122,39 +195,40 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
     // --- Helper to start playback ---
     const loadAndPlay = (track: Track) => {
-        let src = ''
-        if (track.filePath) {
-            const normalized = track.filePath.replace(/\\/g, '/')
-            src = `asset:///${encodeURI(normalized)}`
+        const src = getTrackSrc(track)
+        if (!src) return
+
+        const { volume, replayGainApplied } = get()
+        applyEffectiveVolume(volume, replayGainApplied)
+
+        if (activeAudio.src === src) {
+            activeAudio.play().then(() => {
+                set({ isPlaying: true })
+            }).catch(err => {
+                console.error("[Player] Resume failed:", err)
+                set({ isPlaying: false })
+            })
+            return
         }
 
-        if (src) {
-            if (audio.src === src) {
-                audio.play().then(() => {
-                    set({ isPlaying: true })
-                }).catch(err => {
-                    console.error("[Player] Resume failed:", err)
+        activeAudio.pause()
+        activeAudio.src = src
+        activeAudio.load()
+
+        const playPromise = activeAudio.play()
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                set({ isPlaying: true, duration: activeAudio.duration || 0 })
+            }).catch(err => {
+                if (err.name !== 'AbortError') {
+                    console.error(`[Player] Failed to play ${track.title}:`, err)
                     set({ isPlaying: false })
-                })
-                return
-            }
-
-            audio.pause()
-            audio.src = src
-            audio.load()
-
-            const playPromise = audio.play()
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    set({ isPlaying: true, duration: audio.duration || 0 })
-                }).catch(err => {
-                    if (err.name !== 'AbortError') {
-                        console.error(`[Player] Failed to play ${track.title}:`, err)
-                        set({ isPlaying: false })
-                    }
-                })
-            }
+                }
+            })
         }
+
+        // Preload next track for gapless playback
+        preloadNextTrack()
     }
 
     return {
@@ -211,6 +285,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
         addToQueue: (track) => {
             set(state => ({ queue: [...state.queue, track] }))
+            preloadNextTrack()
             persistSession()
         },
 
@@ -220,6 +295,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
                 newQueue.splice(state.currentIndex + 1, 0, track)
                 return { queue: newQueue }
             })
+            preloadNextTrack()
             persistSession()
         },
 
@@ -235,10 +311,10 @@ export const usePlayer = create<PlayerState>((set, get) => {
             if (!currentTrack && queue.length === 0) return
 
             if (isPlaying) {
-                audio.pause()
+                activeAudio.pause()
                 set({ isPlaying: false })
             } else {
-                const playPromise = audio.play()
+                const playPromise = activeAudio.play()
                 if (playPromise) {
                     playPromise.catch(e => console.error("togglePlay failed:", e))
                 }
@@ -250,28 +326,60 @@ export const usePlayer = create<PlayerState>((set, get) => {
         next: () => {
             const { queue, currentIndex, repeatMode } = get()
             if (queue.length === 0) return
-
-            let nextIndex = currentIndex + 1
-
-            if (nextIndex >= queue.length) {
-                if (repeatMode === 'repeat-all') {
-                    nextIndex = 0
-                } else {
-                    audio.pause()
-                    audio.currentTime = 0
-                    set({ isPlaying: false, progress: 0, currentTime: 0 })
-                    return
-                }
+            const nextIndex = computeNextIndex(queue, currentIndex, repeatMode, true)
+            if (nextIndex === null) {
+                activeAudio.pause()
+                activeAudio.currentTime = 0
+                set({ isPlaying: false, progress: 0, currentTime: 0 })
+                return
             }
 
             const nextTrack = queue[nextIndex]
             const mode = useSettings.getState().replayGainMode
             const replayGain = calculateReplayGain(nextTrack, mode)
-            
-            set({ 
-                currentIndex: nextIndex, 
-                currentTrack: nextTrack, 
-                currentTime: 0, 
+
+            const gaplessEnabled = useSettings.getState().gaplessEnabled
+            if (gaplessEnabled && preloadedTrackIndex === nextIndex && preloadedTrack && preloadAudio.src) {
+                set({
+                    currentIndex: nextIndex,
+                    currentTrack: nextTrack,
+                    currentTime: 0,
+                    progress: 0,
+                    replayGainApplied: replayGain
+                })
+
+                const oldAudio = activeAudio
+                oldAudio.pause()
+                oldAudio.currentTime = 0
+                oldAudio.src = ''
+                oldAudio.load()
+                setActiveAudio(preloadAudio)
+                preloadAudio = oldAudio
+                preloadAudio.src = ''
+                preloadAudio.load()
+
+                applyEffectiveVolume(get().volume, replayGain)
+                const playPromise = activeAudio.play()
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        set({ isPlaying: true, duration: activeAudio.duration || 0 })
+                    }).catch(err => {
+                        if (err.name !== 'AbortError') {
+                            console.error(`[Player] Failed to play ${nextTrack.title}:`, err)
+                            set({ isPlaying: false })
+                        }
+                    })
+                }
+
+                preloadNextTrack()
+                persistSession()
+                return
+            }
+
+            set({
+                currentIndex: nextIndex,
+                currentTrack: nextTrack,
+                currentTime: 0,
                 progress: 0,
                 replayGainApplied: replayGain
             })
@@ -282,7 +390,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
         prev: () => {
             const { queue, currentIndex, currentTime } = get()
             if (currentTime > 3) {
-                audio.currentTime = 0
+                activeAudio.currentTime = 0
                 return
             }
 
@@ -308,7 +416,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
         seek: (time) => {
             if (!isFinite(time)) return
-            audio.currentTime = time
+            activeAudio.currentTime = time
             set({ currentTime: time })
             persistSession()
         },
@@ -318,8 +426,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
             const { replayGainApplied } = get()
             // Combine user volume with ReplayGain
             // Clamp final volume to prevent clipping
-            const finalVolume = Math.min(1, clamped * replayGainApplied)
-            audio.volume = finalVolume
+            applyEffectiveVolume(clamped, replayGainApplied)
             set({ volume: clamped })
             persistSession()
         },
@@ -345,13 +452,17 @@ export const usePlayer = create<PlayerState>((set, get) => {
                 newIndex = newQueue.findIndex(t => t.id === currentTrack.id)
             }
             set({ queue: newQueue, currentIndex: newIndex })
+            preloadNextTrack()
             persistSession()
         },
 
         clearQueue: () => {
             set({ queue: [], currentIndex: -1, currentTrack: null, isPlaying: false })
-            audio.pause()
-            audio.src = ''
+            activeAudio.pause()
+            activeAudio.src = ''
+            preloadedTrackIndex = null
+            preloadedTrack = null
+            preloadAudio.src = ''
             persistSession()
         },
 
@@ -411,6 +522,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
             }
 
             set({ queue: [...played, ...shuffled] })
+            preloadNextTrack()
             persistSession()
         },
 
@@ -452,6 +564,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
             }
 
             set({ queue: newQueue, currentIndex: newCurrentIndex })
+            preloadNextTrack()
             persistSession()
         },
 
@@ -467,6 +580,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
             }
 
             set({ queue: newQueue, currentIndex: newCurrentIndex })
+            preloadNextTrack()
             persistSession()
         },
 
@@ -475,9 +589,10 @@ export const usePlayer = create<PlayerState>((set, get) => {
                 const next: PlayMode =
                     state.repeatMode === 'normal' ? 'repeat-all' :
                         state.repeatMode === 'repeat-all' ? 'repeat-one' : 'normal'
-                audio.loop = next === 'repeat-one'
+                activeAudio.loop = next === 'repeat-one'
                 return { repeatMode: next }
             })
+            preloadNextTrack()
             persistSession()
         },
 
@@ -504,20 +619,16 @@ export const usePlayer = create<PlayerState>((set, get) => {
                     })
 
                     // Apply final volume with ReplayGain
-                    const finalVolume = Math.min(1, (volume ?? 1) * replayGain)
-                    audio.volume = finalVolume
+                    applyEffectiveVolume(volume ?? 1, replayGain)
                     if (track) {
-                        let src = ''
-                        if (track.filePath) {
-                            const normalized = track.filePath.replace(/\\/g, '/')
-                            src = `asset:///${encodeURI(normalized)}`
-                        }
+                        const src = getTrackSrc(track)
                         if (src) {
-                            audio.src = src
-                            audio.load()
-                            audio.currentTime = currentTime || 0
+                            activeAudio.src = src
+                            activeAudio.load()
+                            activeAudio.currentTime = currentTime || 0
                         }
                     }
+                    preloadNextTrack()
                 }
             } catch (error) {
                 console.error('Failed to load session:', error)

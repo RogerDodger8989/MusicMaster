@@ -37,6 +37,20 @@ export function registerIpcHandlers(): void {
         initDatabase()
         fs.appendFileSync(logPath, `[${new Date().toISOString()}] Database initialized\n`)
 
+        // Start watchers for folders that have watch enabled
+        try {
+            const folders = getAllMusicFolders()
+            folders
+                .filter((folder) => folder.watchEnabled)
+                .forEach((folder) => {
+                    musicScanner.startWatching(folder.id, folder.path)
+                })
+            fs.appendFileSync(logPath, `[${new Date().toISOString()}] Watchers restored on startup\n`)
+        } catch (error) {
+            console.error('Failed to restore watchers on startup:', error)
+            fs.appendFileSync(logPath, `[${new Date().toISOString()}] Failed to restore watchers on startup\n`)
+        }
+
 
         // Music Folders
         console.log('📁 Registering folder handlers...')

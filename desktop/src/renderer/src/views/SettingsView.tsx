@@ -7,6 +7,7 @@ import { cn } from '../lib/utils'
 
 export default function SettingsView() {
     const { folders, isLoading, loadFolders, addFolder, removeFolder, updateFolderWatch, browseFolder } = useFolders()
+    const settings = useSettings()
 
     useEffect(() => {
         loadFolders()
@@ -171,10 +172,10 @@ export default function SettingsView() {
                                 ].map((opt) => (
                                     <button
                                         key={opt.id}
-                                        onClick={() => useSettings.getState().setTrackPlayBehavior(opt.id as TrackPlayBehavior)}
+                                        onClick={() => settings.setTrackPlayBehavior(opt.id as TrackPlayBehavior)}
                                         className={cn(
                                             "px-3 py-2 text-xs font-semibold rounded-lg border transition-all",
-                                            useSettings.getState().trackPlayBehavior === opt.id
+                                            settings.trackPlayBehavior === opt.id
                                                 ? "bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-500/20"
                                                 : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200"
                                         )}
@@ -201,10 +202,10 @@ export default function SettingsView() {
                                 ].map((opt) => (
                                     <button
                                         key={opt.id}
-                                        onClick={() => useSettings.getState().setReplayGainMode(opt.id as ReplayGainMode)}
+                                        onClick={() => settings.setReplayGainMode(opt.id as ReplayGainMode)}
                                         className={cn(
                                             "px-3 py-2 text-xs font-semibold rounded-lg border transition-all",
-                                            useSettings.getState().replayGainMode === opt.id
+                                            settings.replayGainMode === opt.id
                                                 ? "bg-green-600 text-white border-green-500 shadow-lg shadow-green-500/20"
                                                 : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200"
                                         )}
@@ -218,6 +219,26 @@ export default function SettingsView() {
                                 <strong>Album Level:</strong> Normalize per album (preserves album dynamics)<br />
                                 <strong>Off:</strong> Disable ReplayGain
                             </p>
+                        </div>
+
+                        <div className="pt-4 border-t border-zinc-800 flex items-center justify-between gap-3">
+                            <div>
+                                <label className="text-sm font-medium text-zinc-400">Gapless Playback</label>
+                                <p className="text-[11px] text-zinc-600 mt-1">
+                                    Preloads the next track for seamless transitions.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => settings.setGaplessEnabled(!settings.gaplessEnabled)}
+                                className={cn(
+                                    "px-3 py-2 text-xs font-semibold rounded-lg border transition-all",
+                                    settings.gaplessEnabled
+                                        ? "bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-500/20"
+                                        : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200"
+                                )}
+                            >
+                                {settings.gaplessEnabled ? 'On' : 'Off'}
+                            </button>
                         </div>
                     </div>
                 </div>

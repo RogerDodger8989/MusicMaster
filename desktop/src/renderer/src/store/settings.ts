@@ -11,6 +11,7 @@ interface SettingsStore {
     visibleSections: string[]
     trackPlayBehavior: TrackPlayBehavior
     replayGainMode: ReplayGainMode
+    gaplessEnabled: boolean
 
     // Actions
     setViewMode: (mode: ViewMode) => void
@@ -19,6 +20,7 @@ interface SettingsStore {
     toggleSection: (section: string) => void
     setTrackPlayBehavior: (behavior: TrackPlayBehavior) => void
     setReplayGainMode: (mode: ReplayGainMode) => void
+    setGaplessEnabled: (enabled: boolean) => void
 
     // Persistence
     loadSettings: () => Promise<void>
@@ -31,6 +33,7 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     visibleSections: ['recently_added', 'recently_played'],
     trackPlayBehavior: 'ask',
     replayGainMode: 'track',
+    gaplessEnabled: true,
 
     setViewMode: (viewMode) => {
         set({ viewMode })
@@ -62,6 +65,10 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     setReplayGainMode: (mode) => {
         set({ replayGainMode: mode })
         window.api.settings.save('replayGainMode', mode)
+    },
+    setGaplessEnabled: (enabled) => {
+        set({ gaplessEnabled: enabled })
+        window.api.settings.save('gaplessEnabled', enabled)
     },
 
     loadSettings: async () => {

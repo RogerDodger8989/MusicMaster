@@ -4,6 +4,7 @@ import { cn } from '../lib/utils'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
 import { formatDuration } from '../utils/format'
+import { useSettings } from '../store/settings'
 
 interface PlayerBarProps {
     onQueueToggle?: () => void
@@ -30,6 +31,7 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
     } = usePlayer()
 
     const { albums, tracks: allTracks, rateTrack, toggleLoved } = useLibrary()
+    const { replayGainMode, gaplessEnabled } = useSettings()
 
     // Sync live track data to get reactive updates (like Loved status)
     const currentTrack = playerTrack ? (allTracks.find(t => t.id === playerTrack.id) || playerTrack) : null
@@ -37,6 +39,16 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
     // Find cover art if missing on track
     const displayCover = currentTrack?.coverArtPath ||
         (currentTrack ? albums.find(a => a.name === currentTrack.album && a.artist === (currentTrack.albumArtist || currentTrack.artist))?.coverArtPath : null)
+
+    const replayGainValueDb = (() => {
+        if (!currentTrack || replayGainMode === 'off') return null
+        if (replayGainMode === 'album') {
+            return currentTrack.replayGainAlbum ?? currentTrack.replayGainTrack ?? null
+        }
+        return currentTrack.replayGainTrack ?? null
+    })()
+
+    const replayGainLabel = replayGainMode === 'album' ? 'RG ALBUM' : 'RG TRACK'
 
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!duration) return
@@ -120,6 +132,19 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                                         : `${Math.round((currentTrack.bitrate || 0) / 1000)}kbps`
                                     }
                                 </span>
+                                {replayGainMode !== 'off' && replayGainValueDb !== null && (
+                                    <span
+                                        className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider"
+                                        title={`${replayGainLabel}: ${replayGainValueDb.toFixed(2)} dB`}
+                                    >
+                                        {replayGainLabel} {replayGainValueDb.toFixed(2)} dB
+                                    </span>
+                                )}
+                                {gaplessEnabled && (
+                                    <span className="text-[9px] font-bold text-sky-400 uppercase tracking-wider">
+                                        GAPLESS
+                                    </span>
+                                )}
                             </>
                         )}
                     </div>
