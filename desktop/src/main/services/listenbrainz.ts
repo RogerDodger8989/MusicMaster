@@ -24,8 +24,10 @@ export class ListenBrainzService {
      */
     async submitListen(payload: ListenBrainzListenPayload, timestamp?: number): Promise<boolean> {
         const currentToken = getToken()
+        console.log('🎵 Submitting listen to ListenBrainz, token:', currentToken ? 'present' : 'missing')
+        
         if (!currentToken) {
-            console.warn('LISTENBRAINZ_TOKEN not found')
+            console.error('LISTENBRAINZ_TOKEN not found in submitListen')
             return false
         }
 
@@ -44,6 +46,12 @@ export class ListenBrainzService {
                 }
             }
 
+            console.log('📤 Sending listen to ListenBrainz:', {
+                artist: payload.artist_name,
+                track: payload.track_name,
+                timestamp: listen.listened_at
+            })
+
             const response = await axios.post(`${BASE_URL}/submit-listens`, {
                 listen_type: 'single',
                 payload: [listen]
@@ -54,9 +62,14 @@ export class ListenBrainzService {
                 }
             })
 
+            console.log('✅ ListenBrainz response:', response.status, response.data)
             return response.status === 200 || response.status === 201
         } catch (error) {
-            console.error('Failed to submit listen to ListenBrainz:', error)
+            console.error('❌ Failed to submit listen to ListenBrainz:', error)
+            if (axios.isAxiosError(error)) {
+                console.error('Response data:', error.response?.data)
+                console.error('Response status:', error.response?.status)
+            }
             return false
         }
     }

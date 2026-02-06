@@ -118,7 +118,10 @@ const api = {
       ipcRenderer.invoke('scrobble:submitToListenBrainz', scrobbleId),
     getPlayCount: (trackId: string): Promise<number> => ipcRenderer.invoke('scrobble:getPlayCount', trackId),
     updateLastFmKey: (key: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateLastFmKey', key),
-    updateListenBrainzToken: (token: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateListenBrainzToken', token)
+    updateLastFmSecret: (secret: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateLastFmSecret', secret),
+    updateListenBrainzToken: (token: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateListenBrainzToken', token),
+    getLastFmAuthToken: (): Promise<{ token: string; authUrl: string } | null> => ipcRenderer.invoke('scrobble:getLastFmAuthToken'),
+    getLastFmSession: (token: string): Promise<string | null> => ipcRenderer.invoke('scrobble:getLastFmSession', token)
   }
 }
 

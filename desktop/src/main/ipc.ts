@@ -752,6 +752,17 @@ export function registerIpcHandlers(): void {
             }
         })
 
+        ipcMain.handle('scrobble:updateLastFmSecret', async (_, secret: string) => {
+            console.log('🔑 Updating Last.fm API secret')
+            try {
+                lastFmService.setApiSecret(secret)
+                return true
+            } catch (error) {
+                console.error('Failed to update Last.fm secret:', error)
+                return false
+            }
+        })
+
         ipcMain.handle('scrobble:updateListenBrainzToken', async (_, token: string) => {
             console.log('🔑 Updating ListenBrainz token')
             try {
@@ -761,6 +772,35 @@ export function registerIpcHandlers(): void {
             } catch (error) {
                 console.error('Failed to update ListenBrainz token:', error)
                 return false
+            }
+        })
+
+        // Last.fm authentication endpoints
+        ipcMain.handle('scrobble:getLastFmAuthToken', async () => {
+            console.log('🔐 Getting Last.fm auth token...')
+            try {
+                const result = await lastFmService.getAuthToken()
+                if (result) {
+                    console.log('✅ Auth token obtained, user must authorize at:', result.authUrl)
+                }
+                return result
+            } catch (error) {
+                console.error('Failed to get Last.fm auth token:', error)
+                return null
+            }
+        })
+
+        ipcMain.handle('scrobble:getLastFmSession', async (_, token: string) => {
+            console.log('🔑 Exchanging Last.fm auth token for session key...')
+            try {
+                const sessionKey = await lastFmService.getSession(token)
+                if (sessionKey) {
+                    console.log('✅ Last.fm session obtained')
+                }
+                return sessionKey || null
+            } catch (error) {
+                console.error('Failed to get Last.fm session:', error)
+                return null
             }
         })
 

@@ -93,8 +93,11 @@ export const usePlayer = create<PlayerState>((set, get) => {
                 const alreadyInHistory = historyTrackIds.has(currentTrack.id)
                 if (!alreadyInHistory) {
                     // Record play for scrobbling
-                    window.api.scrobble.recordPlay(currentTrack.id).catch(err => {
-                        console.error('Failed to record play:', err)
+                    console.log('🎵 50% played, recording play:', currentTrack.title, 'by', currentTrack.artist)
+                    window.api.scrobble.recordPlay(currentTrack.id).then(() => {
+                        console.log('✅ Play recorded to scrobble queue')
+                    }).catch(err => {
+                        console.error('❌ Failed to record play:', err)
                     })
                     historyTrackIds.add(currentTrack.id)
                     set(state => ({

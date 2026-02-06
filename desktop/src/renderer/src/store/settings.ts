@@ -13,6 +13,7 @@ interface SettingsStore {
     replayGainMode: ReplayGainMode
     gaplessEnabled: boolean
     lastfmApiKey: string
+    lastfmApiSecret: string
     lastfmSessionKey: string
     listenbrainzToken: string
     lastfmEnabled: boolean
@@ -27,6 +28,7 @@ interface SettingsStore {
     setReplayGainMode: (mode: ReplayGainMode) => void
     setGaplessEnabled: (enabled: boolean) => void
     setLastfmApiKey: (key: string) => void
+    setLastfmApiSecret: (secret: string) => void
     setLastfmSessionKey: (key: string) => void
     setListenbrainzToken: (token: string) => void
     setLastfmEnabled: (enabled: boolean) => void
@@ -45,6 +47,7 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     replayGainMode: 'track',
     gaplessEnabled: true,
     lastfmApiKey: '',
+    lastfmApiSecret: '',
     lastfmSessionKey: '',
     listenbrainzToken: '',
     lastfmEnabled: false,
@@ -90,6 +93,13 @@ export const useSettings = create<SettingsStore>((set, get) => ({
         window.api.settings.save('lastfmApiKey', key)
         window.api.scrobble.updateLastFmKey(key).catch(err => {
             console.error('Failed to update Last.fm key in service:', err)
+        })
+    },
+    setLastfmApiSecret: (secret) => {
+        set({ lastfmApiSecret: secret })
+        window.api.settings.save('lastfmApiSecret', secret)
+        window.api.scrobble.updateLastFmSecret(secret).catch(err => {
+            console.error('Failed to update Last.fm secret in service:', err)
         })
     },
     setLastfmSessionKey: (key: string) => {

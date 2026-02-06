@@ -1,13 +1,17 @@
-import { useEffect } from 'react'
-import { FolderOpen, Trash2, Eye, EyeOff, Play } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { FolderOpen, Trash2, Eye, EyeOff, Play, ExternalLink } from 'lucide-react'
 import { useFolders } from '../store/folders'
 import { useLibrary } from '../store/library'
 import { useSettings, TrackPlayBehavior, ReplayGainMode } from '../store/settings'
 import { cn } from '../lib/utils'
+import { scrobbleService } from '../services/scrobbleService'
 
 export default function SettingsView() {
     const { folders, isLoading, loadFolders, addFolder, removeFolder, updateFolderWatch, browseFolder } = useFolders()
     const settings = useSettings()
+    const [lastfmAuthToken, setLastfmAuthToken] = useState('')
+    const [lastfmAuthUrl, setLastfmAuthUrl] = useState('')
+    const [lastfmAuthInProgress, setLastfmAuthInProgress] = useState(false)
 
     useEffect(() => {
         loadFolders()
@@ -17,6 +21,51 @@ export default function SettingsView() {
         // Ensure settings are loaded
         settings.loadSettings()
     }, [])
+
+    const handleLastFmStartAuth = async () => {
+        setLastfmAuthInProgress(true)
+        try {
+            const result = await window.api.scrobble.getLastFmAuthToken()
+            if (result) {
+                setLastfmAuthToken(result.token)
+                setLastfmAuthUrl(result.authUrl)
+                console.log('✅ Last.fm auth started. Token:', result.token.substring(0, 8) + '...')
+                console.log('Auth URL:', result.authUrl)
+                // Automatically open URL
+                window.open(result.authUrl, '_blank')
+            } else {
+                alert('Failed to get auth token from Last.fm. Check console for errors.')
+            }
+        } catch (error) {
+            console.error('Failed to get Last.fm auth token:', error)
+            alert('Failed to start Last.fm authentication: ' + error)
+        }
+        setLastfmAuthInProgress(false)
+    }
+
+    const handleLastFmCompleteAuth = async () => {
+        if (!lastfmAuthToken) {
+            alert('No auth token available. Please start authorization first.')
+            return
+        }
+        try {
+            console.log('🔄 Completing Last.fm auth with token:', lastfmAuthToken.substring(0, 8) + '...')
+            const sessionKey = await window.api.scrobble.getLastFmSession(lastfmAuthToken)
+            if (sessionKey) {
+                settings.setLastfmSessionKey(sessionKey)
+                scrobbleService.setLastFmSession(sessionKey)
+                console.log('✅ Last.fm session obtained and updated in service:', sessionKey.substring(0, 8) + '...')
+                setLastfmAuthToken('')
+                setLastfmAuthUrl('')
+                alert('Last.fm authenticated successfully!')
+            } else {
+                alert('Failed to get Last.fm session. Make sure you authorized the app on Last.fm first.')
+            }
+        } catch (error) {
+            console.error('Failed to complete Last.fm auth:', error)
+            alert('Failed to complete Last.fm authentication: ' + error)
+        }
+    }
 
     const handleAddFolder = async () => {
         try {
@@ -250,6 +299,18 @@ export default function SettingsView() {
 
                 <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
                     <h3 className="text-lg font-semibold text-white mb-4">Scrobbling</h3>
+                    
+                    {/* Important Notice */}
+                    <div className="mb-4 p-3 bg-blue-900/20 border border-blue-900/30 rounded-lg">
+                        <p className="text-xs text-blue-300 mb-2">
+                            <strong>📋 Before you start:</strong>
+                        </p>
+                        <ul className="text-xs text-blue-200 space-y-1 ml-4 list-disc">
+                            <li><strong>ListenBrainz:</strong> Get your token from <a href="https://listenbrainz.org/profile/" target="_blank" rel="noreferrer" className="underline hover:text-blue-100">listenbrainz.org/profile/</a></li>
+                            <li><strong>Last.fm:</strong> Create API key at <a href="https://www.last.fm/api/account/create" target="_blank" rel="noreferrer" className="underline hover:text-blue-100">last.fm/api/account/create</a></li>
+                        </ul>
+                    </div>
+
                     <div className="space-y-6">
                         <div>
                             <div className="flex items-center justify-between mb-3">
@@ -293,9 +354,79 @@ export default function SettingsView() {
                                 value={settings.lastfmApiKey}
                                 onChange={(e) => settings.setLastfmApiKey(e.target.value)}
                                 placeholder="Paste your Last.fm API key..."
-                                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 mb-3"
+                            />
+                            <div className="mb-3">
+                                <label className="text-sm font-medium text-zinc-400">Last.fm Shared Secret</label>
+                                <p className="text-xs text-zinc-600 mt-1">Required for authentication (get it when you create your API key)</p>
+                            </div>
+                            <input
+                                type="password"
+                                value={settings.lastfmApiSecret}
+                                onChange={(e) => settings.setLastfmApiSecret(e.target.value)}
+                                placeholder="Paste your Last.fm shared secret..."
+                                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 mb-3"
                             />
                         </div>
+
+                        {settings.lastfmApiKey && !settings.lastfmSessionKey && (
+                            <div className="p-4 bg-red-900/10 border border-red-900/30 rounded-lg">
+                                <h4 className="text-sm font-semibold text-red-400 mb-2">🔐 Last.fm Authentication Required</h4>
+                                <p className="text-xs text-zinc-400 mb-3">
+                                    To submit scrobbles to Last.fm, you need to authorize this app:
+                                </p>
+                                {!lastfmAuthUrl ? (
+                                    <button
+                                        onClick={handleLastFmStartAuth}
+                                        disabled={lastfmAuthInProgress}
+                                        className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <ExternalLink className="w-3 h-3" />
+                                        {lastfmAuthInProgress ? 'Getting auth URL...' : 'Start Last.fm Authorization'}
+                                    </button>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <div className="p-3 bg-yellow-900/20 border border-yellow-900/30 rounded-lg mb-3">
+                                            <p className="text-xs text-yellow-200 font-semibold mb-2">⚠️ IMPORTANT STEPS:</p>
+                                            <ol className="text-xs text-yellow-100 space-y-1 ml-4 list-decimal">
+                                                <li>Click the button below to open Last.fm</li>
+                                                <li>Click <strong>"Yes, allow access"</strong> on Last.fm's page</li>
+                                                <li>Come back here and click <strong>"Complete Authorization"</strong></li>
+                                            </ol>
+                                        </div>
+                                        <a
+                                            href={lastfmAuthUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="block w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors text-center"
+                                        >
+                                            ↗ Open Last.fm Authorization Page
+                                        </a>
+                                        <button
+                                            onClick={handleLastFmCompleteAuth}
+                                            className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                                        >
+                                            ✓ Complete Authorization (After allowing on Last.fm)
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setLastfmAuthToken('')
+                                                setLastfmAuthUrl('')
+                                            }}
+                                            className="w-full px-3 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-semibold rounded-lg transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {settings.lastfmSessionKey && (
+                            <div className="p-3 bg-green-900/20 border border-green-900/30 rounded-lg">
+                                <p className="text-xs text-green-400">✅ Last.fm authenticated and ready to scrobble</p>
+                            </div>
+                        )}
 
                         <p className="text-xs text-zinc-500">
                             📊 <strong>Play Tracking:</strong> Each completed track play is recorded and automatically submitted to configured services.

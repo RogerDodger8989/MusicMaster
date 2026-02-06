@@ -6,14 +6,15 @@ import { existsSync } from 'fs'
 import { createHash } from 'crypto'
 import { spotifyService } from './spotify'
 
-const API_SECRET = '92c30a1a48b0e99ee46a1e82d4c4fc39' // Last.fm shared secret
 const BASE_URL = 'http://ws.audioscrobbler.com/2.0/'
 const CACHE_DIR = path.join(app.getPath('userData'), 'external_cache')
 
-// Store API key in memory with fallback to env
+// Store API key and secret in memory with fallback to env
 let apiKey = process.env.LASTFM_API_KEY || ''
+let apiSecret = process.env.LASTFM_API_SECRET || ''
 
 const getApiKey = (): string => apiKey
+const getApiSecret = (): string => apiSecret
 
 export interface LastFmTrackInfo {
     duration?: number
@@ -215,14 +216,21 @@ export class LastFmService {
      * Generate authentication signature for Last.fm API
      */
     private generateSignature(params: Record<string, string>): string {
-        // Sort params and concatenate
-        const sorted = Object.keys(params).sort()
+        // Filter out 'format' and 'api_sig' as per Last.fm API docs
+        // These should NOT be included in signature calculation
+        const signatureParams = Object.keys(params)
+            .filter(key => key !== 'format' && key !== 'api_sig')
+            .sort()
+        
         let str = ''
-        for (const key of sorted) {
+        for (const key of signatureParams) {
             str += key + params[key]
         }
-        str += API_SECRET
-        return this.md5(str)
+        str += getApiSecret()
+        
+        const signature = this.md5(str)
+        console.log('🔐 Generated signature for params:', signatureParams)
+        return signature
     }
 
     /**
@@ -248,6 +256,7 @@ export class LastFmService {
 
             const signature = this.generateSignature(params)
             params.api_sig = signature
+            params.format = 'json'  // Add format AFTER signature generation
 
             const response = await axios.post(BASE_URL, new URLSearchParams(params))
             return response.status === 200
@@ -288,6 +297,7 @@ export class LastFmService {
 
             const signature = this.generateSignature(params)
             params.api_sig = signature
+            params.format = 'json'  // Add format AFTER signature generation
 
             const response = await axios.post(BASE_URL, new URLSearchParams(params))
             return response.status === 200
@@ -319,6 +329,7 @@ export class LastFmService {
 
             const signature = this.generateSignature(params)
             params.api_sig = signature
+            params.format = 'json'  // Add format AFTER signature generation
 
             const response = await axios.post(BASE_URL, new URLSearchParams(params))
             return response.status === 200
@@ -329,11 +340,104 @@ export class LastFmService {
     }
 
     /**
+     * Get authentication token for Last.fm OAuth flow
+     * Returns auth token and auth URL that user must visit
+     */
+    async getAuthToken(): Promise<{ token: string; authUrl: string } | null> {
+        const key = getApiKey()
+        console.log('🔐 Getting Last.fm auth token with API key:', key ? 'present' : 'missing')
+        
+        if (!key) {
+            console.error('LASTFM_API_KEY not found in getAuthToken')
+            return null
+        }
+
+        try {
+            const params: Record<string, string> = {
+                method: 'auth.getToken',
+                api_key: key,
+                format: 'json'
+            }
+
+            console.log('📤 Requesting auth token from Last.fm...', params)
+            const response = await axios.get(BASE_URL, { params })
+            console.log('📥 Last.fm auth token response:', response.data)
+            
+            if (response.data?.token) {
+                const token = response.data.token
+                const authUrl = `https://www.last.fm/api/auth/?api_key=${key}&token=${token}`
+                console.log('✅ Auth token obtained:', token.substring(0, 8) + '...')
+                return { token, authUrl }
+            }
+            console.error('❌ No token in response:', response.data)
+            return null
+        } catch (error) {
+            console.error('❌ Failed to get Last.fm auth token:', error)
+            if (axios.isAxiosError(error)) {
+                console.error('Response data:', error.response?.data)
+                console.error('Response status:', error.response?.status)
+            }
+            return null
+        }
+    }
+
+    /**
+     * Exchange auth token for session key (after user has authorized)
+     */
+    async getSession(token: string): Promise<string | null> {
+        const key = getApiKey()
+        console.log('🔄 Getting Last.fm session with token:', token ? 'present' : 'missing')
+        
+        if (!key) {
+            console.error('LASTFM_API_KEY not found in getSession')
+            return null
+        }
+
+        try {
+            const params: Record<string, string> = {
+                method: 'auth.getSession',
+                api_key: key,
+                token
+            }
+
+            const signature = this.generateSignature(params)
+            params.api_sig = signature
+            params.format = 'json'  // Add format AFTER signature generation
+
+            console.log('📤 Requesting session from Last.fm...')
+            const response = await axios.post(BASE_URL, new URLSearchParams(params))
+            console.log('📥 Last.fm session response:', response.data)
+            
+            if (response.data?.session?.key) {
+                console.log('✅ Session key obtained:', response.data.session.key.substring(0, 8) + '...')
+                return response.data.session.key
+            }
+            console.error('❌ No session key in response:', response.data)
+            return null
+        } catch (error) {
+            console.error('❌ Failed to get Last.fm session:', error)
+            if (axios.isAxiosError(error)) {
+                console.error('Response data:', error.response?.data)
+                console.error('Response status:', error.response?.status)
+            }
+            return null
+        }
+    }
+
+    /**
      * Set API key dynamically (from settings)
      */
     setApiKey(key: string) {
         apiKey = key
         console.log('Last.fm API key updated')
+    }
+
+    /**
+     * Set API secret dynamically (from settings)
+     */
+    setApiSecret(secret: string) {
+        apiSecret = secret
+        console.log('Last.fm API secret updated')
     }
 }
 

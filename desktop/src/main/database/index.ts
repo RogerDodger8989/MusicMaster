@@ -199,10 +199,17 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE tracks ADD COLUMN musicbrainz_album_id TEXT",
             "ALTER TABLE tracks ADD COLUMN sample_rate INTEGER",
             "ALTER TABLE tracks ADD COLUMN bit_depth INTEGER",
+            "ALTER TABLE tracks ADD COLUMN replaygain_track_gain REAL",
+            "ALTER TABLE tracks ADD COLUMN replaygain_album_gain REAL",
+            "ALTER TABLE tracks ADD COLUMN replaygain_track_peak REAL",
+            "ALTER TABLE tracks ADD COLUMN replaygain_album_peak REAL",
             "ALTER TABLE albums_cache ADD COLUMN loved INTEGER DEFAULT 0",
             "ALTER TABLE albums_cache ADD COLUMN bio TEXT",
             "ALTER TABLE artists ADD COLUMN loved INTEGER DEFAULT 0",
-            "CREATE TABLE IF NOT EXISTS playback_state (id TEXT PRIMARY KEY DEFAULT 'default', current_track_id TEXT, queue_ids TEXT, current_index INTEGER DEFAULT -1, volume REAL DEFAULT 1.0, is_shuffle INTEGER DEFAULT 0, repeat_mode TEXT DEFAULT 'normal', current_time REAL DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)"
+            "CREATE TABLE IF NOT EXISTS playback_state (id TEXT PRIMARY KEY DEFAULT 'default', current_track_id TEXT, queue_ids TEXT, current_index INTEGER DEFAULT -1, volume REAL DEFAULT 1.0, is_shuffle INTEGER DEFAULT 0, repeat_mode TEXT DEFAULT 'normal', current_time REAL DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
+            "CREATE TABLE IF NOT EXISTS scrobble_queue (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, artist TEXT NOT NULL, title TEXT NOT NULL, album TEXT, played_at INTEGER NOT NULL, lastfm_submitted INTEGER DEFAULT 0, listenbrainz_submitted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
+            "CREATE TABLE IF NOT EXISTS play_history (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, played_at DATETIME DEFAULT CURRENT_TIMESTAMP, play_count INTEGER DEFAULT 0)",
+            "ALTER TABLE play_history ADD COLUMN play_count INTEGER DEFAULT 0"
         ]
 
         for (const migration of migrations) {

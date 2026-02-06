@@ -69,8 +69,9 @@ function App(): React.JSX.Element {
     loadSession()
     
     // Start scrobble service and update API keys
-    scrobbleService.start()
     const settings = useSettings.getState()
+    scrobbleService.start(settings.lastfmSessionKey || undefined)
+    
     if (settings.lastfmApiKey) {
       window.api.scrobble.updateLastFmKey(settings.lastfmApiKey).catch(err => {
         console.error('Failed to set Last.fm key:', err)

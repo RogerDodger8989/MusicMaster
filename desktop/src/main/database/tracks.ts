@@ -285,7 +285,7 @@ export function getPendingScrobbles(limit: number = 50): Array<{
         .prepare(`
             SELECT id, track_id, artist, title, album, played_at, lastfm_submitted, listenbrainz_submitted
             FROM scrobble_queue
-            WHERE submitted = 0
+            WHERE lastfm_submitted = 0 OR listenbrainz_submitted = 0
             LIMIT ?
         `)
         .all(limit) as Array<any>
