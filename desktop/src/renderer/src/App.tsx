@@ -17,12 +17,13 @@ import { useLibrary } from './store/library'
 import { useNavigation } from './store/navigation'
 import { usePlayer } from './store/player'
 import { useSettings, TrackPlayBehavior } from './store/settings'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { Track } from './types'
 
 function App(): React.JSX.Element {
   const { initialize } = useLibrary()
   const { current, navigateTo, goBack } = useNavigation()
-  const { playTrack, playNext, addToQueue, loadSession } = usePlayer()
+  const { playTrack, playNext, addToQueue, loadSession, togglePlay } = usePlayer()
   const { setTrackPlayBehavior, loadSettings } = useSettings()
 
   const activeView = current.view
@@ -33,6 +34,7 @@ function App(): React.JSX.Element {
   const [isQueueOpen, setIsQueueOpen] = useState(false)
   const [queueWidth, setQueueWidth] = useState(400)
   const [isResizing, setIsResizing] = useState(false)
+  const [queueSelectedIndex, setQueueSelectedIndex] = useState<number | null>(null)
 
   const startResizing = useCallback(() => {
     setIsResizing(true)
@@ -66,6 +68,25 @@ function App(): React.JSX.Element {
     loadSession()
     return initialize()
   }, [initialize, loadSettings, loadSession])
+
+  // Setup keyboard shortcuts
+  useKeyboardShortcuts({
+    onSpacePress: () => {
+      togglePlay()
+    },
+    onBackspacePress: () => {
+      if (current.view !== 'home') {
+        goBack()
+      }
+    },
+    onEscapePress: () => {
+      setPlayModalOpen(false)
+      if (isQueueOpen) {
+        setIsQueueOpen(false)
+      }
+    },
+    enabled: true
+  })
 
   // Listen for request-track-play
   useEffect(() => {
@@ -234,6 +255,8 @@ function App(): React.JSX.Element {
             isOpen={isQueueOpen}
             width={queueWidth}
             onClose={() => setIsQueueOpen(false)}
+            selectedTrackIndex={queueSelectedIndex}
+            onTrackSelect={setQueueSelectedIndex}
           />
         </div>
       </div>

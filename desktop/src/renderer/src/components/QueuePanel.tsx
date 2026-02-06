@@ -4,18 +4,20 @@ import { usePlaylists } from '../store/playlists'
 import { useLibrary } from '../store/library'
 import { cn } from '../lib/utils'
 import { formatDuration } from '../utils/format'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDraggable } from '../hooks/useDraggable'
 
 interface QueuePanelProps {
     isOpen: boolean
     width: number
     onClose: () => void
+    selectedTrackIndex?: number | null
+    onTrackSelect?: (index: number | null) => void
 }
 
 type Tab = 'queue' | 'played'
 
-export default function QueuePanel({ isOpen, width, onClose }: QueuePanelProps) {
+export default function QueuePanel({ isOpen, width, onClose, selectedTrackIndex, onTrackSelect }: QueuePanelProps) {
     const {
         queue, isPlaying, playAlbum, currentIndex,
         setQueue, clearQueue, shuffleSubsequent, togglePlay,
@@ -29,6 +31,7 @@ export default function QueuePanel({ isOpen, width, onClose }: QueuePanelProps) 
     const [showClearConfirm, setShowClearConfirm] = useState(false)
     const [showSaveModal, setShowSaveModal] = useState(false)
     const [showLoadModal, setShowLoadModal] = useState(false)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
     const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null)
@@ -36,6 +39,40 @@ export default function QueuePanel({ isOpen, width, onClose }: QueuePanelProps) 
     const clearDrag = useDraggable()
     const saveDrag = useDraggable()
     const loadDrag = useDraggable()
+    const deleteDrag = useDraggable()
+
+    // Handle Delete key press
+    useEffect(() => {
+        if (!isOpen || activeTab !== 'queue' || selectedTrackIndex === null) return
+
+        const handleDeleteKey = (e: KeyboardEvent) => {
+            if (e.key === 'Delete') {
+                e.preventDefault()
+                setShowDeleteConfirm(true)
+            }
+        }
+
+        window.addEventListener('keydown', handleDeleteKey)
+        return () => window.removeEventListener('keydown', handleDeleteKey)
+    }, [isOpen, activeTab, selectedTrackIndex])
+
+    // Handle Enter/Escape for delete modal
+    useEffect(() => {
+        if (!showDeleteConfirm || selectedTrackIndex === null || selectedTrackIndex === undefined) return
+
+        const handleModal = (e: KeyboardEvent) => {
+            if (e.key === 'Enter') {
+                e.preventDefault()
+                handleDeleteTrack(selectedTrackIndex)
+            } else if (e.key === 'Escape') {
+                e.preventDefault()
+                setShowDeleteConfirm(false)
+            }
+        }
+
+        window.addEventListener('keydown', handleModal)
+        return () => window.removeEventListener('keydown', handleModal)
+    }, [showDeleteConfirm, selectedTrackIndex])
 
     if (!isOpen) return null
 
@@ -44,6 +81,13 @@ export default function QueuePanel({ isOpen, width, onClose }: QueuePanelProps) 
         const trackIds = queue.map(t => t.id)
         await createPlaylist(playlistName.trim(), trackIds)
         setPlaylistName('')
+    }
+
+    const handleDeleteTrack = (index: number) => {
+        const newQueue = queue.filter((_, i) => i !== index)
+        setQueue(newQueue)
+        setShowDeleteConfirm(false)
+        onTrackSelect?.(null)
     }
 
     const handleDragOver = (e: React.DragEvent, index?: number) => {
@@ -223,9 +267,15 @@ export default function QueuePanel({ isOpen, width, onClose }: QueuePanelProps) 
                                                 playAlbum([track], 0)
                                             }
                                         }}
+                                        onClick={() => {
+                                            if (activeTab === 'queue') {
+                                                onTrackSelect?.(selectedTrackIndex === idx ? null : idx)
+                                            }
+                                        }}
                                         className={cn(
-                                            "group flex items-center gap-3 p-3 transition-colors relative",
+                                            "group flex items-center gap-3 p-3 transition-colors relative cursor-pointer",
                                             isCurrentInQueue ? "bg-blue-600/15" : "hover:bg-white/[0.03]",
+                                            selectedTrackIndex === idx && "bg-blue-600/25 border-l-2 border-blue-500",
                                             draggedIndex === idx && "opacity-20 grayscale scale-[0.98]",
                                             dropTargetIndex === idx && "bg-blue-500/5"
                                         )}
@@ -337,6 +387,50 @@ export default function QueuePanel({ isOpen, width, onClose }: QueuePanelProps) 
                     </div>
                 )}
             </div>
+
+            {/* Delete Track Confirmation */}
+            {
+                showDeleteConfirm && selectedTrackIndex !== null && selectedTrackIndex !== undefined && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center p-6 text-center">
+                        <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+                        <div
+                            style={{ transform: `translate(${deleteDrag.position.x}px, ${deleteDrag.position.y}px)` }}
+                            className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-2xl relative pointer-events-auto w-full max-w-[280px]"
+                        >
+                            <h4
+                                className="text-white font-bold mb-2 cursor-move"
+                                onMouseDown={deleteDrag.handleMouseDown}
+                            >
+                                Delete Track?
+                            </h4>
+                            <p className="text-zinc-500 text-xs mb-2 leading-relaxed">
+                                {queue[selectedTrackIndex]?.title || 'Unknown Track'}
+                            </p>
+                            <p className="text-zinc-600 text-xs mb-6 leading-relaxed">
+                                Remove this track from your queue.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        if (selectedTrackIndex !== null && selectedTrackIndex !== undefined) {
+                                            handleDeleteTrack(selectedTrackIndex)
+                                        }
+                                    }}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-xs font-bold transition-colors"
+                                >
+                                    Delete
+                                </button>
+                                <button
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-2 rounded-lg text-xs font-bold transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
 
             {/* Clear Queue Confirmation */}
             {
