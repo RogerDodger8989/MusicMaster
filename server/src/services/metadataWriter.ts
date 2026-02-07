@@ -335,12 +335,12 @@ export function buildMusicBrainzDataFromDb(
 ): MusicBrainzWriteData | null {
     const track = db.prepare(`
         SELECT 
-            t.mbid as recording_mbid,
+            t.musicbrainz_track_id as recording_mbid,
             t.isrc,
             t.movement,
-            t.movement_number,
+            t.movement_num as movement_number,
             t.movement_total,
-            t.work_mbid,
+            t.musicbrainz_work_id as work_mbid,
             a.mbid as album_mbid,
             a.album_type,
             a.release_status,
@@ -353,7 +353,7 @@ export function buildMusicBrainzDataFromDb(
             a.media,
             a.release_group_mbid
         FROM tracks t
-        LEFT JOIN albums a ON t.album_id = a.id
+        LEFT JOIN albums_cache a ON t.album = a.name AND (t.album_artist = a.artist OR t.artist = a.artist)
         WHERE t.id = ?
     `).get(trackId)
 
@@ -445,8 +445,8 @@ export async function writeMusicBrainzDataToFile(
     trackId: string | number
 ): Promise<boolean> {
     try {
-        const track = db.prepare('SELECT path FROM tracks WHERE id = ?').get(trackId)
-        if (!track?.path) {
+        const track = db.prepare('SELECT file_path FROM tracks WHERE id = ?').get(trackId)
+        if (!track?.file_path) {
             console.error(`Track ${trackId} not found or has no path`)
             return false
         }
@@ -460,7 +460,7 @@ export async function writeMusicBrainzDataToFile(
         const trackMeta = db.prepare('SELECT rating, loved, play_count FROM tracks WHERE id = ?').get(trackId)
 
         await writeMetadata(
-            track.path,
+            track.file_path,
             trackMeta.rating || 0,
             trackMeta.loved === 1,
             trackMeta.play_count,

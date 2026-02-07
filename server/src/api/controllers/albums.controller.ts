@@ -73,3 +73,36 @@ export const updateAlbum = (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to update album' })
     }
 }
+export const rateAlbum = (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string
+        const { rating } = req.body
+
+        if (rating === undefined) {
+            return res.status(400).json({ error: 'Rating is required' })
+        }
+
+        updateAlbumRating(id, Number(rating))
+        res.json({ success: true, id, rating })
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to rate album' })
+    }
+}
+
+export const toggleAlbumLoved = (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string
+        const { loved } = req.body
+
+        if (loved === undefined) {
+            return res.status(400).json({ error: 'Loved status is required' })
+        }
+
+        updateAlbumLoved(id, Boolean(loved))
+        res.json({ success: true, id, loved })
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to love album' })
+    }
+}

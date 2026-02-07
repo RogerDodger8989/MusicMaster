@@ -3,6 +3,7 @@ import { cn } from '../utils'
 import { Users, Heart, Disc, Music, Play } from 'lucide-react'
 import { useLibrary } from '../store/library'
 import { useState } from 'react'
+import { client } from '../api/client'
 import ArtistContextMenu from './ArtistContextMenu'
 
 interface ArtistCardProps {
@@ -67,10 +68,15 @@ export function ArtistCard({ artist, onClick, onPlayOptions, className }: Artist
                     {/* Artist Image */}
                     {artist.imagePath ? (
                         <img
-                            src={artist.imagePath.startsWith('asset:') ? artist.imagePath : `file://${artist.imagePath}`}
+                            src={client.getArtistImageUrl(artist.id)}
                             alt={artist.name}
                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 filter grayscale-[0.2] group-hover:grayscale-0"
                             loading="lazy"
+                            onError={(e) => {
+                                const img = e.target as HTMLImageElement
+                                img.src = '/placeholder-artist.png'
+                                img.onerror = null
+                            }}
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">

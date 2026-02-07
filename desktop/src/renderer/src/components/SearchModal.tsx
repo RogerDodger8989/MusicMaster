@@ -4,6 +4,7 @@ import { useDraggable } from '../hooks/useDraggable'
 import { useSearch } from '../store/search'
 import { useNavigation } from '../store/navigation'
 import { cn } from '../utils'
+import { client } from '../api/client'
 
 export default function SearchModal() {
     const { query, setQuery, results, isSearching, isOpen, setIsOpen } = useSearch()
@@ -169,9 +170,14 @@ export default function SearchModal() {
                                                     <div className="w-10 h-10 rounded bg-zinc-800 overflow-hidden flex items-center justify-center text-zinc-500 group-hover:bg-zinc-700 transition-colors">
                                                         {album.coverArtPath ? (
                                                             <img
-                                                                src={album.coverArtPath.startsWith('asset://') ? album.coverArtPath : `file://${album.coverArtPath}`}
+                                                                src={client.getCoverUrl(album.id)}
                                                                 alt={album.name}
                                                                 className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    const img = e.target as HTMLImageElement
+                                                                    img.src = '/placeholder-album.png'
+                                                                    img.onerror = null
+                                                                }}
                                                             />
                                                         ) : (
                                                             <Disc className="w-5 h-5" />

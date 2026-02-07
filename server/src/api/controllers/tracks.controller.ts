@@ -8,6 +8,7 @@ import {
     calculateFileHash
 } from '../../database/tracks'
 import { getDatabase } from '../../database'
+import { writeMusicBrainzDataToFile } from '../../services/metadataWriter'
 
 // Additional helper since getTracksByFolder was imported but getTracksByAlbum might not be exported directly
 // I need to check if getTracksByAlbum exists in tracks.ts
@@ -102,5 +103,48 @@ export const updateTrack = (req: Request, res: Response) => {
     } catch (error) {
         console.error('API Error:', error)
         res.status(500).json({ error: 'Failed to update track' })
+    }
+}
+export const rateTrack = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string
+        const { rating } = req.body
+
+        if (rating === undefined) {
+            return res.status(400).json({ error: 'Rating is required' })
+        }
+
+        updateTrackRating(id, Number(rating))
+
+        // Trigger file write
+        const db = getDatabase()
+        await writeMusicBrainzDataToFile(db, id)
+
+        res.json({ success: true, id, rating })
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to rate track' })
+    }
+}
+
+export const loveTrack = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string
+        const { loved } = req.body
+
+        if (loved === undefined) {
+            return res.status(400).json({ error: 'Loved status is required' })
+        }
+
+        updateTrackLoved(id, Boolean(loved))
+
+        // Trigger file write
+        const db = getDatabase()
+        await writeMusicBrainzDataToFile(db, id)
+
+        res.json({ success: true, id, loved })
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to love track' })
     }
 }

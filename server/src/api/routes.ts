@@ -28,6 +28,22 @@ router.put('/artists/:id', artists.updateArtistDetails)
 router.get('/tracks', tracks.listTracks)
 router.get('/tracks/:id', tracks.getTrack)
 router.put('/tracks/:id', tracks.updateTrack)
+router.post('/tracks/:id/rate', tracks.rateTrack)
+router.post('/tracks/:id/loved', tracks.loveTrack)
+
+// Artists
+router.get('/artists', artists.listArtists)
+router.get('/artists/similar', artists.getSimilarArtists)
+router.get('/artists/:id', artists.getArtist)
+router.put('/artists/:id', artists.updateArtistDetails)
+router.post('/artists/:id/loved', artists.toggleArtistLoved)
+
+// Albums
+router.get('/albums', albums.listAlbums)
+router.get('/albums/:id', albums.getAlbum)
+router.put('/albums/:id', albums.updateAlbum)
+router.post('/albums/:id/rate', albums.rateAlbum)
+router.post('/albums/:id/loved', albums.toggleAlbumLoved)
 
 // Search & Genres
 router.get('/search', search.search)
