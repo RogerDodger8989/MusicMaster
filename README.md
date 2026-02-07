@@ -28,6 +28,8 @@ A high-fidelity desktop music player built with Electron, React, and TypeScript.
 - **Interactive Cards**: Album/Artist cards with quick-play buttons and rating badges
 - **Draggable Modals**: Settings, search, and playlist controls can be repositioned
 - **Visual Indicators**: ReplayGain badge, scrobbling status (LFM/LB), loved ribbons
+- **Multi-select**: `Ctrl`/`Shift` + Click support across all track views for batch management
+- **Rich Context Menus**: Comprehensive actions on tracks, albums, and artists (Play Next, Add to Queue, Identify)
 
 ## Technology Stack
 
