@@ -144,6 +144,14 @@ Uses two HTML5 Audio elements to eliminate gaps:
 
 ## Future Roadmap
 
+Check out the full [Project Roadmap](ROADMAP.md) for detailed feature plans.
+
+- **Universal Delete Control**: Modal-confirmed deletion from playlists
+- **History Menu**: Right-click Back/Forward buttons for navigation history
+- **MusicBrainz Integration**: Comprehensive tagging (MBID, AcoustID) and fact fetching
+- **Library Management**: Missing tracks modal and automatic "Inbox" folder handling
+- **Playback Connectivity**: Chromecast, Apple, and Sonos support
+- **Integrated Last.fm Dashboard**: In-app statistics, reports, and private listening mode
 - **Exclusive Mode**: WASAPI/ASIO support for bit-perfect playback
 - **Sonic Analysis**: BPM, key detection, and similarity matching
 - **Taskbar Controls**: Windows taskbar media integration
