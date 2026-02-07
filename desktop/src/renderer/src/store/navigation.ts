@@ -16,6 +16,7 @@ interface NavigationStore {
     goForward: () => void
     canGoBack: () => boolean
     canGoForward: () => boolean
+    jumpTo: (index: number, isForward?: boolean) => void
 }
 
 export const useNavigation = create<NavigationStore>((set, get) => ({
@@ -67,5 +68,23 @@ export const useNavigation = create<NavigationStore>((set, get) => ({
     },
 
     canGoBack: () => get().history.length > 0,
-    canGoForward: () => get().future.length > 0
+    canGoForward: () => get().future.length > 0,
+
+    jumpTo: (index, isForward = false) => {
+        const { history, current, future } = get()
+
+        if (isForward) {
+            if (index < 0 || index >= future.length) return
+            const target = future[index]
+            const newHistory = [...history, current, ...future.slice(0, index)]
+            const newFuture = future.slice(index + 1)
+            set({ history: newHistory, current: target, future: newFuture })
+        } else {
+            if (index < 0 || index >= history.length) return
+            const target = history[index]
+            const newHistory = history.slice(0, index)
+            const newFuture = [...history.slice(index + 1), current, ...future]
+            set({ history: newHistory, current: target, future: newFuture })
+        }
+    }
 }))

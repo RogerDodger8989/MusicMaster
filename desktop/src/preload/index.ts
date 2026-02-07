@@ -82,7 +82,8 @@ const api = {
 
   // Utils
   util: {
-    openExternal: (url: string): Promise<void> => ipcRenderer.invoke('util:openExternal', url)
+    openExternal: (url: string): Promise<void> => ipcRenderer.invoke('util:openExternal', url),
+    showItemInFolder: (filePath: string): Promise<void> => ipcRenderer.invoke('util:showItemInFolder', filePath)
   },
 
   // Settings

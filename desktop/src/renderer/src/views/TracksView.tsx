@@ -49,11 +49,12 @@ export default function TracksView() {
             </div>
 
             <div className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
-                <div className="grid grid-cols-[3rem_2fr_1.5fr_1.5fr_1fr_4rem] gap-4 px-6 py-3 border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-900/50">
+                <div className="grid grid-cols-[3rem_2fr_1.5fr_1.5fr_3rem_1fr_4rem] gap-4 px-6 py-3 border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-900/50">
                     <div className="text-center flex justify-center"><Hash className="w-3 h-3" /></div>
                     <div>Title</div>
                     <div>Artist</div>
                     <div>Album</div>
+                    <div className="text-right">Played</div>
                     <div className="text-center">Rating</div>
                     <div className="text-right flex justify-end"><Clock className="w-3 h-3" /></div>
                 </div>
@@ -83,7 +84,7 @@ export default function TracksView() {
                                     e.dataTransfer.effectAllowed = 'copy'
                                 }}
                                 className={cn(
-                                    "group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_1fr_4rem] gap-4 px-6 py-3 items-center transition-all cursor-grab active:cursor-grabbing",
+                                    "group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_3rem_1fr_4rem] gap-4 px-6 py-3 items-center transition-all cursor-grab active:cursor-grabbing",
                                     isCurrentTrack
                                         ? "bg-blue-600/10 hover:bg-blue-600/20"
                                         : "hover:bg-white/5"
@@ -128,14 +129,13 @@ export default function TracksView() {
                                     </div>
                                 </div>
 
+                                {/* Play Count */}
+                                <div className="text-right text-xs text-zinc-500 font-medium tabular-nums px-2">
+                                    {track.playCount > 0 ? track.playCount : '-'}
+                                </div>
+
                                 {/* Rating & Love */}
                                 <div className="flex items-center justify-center gap-3">
-                                    {/* Play Count */}
-                                    {track.playCount > 0 && (
-                                        <div className="text-xs text-zinc-500 font-medium tabular-nums min-w-[2ch] text-right">
-                                            {track.playCount}
-                                        </div>
-                                    )}
                                     <div className="flex items-center">
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <button

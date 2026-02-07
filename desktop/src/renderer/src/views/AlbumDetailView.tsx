@@ -264,7 +264,7 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                                 <div className="grid grid-cols-[3rem_1fr_3rem_6rem_4rem_4rem] gap-4 px-4 py-2 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] border-b border-border/5 mb-2">
                                     <div className="text-center">#</div>
                                     <div>Title</div>
-                                    <div className="text-right">Plays</div>
+                                    <div className="text-right">Played</div>
                                     <div className="text-right">Rating</div>
                                     <div className="text-center">Love</div>
                                     <div className="text-right">Time</div>

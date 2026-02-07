@@ -1,8 +1,9 @@
-import { ListPlus, Play, ListMusic, ChevronRight } from 'lucide-react'
+import { ListPlus, Play, ListMusic, ChevronRight, User, Disc, FolderOpen } from 'lucide-react'
 import { usePlaylists } from '../store/playlists'
 import { usePlayer } from '../store/player'
+import { useLibrary } from '../store/library'
+import { useNavigation } from '../store/navigation'
 import { Track } from '../types'
-import { cn } from '../lib/utils'
 import { useEffect, useState, useRef } from 'react'
 
 interface TrackContextMenuProps {
@@ -14,7 +15,9 @@ interface TrackContextMenuProps {
 
 export default function TrackContextMenu({ track, x, y, onClose }: TrackContextMenuProps) {
     const { playlists, fetchPlaylists, addTrackToPlaylist } = usePlaylists()
-    const { playAlbum, queue } = usePlayer()
+    const { playAlbum } = usePlayer()
+    const { albums } = useLibrary()
+    const { navigateTo } = useNavigation()
     const [showPlaylists, setShowPlaylists] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
 
@@ -32,7 +35,6 @@ export default function TrackContextMenu({ track, x, y, onClose }: TrackContextM
 
     const handleAddToPlaylist = async (playlistId: string) => {
         await addTrackToPlaylist(playlistId, track.id)
-        alert(`Added to playlist!`)
         onClose()
     }
 
@@ -47,6 +49,27 @@ export default function TrackContextMenu({ track, x, y, onClose }: TrackContextM
         window.dispatchEvent(new CustomEvent('request-track-play', {
             detail: { track, option: 'add_last' }
         }))
+        onClose()
+    }
+
+    const handleGoToArtist = () => {
+        navigateTo('artist-detail', { artistName: track.artist })
+        onClose()
+    }
+
+    const handleGoToAlbum = () => {
+        const album = albums.find(a =>
+            a.name === track.album &&
+            (a.artist === track.albumArtist || a.artist === track.artist)
+        )
+        if (album) {
+            navigateTo('album-detail', { albumId: album.id })
+        }
+        onClose()
+    }
+
+    const handleLocateFile = () => {
+        window.api.util.showItemInFolder(track.filePath)
         onClose()
     }
 
@@ -76,6 +99,24 @@ export default function TrackContextMenu({ track, x, y, onClose }: TrackContextM
             >
                 <ListPlus size={16} className="rotate-180" />
                 Add to Queue
+            </button>
+
+            <div className="h-px bg-zinc-800 my-1 mx-2" />
+
+            {/* Navigation Options */}
+            <button
+                onClick={handleGoToArtist}
+                className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+                <User size={16} />
+                Go to Artist
+            </button>
+            <button
+                onClick={handleGoToAlbum}
+                className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+                <Disc size={16} />
+                Go to Album
             </button>
 
             <div className="h-px bg-zinc-800 my-1 mx-2" />
@@ -111,6 +152,16 @@ export default function TrackContextMenu({ track, x, y, onClose }: TrackContextM
                     </div>
                 )}
             </div>
+
+            <div className="h-px bg-zinc-800 my-1 mx-2" />
+
+            <button
+                onClick={handleLocateFile}
+                className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+                <FolderOpen size={16} />
+                Locate file in explorer
+            </button>
         </div>
     )
 }

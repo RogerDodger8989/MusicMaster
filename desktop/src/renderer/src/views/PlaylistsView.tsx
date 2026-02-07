@@ -1,4 +1,4 @@
-import { ListMusic, Play, Shuffle, Trash2, Clock, Hash, ChevronRight } from 'lucide-react'
+import { ListMusic, Play, Shuffle, Trash2, Clock, Hash, X } from 'lucide-react'
 import { usePlaylists, Playlist } from '../store/playlists'
 import { usePlayer } from '../store/player'
 import { useEffect, useState } from 'react'
@@ -7,21 +7,71 @@ import { formatDuration } from '../utils/format'
 import { PlaylistMosaic } from '../components/PlaylistMosaic'
 
 export default function PlaylistsView() {
-    const { playlists, fetchPlaylists, deletePlaylist, isLoading } = usePlaylists()
+    const { playlists, fetchPlaylists, deletePlaylist, removeTrackFromPlaylist, isLoading } = usePlaylists()
     const { playAlbum, currentTrack, isPlaying } = usePlayer()
     const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
+    const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(null)
+    const [showDeletePlaylistConfirm, setShowDeletePlaylistConfirm] = useState(false)
+    const [showRemoveTrackConfirm, setShowRemoveTrackConfirm] = useState(false)
+    const [deletingId, setDeletingId] = useState<string | null>(null)
 
     useEffect(() => {
         fetchPlaylists()
     }, [fetchPlaylists])
 
-    const handleDelete = async (e: React.MouseEvent, id: string) => {
-        e.stopPropagation()
-        if (confirm('Are you sure you want to delete this playlist?')) {
-            await deletePlaylist(id)
-            if (selectedPlaylist?.id === id) setSelectedPlaylist(null)
+    const handleDeletePlaylist = async (id: string) => {
+        await deletePlaylist(id)
+        if (selectedPlaylist?.id === id) setSelectedPlaylist(null)
+        setShowDeletePlaylistConfirm(false)
+        setDeletingId(null)
+    }
+
+    const handleRemoveTrack = async () => {
+        if (selectedPlaylist && selectedTrackIndex !== null) {
+            const track = selectedPlaylist.tracks[selectedTrackIndex]
+            await removeTrackFromPlaylist(selectedPlaylist.id, track.id, selectedTrackIndex)
+            setSelectedTrackIndex(null)
+            setShowRemoveTrackConfirm(false)
         }
     }
+
+    // Handle Delete key
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Delete' && selectedPlaylist && selectedTrackIndex !== null) {
+                e.preventDefault()
+                setShowRemoveTrackConfirm(true)
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [selectedPlaylist, selectedTrackIndex])
+
+    // Handle Enter/Esc in modals
+    useEffect(() => {
+        const handleModalKeys = (e: KeyboardEvent) => {
+            if (showDeletePlaylistConfirm) {
+                if (e.key === 'Enter' && deletingId) {
+                    e.preventDefault()
+                    handleDeletePlaylist(deletingId)
+                } else if (e.key === 'Escape') {
+                    e.preventDefault()
+                    setShowDeletePlaylistConfirm(false)
+                    setDeletingId(null)
+                }
+            } else if (showRemoveTrackConfirm) {
+                if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleRemoveTrack()
+                } else if (e.key === 'Escape') {
+                    e.preventDefault()
+                    setShowRemoveTrackConfirm(false)
+                }
+            }
+        }
+        window.addEventListener('keydown', handleModalKeys)
+        return () => window.removeEventListener('keydown', handleModalKeys)
+    }, [showDeletePlaylistConfirm, showRemoveTrackConfirm, deletingId, selectedPlaylist, selectedTrackIndex])
 
     if (isLoading && playlists.length === 0) {
         return (
@@ -33,7 +83,7 @@ export default function PlaylistsView() {
 
     if (selectedPlaylist) {
         return (
-            <div className="p-8 space-y-8 max-w-7xl mx-auto animate-in fade-in duration-500">
+            <div className="p-8 space-y-8 max-w-7xl mx-auto animate-in fade-in duration-500 relative min-h-full">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row gap-8 items-end">
                     <div className="group relative flex-shrink-0">
@@ -51,7 +101,10 @@ export default function PlaylistsView() {
                     <div className="flex-1 space-y-4">
                         <div className="space-y-1">
                             <button
-                                onClick={() => setSelectedPlaylist(null)}
+                                onClick={() => {
+                                    setSelectedPlaylist(null)
+                                    setSelectedTrackIndex(null)
+                                }}
                                 className="text-blue-500 text-sm font-bold hover:underline mb-2 block"
                             >
                                 ← Back to Playlists
@@ -81,7 +134,11 @@ export default function PlaylistsView() {
                                 Shuffle
                             </button>
                             <button
-                                onClick={(e) => handleDelete(e, selectedPlaylist.id)}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setDeletingId(selectedPlaylist.id)
+                                    setShowDeletePlaylistConfirm(true)
+                                }}
                                 className="p-3 text-zinc-500 hover:text-red-500 transition-colors"
                             >
                                 <Trash2 size={20} />
@@ -91,25 +148,29 @@ export default function PlaylistsView() {
                 </div>
 
                 {/* Track List */}
-                <div className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
-                    <div className="grid grid-cols-[3rem_2fr_1.5fr_1.5fr_4rem] gap-4 px-6 py-3 border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-900/50">
+                <div className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden focus:outline-none" tabIndex={0}>
+                    <div className="grid grid-cols-[3rem_2fr_1.5fr_1.5fr_4rem_4rem] gap-4 px-6 py-3 border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-900/50">
                         <div className="text-center flex justify-center"><Hash className="w-3 h-3" /></div>
                         <div>Title</div>
                         <div>Artist</div>
                         <div>Album</div>
                         <div className="text-right flex justify-end"><Clock className="w-3 h-3" /></div>
+                        <div></div>
                     </div>
 
                     <div className="divide-y divide-zinc-900">
                         {selectedPlaylist.tracks.map((track, idx) => {
                             const isActive = currentTrack?.id === track.id
+                            const isSelected = selectedTrackIndex === idx
                             return (
                                 <div
                                     key={`${track.id}-${idx}`}
                                     onDoubleClick={() => playAlbum(selectedPlaylist.tracks, idx)}
+                                    onClick={() => setSelectedTrackIndex(isSelected ? null : idx)}
                                     className={cn(
-                                        "group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_4rem] gap-4 px-6 py-4 items-center transition-all cursor-pointer hover:bg-white/5",
-                                        isActive && "bg-blue-600/10"
+                                        "group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_4rem_4rem] gap-4 px-6 py-4 items-center transition-all cursor-pointer",
+                                        isActive && "bg-blue-600/5",
+                                        isSelected ? "bg-blue-600/20" : "hover:bg-white/5"
                                     )}
                                 >
                                     <div className="text-center text-xs font-bold text-zinc-600">
@@ -120,11 +181,11 @@ export default function PlaylistsView() {
                                                 <div className="w-0.5 bg-blue-500 animate-[music-bar_0.5s_ease-in-out_infinite]" />
                                             </div>
                                         ) : (
-                                            <span className={isActive ? "text-blue-500" : ""}>{idx + 1}</span>
+                                            <span className={cn(isActive || isSelected ? "text-blue-500" : "")}>{idx + 1}</span>
                                         )}
                                     </div>
                                     <div className="min-w-0">
-                                        <div className={cn("text-sm font-bold truncate", isActive ? "text-blue-500" : "text-zinc-200")}>
+                                        <div className={cn("text-sm font-bold truncate", isActive || isSelected ? "text-blue-500" : "text-zinc-200")}>
                                             {track.title}
                                         </div>
                                     </div>
@@ -133,17 +194,92 @@ export default function PlaylistsView() {
                                     <div className="text-right text-xs font-medium text-zinc-500 tabular-nums">
                                         {formatDuration(track.duration)}
                                     </div>
+                                    <div className="flex justify-end pr-2">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                setSelectedTrackIndex(idx)
+                                                setShowRemoveTrackConfirm(true)
+                                            }}
+                                            className="p-1.5 text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                            title="Remove from playlist"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
                                 </div>
                             )
                         })}
                     </div>
                 </div>
+
+                {/* Modals Overlay Container */}
+                {showRemoveTrackConfirm && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-center">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowRemoveTrackConfirm(false)} />
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 shadow-2xl relative w-full max-w-[320px] animate-in zoom-in-95 duration-200">
+                            <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center text-red-500 mx-auto mb-6">
+                                <Trash2 size={32} />
+                            </div>
+                            <h4 className="text-white text-xl font-bold mb-2">Remove track?</h4>
+                            <p className="text-zinc-500 text-sm mb-6 leading-relaxed">
+                                {selectedTrackIndex !== null && selectedPlaylist.tracks[selectedTrackIndex]?.title}
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={handleRemoveTrack}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
+                                >
+                                    Remove
+                                </button>
+                                <button
+                                    onClick={() => setShowRemoveTrackConfirm(false)}
+                                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {showDeletePlaylistConfirm && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-center">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDeletePlaylistConfirm(false)} />
+                        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 shadow-2xl relative w-full max-w-[320px] animate-in zoom-in-95 duration-200">
+                            <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center text-red-500 mx-auto mb-6">
+                                <Trash2 size={32} />
+                            </div>
+                            <h4 className="text-white text-xl font-bold mb-2">Delete playlist?</h4>
+                            <p className="text-zinc-500 text-sm mb-6 leading-relaxed">
+                                This will permanently delete <strong>{selectedPlaylist.name}</strong>. This cannot be undone.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => deletingId && handleDeletePlaylist(deletingId)}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
+                                >
+                                    Delete
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowDeletePlaylistConfirm(false)
+                                        setDeletingId(null)
+                                    }}
+                                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         )
     }
 
     return (
-        <div className="p-8 space-y-8 max-w-7xl mx-auto">
+        <div className="p-8 space-y-8 max-w-7xl mx-auto min-h-full">
             <div>
                 <h2 className="text-4xl font-black text-white tracking-tight">Your Playlists</h2>
                 <p className="text-zinc-500 mt-2 font-medium">Manage and play your custom collections</p>
@@ -157,7 +293,7 @@ export default function PlaylistsView() {
                     <div className="max-w-sm">
                         <h3 className="text-xl font-bold text-white">No playlists yet</h3>
                         <p className="text-zinc-500 mt-2">
-                            Create a playlist from the queue or by right-clicking tracks (coming soon).
+                            Create a playlist from the queue or by right-clicking tracks.
                         </p>
                     </div>
                 </div>
@@ -180,7 +316,11 @@ export default function PlaylistsView() {
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs text-zinc-500 font-bold">{pl.tracks.length} tracks</span>
                                     <button
-                                        onClick={(e) => handleDelete(e, pl.id)}
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            setDeletingId(pl.id)
+                                            setShowDeletePlaylistConfirm(true)
+                                        }}
                                         className="p-1 text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
                                     >
                                         <Trash2 size={14} />
@@ -189,6 +329,38 @@ export default function PlaylistsView() {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {showDeletePlaylistConfirm && !selectedPlaylist && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-center">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDeletePlaylistConfirm(false)} />
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 shadow-2xl relative w-full max-w-[320px] animate-in zoom-in-95 duration-200">
+                        <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center text-red-500 mx-auto mb-6">
+                            <Trash2 size={32} />
+                        </div>
+                        <h4 className="text-white text-xl font-bold mb-2">Delete playlist?</h4>
+                        <p className="text-zinc-500 text-sm mb-6 leading-relaxed">
+                            This will permanently delete this playlist. This cannot be undone.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => deletingId && handleDeletePlaylist(deletingId)}
+                                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
+                            >
+                                Delete
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowDeletePlaylistConfirm(false)
+                                    setDeletingId(null)
+                                }}
+                                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -201,4 +373,3 @@ export default function PlaylistsView() {
         </div>
     )
 }
-

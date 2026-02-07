@@ -448,6 +448,11 @@ export function registerIpcHandlers(): void {
             await shell.openExternal(url)
         })
 
+        ipcMain.handle('util:showItemInFolder', async (_, filePath: string) => {
+            const { shell } = require('electron')
+            shell.showItemInFolder(filePath)
+        })
+
         // Settings Persistence
         ipcMain.handle('settings:getAll', async () => {
             console.log('⚙️ Getting all settings...')
