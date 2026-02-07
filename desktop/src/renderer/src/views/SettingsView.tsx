@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { FolderOpen, Trash2, Eye, EyeOff, Play, ExternalLink, Download } from 'lucide-react'
+import { FolderOpen, Trash2, Eye, EyeOff, Play, ExternalLink, Download, Database, RefreshCw } from 'lucide-react'
 import { useFolders } from '../store/folders'
 import { useLibrary } from '../store/library'
 import { useSettings, TrackPlayBehavior, ReplayGainMode } from '../store/settings'
 import { useSyncStore } from '../store/sync'
 import { cn } from '../lib/utils'
 import { scrobbleService } from '../services/scrobbleService'
+import MusicBrainzProgressModal from '../components/modals/MusicBrainzProgressModal'
 
 export default function SettingsView() {
     const { folders, isLoading, loadFolders, addFolder, removeFolder, updateFolderWatch, browseFolder } = useFolders()
@@ -24,6 +25,29 @@ export default function SettingsView() {
         total?: number;
         isRunning: boolean;
     }>({ isRunning: false, phase: 'fetching' })
+
+    // MusicBrainz Enhancement State
+    const [mbCoverage, setMbCoverage] = useState<{
+        totalTracks: number
+        tracksWithMBID: number
+        coveragePercentage: number
+    } | null>(null)
+    const [mbEnhanceProgress, setMbEnhanceProgress] = useState<{
+        isOpen: boolean
+        current: number
+        total: number
+        trackName?: string
+        isComplete: boolean
+        results?: any
+        operation: 'enhance' | 'sync' | 'refresh'
+    }>({
+        isOpen: false,
+        current: 0,
+        total: 0,
+        isComplete: false,
+        operation: 'enhance'
+    })
+    const [mbWriteToFiles, setMbWriteToFiles] = useState(true)
 
     useEffect(() => {
         loadFolders()
@@ -62,6 +86,52 @@ export default function SettingsView() {
             unsubscribe()
         }
     }, [])
+
+    // Load MusicBrainz coverage stats
+    useEffect(() => {
+        loadMbCoverage()
+    }, [])
+
+    // Listen for MusicBrainz enhancement progress
+    useEffect(() => {
+        const unsubscribe = window.api.musicbrainz.onEnhanceProgress((progress) => {
+            setMbEnhanceProgress(prev => ({
+                ...prev,
+                current: progress.current,
+                total: progress.total,
+                trackName: progress.trackName
+            }))
+        })
+
+        return () => {
+            unsubscribe()
+        }
+    }, [])
+
+    // Listen for MusicBrainz sync progress
+    useEffect(() => {
+        const unsubscribe = window.api.musicbrainz.onSyncProgress((progress) => {
+            setMbEnhanceProgress(prev => ({
+                ...prev,
+                current: progress.current,
+                total: progress.total,
+                trackName: progress.trackPath
+            }))
+        })
+
+        return () => {
+            unsubscribe()
+        }
+    }, [])
+
+    const loadMbCoverage = async () => {
+        try {
+            const stats = await window.api.musicbrainz.getCoverage()
+            setMbCoverage(stats)
+        } catch (error) {
+            console.error('Failed to load MusicBrainz coverage:', error)
+        }
+    }
 
     const handleSyncPlayCounts = async () => {
         if (progress?.isRunning) {
@@ -160,6 +230,96 @@ export default function SettingsView() {
         }
     }
 
+    // MusicBrainz Enhancement Handlers
+    const handleEnhanceLibrary = async () => {
+        if (mbEnhanceProgress.isOpen && !mbEnhanceProgress.isComplete) {
+            alert('Enhancement is already running!')
+            return
+        }
+
+        if (!confirm('This will search MusicBrainz for all tracks without MBIDs and update your library. This may take several minutes depending on your library size.\n\nContinue?')) {
+            return
+        }
+
+        // Open progress modal
+        setMbEnhanceProgress({
+            isOpen: true,
+            current: 0,
+            total: 0,
+            isComplete: false,
+            operation: 'enhance'
+        })
+
+        try {
+            const result = await window.api.musicbrainz.enhanceLibrary(mbWriteToFiles)
+
+            // Show results
+            setMbEnhanceProgress(prev => ({
+                ...prev,
+                isComplete: true,
+                results: result
+            }))
+
+            // Reload coverage stats
+            await loadMbCoverage()
+
+            // Reload library to show updated data
+            await useLibrary.getState().loadTracks()
+
+        } catch (error) {
+            console.error('Failed to enhance library:', error)
+            alert('❌ Failed to enhance library: ' + error)
+            setMbEnhanceProgress(prev => ({
+                ...prev,
+                isOpen: false
+            }))
+        }
+    }
+
+    const handleSyncToFiles = async () => {
+        if (mbEnhanceProgress.isOpen && !mbEnhanceProgress.isComplete) {
+            alert('Operation is already running!')
+            return
+        }
+
+        if (!mbCoverage || mbCoverage.tracksWithMBID === 0) {
+            alert('No tracks with MBIDs found. Please enhance your library first.')
+            return
+        }
+
+        if (!confirm(`This will write MusicBrainz metadata to ${mbCoverage.tracksWithMBID} audio files. Continue?`)) {
+            return
+        }
+
+        // Open progress modal
+        setMbEnhanceProgress({
+            isOpen: true,
+            current: 0,
+            total: 0,
+            isComplete: false,
+            operation: 'sync'
+        })
+
+        try {
+            const result = await window.api.musicbrainz.syncToFiles()
+
+            // Show results
+            setMbEnhanceProgress(prev => ({
+                ...prev,
+                isComplete: true,
+                results: result
+            }))
+
+        } catch (error) {
+            console.error('Failed to sync to files:', error)
+            alert('❌ Failed to sync to files: ' + error)
+            setMbEnhanceProgress(prev => ({
+                ...prev,
+                isOpen: false
+            }))
+        }
+    }
+
     const handleAddFolder = async () => {
         try {
             console.log('handleAddFolder: Starting...')
@@ -224,6 +384,20 @@ export default function SettingsView() {
 
     return (
         <div className="max-w-5xl mx-auto">
+            {/* MusicBrainz Progress Modal */}
+            <MusicBrainzProgressModal
+                isOpen={mbEnhanceProgress.isOpen}
+                onClose={() => setMbEnhanceProgress(prev => ({ ...prev, isOpen: false }))}
+                progress={{
+                    current: mbEnhanceProgress.current,
+                    total: mbEnhanceProgress.total,
+                    trackName: mbEnhanceProgress.trackName
+                }}
+                results={mbEnhanceProgress.results}
+                isComplete={mbEnhanceProgress.isComplete}
+                operation={mbEnhanceProgress.operation}
+            />
+
             <h2 className="text-3xl font-bold mb-6 text-white">Settings</h2>
 
             {/* Music Folders Section */}
@@ -684,8 +858,93 @@ export default function SettingsView() {
                 </div>
 
                 <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
-                    <h3 className="text-lg font-semibold text-white mb-4">Integrations</h3>
-                    <p className="text-sm text-zinc-500">MusicBrainz, Spotify integration coming soon...</p>
+                    <h3 className="text-lg font-semibold text-white mb-4">MusicBrainz Integration</h3>
+                    
+                    {/* Coverage Statistics */}
+                    {mbCoverage && (
+                        <div className="mb-6 p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-sm text-zinc-400">Library Coverage</span>
+                                <span className="text-2xl font-bold text-blue-400">
+                                    {mbCoverage.coveragePercentage.toFixed(1)}%
+                                </span>
+                            </div>
+                            <div className="h-2 bg-zinc-800 rounded-full overflow-hidden mb-3">
+                                <div
+                                    className="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-500"
+                                    style={{ width: `${mbCoverage.coveragePercentage}%` }}
+                                />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-zinc-500">
+                                <span>{mbCoverage.tracksWithMBID} / {mbCoverage.totalTracks} tracks have MBIDs</span>
+                                <button
+                                    onClick={loadMbCoverage}
+                                    className="p-1 hover:bg-zinc-800 rounded transition-colors"
+                                    title="Refresh stats"
+                                >
+                                    <RefreshCw className="w-3 h-3" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Enhancement Options */}
+                    <div className="space-y-4">
+                        {/* Write to Files Option */}
+                        <div className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-lg">
+                            <div>
+                                <p className="text-sm font-medium text-white">Write MBIDs to Files</p>
+                                <p className="text-xs text-zinc-500 mt-1">
+                                    Save MusicBrainz metadata directly to audio files (FLAC/MP3)
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setMbWriteToFiles(!mbWriteToFiles)}
+                                className={cn(
+                                    'relative w-12 h-6 rounded-full transition-colors',
+                                    mbWriteToFiles ? 'bg-blue-600' : 'bg-zinc-700'
+                                )}
+                            >
+                                <div
+                                    className={cn(
+                                        'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform',
+                                        mbWriteToFiles && 'translate-x-6'
+                                    )}
+                                />
+                            </button>
+                        </div>
+
+                        {/* Enhance Library Button */}
+                        <button
+                            onClick={handleEnhanceLibrary}
+                            disabled={mbEnhanceProgress.isOpen && !mbEnhanceProgress.isComplete}
+                            className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Database className="w-5 h-5" />
+                            Enhance Library with MusicBrainz
+                        </button>
+
+                        {/* Sync to Files Button */}
+                        {mbCoverage && mbCoverage.tracksWithMBID > 0 && (
+                            <button
+                                onClick={handleSyncToFiles}
+                                disabled={mbEnhanceProgress.isOpen && !mbEnhanceProgress.isComplete}
+                                className="w-full px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <RefreshCw className="w-5 h-5" />
+                                Sync MBIDs to Files ({mbCoverage.tracksWithMBID} tracks)
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Info Box */}
+                    <div className="mt-4 p-3 bg-blue-900/20 border border-blue-900/50 rounded-lg">
+                        <p className="text-xs text-blue-300">
+                            <strong>MusicBrainz Enhancement</strong> searches for high-quality metadata including:
+                            recording MBIDs, ISRCs, album types, genres, audio analysis (BPM, key, mood), and more.
+                            This data is saved to your database and optionally written to audio file tags.
+                        </p>
+                    </div>
                 </div>
 
                 <div className="p-6 bg-red-900/10 border border-red-900/50 rounded-lg">

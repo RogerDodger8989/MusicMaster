@@ -157,6 +157,35 @@ const api = {
       ipcRenderer.invoke('metadata:exportMissingCSV', tracks),
     updateArtistFacts: (id: string, facts: any): Promise<boolean> =>
       ipcRenderer.invoke('metadata:updateArtistFacts', id, facts)
+  },
+
+  // MusicBrainz Enhancement
+  musicbrainz: {
+    getCoverage: () => ipcRenderer.invoke('musicbrainz:getCoverage'),
+    searchTrack: (params: { artist: string; title: string; album?: string; duration?: number; isrc?: string }) =>
+      ipcRenderer.invoke('musicbrainz:searchTrack', params),
+    getRecordingDetails: (recordingMBID: string) => ipcRenderer.invoke('musicbrainz:getRecordingDetails', recordingMBID),
+    getAcousticBrainz: (recordingMBID: string) => ipcRenderer.invoke('musicbrainz:getAcousticBrainz', recordingMBID),
+    enhanceTrack: (trackId: number, writeToFile = true) => ipcRenderer.invoke('musicbrainz:enhanceTrack', trackId, writeToFile),
+    enhanceTracks: (trackIds: number[], writeToFiles = true) => ipcRenderer.invoke('musicbrainz:enhanceTracks', trackIds, writeToFiles),
+    enhanceLibrary: (writeToFiles = true) => ipcRenderer.invoke('musicbrainz:enhanceLibrary', writeToFiles),
+    syncToFiles: (trackIds?: number[]) => ipcRenderer.invoke('musicbrainz:syncToFiles', trackIds),
+    refreshMetadata: (trackIds: number[]) => ipcRenderer.invoke('musicbrainz:refreshMetadata', trackIds),
+    onEnhanceProgress: (callback: (progress: { current: number; total: number; trackId: number; trackName: string }) => void) => {
+      const listener = (_: any, progress: any): void => callback(progress)
+      ipcRenderer.on('musicbrainz:enhanceProgress', listener)
+      return () => ipcRenderer.removeListener('musicbrainz:enhanceProgress', listener)
+    },
+    onSyncProgress: (callback: (progress: { current: number; total: number; trackPath: string }) => void) => {
+      const listener = (_: any, progress: any): void => callback(progress)
+      ipcRenderer.on('musicbrainz:syncProgress', listener)
+      return () => ipcRenderer.removeListener('musicbrainz:syncProgress', listener)
+    },
+    onRefreshProgress: (callback: (progress: { current: number; total: number; trackId: number; trackName: string }) => void) => {
+      const listener = (_: any, progress: any): void => callback(progress)
+      ipcRenderer.on('musicbrainz:refreshProgress', listener)
+      return () => ipcRenderer.removeListener('musicbrainz:refreshProgress', listener)
+    }
   }
 }
 

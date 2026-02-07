@@ -37,7 +37,18 @@ import { getAllArtists, updateArtistLoved, updateArtistFacts } from './database/
 import { lastFmService } from './services/lastfm'
 import { listenBrainzService } from './services/listenbrainz'
 import { musicBrainzService } from './services/musicbrainz'
-import { writeMetadata } from './services/metadataWriter'
+import { 
+    writeMetadata, 
+    writeMusicBrainzDataToFile, 
+    bulkWriteMusicBrainzData, 
+    syncAllMusicBrainzData 
+} from './services/metadataWriter'
+import { 
+    updateTrackWithMBID, 
+    getMBIDCoverageStats 
+} from './database/musicbrainz'
+import { advancedMatch } from './services/matcher'
+import { acousticBrainzService } from './services/acousticbrainz'
 import { searchLibrary } from './database/search'
 import path from 'path'
 
@@ -1119,6 +1130,420 @@ export function registerIpcHandlers(): void {
                 throw error
             }
         })
+
+        // --- NEW MODULE 3B: MUSICBRAINZ ENHANCEMENT HANDLERS ---
+
+        /**
+         * Get MusicBrainz coverage statistics
+         * Returns how many tracks/albums have MBIDs vs total
+         */
+        ipcMain.handle('musicbrainz:getCoverage', async () => {
+            console.log('📊 [IPC] Getting MusicBrainz coverage stats...')
+            try {
+                const db = getDatabase()
+                const stats = getMBIDCoverageStats(db)
+                console.log(`   Coverage: ${stats.tracksWithMBID}/${stats.totalTracks} tracks, ${stats.albumsWithMBID}/${stats.totalAlbums} albums`)
+                return stats
+            } catch (error) {
+                console.error('❌ Failed to get MB coverage:', error)
+                throw error
+            }
+        })
+
+        /**
+         * Search for a single track in MusicBrainz with advanced matching
+         * Returns best match with confidence score
+         */
+        ipcMain.handle('musicbrainz:searchTrack', async (_, params: {
+            artist: string
+            title: string
+            album?: string
+            duration?: number
+            isrc?: string
+        }) => {
+            console.log(`🔍 [IPC] Advanced MB search: "${params.artist}" - "${params.title}"`)
+            try {
+                const result = await advancedMatch(
+                    params.artist,
+                    params.title,
+                    params.album,
+                    params.duration,
+                    params.isrc
+                )
+                
+                if (result) {
+                    console.log(`   ✅ Found match with ${result.confidence} confidence (${result.matchScore.toFixed(1)}% score)`)
+                } else {
+                    console.log('   ❌ No matches found')
+                }
+                
+                return result
+            } catch (error) {
+                console.error('❌ Failed to search MB track:', error)
+                throw error
+            }
+        })
+
+        /**
+         * Get full recording details including releases, artists, relationships
+         */
+        ipcMain.handle('musicbrainz:getRecordingDetails', async (_, recordingMBID: string) => {
+            console.log(`📀 [IPC] Fetching MB recording details: ${recordingMBID}`)
+            try {
+                const details = await musicBrainzService.getRecordingDetails(recordingMBID)
+                return details
+            } catch (error) {
+                console.error('❌ Failed to get recording details:', error)
+                throw error
+            }
+        })
+
+        /**
+         * Get AcousticBrainz audio analysis data
+         */
+        ipcMain.handle('musicbrainz:getAcousticBrainz', async (_, recordingMBID: string) => {
+            console.log(`🎵 [IPC] Fetching AcousticBrainz data: ${recordingMBID}`)
+            try {
+                const analysis = await acousticBrainzService.getRecordingAnalysis(recordingMBID)
+                return analysis
+            } catch (error) {
+                console.error('❌ Failed to get AcousticBrainz data:', error)
+                throw error
+            }
+        })
+
+        /**
+         * Enhance a single track with MusicBrainz metadata
+         * Searches MB, updates database, and writes metadata to file
+         */
+        ipcMain.handle('musicbrainz:enhanceTrack', async (_, trackId: number, writeToFile = true) => {
+            console.log(`✨ [IPC] Enhancing track ${trackId}...`)
+            try {
+                const db = getDatabase()
+                const track = getTrackById(trackId)
+                
+                if (!track) {
+                    throw new Error(`Track ${trackId} not found`)
+                }
+
+                // Search MusicBrainz
+                const match = await advancedMatch(
+                    track.artist,
+                    track.title,
+                    track.album,
+                    track.duration,
+                    track.isrc
+                )
+
+                if (!match || match.confidence === 'MISMATCH') {
+                    console.log(`   ⚠️ No suitable match found (${match?.confidence})`)
+                    return { success: false, reason: 'no_match', confidence: match?.confidence }
+                }
+
+                // Get full recording details
+                const recording = await musicBrainzService.getRecordingDetails(match.mbid)
+                if (!recording) {
+                    throw new Error('Failed to fetch recording details')
+                }
+
+                // Update database with MusicBrainz data
+                await updateTrackWithMBID(db, trackId, recording)
+
+                // Get AcousticBrainz data if available
+                try {
+                    const acousticData = await acousticBrainzService.getRecordingAnalysis(match.mbid)
+                    if (acousticData) {
+                        console.log(`   🎵 AcousticBrainz data retrieved`)
+                    }
+                } catch (err) {
+                    console.log('   ⚠️ No AcousticBrainz data available')
+                }
+
+                // Write metadata to file if requested
+                if (writeToFile) {
+                    const fileWriteSuccess = await writeMusicBrainzDataToFile(db, trackId)
+                    if (!fileWriteSuccess) {
+                        console.log('   ⚠️ Failed to write metadata to file')
+                    }
+                }
+
+                console.log(`   ✅ Track enhanced with ${match.confidence} confidence`)
+                return { 
+                    success: true, 
+                    confidence: match.confidence,
+                    matchScore: match.matchScore,
+                    mbid: match.mbid
+                }
+            } catch (error) {
+                console.error('❌ Failed to enhance track:', error)
+                throw error
+            }
+        })
+
+        /**
+         * Enhance multiple tracks with progress updates
+         * Searches MB for each track, updates DB, and optionally writes to files
+         */
+        ipcMain.handle('musicbrainz:enhanceTracks', async (event, trackIds: number[], writeToFiles = true) => {
+            console.log(`✨ [IPC] Bulk enhancing ${trackIds.length} tracks...`)
+            
+            const results = {
+                total: trackIds.length,
+                enhanced: 0,
+                failed: 0,
+                noMatch: 0,
+                alreadyHasMBID: 0
+            }
+
+            try {
+                const db = getDatabase()
+
+                for (let i = 0; i < trackIds.length; i++) {
+                    const trackId = trackIds[i]
+                    const track = getTrackById(trackId)
+
+                    if (!track) {
+                        results.failed++
+                        continue
+                    }
+
+                    // Send progress update
+                    event.sender.send('musicbrainz:enhanceProgress', {
+                        current: i + 1,
+                        total: trackIds.length,
+                        trackId,
+                        trackName: `${track.artist} - ${track.title}`
+                    })
+
+                    // Skip if already has MBID
+                    if (track.mbid) {
+                        console.log(`   ⏭️ Track ${trackId} already has MBID, skipping...`)
+                        results.alreadyHasMBID++
+                        continue
+                    }
+
+                    try {
+                        // Search MusicBrainz
+                        const match = await advancedMatch(
+                            track.artist,
+                            track.title,
+                            track.album,
+                            track.duration,
+                            track.isrc
+                        )
+
+                        if (!match || match.confidence === 'MISMATCH' || match.confidence === 'LOW') {
+                            console.log(`   ⚠️ No suitable match for track ${trackId}`)
+                            results.noMatch++
+                            continue
+                        }
+
+                        // Get full recording details
+                        const recording = await musicBrainzService.getRecordingDetails(match.mbid)
+                        if (!recording) {
+                            results.failed++
+                            continue
+                        }
+
+                        // Update database
+                        await updateTrackWithMBID(db, trackId, recording)
+
+                        // Try to get AcousticBrainz data
+                        try {
+                            await acousticBrainzService.getRecordingAnalysis(match.mbid)
+                        } catch (err) {
+                            // AcousticBrainz is optional, continue even if it fails
+                        }
+
+                        // Write to file if requested
+                        if (writeToFiles) {
+                            await writeMusicBrainzDataToFile(db, trackId)
+                        }
+
+                        results.enhanced++
+                        console.log(`   ✅ [${i + 1}/${trackIds.length}] Enhanced track ${trackId} (${match.confidence})`)
+
+                    } catch (error) {
+                        console.error(`   ❌ Failed to enhance track ${trackId}:`, error)
+                        results.failed++
+                    }
+
+                    // Small delay to respect rate limits (already handled by services but extra safe)
+                    await new Promise(resolve => setTimeout(resolve, 50))
+                }
+
+                console.log(`✅ Bulk enhance complete: ${results.enhanced} enhanced, ${results.noMatch} no match, ${results.failed} failed`)
+                return results
+
+            } catch (error) {
+                console.error('❌ Failed bulk enhance:', error)
+                throw error
+            }
+        })
+
+        /**
+         * Enhance entire library with MusicBrainz metadata
+         * Only enhances tracks that don't have MBIDs yet
+         */
+        ipcMain.handle('musicbrainz:enhanceLibrary', async (event, writeToFiles = true) => {
+            console.log('🚀 [IPC] Starting full library enhancement...')
+            
+            try {
+                const db = getDatabase()
+                
+                // Get all tracks without MBIDs
+                const tracksWithoutMBID = db.prepare(`
+                    SELECT id
+                    FROM tracks
+                    WHERE mbid IS NULL OR mbid = ''
+                    ORDER BY id
+                `).all()
+
+                const trackIds = tracksWithoutMBID.map((t: any) => t.id)
+                
+                console.log(`   Found ${trackIds.length} tracks without MBIDs`)
+
+                // Use the bulk enhance handler
+                return await ipcMain.emit('musicbrainz:enhanceTracks', event, trackIds, writeToFiles)
+
+            } catch (error) {
+                console.error('❌ Failed library enhancement:', error)
+                throw error
+            }
+        })
+
+        /**
+         * Write MusicBrainz metadata from database to audio files
+         * For tracks that already have MBIDs in database but not in files
+         */
+        ipcMain.handle('musicbrainz:syncToFiles', async (event, trackIds?: number[]) => {
+            console.log(`📝 [IPC] Syncing MusicBrainz data to files...`)
+            
+            try {
+                const db = getDatabase()
+
+                // If no track IDs provided, sync all tracks with MBIDs
+                let idsToSync: number[]
+                
+                if (trackIds && trackIds.length > 0) {
+                    idsToSync = trackIds
+                } else {
+                    const tracksWithMBID = db.prepare(`
+                        SELECT id
+                        FROM tracks
+                        WHERE mbid IS NOT NULL AND mbid != ''
+                        ORDER BY id
+                    `).all()
+                    idsToSync = tracksWithMBID.map((t: any) => t.id)
+                }
+
+                console.log(`   Syncing ${idsToSync.length} tracks to files...`)
+
+                // Use bulk writer with progress callback
+                const results = await bulkWriteMusicBrainzData(
+                    db,
+                    idsToSync,
+                    (current, total, trackPath) => {
+                        event.sender.send('musicbrainz:syncProgress', {
+                            current,
+                            total,
+                            trackPath
+                        })
+                    }
+                )
+
+                console.log(`✅ Sync complete: ${results.success} written, ${results.failed} failed, ${results.skipped} skipped`)
+                return results
+
+            } catch (error) {
+                console.error('❌ Failed to sync files:', error)
+                throw error
+            }
+        })
+
+        /**
+         * Re-fetch and update MusicBrainz data for tracks that already have MBIDs
+         * Useful for updating metadata after MusicBrainz data changes
+         */
+        ipcMain.handle('musicbrainz:refreshMetadata', async (event, trackIds: number[]) => {
+            console.log(`🔄 [IPC] Refreshing MusicBrainz metadata for ${trackIds.length} tracks...`)
+            
+            const results = {
+                total: trackIds.length,
+                refreshed: 0,
+                failed: 0,
+                noMBID: 0
+            }
+
+            try {
+                const db = getDatabase()
+
+                for (let i = 0; i < trackIds.length; i++) {
+                    const trackId = trackIds[i]
+                    const track = getTrackById(trackId)
+
+                    if (!track) {
+                        results.failed++
+                        continue
+                    }
+
+                    // Send progress update
+                    event.sender.send('musicbrainz:refreshProgress', {
+                        current: i + 1,
+                        total: trackIds.length,
+                        trackId,
+                        trackName: `${track.artist} - ${track.title}`
+                    })
+
+                    // Skip if no MBID
+                    if (!track.mbid) {
+                        results.noMBID++
+                        continue
+                    }
+
+                    try {
+                        // Re-fetch recording details
+                        const recording = await musicBrainzService.getRecordingDetails(track.mbid)
+                        if (!recording) {
+                            results.failed++
+                            continue
+                        }
+
+                        // Update database
+                        await updateTrackWithMBID(db, trackId, recording)
+
+                        // Re-fetch AcousticBrainz data
+                        try {
+                            await acousticBrainzService.getRecordingAnalysis(track.mbid)
+                        } catch (err) {
+                            // Optional, continue on failure
+                        }
+
+                        // Write to file
+                        await writeMusicBrainzDataToFile(db, trackId)
+
+                        results.refreshed++
+                        console.log(`   ✅ [${i + 1}/${trackIds.length}] Refreshed track ${trackId}`)
+
+                    } catch (error) {
+                        console.error(`   ❌ Failed to refresh track ${trackId}:`, error)
+                        results.failed++
+                    }
+
+                    // Rate limit delay
+                    await new Promise(resolve => setTimeout(resolve, 100))
+                }
+
+                console.log(`✅ Refresh complete: ${results.refreshed} refreshed, ${results.failed} failed`)
+                return results
+
+            } catch (error) {
+                console.error('❌ Failed to refresh metadata:', error)
+                throw error
+            }
+        })
+
+        // --- END MODULE 3B ---
 
         // ListenBrainz Full History Sync (Batched)
         ipcMain.handle('scrobble:syncAllListenBrainz', async (event, username: string) => {

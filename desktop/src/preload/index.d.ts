@@ -75,6 +75,67 @@ declare global {
         syncAllPlayCounts: (lastfmUsername?: string, listenbrainzUsername?: string, writeToFile?: boolean) => Promise<{ total: number; synced: number; errors: string[] }>
         exportPlayCountsCSV: () => Promise<string | null>
         onSyncProgress: (callback: (progress: { current: number; total: number; trackName: string; percentage: number }) => void) => () => void
+        onListenBrainzSyncProgress: (callback: (progress: { phase: string; fetched?: number; page?: number; current?: number; total?: number }) => void) => () => void
+      }
+      musicbrainz: {
+        getCoverage: () => Promise<{
+          totalTracks: number
+          tracksWithMBID: number
+          tracksWithoutMBID: number
+          coveragePercentage: number
+          totalAlbums: number
+          albumsWithMBID: number
+          albumsWithoutMBID: number
+        }>
+        searchTrack: (params: {
+          artist: string
+          title: string
+          album?: string
+          duration?: number
+          isrc?: string
+        }) => Promise<{
+          mbid: string
+          matchScore: number
+          confidence: 'PERFECT' | 'HIGH' | 'MEDIUM' | 'LOW' | 'MISMATCH'
+          recording: any
+        } | null>
+        getRecordingDetails: (recordingMBID: string) => Promise<any>
+        getAcousticBrainz: (recordingMBID: string) => Promise<any>
+        enhanceTrack: (trackId: number, writeToFile?: boolean) => Promise<{
+          success: boolean
+          confidence?: string
+          matchScore?: number
+          mbid?: string
+          reason?: string
+        }>
+        enhanceTracks: (trackIds: number[], writeToFiles?: boolean) => Promise<{
+          total: number
+          enhanced: number
+          failed: number
+          noMatch: number
+          alreadyHasMBID: number
+        }>
+        enhanceLibrary: (writeToFiles?: boolean) => Promise<{
+          total: number
+          enhanced: number
+          failed: number
+          noMatch: number
+          alreadyHasMBID: number
+        }>
+        syncToFiles: (trackIds?: number[]) => Promise<{
+          success: number
+          failed: number
+          skipped: number
+        }>
+        refreshMetadata: (trackIds: number[]) => Promise<{
+          total: number
+          refreshed: number
+          failed: number
+          noMBID: number
+        }>
+        onEnhanceProgress: (callback: (progress: { current: number; total: number; trackId: number; trackName: string }) => void) => () => void
+        onSyncProgress: (callback: (progress: { current: number; total: number; trackPath: string }) => void) => () => void
+        onRefreshProgress: (callback: (progress: { current: number; total: number; trackId: number; trackName: string }) => void) => () => void
       }
     }
   }
