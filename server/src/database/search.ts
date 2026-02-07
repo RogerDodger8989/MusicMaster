@@ -1,5 +1,8 @@
 import { getDatabase } from './index'
 import { Album, Artist, SearchResults, Track } from '../types'
+import { dbTrackToTrack } from './tracks'
+import { dbAlbumToAlbum } from './albums'
+import { dbArtistToArtist } from './artists'
 import fs from 'fs'
 import path from 'path'
 
@@ -23,54 +26,49 @@ export function searchLibrary(query: string): SearchResults {
             fs.appendFileSync(logPath, `DB Sample (Albums): ${JSON.stringify(albumSample)}\n`)
         } catch (e) { }
 
+        console.log(`[Search] Query: "${query}", Term: "${searchTerm}"`)
+
         // 1. Search Artists (Match by artist name only)
-        const artists = db.prepare(`
-            SELECT 
-                id, name, bio, 
-                album_count as albumCount, 
-                track_count as trackCount, 
-                image_path as imagePath 
-            FROM artists 
-            WHERE name LIKE ? COLLATE NOCASE
+        const artistRows = db.prepare(`
+            SELECT * FROM artists 
+            WHERE name LIKE ?
             LIMIT 10
-        `).all(searchTerm) as Artist[]
+        `).all(searchTerm) as any[]
+        const artists = artistRows.map(dbArtistToArtist)
 
-        // 2. Search Albums (Match by album name ONLY)
-        // Restricted to title only to avoid showing all albums by an artist when searching for their name
-        const albums = db.prepare(`
-            SELECT 
-                id, name, artist, year, genre, 
-                disc_count as discCount, 
-                track_count as trackCount, 
-                total_duration as totalDuration, 
-                cover_art_path as coverArtPath, 
-                rating, play_count as playCount,
-                musicbrainz_album_id as musicbrainzAlbumId
-            FROM albums_cache 
-            WHERE name LIKE ? COLLATE NOCASE
+        console.log(`[Search] Found ${artists.length} artists`)
+
+        // 2. Search Albums (Match by album name or artist name)
+        const albumRows = db.prepare(`
+            SELECT * FROM albums_cache 
+            WHERE name LIKE ? OR artist LIKE ?
             LIMIT 10
-        `).all(searchTerm) as Album[]
+        `).all(searchTerm, searchTerm) as any[]
+        const albums = albumRows.map(dbAlbumToAlbum)
 
-        // 3. Search Tracks (Match by track title ONLY)
+        console.log(`[Search] Found ${albums.length} albums`)
+
+        // 3. Search Tracks (Match by title, artist, or album)
         // JOIN with albums_cache to get the parent album's ID for navigation
-        const tracks = db.prepare(`
+        const rows = db.prepare(`
             SELECT 
-                t.id, t.title, t.artist, t.album, t.year, t.genre, t.duration, t.bitrate, t.format, t.rating, t.loved,
-                t.file_path as filePath, 
-                t.album_artist as albumArtist, 
-                t.track_num as trackNum, 
-                t.disc_num as discNum, 
-                t.cover_art_path as coverArtPath,
-                t.release_date as releaseDate,
-                t.musicbrainz_track_id as musicbrainzTrackId,
-                t.musicbrainz_album_id as musicbrainzAlbumId,
-                a.id as albumId
+                t.*,
+                a.id as album_cache_id
             FROM tracks t
             LEFT JOIN albums_cache a ON 
                 (t.album = a.name AND (t.album_artist = a.artist OR t.artist = a.artist))
-            WHERE t.title LIKE ? COLLATE NOCASE
+            WHERE t.title LIKE ? OR t.artist LIKE ? OR t.album LIKE ?
             LIMIT 20
-        `).all(searchTerm) as Track[]
+        `).all(searchTerm, searchTerm, searchTerm) as any[]
+
+        const tracks = rows.map(row => {
+            const track = dbTrackToTrack(row);
+            // Add the joined albumId
+            (track as any).albumId = row.album_cache_id;
+            return track;
+        });
+
+        console.log(`[Search] Found ${tracks.length} tracks`)
 
         try {
             fs.appendFileSync(logPath, `Found: ${artists.length} artists, ${albums.length} albums, ${tracks.length} tracks\n`)

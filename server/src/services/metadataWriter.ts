@@ -362,27 +362,27 @@ export function buildMusicBrainzDataFromDb(
     }
 
     const trackArtists = db.prepare(`
-        SELECT art.mbid, ta.join_phrase, ta.position
+        SELECT art.mbid, ta.credited_as, ta.sort_position
         FROM track_artists ta
         JOIN artists art ON ta.artist_id = art.id
         WHERE ta.track_id = ?
-        ORDER BY ta.position
+        ORDER BY ta.sort_position
     `).all(trackId)
 
     const albumArtists = db.prepare(`
-        SELECT art.mbid, aa.join_phrase, aa.position
+        SELECT art.mbid, aa.credited_as, aa.sort_position
         FROM album_artists aa
         JOIN artists art ON aa.artist_id = art.id
         WHERE aa.album_id = (SELECT album_id FROM tracks WHERE id = ?)
-        ORDER BY aa.position
+        ORDER BY aa.sort_position
     `).all(trackId)
 
     const genres = db.prepare(`
         SELECT g.name
-        FROM track_genres tg
+        FROM genre_tags tg
         JOIN genres g ON tg.genre_id = g.id
-        WHERE tg.track_id = ?
-        ORDER BY tg.vote_count DESC
+        WHERE tg.entity_id = ? AND tg.entity_type = 'track'
+        ORDER BY tg.confidence DESC
         LIMIT 5
     `).all(trackId).map((row: any) => row.name)
 
@@ -397,7 +397,7 @@ export function buildMusicBrainzDataFromDb(
             valence,
             instrumentalness
         FROM acousticbrainz_data
-        WHERE recording_mbid = ?
+        WHERE mbid = ?
     `).get(track.recording_mbid)
 
     const data: MusicBrainzWriteData = {

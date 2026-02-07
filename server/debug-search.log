@@ -1,0 +1,60 @@
+
+--- SEARCH START: "steal" (Normalized: "steal") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 0 artists, 1 albums, 16 tracks
+
+--- SEARCH START: "st" (Normalized: "st") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 1 albums, 16 tracks
+
+--- SEARCH START: "ste" (Normalized: "ste") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 1 albums, 16 tracks
+
+--- SEARCH START: "stea" (Normalized: "stea") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 0 artists, 1 albums, 16 tracks
+
+--- SEARCH START: "ste" (Normalized: "ste") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 1 albums, 16 tracks
+
+--- SEARCH START: "st" (Normalized: "st") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 1 albums, 16 tracks
+
+--- SEARCH START: "sy" (Normalized: "sy") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 1 albums, 16 tracks
+
+--- SEARCH START: "sys" (Normalized: "sys") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 1 albums, 16 tracks
+
+--- SEARCH START: "sysc" (Normalized: "sysc") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 0 artists, 0 albums, 0 tracks
+
+--- SEARCH START: "sysch" (Normalized: "sysch") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 0 artists, 0 albums, 0 tracks
+
+--- SEARCH START: "sysc" (Normalized: "sysc") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 0 artists, 0 albums, 0 tracks
+
+--- SEARCH START: "sys" (Normalized: "sys") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 1 albums, 16 tracks
+
+--- SEARCH START: "sy" (Normalized: "sy") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 1 albums, 16 tracks
+
+--- SEARCH START: "ch" (Normalized: "ch") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 0 artists, 0 albums, 1 tracks
+
+--- SEARCH START: "chi" (Normalized: "chi") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 0 artists, 0 albums, 1 tracks

@@ -15,6 +15,7 @@ import UnsortedView from './views/UnsortedView'
 import SearchModal from './components/SearchModal'
 import TaggingModal from './components/TaggingModal'
 import QueuePanel from './components/QueuePanel'
+import TrackContextMenu from './components/TrackContextMenu'
 import { TrackPlayOptionModal } from './components/modals/TrackPlayOptionModal'
 import { useLibrary } from './store/library'
 import { useNavigation } from './store/navigation'
@@ -43,6 +44,11 @@ function App(): React.JSX.Element {
   const [taggingModalOpen, setTaggingModalOpen] = useState(false)
   const [selectedItemForTagging, setSelectedItemForTagging] = useState<Track | Album | null>(null)
   const [taggingItemType, setTaggingItemType] = useState<'track' | 'album'>('track')
+  const [trackContextMenu, setTrackContextMenu] = useState<{
+    track: Track
+    x: number
+    y: number
+  } | null>(null)
 
   const startResizing = useCallback(() => {
     setIsResizing(true)
@@ -52,14 +58,17 @@ function App(): React.JSX.Element {
     setIsResizing(false)
   }, [])
 
-  const resize = useCallback((e: MouseEvent) => {
-    if (isResizing) {
-      const newWidth = window.innerWidth - e.clientX
-      if (newWidth > 300 && newWidth < 800) {
-        setQueueWidth(newWidth)
+  const resize = useCallback(
+    (e: MouseEvent) => {
+      if (isResizing) {
+        const newWidth = window.innerWidth - e.clientX
+        if (newWidth > 300 && newWidth < 800) {
+          setQueueWidth(newWidth)
+        }
       }
-    }
-  }, [isResizing])
+    },
+    [isResizing]
+  )
 
   useEffect(() => {
     window.addEventListener('mousemove', resize)
@@ -79,25 +88,28 @@ function App(): React.JSX.Element {
 
       // Start scrobble service and update API keys with LOADED settings
       const settings = useSettings.getState()
-      console.log('🎵 Starting scrobble service with session key:', settings.lastfmSessionKey ? 'present' : 'missing')
-      scrobbleService.start(settings.lastfmSessionKey || undefined)
+      console.log(
+        '🎵 Starting scrobble service with session key:',
+        settings.lastfmSessionKey ? 'present' : 'missing'
+      )
+      scrobbleService.start()
 
       if (window.api) {
         if (settings.lastfmApiKey) {
           console.log('🔑 Pushing Last.fm API key to main process')
-          window.api.scrobble.updateLastFmKey(settings.lastfmApiKey).catch(err => {
+          window.api.scrobble.updateLastFmKey(settings.lastfmApiKey).catch((err) => {
             console.error('Failed to set Last.fm key:', err)
           })
         }
         if (settings.lastfmApiSecret) {
           console.log('🔑 Pushing Last.fm API secret to main process')
-          window.api.scrobble.updateLastFmSecret(settings.lastfmApiSecret).catch(err => {
+          window.api.scrobble.updateLastFmSecret(settings.lastfmApiSecret).catch((err) => {
             console.error('Failed to set Last.fm secret:', err)
           })
         }
         if (settings.listenbrainzToken) {
           console.log('🔑 Pushing ListenBrainz token to main process')
-          window.api.scrobble.updateListenBrainzToken(settings.listenbrainzToken).catch(err => {
+          window.api.scrobble.updateListenBrainzToken(settings.listenbrainzToken).catch((err) => {
             console.error('Failed to set ListenBrainz token:', err)
           })
         }
@@ -147,9 +159,15 @@ function App(): React.JSX.Element {
           // If behavior is 'ask' but no queue, just play it
           const effectiveBehavior = behavior === 'ask' ? 'replace' : behavior
           switch (effectiveBehavior) {
-            case 'replace': playTrack(track); break;
-            case 'play_next': playNext(track); break;
-            case 'add_last': addToQueue(track); break;
+            case 'replace':
+              playTrack(track)
+              break
+            case 'play_next':
+              playNext(track)
+              break
+            case 'add_last':
+              addToQueue(track)
+              break
           }
         }
       }
@@ -169,7 +187,8 @@ function App(): React.JSX.Element {
       }
     }
     window.addEventListener('request-track-tagging', handleTaggingRequest as EventListener)
-    return () => window.removeEventListener('request-track-tagging', handleTaggingRequest as EventListener)
+    return () =>
+      window.removeEventListener('request-track-tagging', handleTaggingRequest as EventListener)
   }, [])
 
   // Listen for request-album-tagging
@@ -183,7 +202,27 @@ function App(): React.JSX.Element {
       }
     }
     window.addEventListener('request-album-tagging', handleAlbumTaggingRequest as EventListener)
-    return () => window.removeEventListener('request-album-tagging', handleAlbumTaggingRequest as EventListener)
+    return () =>
+      window.removeEventListener(
+        'request-album-tagging',
+        handleAlbumTaggingRequest as EventListener
+      )
+  }, [])
+
+  // Global Context Menu Listener
+  useEffect(() => {
+    const handleContextMenuRequest = (e: CustomEvent) => {
+      const { track, x, y } = e.detail
+      if (track) {
+        setTrackContextMenu({ track, x, y })
+      }
+    }
+    window.addEventListener('show-track-context-menu', handleContextMenuRequest as EventListener)
+    return () =>
+      window.removeEventListener(
+        'show-track-context-menu',
+        handleContextMenuRequest as EventListener
+      )
   }, [])
 
   const handleTaggingSave = async (id: string, metadata: any, type: 'track' | 'album') => {
@@ -212,8 +251,6 @@ function App(): React.JSX.Element {
       } else {
         console.warn('Metadata updates not supported in web mode yet')
       }
-
-
     } else {
       // Album tagging
       try {
@@ -230,28 +267,31 @@ function App(): React.JSX.Element {
     }
   }
 
-  const handlePlayOptionSelect = useCallback((option: TrackPlayBehavior, remember: boolean) => {
-    if (!selectedTrackForPlay) return
+  const handlePlayOptionSelect = useCallback(
+    (option: TrackPlayBehavior, remember: boolean) => {
+      if (!selectedTrackForPlay) return
 
-    if (remember) {
-      setTrackPlayBehavior(option)
-    }
+      if (remember) {
+        setTrackPlayBehavior(option)
+      }
 
-    switch (option) {
-      case 'replace':
-        playTrack(selectedTrackForPlay)
-        break
-      case 'play_next':
-        playNext(selectedTrackForPlay)
-        break
-      case 'add_last':
-        addToQueue(selectedTrackForPlay)
-        break
-    }
+      switch (option) {
+        case 'replace':
+          playTrack(selectedTrackForPlay)
+          break
+        case 'play_next':
+          playNext(selectedTrackForPlay)
+          break
+        case 'add_last':
+          addToQueue(selectedTrackForPlay)
+          break
+      }
 
-    setPlayModalOpen(false)
-    setSelectedTrackForPlay(null)
-  }, [selectedTrackForPlay, playTrack, playNext, addToQueue, setTrackPlayBehavior])
+      setPlayModalOpen(false)
+      setSelectedTrackForPlay(null)
+    },
+    [selectedTrackForPlay, playTrack, playNext, addToQueue, setTrackPlayBehavior]
+  )
 
   const renderView = () => {
     switch (activeView) {
@@ -260,7 +300,11 @@ function App(): React.JSX.Element {
       case 'albums':
         return <AlbumsView onAlbumClick={(id) => navigateTo('album-detail', { albumId: id })} />
       case 'artists':
-        return <ArtistsView onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })} />
+        return (
+          <ArtistsView
+            onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
+          />
+        )
       case 'tracks':
         return <TracksView />
       case 'playlists':
@@ -268,12 +312,7 @@ function App(): React.JSX.Element {
       case 'unsorted':
         return <UnsortedView />
       case 'album-detail':
-        return (
-          <AlbumDetailView
-            albumId={viewParams?.albumId}
-            onBack={() => goBack()}
-          />
-        )
+        return <AlbumDetailView albumId={viewParams?.albumId} onBack={() => goBack()} />
       case 'artist-detail':
         return (
           <ArtistDetailView
@@ -334,7 +373,9 @@ function App(): React.JSX.Element {
   }
 
   return (
-    <div className={cn("h-screen flex flex-col overflow-hidden bg-black", isResizing && "select-none")}>
+    <div
+      className={cn('h-screen flex flex-col overflow-hidden bg-black', isResizing && 'select-none')}
+    >
       {/* Search Modal */}
       <SearchModal />
 
@@ -396,6 +437,16 @@ function App(): React.JSX.Element {
 
       {/* Sync Progress Toast */}
       <SyncProgressToast />
+
+      {/* Global Track Context Menu */}
+      {trackContextMenu && (
+        <TrackContextMenu
+          track={trackContextMenu.track}
+          x={trackContextMenu.x}
+          y={trackContextMenu.y}
+          onClose={() => setTrackContextMenu(null)}
+        />
+      )}
     </div>
   )
 }

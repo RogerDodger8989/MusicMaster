@@ -6,20 +6,22 @@ import fs from 'fs'
 /**
  * Insert or update a track in the database
  */
-export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'> & { folderId: string }): string {
-    const db = getDatabase()
+export function upsertTrack(
+  track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'> & { folderId: string }
+): string {
+  const db = getDatabase()
 
-    // Check if track already exists by file path
-    const existing = db
-        .prepare('SELECT id FROM tracks WHERE file_path = ?')
-        .get(track.filePath) as { id: string } | undefined
+  // Check if track already exists by file path
+  const existing = db.prepare('SELECT id FROM tracks WHERE file_path = ?').get(track.filePath) as
+    | { id: string }
+    | undefined
 
-    const id = existing?.id || randomUUID()
-    const now = new Date().toISOString()
+  const id = existing?.id || randomUUID()
+  const now = new Date().toISOString()
 
-    if (existing) {
-        // Update existing track
-        const stmt = db.prepare(`
+  if (existing) {
+    // Update existing track
+    const stmt = db.prepare(`
       UPDATE tracks SET
         title = ?,
         artist = ?,
@@ -50,38 +52,38 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
       WHERE id = ?
     `)
 
-        stmt.run(
-            track.title,
-            track.artist,
-            track.album,
-            track.albumArtist || null,
-            track.year || null,
-            track.genre || null,
-            track.trackNum || null,
-            track.discNum || null,
-            track.duration,
-            track.bitrate,
-            track.format,
-            track.coverArtPath || null,
-            track.fileHash || null,
-            track.rating || 0,
-            track.loved ? 1 : 0,
-            track.playCount || 0,
-            track.releaseDate || null,
-            track.musicbrainzTrackId || null,
-            track.musicbrainzAlbumId || null,
-            track.sampleRate || null,
-            track.bitDepth || null,
-            (track as any).replayGainTrack || null,
-            (track as any).replayGainAlbum || null,
-            (track as any).replayGainTrackPeak || null,
-            (track as any).replayGainAlbumPeak || null,
-            now,
-            id
-        )
-    } else {
-        // Insert new track
-        const stmt = db.prepare(`
+    stmt.run(
+      track.title,
+      track.artist,
+      track.album,
+      track.albumArtist || null,
+      track.year || null,
+      track.genre || null,
+      track.trackNum || null,
+      track.discNum || null,
+      track.duration,
+      track.bitrate,
+      track.format,
+      track.coverArtPath || null,
+      track.fileHash || null,
+      track.rating || 0,
+      track.loved ? 1 : 0,
+      track.playCount || 0,
+      track.releaseDate || null,
+      track.musicbrainzTrackId || null,
+      track.musicbrainzAlbumId || null,
+      track.sampleRate || null,
+      track.bitDepth || null,
+      (track as any).replayGainTrack || null,
+      (track as any).replayGainAlbum || null,
+      (track as any).replayGainTrackPeak || null,
+      (track as any).replayGainAlbumPeak || null,
+      now,
+      id
+    )
+  } else {
+    // Insert new track
+    const stmt = db.prepare(`
       INSERT INTO tracks (
         id, folder_id, file_path, file_hash, title, artist, album, album_artist,
         year, genre, track_num, disc_num, duration, bitrate, format,
@@ -92,131 +94,140 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
-        stmt.run(
-            id,
-            track.folderId,
-            track.filePath,
-            track.fileHash || null,
-            track.title,
-            track.artist,
-            track.album,
-            track.albumArtist || null,
-            track.year || null,
-            track.genre || null,
-            track.trackNum || null,
-            track.discNum || null,
-            track.duration,
-            track.bitrate,
-            track.format,
-            track.coverArtPath || null,
-            track.rating || 0,
-            track.loved ? 1 : 0,
-            track.playCount || 0,
-            track.releaseDate || null,
-            track.musicbrainzTrackId || null,
-            track.musicbrainzAlbumId || null,
-            track.sampleRate || null,
-            track.bitDepth || null,
-            (track as any).replayGainTrack || null,
-            (track as any).replayGainAlbum || null,
-            (track as any).replayGainTrackPeak || null,
-            (track as any).replayGainAlbumPeak || null,
-            now,
-            now
-        )
-    }
+    stmt.run(
+      id,
+      track.folderId,
+      track.filePath,
+      track.fileHash || null,
+      track.title,
+      track.artist,
+      track.album,
+      track.albumArtist || null,
+      track.year || null,
+      track.genre || null,
+      track.trackNum || null,
+      track.discNum || null,
+      track.duration,
+      track.bitrate,
+      track.format,
+      track.coverArtPath || null,
+      track.rating || 0,
+      track.loved ? 1 : 0,
+      track.playCount || 0,
+      track.releaseDate || null,
+      track.musicbrainzTrackId || null,
+      track.musicbrainzAlbumId || null,
+      track.sampleRate || null,
+      track.bitDepth || null,
+      (track as any).replayGainTrack || null,
+      (track as any).replayGainAlbum || null,
+      (track as any).replayGainTrackPeak || null,
+      (track as any).replayGainAlbumPeak || null,
+      now,
+      now
+    )
+  }
 
-    return id
+  return id
 }
 
 /**
  * Get all tracks
  */
 export function getAllTracks(): Track[] {
-    const db = getDatabase()
-    const stmt = db.prepare('SELECT * FROM tracks ORDER BY artist, album, disc_num, track_num')
-    const rows = stmt.all() as DbTrack[]
-    return rows.map(dbTrackToTrack)
+  const db = getDatabase()
+  const stmt = db.prepare('SELECT * FROM tracks ORDER BY artist, album, disc_num, track_num')
+  const rows = stmt.all() as DbTrack[]
+  return rows.map(dbTrackToTrack)
 }
 
 /**
  * Get tracks by folder ID
  */
 export function getTracksByFolder(folderId: string): Track[] {
-    const db = getDatabase()
-    const stmt = db.prepare('SELECT * FROM tracks WHERE folder_id = ? ORDER BY artist, album, disc_num, track_num')
-    const rows = stmt.all(folderId) as DbTrack[]
-    return rows.map(dbTrackToTrack)
+  const db = getDatabase()
+  const stmt = db.prepare(
+    'SELECT * FROM tracks WHERE folder_id = ? ORDER BY artist, album, disc_num, track_num'
+  )
+  const rows = stmt.all(folderId) as DbTrack[]
+  return rows.map(dbTrackToTrack)
 }
 
 /**
  * Delete track by file path
  */
 export function deleteTrackByPath(filePath: string): void {
-    const db = getDatabase()
-    const stmt = db.prepare('DELETE FROM tracks WHERE file_path = ?')
-    stmt.run(filePath)
+  const db = getDatabase()
+  const stmt = db.prepare('DELETE FROM tracks WHERE file_path = ?')
+  stmt.run(filePath)
 }
 
 /**
  * Get tracks by album and artist
  */
 export function getTracksByAlbum(name: string, artist: string): Track[] {
-    const db = getDatabase()
-    const stmt = db.prepare(`
+  const db = getDatabase()
+  const stmt = db.prepare(`
         SELECT * FROM tracks 
         WHERE COALESCE(NULLIF(album, ''), 'Unknown Album') = ? 
         AND COALESCE(album_artist, artist, 'Unknown Artist') = ?
         ORDER BY disc_num, track_num
     `)
-    const rows = stmt.all(name, artist) as DbTrack[]
-    return rows.map(dbTrackToTrack)
+  const rows = stmt.all(name, artist) as DbTrack[]
+  return rows.map(dbTrackToTrack)
 }
 
 /**
  * Get track by ID
  */
 export function getTrackById(id: string): Track | null {
-    const db = getDatabase()
-    const stmt = db.prepare('SELECT * FROM tracks WHERE id = ?')
-    const row = stmt.get(id) as DbTrack | undefined
-    return row ? dbTrackToTrack(row) : null
+  const db = getDatabase()
+  const stmt = db.prepare('SELECT * FROM tracks WHERE id = ?')
+  const row = stmt.get(id) as DbTrack | undefined
+  return row ? dbTrackToTrack(row) : null
 }
 
 /**
  * Get track by file path
  */
 export function getTrackByPath(filePath: string): Track | null {
-    const db = getDatabase()
-    const stmt = db.prepare('SELECT * FROM tracks WHERE file_path = ?')
-    const row = stmt.get(filePath) as DbTrack | undefined
-    return row ? dbTrackToTrack(row) : null
+  const db = getDatabase()
+  const stmt = db.prepare('SELECT * FROM tracks WHERE file_path = ?')
+  const row = stmt.get(filePath) as DbTrack | undefined
+  return row ? dbTrackToTrack(row) : null
 }
 
 /**
  * Update track rating
  */
 export function updateTrackRating(id: string, rating: number): void {
-    const db = getDatabase()
-    const stmt = db.prepare('UPDATE tracks SET rating = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-    stmt.run(rating, id)
+  const db = getDatabase()
+  const stmt = db.prepare(
+    'UPDATE tracks SET rating = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+  )
+  stmt.run(rating, id)
 }
 
 /**
  * Update track loved status
  */
 export function updateTrackLoved(id: string, loved: boolean): void {
-    const db = getDatabase()
-    const stmt = db.prepare('UPDATE tracks SET loved = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-    stmt.run(loved ? 1 : 0, id)
+  const db = getDatabase()
+  const stmt = db.prepare(
+    'UPDATE tracks SET loved = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+  )
+  stmt.run(loved ? 1 : 0, id)
 }
 
 /**
  * Update MusicBrainz IDs for a track
  */
-export function updateTrackMusicBrainz(id: string, data: { trackId?: string, albumId?: string, artistId?: string }): void {
-    const db = getDatabase()
-    const stmt = db.prepare(`
+export function updateTrackMusicBrainz(
+  id: string,
+  data: { trackId?: string; albumId?: string; artistId?: string }
+): void {
+  const db = getDatabase()
+  const stmt = db.prepare(`
         UPDATE tracks 
         SET musicbrainz_track_id = ?, 
             musicbrainz_album_id = ?, 
@@ -224,167 +235,184 @@ export function updateTrackMusicBrainz(id: string, data: { trackId?: string, alb
             updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?
     `)
-    stmt.run(data.trackId || null, data.albumId || null, data.artistId || null, id)
+  stmt.run(data.trackId || null, data.albumId || null, data.artistId || null, id)
 }
 
 /**
  * Calculate file hash (SHA256)
  */
 export function calculateFileHash(filePath: string): string {
-    const fileBuffer = fs.readFileSync(filePath)
-    const hashSum = createHash('sha256')
-    hashSum.update(fileBuffer)
-    return hashSum.digest('hex')
+  const fileBuffer = fs.readFileSync(filePath)
+  const hashSum = createHash('sha256')
+  hashSum.update(fileBuffer)
+  return hashSum.digest('hex')
 }
 
 /**
  * Convert database track to Track type
  */
 export function dbTrackToTrack(dbTrack: DbTrack): Track {
-    return {
-        id: dbTrack.id,
-        filePath: dbTrack.file_path,
-        fileHash: dbTrack.file_hash || undefined,
-        title: dbTrack.title,
-        artist: dbTrack.artist,
-        album: dbTrack.album,
-        albumArtist: dbTrack.album_artist || undefined,
-        year: dbTrack.year || undefined,
-        genre: dbTrack.genre || undefined,
-        trackNum: dbTrack.track_num || undefined,
-        discNum: dbTrack.disc_num || undefined,
-        duration: dbTrack.duration,
-        bitrate: dbTrack.bitrate,
-        format: dbTrack.format,
-        sampleRate: dbTrack.sample_rate || undefined,
-        bitDepth: dbTrack.bit_depth || undefined,
-        coverArtPath: dbTrack.cover_art_path || undefined,
-        rating: dbTrack.rating,
-        loved: dbTrack.loved === 1,
-        playCount: dbTrack.play_count || 0,
-        releaseDate: dbTrack.release_date || undefined,
-        musicbrainzTrackId: dbTrack.musicbrainz_track_id || undefined,
-        musicbrainzAlbumId: dbTrack.musicbrainz_album_id || undefined,
-        musicbrainzArtistId: dbTrack.musicbrainz_artist_id || undefined,
-        replayGainTrack: (dbTrack as any).replaygain_track_gain || undefined,
-        replayGainAlbum: (dbTrack as any).replaygain_album_gain || undefined,
-        replayGainTrackPeak: (dbTrack as any).replaygain_track_peak || undefined,
-        replayGainAlbumPeak: (dbTrack as any).replaygain_album_peak || undefined,
-        createdAt: new Date(dbTrack.created_at),
-        updatedAt: new Date(dbTrack.updated_at)
-    }
+  return {
+    id: dbTrack.id,
+    filePath: dbTrack.file_path,
+    fileHash: dbTrack.file_hash || undefined,
+    title: dbTrack.title,
+    artist: dbTrack.artist,
+    album: dbTrack.album,
+    albumArtist: dbTrack.album_artist || undefined,
+    year: dbTrack.year || undefined,
+    genre: dbTrack.genre || undefined,
+    trackNum: dbTrack.track_num || undefined,
+    discNum: dbTrack.disc_num || undefined,
+    duration: dbTrack.duration,
+    bitrate: dbTrack.bitrate,
+    format: dbTrack.format,
+    sampleRate: dbTrack.sample_rate || undefined,
+    bitDepth: dbTrack.bit_depth || undefined,
+    coverArtPath: dbTrack.cover_art_path || undefined,
+    rating: dbTrack.rating,
+    loved: dbTrack.loved === 1,
+    playCount: dbTrack.play_count || 0,
+    releaseDate: dbTrack.release_date || undefined,
+    musicbrainzTrackId: dbTrack.musicbrainz_track_id || undefined,
+    musicbrainzAlbumId: dbTrack.musicbrainz_album_id || undefined,
+    musicbrainzArtistId: dbTrack.musicbrainz_artist_id || undefined,
+    replayGainTrack: (dbTrack as any).replaygain_track_gain || undefined,
+    replayGainAlbum: (dbTrack as any).replaygain_album_gain || undefined,
+    replayGainTrackPeak: (dbTrack as any).replaygain_track_peak || undefined,
+    replayGainAlbumPeak: (dbTrack as any).replaygain_album_peak || undefined,
+    createdAt: new Date(dbTrack.created_at),
+    updatedAt: new Date(dbTrack.updated_at)
+  }
 }
 /**
  * Add a scrobble to the queue
  */
-export function addScrobbleToQueue(trackId: string, artist: string, title: string, album: string | null, playedTimestamp: number): string {
-    const db = getDatabase()
-    const id = randomUUID()
-    const stmt = db.prepare(`
+export function addScrobbleToQueue(
+  trackId: string,
+  artist: string,
+  title: string,
+  album: string | null,
+  playedTimestamp: number
+): string {
+  const db = getDatabase()
+  const id = randomUUID()
+  const stmt = db.prepare(`
         INSERT INTO scrobble_queue (id, track_id, artist, title, album, played_at)
         VALUES (?, ?, ?, ?, ?, ?)
     `)
-    stmt.run(id, trackId, artist, title, album || null, playedTimestamp)
-    return id
+  stmt.run(id, trackId, artist, title, album || null, playedTimestamp)
+  return id
 }
 
 /**
  * Get pending scrobbles
  */
 export function getPendingScrobbles(limit: number = 50): Array<{
-    id: string
-    trackId: string
-    artist: string
-    title: string
-    album: string | null
-    playedAt: number
-    lastfmSubmitted: boolean
-    listenbrainzSubmitted: boolean
+  id: string
+  trackId: string
+  artist: string
+  title: string
+  album: string | null
+  playedAt: number
+  lastfmSubmitted: boolean
+  listenbrainzSubmitted: boolean
 }> {
-    const db = getDatabase()
-    const rows = db
-        .prepare(`
+  const db = getDatabase()
+  const rows = db
+    .prepare(
+      `
             SELECT id, track_id, artist, title, album, played_at, lastfm_submitted, listenbrainz_submitted
             FROM scrobble_queue
             WHERE lastfm_submitted = 0 OR listenbrainz_submitted = 0
             LIMIT ?
-        `)
-        .all(limit) as Array<any>
+        `
+    )
+    .all(limit) as Array<any>
 
-    return rows.map((row: any) => ({
-        id: row.id,
-        trackId: row.track_id,
-        artist: row.artist,
-        title: row.title,
-        album: row.album,
-        playedAt: row.played_at,
-        lastfmSubmitted: row.lastfm_submitted === 1,
-        listenbrainzSubmitted: row.listenbrainz_submitted === 1
-    }))
+  return rows.map((row: any) => ({
+    id: row.id,
+    trackId: row.track_id,
+    artist: row.artist,
+    title: row.title,
+    album: row.album,
+    playedAt: row.played_at,
+    lastfmSubmitted: row.lastfm_submitted === 1,
+    listenbrainzSubmitted: row.listenbrainz_submitted === 1
+  }))
 }
 
 /**
  * Mark scrobble as submitted to a service
  */
-export function markScrobbleSubmitted(scrobbleId: string, service: 'lastfm' | 'listenbrainz'): void {
-    const db = getDatabase()
-    const column = service === 'lastfm' ? 'lastfm_submitted' : 'listenbrainz_submitted'
-    const stmt = db.prepare(`UPDATE scrobble_queue SET ${column} = 1 WHERE id = ?`)
-    stmt.run(scrobbleId)
+export function markScrobbleSubmitted(
+  scrobbleId: string,
+  service: 'lastfm' | 'listenbrainz'
+): void {
+  const db = getDatabase()
+  const column = service === 'lastfm' ? 'lastfm_submitted' : 'listenbrainz_submitted'
+  const stmt = db.prepare(`UPDATE scrobble_queue SET ${column} = 1 WHERE id = ?`)
+  stmt.run(scrobbleId)
 
-    // Check if both services have submitted
-    const row = db.prepare('SELECT lastfm_submitted, listenbrainz_submitted FROM scrobble_queue WHERE id = ?').get(scrobbleId) as any
-    // Note: We don't have a 'submitted' column in the schema currently, 
-    // we rely on the individual service columns. If we wanted a global 'submitted' column
-    // we would need to add it to the schema in index.ts.
-    // For now, we'll just fix the typo in case it's used elsewhere.
-    if (row && row.lastfm_submitted === 1 && row.listenbrainz_submitted === 1) {
-        // All enabled services are done. 
-        // We could optionally delete the row here to keep the queue small,
-        // but keeping it for history is fine too.
-    }
+  // Check if both services have submitted
+  const row = db
+    .prepare('SELECT lastfm_submitted, listenbrainz_submitted FROM scrobble_queue WHERE id = ?')
+    .get(scrobbleId) as any
+  // Note: We don't have a 'submitted' column in the schema currently,
+  // we rely on the individual service columns. If we wanted a global 'submitted' column
+  // we would need to add it to the schema in index.ts.
+  // For now, we'll just fix the typo in case it's used elsewhere.
+  if (row && row.lastfm_submitted === 1 && row.listenbrainz_submitted === 1) {
+    // All enabled services are done.
+    // We could optionally delete the row here to keep the queue small,
+    // but keeping it for history is fine too.
+  }
 }
 
 /**
  * Record a play in history
  */
 export function recordPlayHistory(trackId: string): void {
-    const db = getDatabase()
-    const now = new Date().toISOString()
+  const db = getDatabase()
+  const now = new Date().toISOString()
 
-    // Check if track was played today
-    const existing = db
-        .prepare(`
+  // Check if track was played today
+  const existing = db
+    .prepare(
+      `
             SELECT id, play_count FROM play_history
             WHERE track_id = ? AND DATE(played_at) = DATE(?)
-        `)
-        .get(trackId, now) as { id: string; play_count: number } | undefined
+        `
+    )
+    .get(trackId, now) as { id: string; play_count: number } | undefined
 
-    if (existing) {
-        // Increment play count for today
-        const stmt = db.prepare('UPDATE play_history SET play_count = play_count + 1 WHERE id = ?')
-        stmt.run(existing.id)
-    } else {
-        // Create new play history entry
-        const id = randomUUID()
-        const stmt = db.prepare(`
+  if (existing) {
+    // Increment play count for today
+    const stmt = db.prepare('UPDATE play_history SET play_count = play_count + 1 WHERE id = ?')
+    stmt.run(existing.id)
+  } else {
+    // Create new play history entry
+    const id = randomUUID()
+    const stmt = db.prepare(`
             INSERT INTO play_history (id, track_id, played_at, play_count)
             VALUES (?, ?, ?, 1)
         `)
-        stmt.run(id, trackId, now)
-    }
+    stmt.run(id, trackId, now)
+  }
 
-    // ALSO update the master play_count in the tracks table for immediate access/performance
-    db.prepare('UPDATE tracks SET play_count = play_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(trackId)
+  // ALSO update the master play_count in the tracks table for immediate access/performance
+  db.prepare(
+    'UPDATE tracks SET play_count = play_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+  ).run(trackId)
 }
 
 /**
  * Get play count for a track
  */
 export function getTrackPlayCount(trackId: string): number {
-    const db = getDatabase()
-    const row = db
-        .prepare('SELECT play_count FROM tracks WHERE id = ?')
-        .get(trackId) as { play_count: number } | undefined
-    return row?.play_count || 0
+  const db = getDatabase()
+  const row = db.prepare('SELECT play_count FROM tracks WHERE id = ?').get(trackId) as
+    | { play_count: number }
+    | undefined
+  return row?.play_count || 0
 }

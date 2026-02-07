@@ -52,20 +52,28 @@ const api = {
     getAll: (): Promise<Track[]> => ipcRenderer.invoke('tracks:getAll'),
     getTracksByAlbum: (name: string, artist: string): Promise<Track[]> =>
       ipcRenderer.invoke('tracks:getTracksByAlbum', name, artist),
-    getCoverBufferByAlbum: (albumId: string): Promise<{ data: Buffer, format: string } | null> =>
+    getCoverBufferByAlbum: (albumId: string): Promise<{ data: Buffer; format: string } | null> =>
       ipcRenderer.invoke('tracks:getCoverBufferByAlbum', albumId),
     rate: (trackId: string, filePath: string, rating: number): Promise<void> =>
       ipcRenderer.invoke('tracks:rate', trackId, filePath, rating),
-    updateMetadata: (trackId: string, filePath: string, rating: number, loved: boolean, mbData?: any): Promise<boolean> =>
+    updateMetadata: (
+      trackId: string,
+      filePath: string,
+      rating: number,
+      loved: boolean,
+      mbData?: any
+    ): Promise<boolean> =>
       ipcRenderer.invoke('tracks:updateMetadata', trackId, filePath, rating, loved, mbData)
   },
 
   // Albums
   albums: {
     getAll: (): Promise<Album[]> => ipcRenderer.invoke('albums:getAll'),
-    getGenres: (): Promise<Array<{ genre: string; count: number }>> => ipcRenderer.invoke('albums:getGenres'),
+    getGenres: (): Promise<Array<{ genre: string; count: number }>> =>
+      ipcRenderer.invoke('albums:getGenres'),
     aggregate: (): Promise<boolean> => ipcRenderer.invoke('albums:aggregate'),
-    rate: (id: string, rating: number): Promise<void> => ipcRenderer.invoke('albums:rate', id, rating),
+    rate: (id: string, rating: number): Promise<void> =>
+      ipcRenderer.invoke('albums:rate', id, rating),
     getById: (id: string): Promise<Album | null> => ipcRenderer.invoke('albums:getById', id)
   },
 
@@ -75,9 +83,14 @@ const api = {
     reanalyze: (): Promise<void> => ipcRenderer.invoke('library:reanalyze'),
     search: (query: string): Promise<any> => ipcRenderer.invoke('library:search', query),
     getArtists: (): Promise<any[]> => ipcRenderer.invoke('library:getArtists'),
-    toggleAlbumLoved: (id: string): Promise<void> => ipcRenderer.invoke('library:toggleAlbumLoved', id),
-    toggleArtistLoved: (id: string, loved: boolean): Promise<void> => ipcRenderer.invoke('library:toggleArtistLoved', id, loved),
-    getSimilarArtists: (artist: string): Promise<{ name: string; image: string; match: string }[]> => ipcRenderer.invoke('library:getSimilarArtists', artist),
+    toggleAlbumLoved: (id: string): Promise<void> =>
+      ipcRenderer.invoke('library:toggleAlbumLoved', id),
+    toggleArtistLoved: (id: string, loved: boolean): Promise<void> =>
+      ipcRenderer.invoke('library:toggleArtistLoved', id, loved),
+    getSimilarArtists: (
+      artist: string
+    ): Promise<{ name: string; image: string; match: string }[]> =>
+      ipcRenderer.invoke('library:getSimilarArtists', artist),
     tagAlbumMetadata: (albumId: string, mbAlbumId: string): Promise<number> =>
       ipcRenderer.invoke('library:tagAlbumMetadata', albumId, mbAlbumId)
   },
@@ -85,58 +98,100 @@ const api = {
   // Utils
   util: {
     openExternal: (url: string): Promise<void> => ipcRenderer.invoke('util:openExternal', url),
-    showItemInFolder: (filePath: string): Promise<void> => ipcRenderer.invoke('util:showItemInFolder', filePath)
+    showItemInFolder: (filePath: string): Promise<void> =>
+      ipcRenderer.invoke('util:showItemInFolder', filePath)
   },
 
   // Settings
   settings: {
     getAll: (): Promise<Record<string, any>> => ipcRenderer.invoke('settings:getAll'),
-    save: (key: string, value: any): Promise<boolean> => ipcRenderer.invoke('settings:save', key, value)
+    save: (key: string, value: any): Promise<boolean> =>
+      ipcRenderer.invoke('settings:save', key, value)
   },
 
   // Player Persistence
   player: {
     loadSession: (): Promise<any> => ipcRenderer.invoke('player:loadSession'),
-    saveSession: (session: any): Promise<boolean> => ipcRenderer.invoke('player:saveSession', session)
+    saveSession: (session: any): Promise<boolean> =>
+      ipcRenderer.invoke('player:saveSession', session)
   },
 
   // Playlists
   playlists: {
     getAll: (): Promise<any[]> => ipcRenderer.invoke('playlists:getAll'),
-    create: (name: string, trackIds: string[]): Promise<string> => ipcRenderer.invoke('playlists:create', name, trackIds),
+    create: (name: string, trackIds: string[]): Promise<string> =>
+      ipcRenderer.invoke('playlists:create', name, trackIds),
     delete: (id: string): Promise<boolean> => ipcRenderer.invoke('playlists:delete', id),
-    addTrack: (playlistId: string, trackId: string): Promise<boolean> => ipcRenderer.invoke('playlists:addTrack', playlistId, trackId),
+    addTrack: (playlistId: string, trackId: string): Promise<boolean> =>
+      ipcRenderer.invoke('playlists:addTrack', playlistId, trackId),
     removeTrack: (playlistId: string, trackId: string, position: number): Promise<boolean> =>
       ipcRenderer.invoke('playlists:removeTrack', playlistId, trackId, position),
-    rename: (id: string, name: string): Promise<boolean> => ipcRenderer.invoke('playlists:rename', id, name)
+    rename: (id: string, name: string): Promise<boolean> =>
+      ipcRenderer.invoke('playlists:rename', id, name)
   },
 
   scrobble: {
-    recordPlay: (trackId: string): Promise<boolean> => ipcRenderer.invoke('scrobble:recordPlay', trackId),
+    recordPlay: (trackId: string): Promise<boolean> =>
+      ipcRenderer.invoke('scrobble:recordPlay', trackId),
     getPending: (): Promise<any[]> => ipcRenderer.invoke('scrobble:getPending'),
     submitToLastFM: (scrobbleId: string, sessionKey: string): Promise<boolean> =>
       ipcRenderer.invoke('scrobble:submitToLastFM', scrobbleId, sessionKey),
     submitToListenBrainz: (scrobbleId: string): Promise<boolean> =>
       ipcRenderer.invoke('scrobble:submitToListenBrainz', scrobbleId),
-    getPlayCount: (trackId: string): Promise<number> => ipcRenderer.invoke('scrobble:getPlayCount', trackId),
-    updateLastFmKey: (key: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateLastFmKey', key),
-    updateLastFmSecret: (secret: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateLastFmSecret', secret),
-    updateListenBrainzToken: (token: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateListenBrainzToken', token),
-    getLastFmAuthToken: (): Promise<{ token: string; authUrl: string } | null> => ipcRenderer.invoke('scrobble:getLastFmAuthToken'),
-    getLastFmSession: (token: string): Promise<string | null> => ipcRenderer.invoke('scrobble:getLastFmSession', token),
-    syncPlayCount: (trackId: string, lastfmUsername?: string, listenbrainzUsername?: string): Promise<{ trackId: string; playCount: number; sources: any }> =>
+    getPlayCount: (trackId: string): Promise<number> =>
+      ipcRenderer.invoke('scrobble:getPlayCount', trackId),
+    updateLastFmKey: (key: string): Promise<boolean> =>
+      ipcRenderer.invoke('scrobble:updateLastFmKey', key),
+    updateLastFmSecret: (secret: string): Promise<boolean> =>
+      ipcRenderer.invoke('scrobble:updateLastFmSecret', secret),
+    updateListenBrainzToken: (token: string): Promise<boolean> =>
+      ipcRenderer.invoke('scrobble:updateListenBrainzToken', token),
+    getLastFmAuthToken: (): Promise<{ token: string; authUrl: string } | null> =>
+      ipcRenderer.invoke('scrobble:getLastFmAuthToken'),
+    getLastFmSession: (token: string): Promise<string | null> =>
+      ipcRenderer.invoke('scrobble:getLastFmSession', token),
+    syncPlayCount: (
+      trackId: string,
+      lastfmUsername?: string,
+      listenbrainzUsername?: string
+    ): Promise<{ trackId: string; playCount: number; sources: any }> =>
       ipcRenderer.invoke('scrobble:syncPlayCount', trackId, lastfmUsername, listenbrainzUsername),
-    syncAllPlayCounts: (lastfmUsername?: string, listenbrainzUsername?: string, writeToFile?: boolean): Promise<{ total: number; synced: number; errors: string[] }> =>
-      ipcRenderer.invoke('scrobble:syncAllPlayCounts', lastfmUsername, listenbrainzUsername, writeToFile),
-    exportPlayCountsCSV: (): Promise<string | null> => ipcRenderer.invoke('scrobble:exportPlayCountsCSV'),
+    syncAllPlayCounts: (
+      lastfmUsername?: string,
+      listenbrainzUsername?: string,
+      writeToFile?: boolean
+    ): Promise<{ total: number; synced: number; errors: string[] }> =>
+      ipcRenderer.invoke(
+        'scrobble:syncAllPlayCounts',
+        lastfmUsername,
+        listenbrainzUsername,
+        writeToFile
+      ),
+    exportPlayCountsCSV: (): Promise<string | null> =>
+      ipcRenderer.invoke('scrobble:exportPlayCountsCSV'),
     syncAllListenBrainz: (username: string): Promise<{ total: number; updated: number }> =>
       ipcRenderer.invoke('scrobble:syncAllListenBrainz', username),
-    onSyncProgress: (callback: (progress: { current: number; total: number; trackName: string; percentage: number }) => void) => {
+    onSyncProgress: (
+      callback: (progress: {
+        current: number
+        total: number
+        trackName: string
+        percentage: number
+      }) => void
+    ) => {
       const listener = (_: any, progress: any): void => callback(progress)
       ipcRenderer.on('scrobble:syncProgress', listener)
       return () => ipcRenderer.removeListener('scrobble:syncProgress', listener)
     },
-    onListenBrainzSyncProgress: (callback: (progress: { phase: 'fetching' | 'matching'; fetched?: number; page?: number; current?: number; total?: number }) => void) => {
+    onListenBrainzSyncProgress: (
+      callback: (progress: {
+        phase: 'fetching' | 'matching'
+        fetched?: number
+        page?: number
+        current?: number
+        total?: number
+      }) => void
+    ) => {
       const listener = (_: any, progress: any): void => callback(progress)
       ipcRenderer.on('scrobble:listenBrainzSyncProgress', listener)
       return () => ipcRenderer.removeListener('scrobble:listenBrainzSyncProgress', listener)
@@ -162,28 +217,56 @@ const api = {
   // MusicBrainz Enhancement
   musicbrainz: {
     getCoverage: () => ipcRenderer.invoke('musicbrainz:getCoverage'),
-    searchTrack: (params: { artist: string; title: string; album?: string; duration?: number; isrc?: string }) =>
-      ipcRenderer.invoke('musicbrainz:searchTrack', params),
-    getRecordingDetails: (recordingMBID: string) => ipcRenderer.invoke('musicbrainz:getRecordingDetails', recordingMBID),
-    getAcousticBrainz: (recordingMBID: string) => ipcRenderer.invoke('musicbrainz:getAcousticBrainz', recordingMBID),
-    enhanceTrack: (trackId: number, writeToFile = true) => ipcRenderer.invoke('musicbrainz:enhanceTrack', trackId, writeToFile),
-    enhanceTracks: (trackIds: number[], writeToFiles = true) => ipcRenderer.invoke('musicbrainz:enhanceTracks', trackIds, writeToFiles),
-    enhanceLibrary: (writeToFiles = true) => ipcRenderer.invoke('musicbrainz:enhanceLibrary', writeToFiles),
+    searchTrack: (params: {
+      artist: string
+      title: string
+      album?: string
+      duration?: number
+      isrc?: string
+    }) => ipcRenderer.invoke('musicbrainz:searchTrack', params),
+    getRecordingDetails: (recordingMBID: string) =>
+      ipcRenderer.invoke('musicbrainz:getRecordingDetails', recordingMBID),
+    getAcousticBrainz: (recordingMBID: string) =>
+      ipcRenderer.invoke('musicbrainz:getAcousticBrainz', recordingMBID),
+    enhanceTrack: (trackId: number, writeToFile = true) =>
+      ipcRenderer.invoke('musicbrainz:enhanceTrack', trackId, writeToFile),
+    enhanceTracks: (trackIds: number[], writeToFiles = true) =>
+      ipcRenderer.invoke('musicbrainz:enhanceTracks', trackIds, writeToFiles),
+    enhanceLibrary: (writeToFiles = true) =>
+      ipcRenderer.invoke('musicbrainz:enhanceLibrary', writeToFiles),
     getCandidates: (trackId: number) => ipcRenderer.invoke('musicbrainz:getCandidates', trackId),
-    applyCandidate: (trackId: number, candidate: any, writeToFile = true) => ipcRenderer.invoke('musicbrainz:applyCandidate', trackId, candidate, writeToFile),
+    applyCandidate: (trackId: number, candidate: any, writeToFile = true) =>
+      ipcRenderer.invoke('musicbrainz:applyCandidate', trackId, candidate, writeToFile),
     syncToFiles: (trackIds?: number[]) => ipcRenderer.invoke('musicbrainz:syncToFiles', trackIds),
-    refreshMetadata: (trackIds: number[]) => ipcRenderer.invoke('musicbrainz:refreshMetadata', trackIds),
-    onEnhanceProgress: (callback: (progress: { current: number; total: number; trackId: number; trackName: string }) => void) => {
+    refreshMetadata: (trackIds: number[]) =>
+      ipcRenderer.invoke('musicbrainz:refreshMetadata', trackIds),
+    onEnhanceProgress: (
+      callback: (progress: {
+        current: number
+        total: number
+        trackId: number
+        trackName: string
+      }) => void
+    ) => {
       const listener = (_: any, progress: any): void => callback(progress)
       ipcRenderer.on('musicbrainz:enhanceProgress', listener)
       return () => ipcRenderer.removeListener('musicbrainz:enhanceProgress', listener)
     },
-    onSyncProgress: (callback: (progress: { current: number; total: number; trackPath: string }) => void) => {
+    onSyncProgress: (
+      callback: (progress: { current: number; total: number; trackPath: string }) => void
+    ) => {
       const listener = (_: any, progress: any): void => callback(progress)
       ipcRenderer.on('musicbrainz:syncProgress', listener)
       return () => ipcRenderer.removeListener('musicbrainz:syncProgress', listener)
     },
-    onRefreshProgress: (callback: (progress: { current: number; total: number; trackId: number; trackName: string }) => void) => {
+    onRefreshProgress: (
+      callback: (progress: {
+        current: number
+        total: number
+        trackId: number
+        trackName: string
+      }) => void
+    ) => {
       const listener = (_: any, progress: any): void => callback(progress)
       ipcRenderer.on('musicbrainz:refreshProgress', listener)
       return () => ipcRenderer.removeListener('musicbrainz:refreshProgress', listener)

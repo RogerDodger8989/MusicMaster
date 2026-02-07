@@ -466,263 +466,263 @@ CREATE INDEX IF NOT EXISTS idx_playback_history_played_at ON playback_history(pl
  * Initialize the SQLite database
  */
 export function initDatabase(): Database.Database {
-    if (db) return db
+  if (db) return db
 
-    try {
-        // Create database directory if it doesn't exist
-        const userDataPath = app.getPath('userData')
-        const dbPath = path.join(userDataPath, 'musicmaster.db')
+  try {
+    // Create database directory if it doesn't exist
+    const userDataPath = app.getPath('userData')
+    const dbPath = path.join(userDataPath, 'musicmaster.db')
 
-        console.log('Initializing database at:', dbPath)
+    console.log('Initializing database at:', dbPath)
 
-        // Create database connection
-        db = new Database(dbPath)
+    // Create database connection
+    db = new Database(dbPath)
 
-        // Enable foreign keys
-        db.pragma('foreign_keys = ON')
+    // Enable foreign keys
+    db.pragma('foreign_keys = ON')
 
-        // Execute MusicBrainz extended schema first (Module 1)
-        console.log('Loading MusicBrainz extended schema (Module 1)...')
-        const mbStatements = SCHEMA_MB.split(';')
-            .map((s) => s.trim())
-            .filter((s) => s.length > 0)
+    // Execute MusicBrainz extended schema first (Module 1)
+    console.log('Loading MusicBrainz extended schema (Module 1)...')
+    const mbStatements = SCHEMA_MB.split(';')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
 
-        for (const statement of mbStatements) {
-            try {
-                db.exec(statement)
-            } catch (error) {
-                // Ignore"table already exists" errors
-                if (!(error as Error).message.includes('already exists')) {
-                    console.error('Error executing MusicBrainz schema statement:', error)
-                }
-            }
+    for (const statement of mbStatements) {
+      try {
+        db.exec(statement)
+      } catch (error) {
+        // Ignore"table already exists" errors
+        if (!(error as Error).message.includes('already exists')) {
+          console.error('Error executing MusicBrainz schema statement:', error)
         }
-
-        // Execute legacy schema (split by semicolon and execute each statement)
-        const statements = SCHEMA.split(';')
-            .map((s) => s.trim())
-            .filter((s) => s.length > 0)
-
-        for (const statement of statements) {
-            try {
-                db.exec(statement)
-            } catch (error) {
-                // Ignore table/index already exists errors
-                if (!(error as Error).message.includes('already exists')) {
-                    console.error('Error executing legacy schema statement:', error)
-                }
-            }
-        }
-
-        // Run migrations for existing tables (ignore errors if columns exist)
-        const migrations = [
-            // Basic tracks columns
-            "ALTER TABLE tracks ADD COLUMN rating REAL DEFAULT 0",
-            "ALTER TABLE tracks ADD COLUMN loved INTEGER DEFAULT 0",
-            "ALTER TABLE tracks ADD COLUMN play_count INTEGER DEFAULT 0",
-            "ALTER TABLE tracks ADD COLUMN last_played DATETIME",
-            "ALTER TABLE tracks ADD COLUMN release_date TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_track_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_album_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_artist_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN sample_rate INTEGER",
-            "ALTER TABLE tracks ADD COLUMN bit_depth INTEGER",
-            "ALTER TABLE tracks ADD COLUMN replaygain_track_gain REAL",
-            "ALTER TABLE tracks ADD COLUMN replaygain_album_gain REAL",
-            "ALTER TABLE tracks ADD COLUMN replaygain_track_peak REAL",
-            "ALTER TABLE tracks ADD COLUMN replaygain_album_peak REAL",
-            
-            // Extended MusicBrainz tracks columns
-            "ALTER TABLE tracks ADD COLUMN movement_num INTEGER",
-            "ALTER TABLE tracks ADD COLUMN movement_name TEXT",
-            "ALTER TABLE tracks ADD COLUMN mbid_track_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN mbid_work_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN acoustid_fingerprint TEXT",
-            "ALTER TABLE tracks ADD COLUMN acoustid_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN isrc TEXT",
-            "ALTER TABLE tracks ADD COLUMN channels INTEGER",
-            "ALTER TABLE tracks ADD COLUMN recording_date TEXT",
-            
-            // Albums cache columns
-            "ALTER TABLE albums_cache ADD COLUMN loved INTEGER DEFAULT 0",
-            "ALTER TABLE albums_cache ADD COLUMN bio TEXT",
-            
-            // Extended albums columns (if using non-MB schema)
-            "ALTER TABLE albums ADD COLUMN loved INTEGER DEFAULT 0",
-            "ALTER TABLE albums ADD COLUMN bio TEXT",
-            "ALTER TABLE albums ADD COLUMN mbid TEXT",
-            
-            // Artists columns
-            "ALTER TABLE artists ADD COLUMN loved INTEGER DEFAULT 0",
-            "ALTER TABLE artists ADD COLUMN musicbrainz_artist_id TEXT",
-            "ALTER TABLE artists ADD COLUMN country TEXT",
-            "ALTER TABLE artists ADD COLUMN life_span_begin TEXT",
-            "ALTER TABLE artists ADD COLUMN life_span_end TEXT",
-            "ALTER TABLE artists ADD COLUMN type TEXT",
-            "ALTER TABLE artists ADD COLUMN gender TEXT",
-            "ALTER TABLE artists ADD COLUMN website TEXT",
-            
-            // Extended artists columns
-            "ALTER TABLE artists ADD COLUMN name_sort_order TEXT",
-            "ALTER TABLE artists ADD COLUMN mbid TEXT",
-            "ALTER TABLE artists ADD COLUMN area TEXT",
-            "ALTER TABLE artists ADD COLUMN artist_type TEXT",
-            "ALTER TABLE artists ADD COLUMN gender_other TEXT",
-            
-            // Playback tables
-            "CREATE TABLE IF NOT EXISTS playback_state (id TEXT PRIMARY KEY DEFAULT 'default', current_track_id TEXT, queue_ids TEXT, current_index INTEGER DEFAULT -1, volume REAL DEFAULT 1.0, is_shuffle INTEGER DEFAULT 0, repeat_mode TEXT DEFAULT 'normal', current_time REAL DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
-            "CREATE TABLE IF NOT EXISTS scrobble_queue (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, artist TEXT NOT NULL, title TEXT NOT NULL, album TEXT, played_at INTEGER NOT NULL, lastfm_submitted INTEGER DEFAULT 0, listenbrainz_submitted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
-            "CREATE TABLE IF NOT EXISTS play_history (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, played_at DATETIME DEFAULT CURRENT_TIMESTAMP, play_count INTEGER DEFAULT 0)",
-            "ALTER TABLE play_history ADD COLUMN play_count INTEGER DEFAULT 0",
-            "ALTER TABLE play_history ADD COLUMN fraction_played REAL DEFAULT 1.0"
-        ]
-
-        for (const migration of migrations) {
-            try {
-                db.exec(migration)
-            } catch (error) {
-                // Ignore "duplicate column name" errors
-                if (!(error as Error).message.includes('duplicate column name')) {
-                    console.log(`Migration validation: ${(error as Error).message}`)
-                }
-            }
-        }
-
-        console.log('Database initialized successfully')
-        return db
-    } catch (error) {
-        console.error('Failed to initialize database:', error)
-        throw error
+      }
     }
+
+    // Execute legacy schema (split by semicolon and execute each statement)
+    const statements = SCHEMA.split(';')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+
+    for (const statement of statements) {
+      try {
+        db.exec(statement)
+      } catch (error) {
+        // Ignore table/index already exists errors
+        if (!(error as Error).message.includes('already exists')) {
+          console.error('Error executing legacy schema statement:', error)
+        }
+      }
+    }
+
+    // Run migrations for existing tables (ignore errors if columns exist)
+    const migrations = [
+      // Basic tracks columns
+      'ALTER TABLE tracks ADD COLUMN rating REAL DEFAULT 0',
+      'ALTER TABLE tracks ADD COLUMN loved INTEGER DEFAULT 0',
+      'ALTER TABLE tracks ADD COLUMN play_count INTEGER DEFAULT 0',
+      'ALTER TABLE tracks ADD COLUMN last_played DATETIME',
+      'ALTER TABLE tracks ADD COLUMN release_date TEXT',
+      'ALTER TABLE tracks ADD COLUMN musicbrainz_track_id TEXT',
+      'ALTER TABLE tracks ADD COLUMN musicbrainz_album_id TEXT',
+      'ALTER TABLE tracks ADD COLUMN musicbrainz_artist_id TEXT',
+      'ALTER TABLE tracks ADD COLUMN sample_rate INTEGER',
+      'ALTER TABLE tracks ADD COLUMN bit_depth INTEGER',
+      'ALTER TABLE tracks ADD COLUMN replaygain_track_gain REAL',
+      'ALTER TABLE tracks ADD COLUMN replaygain_album_gain REAL',
+      'ALTER TABLE tracks ADD COLUMN replaygain_track_peak REAL',
+      'ALTER TABLE tracks ADD COLUMN replaygain_album_peak REAL',
+
+      // Extended MusicBrainz tracks columns
+      'ALTER TABLE tracks ADD COLUMN movement_num INTEGER',
+      'ALTER TABLE tracks ADD COLUMN movement_name TEXT',
+      'ALTER TABLE tracks ADD COLUMN mbid_track_id TEXT',
+      'ALTER TABLE tracks ADD COLUMN mbid_work_id TEXT',
+      'ALTER TABLE tracks ADD COLUMN acoustid_fingerprint TEXT',
+      'ALTER TABLE tracks ADD COLUMN acoustid_id TEXT',
+      'ALTER TABLE tracks ADD COLUMN isrc TEXT',
+      'ALTER TABLE tracks ADD COLUMN channels INTEGER',
+      'ALTER TABLE tracks ADD COLUMN recording_date TEXT',
+
+      // Albums cache columns
+      'ALTER TABLE albums_cache ADD COLUMN loved INTEGER DEFAULT 0',
+      'ALTER TABLE albums_cache ADD COLUMN bio TEXT',
+
+      // Extended albums columns (if using non-MB schema)
+      'ALTER TABLE albums ADD COLUMN loved INTEGER DEFAULT 0',
+      'ALTER TABLE albums ADD COLUMN bio TEXT',
+      'ALTER TABLE albums ADD COLUMN mbid TEXT',
+
+      // Artists columns
+      'ALTER TABLE artists ADD COLUMN loved INTEGER DEFAULT 0',
+      'ALTER TABLE artists ADD COLUMN musicbrainz_artist_id TEXT',
+      'ALTER TABLE artists ADD COLUMN country TEXT',
+      'ALTER TABLE artists ADD COLUMN life_span_begin TEXT',
+      'ALTER TABLE artists ADD COLUMN life_span_end TEXT',
+      'ALTER TABLE artists ADD COLUMN type TEXT',
+      'ALTER TABLE artists ADD COLUMN gender TEXT',
+      'ALTER TABLE artists ADD COLUMN website TEXT',
+
+      // Extended artists columns
+      'ALTER TABLE artists ADD COLUMN name_sort_order TEXT',
+      'ALTER TABLE artists ADD COLUMN mbid TEXT',
+      'ALTER TABLE artists ADD COLUMN area TEXT',
+      'ALTER TABLE artists ADD COLUMN artist_type TEXT',
+      'ALTER TABLE artists ADD COLUMN gender_other TEXT',
+
+      // Playback tables
+      "CREATE TABLE IF NOT EXISTS playback_state (id TEXT PRIMARY KEY DEFAULT 'default', current_track_id TEXT, queue_ids TEXT, current_index INTEGER DEFAULT -1, volume REAL DEFAULT 1.0, is_shuffle INTEGER DEFAULT 0, repeat_mode TEXT DEFAULT 'normal', current_time REAL DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
+      'CREATE TABLE IF NOT EXISTS scrobble_queue (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, artist TEXT NOT NULL, title TEXT NOT NULL, album TEXT, played_at INTEGER NOT NULL, lastfm_submitted INTEGER DEFAULT 0, listenbrainz_submitted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)',
+      'CREATE TABLE IF NOT EXISTS play_history (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, played_at DATETIME DEFAULT CURRENT_TIMESTAMP, play_count INTEGER DEFAULT 0)',
+      'ALTER TABLE play_history ADD COLUMN play_count INTEGER DEFAULT 0',
+      'ALTER TABLE play_history ADD COLUMN fraction_played REAL DEFAULT 1.0'
+    ]
+
+    for (const migration of migrations) {
+      try {
+        db.exec(migration)
+      } catch (error) {
+        // Ignore "duplicate column name" errors
+        if (!(error as Error).message.includes('duplicate column name')) {
+          console.log(`Migration validation: ${(error as Error).message}`)
+        }
+      }
+    }
+
+    console.log('Database initialized successfully')
+    return db
+  } catch (error) {
+    console.error('Failed to initialize database:', error)
+    throw error
+  }
 }
 
 /**
  * Get the database instance
  */
 export function getDatabase(): Database.Database {
-    if (!db) {
-        return initDatabase()
-    }
-    return db
+  if (!db) {
+    return initDatabase()
+  }
+  return db
 }
 
 /**
  * Close the database connection
  */
 export function closeDatabase(): void {
-    if (db) {
-        db.close()
-        db = null
-    }
+  if (db) {
+    db.close()
+    db = null
+  }
 }
 
 // Export types for database operations
 export interface DbMusicFolder {
-    id: string
-    path: string
-    name: string
-    watch_enabled: number
-    last_scanned: string | null
-    track_count: number
-    created_at: string
+  id: string
+  path: string
+  name: string
+  watch_enabled: number
+  last_scanned: string | null
+  track_count: number
+  created_at: string
 }
 
 export interface DbTrack {
-    id: string
-    folder_id: string
-    file_path: string
-    file_hash: string | null
-    title: string
-    artist: string
-    album: string
-    album_artist: string | null
-    year: number | null
-    genre: string | null
-    track_num: number | null
-    disc_num: number | null
-    duration: number
-    bitrate: number
-    sample_rate: number | null
-    bit_depth: number | null
-    format: 'flac' | 'mp3'
-    cover_art_path: string | null
-    rating: number
-    loved: number
-    play_count: number
-    last_played: string | null
-    release_date: string | null
-    musicbrainz_track_id: string | null
-    musicbrainz_album_id: string | null
-    musicbrainz_artist_id: string | null
-    created_at: string
-    updated_at: string
+  id: string
+  folder_id: string
+  file_path: string
+  file_hash: string | null
+  title: string
+  artist: string
+  album: string
+  album_artist: string | null
+  year: number | null
+  genre: string | null
+  track_num: number | null
+  disc_num: number | null
+  duration: number
+  bitrate: number
+  sample_rate: number | null
+  bit_depth: number | null
+  format: 'flac' | 'mp3'
+  cover_art_path: string | null
+  rating: number
+  loved: number
+  play_count: number
+  last_played: string | null
+  release_date: string | null
+  musicbrainz_track_id: string | null
+  musicbrainz_album_id: string | null
+  musicbrainz_artist_id: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface DbAlbumCache {
-    id: string
-    name: string
-    artist: string
-    year: number | null
-    release_date: string | null
-    genre: string | null
-    disc_count: number
-    track_count: number
-    total_duration: number
-    cover_art_path: string | null
-    musicbrainz_album_id: string | null
-    lastfm_url: string | null
-    rating: number
-    loved: number
-    play_count: number
-    last_played: string | null
-    bio: string | null
-    created_at: string
-    updated_at: string
+  id: string
+  name: string
+  artist: string
+  year: number | null
+  release_date: string | null
+  genre: string | null
+  disc_count: number
+  track_count: number
+  total_duration: number
+  cover_art_path: string | null
+  musicbrainz_album_id: string | null
+  lastfm_url: string | null
+  rating: number
+  loved: number
+  play_count: number
+  last_played: string | null
+  bio: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface DbArtist {
-    id: string
-    name: string
-    album_count: number
-    track_count: number
-    bio: string | null
-    image_path: string | null
-    musicbrainz_artist_id: string | null
-    country: string | null
-    life_span_begin: string | null
-    life_span_end: string | null
-    type: string | null
-    gender: string | null
-    website: string | null
-    loved: number
-    created_at: string
+  id: string
+  name: string
+  album_count: number
+  track_count: number
+  bio: string | null
+  image_path: string | null
+  musicbrainz_artist_id: string | null
+  country: string | null
+  life_span_begin: string | null
+  life_span_end: string | null
+  type: string | null
+  gender: string | null
+  website: string | null
+  loved: number
+  created_at: string
 }
 
 export interface DbUserSetting {
-    id: string
-    user_id: string
-    setting_key: string
-    setting_value: string
-    updated_at: string
+  id: string
+  user_id: string
+  setting_key: string
+  setting_value: string
+  updated_at: string
 }
 
 export interface DbPlaybackHistory {
-    id: string
-    track_id: string
-    played_at: string
-    duration_played: number
+  id: string
+  track_id: string
+  played_at: string
+  duration_played: number
 }
 
 export interface DbPlaybackState {
-    id: string
-    current_track_id: string | null
-    queue_ids: string | null
-    current_index: number
-    volume: number
-    is_shuffle: number
-    repeat_mode: string
-    current_time: number
-    updated_at: string
+  id: string
+  current_track_id: string | null
+  queue_ids: string | null
+  current_index: number
+  volume: number
+  is_shuffle: number
+  repeat_mode: string
+  current_time: number
+  updated_at: string
 }
 // Export MusicBrainz types from types.musicbrainz.ts
 export * from './types.musicbrainz'

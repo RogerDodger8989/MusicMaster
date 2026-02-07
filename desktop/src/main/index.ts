@@ -80,7 +80,7 @@ app.whenReady().then(() => {
     // asset:///C:/Users... -> C:/Users... (3 slashes)
     // asset://C:/Users...  -> C:/Users... (2 slashes)
     // asset://c/Users/     -> c/Users... (normalized by browser)
-    let url = request.url.replace(/^asset:\/{2,3}/, '')
+    const url = request.url.replace(/^asset:\/{2,3}/, '')
 
     try {
       // Decode URL (handles spaces e.g. %20 -> space)
@@ -100,7 +100,7 @@ app.whenReady().then(() => {
         }
 
         // Standardize slashes
-        // decodedPath = decodedPath.replace(/\//g, '\\') // Actually Electron prefers / often, but let's see. 
+        // decodedPath = decodedPath.replace(/\//g, '\\') // Actually Electron prefers / often, but let's see.
         // Node's `fs` handles forward slashes fine on Windows usually.
       }
 

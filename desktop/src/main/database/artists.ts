@@ -2,8 +2,10 @@ import { getDatabase } from './index'
 import { Artist } from '../types'
 
 export function getAllArtists(): Artist[] {
-    const db = getDatabase()
-    const rows = db.prepare(`
+  const db = getDatabase()
+  const rows = db
+    .prepare(
+      `
         SELECT 
             id, name, bio, 
             album_count as albumCount, 
@@ -19,31 +21,36 @@ export function getAllArtists(): Artist[] {
             loved
         FROM artists 
         ORDER BY name ASC
-    `).all() as any[]
+    `
+    )
+    .all() as any[]
 
-    return rows.map(row => ({
-        ...row,
-        loved: row.loved === 1
-    }))
+  return rows.map((row) => ({
+    ...row,
+    loved: row.loved === 1
+  }))
 }
 
 export function updateArtistLoved(id: string, loved: boolean): void {
-    const db = getDatabase()
-    const stmt = db.prepare('UPDATE artists SET loved = ? WHERE id = ?')
-    stmt.run(loved ? 1 : 0, id)
+  const db = getDatabase()
+  const stmt = db.prepare('UPDATE artists SET loved = ? WHERE id = ?')
+  stmt.run(loved ? 1 : 0, id)
 }
-export function updateArtistFacts(id: string, facts: {
-    musicbrainzArtistId?: string,
-    country?: string,
-    lifeSpanBegin?: string,
-    lifeSpanEnd?: string,
-    type?: string,
-    gender?: string,
-    website?: string,
+export function updateArtistFacts(
+  id: string,
+  facts: {
+    musicbrainzArtistId?: string
+    country?: string
+    lifeSpanBegin?: string
+    lifeSpanEnd?: string
+    type?: string
+    gender?: string
+    website?: string
     bio?: string
-}): void {
-    const db = getDatabase()
-    const stmt = db.prepare(`
+  }
+): void {
+  const db = getDatabase()
+  const stmt = db.prepare(`
         UPDATE artists 
         SET musicbrainz_artist_id = COALESCE(?, musicbrainz_artist_id),
             country = COALESCE(?, country),
@@ -55,15 +62,15 @@ export function updateArtistFacts(id: string, facts: {
             bio = COALESCE(?, bio)
         WHERE id = ?
     `)
-    stmt.run(
-        facts.musicbrainzArtistId || null,
-        facts.country || null,
-        facts.lifeSpanBegin || null,
-        facts.lifeSpanEnd || null,
-        facts.type || null,
-        facts.gender || null,
-        facts.website || null,
-        facts.bio || null,
-        id
-    )
+  stmt.run(
+    facts.musicbrainzArtistId || null,
+    facts.country || null,
+    facts.lifeSpanBegin || null,
+    facts.lifeSpanEnd || null,
+    facts.type || null,
+    facts.gender || null,
+    facts.website || null,
+    facts.bio || null,
+    id
+  )
 }

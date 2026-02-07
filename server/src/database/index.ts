@@ -538,7 +538,8 @@ export function initDatabase(): Database.Database {
 
             // Extended MusicBrainz tracks columns
             "ALTER TABLE tracks ADD COLUMN movement_num INTEGER",
-            "ALTER TABLE tracks ADD COLUMN movement_name TEXT",
+            "ALTER TABLE tracks ADD COLUMN movement TEXT",
+            "ALTER TABLE tracks ADD COLUMN movement_total INTEGER",
             "ALTER TABLE tracks ADD COLUMN mbid TEXT",
             "ALTER TABLE tracks ADD COLUMN mbid_track_id TEXT",
             "ALTER TABLE tracks ADD COLUMN mbid_work_id TEXT",

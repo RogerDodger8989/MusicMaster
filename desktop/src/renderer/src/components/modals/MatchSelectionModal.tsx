@@ -133,10 +133,7 @@ export function MatchSelectionModal({
               {trackInfo.artist} - {trackInfo.album}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-700 rounded transition-colors"
-          >
+          <button onClick={onClose} className="p-1 hover:bg-gray-700 rounded transition-colors">
             <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
@@ -158,9 +155,7 @@ export function MatchSelectionModal({
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">{candidate.albumName}</div>
-                      <div className="text-sm opacity-80 mt-1">
-                        {candidate.artistName}
-                      </div>
+                      <div className="text-sm opacity-80 mt-1">{candidate.artistName}</div>
                       <div className="flex items-center gap-3 mt-2 text-xs opacity-70">
                         {candidate.year && <span>{candidate.year}</span>}
                         {candidate.country && <span>{candidate.country}</span>}
@@ -187,9 +182,7 @@ export function MatchSelectionModal({
           <div className="w-1/2 overflow-y-auto">
             {/* Metadata Preview */}
             <div className="p-4 bg-gray-900 border-b border-gray-700">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">
-                Metadata to be written:
-              </h3>
+              <h3 className="text-sm font-semibold text-gray-300 mb-3">Metadata to be written:</h3>
               <div className="space-y-2 text-xs">
                 <div className="flex">
                   <span className="text-gray-500 w-32">Artist:</span>
@@ -229,8 +222,7 @@ export function MatchSelectionModal({
                 {selectedCandidate.tracks.map((track, idx) => {
                   const diff = getDurationDiff(track.expectedDuration, track.duration)
                   const isDifferent = diff > 2
-                  const isCurrentTrack =
-                    track.title.toLowerCase() === trackInfo.title.toLowerCase()
+                  const isCurrentTrack = track.title.toLowerCase() === trackInfo.title.toLowerCase()
 
                   return (
                     <div

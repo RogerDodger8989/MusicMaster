@@ -1,6 +1,6 @@
 /**
  * ReplayGain Audio Level Normalization
- * 
+ *
  * ReplayGain stores volume adjustments as dB values in audio metadata.
  * This utility converts dB values to linear volume multipliers.
  */
@@ -12,7 +12,7 @@
  * @returns Linear gain multiplier (0-∞, where 1.0 = no change)
  */
 export function dbToLinearGain(db: number): number {
-    return Math.pow(10, db / 20)
+  return Math.pow(10, db / 20)
 }
 
 /**
@@ -22,34 +22,34 @@ export function dbToLinearGain(db: number): number {
  * @returns Linear gain multiplier to apply to playback volume
  */
 export function calculateReplayGain(
-    track: {
-        replayGainTrack?: number
-        replayGainAlbum?: number
-        replayGainTrackPeak?: number
-        replayGainAlbumPeak?: number
-    },
-    mode: 'track' | 'album' | 'off'
+  track: {
+    replayGainTrack?: number
+    replayGainAlbum?: number
+    replayGainTrackPeak?: number
+    replayGainAlbumPeak?: number
+  },
+  mode: 'track' | 'album' | 'off'
 ): number {
-    if (mode === 'off') return 1.0
+  if (mode === 'off') return 1.0
 
-    let gainDb: number | undefined
+  let gainDb: number | undefined
 
-    if (mode === 'album') {
-        gainDb = track.replayGainAlbum
-    } else if (mode === 'track') {
-        gainDb = track.replayGainTrack
+  if (mode === 'album') {
+    gainDb = track.replayGainAlbum
+  } else if (mode === 'track') {
+    gainDb = track.replayGainTrack
+  }
+
+  if (gainDb === undefined) {
+    // Fallback: if album mode but no album gain, try track gain
+    if (mode === 'album' && track.replayGainTrack !== undefined) {
+      gainDb = track.replayGainTrack
+    } else {
+      return 1.0 // No ReplayGain data available
     }
+  }
 
-    if (gainDb === undefined) {
-        // Fallback: if album mode but no album gain, try track gain
-        if (mode === 'album' && track.replayGainTrack !== undefined) {
-            gainDb = track.replayGainTrack
-        } else {
-            return 1.0 // No ReplayGain data available
-        }
-    }
-
-    return dbToLinearGain(gainDb)
+  return dbToLinearGain(gainDb)
 }
 
 /**
@@ -61,13 +61,13 @@ export function calculateReplayGain(
  * @returns Safe linear gain that won't cause clipping
  */
 export function calculateSafeGain(gainDb: number, peakLinear: number = 1.0): number {
-    const gain = dbToLinearGain(gainDb)
-    const amplifiedPeak = peakLinear * gain
+  const gain = dbToLinearGain(gainDb)
+  const amplifiedPeak = peakLinear * gain
 
-    // If amplified peak exceeds 1.0, reduce gain to prevent clipping
-    if (amplifiedPeak > 1.0) {
-        return 1.0 / peakLinear
-    }
+  // If amplified peak exceeds 1.0, reduce gain to prevent clipping
+  if (amplifiedPeak > 1.0) {
+    return 1.0 / peakLinear
+  }
 
-    return gain
+  return gain
 }

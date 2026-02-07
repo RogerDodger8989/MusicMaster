@@ -5,7 +5,8 @@ import {
     updateTrackRating,
     updateTrackLoved,
     updateTrackPlayCount,
-    calculateFileHash
+    calculateFileHash,
+    dbTrackToTrack
 } from '../../database/tracks'
 import { getDatabase } from '../../database'
 import { writeMusicBrainzDataToFile } from '../../services/metadataWriter'
@@ -45,37 +46,19 @@ export const listTracks = (req: Request, res: Response) => {
         if (folderId) {
             tracks = getTracksByFolder(String(folderId))
         } else if (albumId) {
-            // Query by album (matching album name and artist from albums_cache would be safer but let's try direct match first)
-            // We don't have album_id on tracks table (we store album name).
-            // We need to fetch album first to get name? 
-            // Actually, `albums_cache` has `name` and `artist`.
-            // `tracks` table has `album` (name) and `album_artist` (name).
-            // This is a bit tricky with just ID.
-            // We'll trust the caller to pass name? No, caller passes ID.
-            // We need to look up album details by ID first.
             const album = db.prepare('SELECT name, artist FROM albums_cache WHERE id = ?').get(String(albumId)) as any
             if (album) {
-                // Use db.prepare directly for now
-                tracks = db.prepare(`
+                const rows = db.prepare(`
                     SELECT * FROM tracks 
                     WHERE album = ? AND (album_artist = ? OR artist = ?)
                     ORDER BY disc_num, track_num
                  `).all(album.name, album.artist, album.artist) as any[]
-                // Map to camelCase if needed, but getTracksByFolder uses dbTrackToTrack.
-                // I should probably export dbTrackToTrack or map manually.
-                // let's assume raw is fine for now or I'll fix later.
-                // Actually I should look at `types.ts` and `tracks.ts` strictly.
+                tracks = rows.map(dbTrackToTrack)
             }
         } else {
-            // Limit if no filter
-            tracks = db.prepare('SELECT * FROM tracks LIMIT 50').all() as any[]
+            const rows = db.prepare('SELECT * FROM tracks LIMIT 50').all() as any[]
+            tracks = rows.map(dbTrackToTrack)
         }
-
-        // TODO: Ensure proper mapping to Track interface
-        // For now returning raw rows might be slightly off (snake_case vs camelCase)
-        // I will rely on the property names matching mostly or frontend handling it?
-        // No, frontend expects camelCase.
-        // I should fix this.
 
         res.json(tracks)
     } catch (error) {

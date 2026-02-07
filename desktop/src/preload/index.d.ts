@@ -23,7 +23,7 @@ declare global {
       }
       tracks: {
         getAll: () => Promise<Track[]>
-        getCoverBufferByAlbum: (albumId: string) => Promise<{ data: Buffer, format: string } | null>
+        getCoverBufferByAlbum: (albumId: string) => Promise<{ data: Buffer; format: string } | null>
       }
       albums: {
         getAll: () => Promise<Album[]>
@@ -39,7 +39,9 @@ declare global {
         getArtists: () => Promise<any[]>
         toggleAlbumLoved: (id: string) => Promise<void>
         toggleArtistLoved: (id: string, loved: boolean) => Promise<void>
-        getSimilarArtists: (artist: string) => Promise<{ name: string; image: string; match: string }[]>
+        getSimilarArtists: (
+          artist: string
+        ) => Promise<{ name: string; image: string; match: string }[]>
       }
       util: {
         openExternal: (url: string) => Promise<void>
@@ -71,11 +73,34 @@ declare global {
         updateListenBrainzToken: (token: string) => Promise<boolean>
         getLastFmAuthToken: () => Promise<{ token: string; authUrl: string } | null>
         getLastFmSession: (token: string) => Promise<string | null>
-        syncPlayCount: (trackId: string, lastfmUsername?: string, listenbrainzUsername?: string) => Promise<{ trackId: string; playCount: number; sources: any }>
-        syncAllPlayCounts: (lastfmUsername?: string, listenbrainzUsername?: string, writeToFile?: boolean) => Promise<{ total: number; synced: number; errors: string[] }>
+        syncPlayCount: (
+          trackId: string,
+          lastfmUsername?: string,
+          listenbrainzUsername?: string
+        ) => Promise<{ trackId: string; playCount: number; sources: any }>
+        syncAllPlayCounts: (
+          lastfmUsername?: string,
+          listenbrainzUsername?: string,
+          writeToFile?: boolean
+        ) => Promise<{ total: number; synced: number; errors: string[] }>
         exportPlayCountsCSV: () => Promise<string | null>
-        onSyncProgress: (callback: (progress: { current: number; total: number; trackName: string; percentage: number }) => void) => () => void
-        onListenBrainzSyncProgress: (callback: (progress: { phase: string; fetched?: number; page?: number; current?: number; total?: number }) => void) => () => void
+        onSyncProgress: (
+          callback: (progress: {
+            current: number
+            total: number
+            trackName: string
+            percentage: number
+          }) => void
+        ) => () => void
+        onListenBrainzSyncProgress: (
+          callback: (progress: {
+            phase: string
+            fetched?: number
+            page?: number
+            current?: number
+            total?: number
+          }) => void
+        ) => () => void
       }
       musicbrainz: {
         getCoverage: () => Promise<{
@@ -101,14 +126,20 @@ declare global {
         } | null>
         getRecordingDetails: (recordingMBID: string) => Promise<any>
         getAcousticBrainz: (recordingMBID: string) => Promise<any>
-        enhanceTrack: (trackId: number, writeToFile?: boolean) => Promise<{
+        enhanceTrack: (
+          trackId: number,
+          writeToFile?: boolean
+        ) => Promise<{
           success: boolean
           confidence?: string
           matchScore?: number
           mbid?: string
           reason?: string
         }>
-        enhanceTracks: (trackIds: number[], writeToFiles?: boolean) => Promise<{
+        enhanceTracks: (
+          trackIds: number[],
+          writeToFiles?: boolean
+        ) => Promise<{
           total: number
           enhanced: number
           failed: number
@@ -150,7 +181,11 @@ declare global {
             }>
           }>
         }>
-        applyCandidate: (trackId: number, candidate: any, writeToFile?: boolean) => Promise<{
+        applyCandidate: (
+          trackId: number,
+          candidate: any,
+          writeToFile?: boolean
+        ) => Promise<{
           success: boolean
           mbid?: string
           bpm?: number
@@ -167,9 +202,25 @@ declare global {
           failed: number
           noMBID: number
         }>
-        onEnhanceProgress: (callback: (progress: { current: number; total: number; trackId: number; trackName: string }) => void) => () => void
-        onSyncProgress: (callback: (progress: { current: number; total: number; trackPath: string }) => void) => () => void
-        onRefreshProgress: (callback: (progress: { current: number; total: number; trackId: number; trackName: string }) => void) => () => void
+        onEnhanceProgress: (
+          callback: (progress: {
+            current: number
+            total: number
+            trackId: number
+            trackName: string
+          }) => void
+        ) => () => void
+        onSyncProgress: (
+          callback: (progress: { current: number; total: number; trackPath: string }) => void
+        ) => () => void
+        onRefreshProgress: (
+          callback: (progress: {
+            current: number
+            total: number
+            trackId: number
+            trackName: string
+          }) => void
+        ) => () => void
       }
     }
   }

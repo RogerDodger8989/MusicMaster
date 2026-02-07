@@ -395,7 +395,7 @@ export function updateAlbumBio(albumId: string, bio: string): void {
 /**
  * Convert database row to Album object
  */
-function dbAlbumToAlbum(row: DbAlbumCache): Album {
+export function dbAlbumToAlbum(row: DbAlbumCache): Album {
     return {
         id: row.id,
         name: row.name,

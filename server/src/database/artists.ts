@@ -21,10 +21,29 @@ export function getAllArtists(): Artist[] {
         ORDER BY name ASC
     `).all() as any[]
 
-    return rows.map(row => ({
-        ...row,
+    return rows.map(dbArtistToArtist)
+}
+
+/**
+ * Convert database row to Artist object
+ */
+export function dbArtistToArtist(row: any): Artist {
+    return {
+        id: row.id,
+        name: row.name,
+        albumCount: row.album_count || row.albumCount || 0,
+        trackCount: row.track_count || row.trackCount || 0,
+        bio: row.bio || undefined,
+        imagePath: row.image_path || row.imagePath || undefined,
+        musicbrainzArtistId: row.musicbrainz_artist_id || row.musicbrainzArtistId || undefined,
+        country: row.country || undefined,
+        lifeSpanBegin: row.life_span_begin || row.lifeSpanBegin || undefined,
+        lifeSpanEnd: row.life_span_end || row.lifeSpanEnd || undefined,
+        type: row.type || undefined,
+        gender: row.gender || undefined,
+        website: row.website || undefined,
         loved: row.loved === 1
-    }))
+    }
 }
 
 export function getArtistById(id: string): Artist | null {

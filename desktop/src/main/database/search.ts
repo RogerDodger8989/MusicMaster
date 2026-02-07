@@ -4,21 +4,26 @@ import fs from 'fs'
 import path from 'path'
 
 export function searchLibrary(query: string): SearchResults {
-    const db = getDatabase()
-    const normalizedQuery = query.toLowerCase().trim()
-    const searchTerm = `%${normalizedQuery}%`
+  const db = getDatabase()
+  const normalizedQuery = query.toLowerCase().trim()
+  const searchTerm = `%${normalizedQuery}%`
 
-    // Log path - try to find a writable location near the DB
-    const logPath = path.join(process.cwd(), 'debug-search.log')
-    fs.appendFileSync(logPath, `\n--- SEARCH START: "${query}" (Normalized: "${normalizedQuery}") ---\n`)
+  // Log path - try to find a writable location near the DB
+  const logPath = path.join(process.cwd(), 'debug-search.log')
+  fs.appendFileSync(
+    logPath,
+    `\n--- SEARCH START: "${query}" (Normalized: "${normalizedQuery}") ---\n`
+  )
 
-    try {
-        // Log what's in the DB briefly
-        const albumSample = db.prepare('SELECT name, artist FROM albums_cache LIMIT 3').all()
-        fs.appendFileSync(logPath, `DB Sample (Albums): ${JSON.stringify(albumSample)}\n`)
+  try {
+    // Log what's in the DB briefly
+    const albumSample = db.prepare('SELECT name, artist FROM albums_cache LIMIT 3').all()
+    fs.appendFileSync(logPath, `DB Sample (Albums): ${JSON.stringify(albumSample)}\n`)
 
-        // 1. Search Artists (Match by artist name only)
-        const artists = db.prepare(`
+    // 1. Search Artists (Match by artist name only)
+    const artists = db
+      .prepare(
+        `
             SELECT 
                 id, name, bio, 
                 album_count as albumCount, 
@@ -27,11 +32,15 @@ export function searchLibrary(query: string): SearchResults {
             FROM artists 
             WHERE name LIKE ? COLLATE NOCASE
             LIMIT 10
-        `).all(searchTerm) as Artist[]
+        `
+      )
+      .all(searchTerm) as Artist[]
 
-        // 2. Search Albums (Match by album name ONLY)
-        // Restricted to title only to avoid showing all albums by an artist when searching for their name
-        const albums = db.prepare(`
+    // 2. Search Albums (Match by album name ONLY)
+    // Restricted to title only to avoid showing all albums by an artist when searching for their name
+    const albums = db
+      .prepare(
+        `
             SELECT 
                 id, name, artist, year, genre, 
                 disc_count as discCount, 
@@ -43,11 +52,15 @@ export function searchLibrary(query: string): SearchResults {
             FROM albums_cache 
             WHERE name LIKE ? COLLATE NOCASE
             LIMIT 10
-        `).all(searchTerm) as Album[]
+        `
+      )
+      .all(searchTerm) as Album[]
 
-        // 3. Search Tracks (Match by track title ONLY)
-        // JOIN with albums_cache to get the parent album's ID for navigation
-        const tracks = db.prepare(`
+    // 3. Search Tracks (Match by track title ONLY)
+    // JOIN with albums_cache to get the parent album's ID for navigation
+    const tracks = db
+      .prepare(
+        `
             SELECT 
                 t.id, t.title, t.artist, t.album, t.year, t.genre, t.duration, t.bitrate, t.format, t.rating, t.loved,
                 t.file_path as filePath, 
@@ -64,21 +77,24 @@ export function searchLibrary(query: string): SearchResults {
                 (t.album = a.name AND (t.album_artist = a.artist OR t.artist = a.artist))
             WHERE t.title LIKE ? COLLATE NOCASE
             LIMIT 20
-        `).all(searchTerm) as Track[]
+        `
+      )
+      .all(searchTerm) as Track[]
 
-        fs.appendFileSync(logPath, `Found: ${artists.length} artists, ${albums.length} albums, ${tracks.length} tracks\n`)
+    fs.appendFileSync(
+      logPath,
+      `Found: ${artists.length} artists, ${albums.length} albums, ${tracks.length} tracks\n`
+    )
 
-        return {
-            artists,
-            albums,
-            tracks,
-            playlists: []
-        }
-    } catch (error) {
-        fs.appendFileSync(logPath, `ERROR during search: ${error}\n`)
-        console.error('Search error:', error)
-        return { artists: [], albums: [], tracks: [], playlists: [] }
+    return {
+      artists,
+      albums,
+      tracks,
+      playlists: []
     }
+  } catch (error) {
+    fs.appendFileSync(logPath, `ERROR during search: ${error}\n`)
+    console.error('Search error:', error)
+    return { artists: [], albums: [], tracks: [], playlists: [] }
+  }
 }
-
-

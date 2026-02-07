@@ -25,7 +25,7 @@ export default function ManualMatchView() {
     try {
       const allTracks = await window.api.tracks.getAll()
       // Filter tracks without MBID (you may need to add this field to track type)
-      const unmatched = allTracks.filter(t => !t.mbid)
+      const unmatched = allTracks.filter((t) => !t.mbid)
       setTracks(unmatched)
     } catch (error) {
       console.error('Failed to load tracks:', error)
@@ -53,10 +53,10 @@ export default function ManualMatchView() {
 
     try {
       await window.api.musicbrainz.applyCandidate(selectedTrack.id, candidate, true)
-      
+
       // Remove track from list
-      setTracks(prev => prev.filter(t => t.id !== selectedTrack.id))
-      
+      setTracks((prev) => prev.filter((t) => t.id !== selectedTrack.id))
+
       // Close modal
       setShowModal(false)
       setSelectedTrack(null)
@@ -84,20 +84,16 @@ export default function ManualMatchView() {
           <ArrowLeft className="w-5 h-5" />
           Back
         </button>
-        
+
         <h1 className="text-3xl font-bold">Manual MusicBrainz Matching</h1>
-        <p className="text-gray-400 mt-2">
-          {tracks.length} tracks need matching
-        </p>
+        <p className="text-gray-400 mt-2">{tracks.length} tracks need matching</p>
       </div>
 
       {/* Track List */}
       <div className="max-w-6xl mx-auto space-y-2">
         {tracks.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-400 text-lg">
-              All tracks have been matched! 🎉
-            </p>
+            <p className="text-gray-400 text-lg">All tracks have been matched! 🎉</p>
           </div>
         ) : (
           tracks.map((track) => (
@@ -108,9 +104,7 @@ export default function ManualMatchView() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white truncate">
-                    {track.title}
-                  </h3>
+                  <h3 className="font-semibold text-white truncate">{track.title}</h3>
                   <p className="text-sm text-gray-400 truncate">
                     {track.artist} • {track.album}
                   </p>
