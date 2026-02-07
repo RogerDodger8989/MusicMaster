@@ -47,6 +47,7 @@ export class ScrobbleService {
      * Submit all pending scrobbles
      */
     private async submitPendingScrobbles() {
+        console.log('🔄 Checking for pending scrobbles...')
         try {
             const pending = await window.api.scrobble.getPending()
             if (pending.length === 0) return
@@ -65,6 +66,8 @@ export class ScrobbleService {
                     } catch (error) {
                         console.error(`Failed to submit to ListenBrainz: ${scrobble.id}`, error)
                     }
+                } else if (!settings.listenbrainzEnabled && !scrobble.listenbrainzSubmitted) {
+                    console.log(`⏭️ Skipping ListenBrainz scrobble (disabled in settings): ${scrobble.artist} - ${scrobble.title}`)
                 }
 
                 // Submit to Last.fm (if enabled, session exists, and not already submitted)
@@ -77,6 +80,10 @@ export class ScrobbleService {
                     } catch (error) {
                         console.error(`Failed to submit to Last.fm: ${scrobble.id}`, error)
                     }
+                } else if (settings.lastfmEnabled && !scrobble.lastfmSubmitted && !this.lastfmSessionKey) {
+                    console.warn(`⚠️ Skipping Last.fm scrobble (no session key): ${scrobble.artist} - ${scrobble.title}`)
+                } else if (!settings.lastfmEnabled && !scrobble.lastfmSubmitted) {
+                    console.log(`⏭️ Skipping Last.fm scrobble (disabled in settings): ${scrobble.artist} - ${scrobble.title}`)
                 }
             }
         } catch (error) {

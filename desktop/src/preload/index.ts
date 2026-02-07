@@ -108,7 +108,6 @@ const api = {
     rename: (id: string, name: string): Promise<boolean> => ipcRenderer.invoke('playlists:rename', id, name)
   },
 
-  // Scrobbling
   scrobble: {
     recordPlay: (trackId: string): Promise<boolean> => ipcRenderer.invoke('scrobble:recordPlay', trackId),
     getPending: (): Promise<any[]> => ipcRenderer.invoke('scrobble:getPending'),
@@ -121,7 +120,24 @@ const api = {
     updateLastFmSecret: (secret: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateLastFmSecret', secret),
     updateListenBrainzToken: (token: string): Promise<boolean> => ipcRenderer.invoke('scrobble:updateListenBrainzToken', token),
     getLastFmAuthToken: (): Promise<{ token: string; authUrl: string } | null> => ipcRenderer.invoke('scrobble:getLastFmAuthToken'),
-    getLastFmSession: (token: string): Promise<string | null> => ipcRenderer.invoke('scrobble:getLastFmSession', token)
+    getLastFmSession: (token: string): Promise<string | null> => ipcRenderer.invoke('scrobble:getLastFmSession', token),
+    syncPlayCount: (trackId: string, lastfmUsername?: string, listenbrainzUsername?: string): Promise<{ trackId: string; playCount: number; sources: any }> =>
+      ipcRenderer.invoke('scrobble:syncPlayCount', trackId, lastfmUsername, listenbrainzUsername),
+    syncAllPlayCounts: (lastfmUsername?: string, listenbrainzUsername?: string, writeToFile?: boolean): Promise<{ total: number; synced: number; errors: string[] }> =>
+      ipcRenderer.invoke('scrobble:syncAllPlayCounts', lastfmUsername, listenbrainzUsername, writeToFile),
+    exportPlayCountsCSV: (): Promise<string | null> => ipcRenderer.invoke('scrobble:exportPlayCountsCSV'),
+    syncAllListenBrainz: (username: string): Promise<{ total: number; updated: number }> =>
+      ipcRenderer.invoke('scrobble:syncAllListenBrainz', username),
+    onSyncProgress: (callback: (progress: { current: number; total: number; trackName: string; percentage: number }) => void) => {
+      const listener = (_: any, progress: any): void => callback(progress)
+      ipcRenderer.on('scrobble:syncProgress', listener)
+      return () => ipcRenderer.removeListener('scrobble:syncProgress', listener)
+    },
+    onListenBrainzSyncProgress: (callback: (progress: { phase: 'fetching' | 'matching'; fetched?: number; page?: number; current?: number; total?: number }) => void) => {
+      const listener = (_: any, progress: any): void => callback(progress)
+      ipcRenderer.on('scrobble:listenBrainzSyncProgress', listener)
+      return () => ipcRenderer.removeListener('scrobble:listenBrainzSyncProgress', listener)
+    }
   }
 }
 

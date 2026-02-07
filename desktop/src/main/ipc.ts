@@ -8,7 +8,19 @@ import {
     removeMusicFolder,
     updateFolderWatchStatus
 } from './database/folders'
-import { getAllTracks, updateTrackRating, updateTrackLoved, getTracksByAlbum, dbTrackToTrack, addScrobbleToQueue, getPendingScrobbles, markScrobbleSubmitted, recordPlayHistory, getTrackPlayCount } from './database/tracks'
+import {
+    getAllTracks,
+    getTrackById,
+    updateTrackRating,
+    updateTrackLoved,
+    getTracksByAlbum,
+    dbTrackToTrack,
+    addScrobbleToQueue,
+    getPendingScrobbles,
+    markScrobbleSubmitted,
+    recordPlayHistory,
+    getTrackPlayCount
+} from './database/tracks'
 import {
     aggregateAlbums,
     getAllAlbums,
@@ -381,20 +393,8 @@ export function registerIpcHandlers(): void {
             console.log('✅ Full re-analysis complete')
         })
 
-        ipcMain.handle('library:reset', async () => {
-            console.log('☢️ NUKING LIBRARY...')
-            const db = initDatabase()
-            db.transaction(() => {
-                db.prepare('DELETE FROM tracks').run()
-                db.prepare('DELETE FROM albums_cache').run()
-                db.prepare('DELETE FROM artists').run()
-                db.prepare('DELETE FROM music_folders').run()
-                db.prepare('DELETE FROM playback_history').run()
-                db.prepare('DELETE FROM scan_history').run()
-            })()
-            console.log('✅ Library nuked successfully')
-            return true
-        })
+        // REMOVED: library:reset function - was destroying all ratings and library data destructively!
+        // Use library rebuilding instead to preserve user ratings and metadata
 
         ipcMain.handle('library:getArtists', async () => {
             console.log('👤 Getting all artists...')
@@ -636,22 +636,24 @@ export function registerIpcHandlers(): void {
 
         ipcMain.handle('scrobble:recordPlay', async (_, trackId: string) => {
             console.log('▶️ Recording play:', trackId)
+            fs.appendFileSync(logPath, `[${new Date().toISOString()}] ▶️ Recording play: ${trackId}\n`)
             try {
                 recordPlayHistory(trackId)
 
                 // Get track details
-                const tracks = getAllTracks()
-                const track = tracks.find(t => t.id === trackId)
+                const track = getTrackById(trackId)
 
                 if (track) {
                     // Add to scrobble queue
                     const timestamp = Math.floor(Date.now() / 1000)
                     addScrobbleToQueue(trackId, track.artist, track.title, track.album, timestamp)
                     console.log('✅ Play recorded and added to scrobble queue')
+                    fs.appendFileSync(logPath, `[${new Date().toISOString()}] ✅ Play recorded for ${track.artist} - ${track.title}\n`)
                 }
                 return true
             } catch (error) {
                 console.error('Failed to record play:', error)
+                fs.appendFileSync(logPath, `[${new Date().toISOString()}] ❌ Failed to record play: ${error}\n`)
                 return false
             }
         })
@@ -803,6 +805,264 @@ export function registerIpcHandlers(): void {
                 return null
             }
         })
+
+        // Helper function to sync a single track's play count
+        async function syncTrackPlayCount(trackId: string, lastfmUsername?: string, listenbrainzUsername?: string, writeToFile: boolean = false) {
+            const db = getDatabase()
+            const track = db.prepare('SELECT * FROM tracks WHERE id = ?').get(trackId) as any
+
+            if (!track) {
+                throw new Error('Track not found')
+            }
+
+            console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+            console.log(`🔍 SYNCING: "${track.artist}" - "${track.title}"`)
+            console.log(`   Track ID: ${trackId}`)
+            console.log(`   File: ${track.file_path}`)
+
+            // Get local play count
+            const localPlayCount = getTrackPlayCount(trackId)
+            console.log(`📍 Local DB play count: ${localPlayCount}`)
+            console.log(`📍 Track table play_count: ${track.play_count || 0}`)
+
+            let lastfmPlayCount = 0
+            let listenbrainzPlayCount = 0
+
+            // Get Last.fm play count (if username provided)
+            if (lastfmUsername) {
+                console.log(`⚠️  Last.fm: Skipped (unreliable API)`)
+            }
+
+            // Get ListenBrainz play count (if username provided)
+            if (listenbrainzUsername) {
+                console.log(`🎧 Fetching from ListenBrainz...`)
+                console.log(`   Username: ${listenbrainzUsername}`)
+                console.log(`   Artist: "${track.artist}"`)
+                console.log(`   Title: "${track.title}"`)
+                try {
+                    listenbrainzPlayCount = await listenBrainzService.getTrackPlayCount(
+                        listenbrainzUsername,
+                        track.artist,
+                        track.title
+                    )
+                    console.log(`📊 ListenBrainz returned: ${listenbrainzPlayCount}`)
+                } catch (error) {
+                    console.error('❌ Failed to get ListenBrainz play count:', error)
+                }
+            } else {
+                console.log(`⚠️  ListenBrainz: No username provided`)
+            }
+
+            // Choose highest value
+            // CRITICAL: Must include track.play_count to avoid resetting imported/synced counts
+            const dbPlayCount = track.play_count || 0
+            const maxPlayCount = Math.max(dbPlayCount, localPlayCount, lastfmPlayCount, listenbrainzPlayCount)
+
+            console.log(`\n📊 FINAL RESULTS:`)
+            console.log(`   DB (Master):  ${dbPlayCount}`)
+            console.log(`   Local Hist:   ${localPlayCount}`)
+            console.log(`   Last.fm:      ${lastfmPlayCount}`)
+            console.log(`   ListenBrainz: ${listenbrainzPlayCount}`)
+            console.log(`   → CHOSEN:     ${maxPlayCount}`)
+
+            // Update database
+            console.log(`💾 Writing to database: play_count = ${maxPlayCount}`)
+            const result = db.prepare('UPDATE tracks SET play_count = ? WHERE id = ?').run(maxPlayCount, trackId)
+            console.log(`   Changes made: ${result.changes}`)
+
+            // Verify it was saved
+            const verifyTrack = db.prepare('SELECT play_count FROM tracks WHERE id = ?').get(trackId) as any
+            console.log(`✅ Verified in DB: play_count = ${verifyTrack?.play_count}`)
+
+            // Write to file metadata (optional, slow for large collections)
+            if (writeToFile) {
+                console.log(`📝 Writing to file: rating=${track.rating}, loved=${track.loved === 1}, playCount=${maxPlayCount}`)
+                try {
+                    await writeMetadata(track.file_path, track.rating || 0, track.loved === 1, maxPlayCount)
+                    console.log(`✅ File write successful`)
+                } catch (error) {
+                    console.error('❌ Failed to write metadata to file:', error)
+                }
+            } else {
+                console.log(`⏭️  Skipping file write (writeToFile=false)`)
+            }
+            console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`)
+
+            return {
+                trackId,
+                playCount: maxPlayCount,
+                sources: { local: localPlayCount, lastfm: lastfmPlayCount, listenbrainz: listenbrainzPlayCount }
+            }
+        }
+
+        // Play count sync handlers
+        ipcMain.handle('scrobble:syncPlayCount', async (_event, trackId: string, lastfmUsername?: string, listenbrainzUsername?: string) => {
+            console.log('🔄 Syncing play count for track:', trackId)
+            try {
+                const result = await syncTrackPlayCount(trackId, lastfmUsername, listenbrainzUsername)
+                console.log('✅ Play count synced')
+                return result
+            } catch (error) {
+                console.error('❌ Failed to sync play count:', error)
+                throw error
+            }
+        })
+
+        // Bulk sync all tracks with progress updates
+        ipcMain.handle('scrobble:syncAllPlayCounts', async (event, lastfmUsername?: string, listenbrainzUsername?: string, writeToFile: boolean = false) => {
+            console.log(`🔄 Syncing play counts for all tracks... (writeToFile: ${writeToFile})`)
+            console.log(`📝 Last.fm username: "${lastfmUsername || 'NOT SET'}"`)
+            console.log(`📝 ListenBrainz username: "${listenbrainzUsername || 'NOT SET'}"`)
+            try {
+                const tracks = getAllTracks()
+                let syncedCount = 0
+                const errors: string[] = []
+
+                for (let i = 0; i < tracks.length; i++) {
+                    const track = tracks[i]
+
+                    // Send progress update
+                    event.sender.send('scrobble:syncProgress', {
+                        current: i + 1,
+                        total: tracks.length,
+                        trackName: `${track.artist} - ${track.title}`,
+                        percentage: Math.round(((i + 1) / tracks.length) * 100)
+                    })
+
+                    try {
+                        // Call the sync function directly (don't write to files by default for speed)
+                        await syncTrackPlayCount(track.id, lastfmUsername, listenbrainzUsername, writeToFile)
+                        syncedCount++
+                    } catch (error) {
+                        console.error(`Failed to sync track ${track.id}:`, error)
+                        errors.push(`${track.artist} - ${track.title}`)
+                    }
+
+                    // Rate limit: delay between requests to avoid API rate limits
+                    // 350ms = ~170 tracks/minute, safe for most APIs
+                    await new Promise(resolve => setTimeout(resolve, 350))
+                }
+
+                console.log(`✅ Synced ${syncedCount}/${tracks.length} tracks`)
+                return { total: tracks.length, synced: syncedCount, errors }
+            } catch (error) {
+                console.error('❌ Failed to sync all play counts:', error)
+                throw error
+            }
+        })
+
+        // Export play counts to CSV
+        ipcMain.handle('scrobble:exportPlayCountsCSV', async () => {
+            console.log('📊 Exporting play counts to CSV...')
+            try {
+                const tracks = getAllTracks()
+
+                // CSV header
+                let csv = 'Artist,Title,Album,Play Count,Rating,Loved\n'
+
+                // Add tracks
+                for (const track of tracks) {
+                    const playCount = getTrackPlayCount(track.id)
+                    const artist = (track.artist || '').replace(/"/g, '""')
+                    const title = (track.title || '').replace(/"/g, '""')
+                    const album = (track.album || '').replace(/"/g, '""')
+                    const loved = track.loved ? 'Yes' : 'No'
+
+                    csv += `"${artist}","${title}","${album}",${playCount},${track.rating || 0},"${loved}"\n`
+                }
+
+                // Save to user's downloads or documents folder
+                const { dialog } = require('electron')
+                const { app } = require('electron')
+                const defaultPath = path.join(app.getPath('downloads'), `musicmaster-playcounts-${Date.now()}.csv`)
+
+                const result = await dialog.showSaveDialog({
+                    title: 'Export Play Counts',
+                    defaultPath,
+                    filters: [
+                        { name: 'CSV Files', extensions: ['csv'] },
+                        { name: 'All Files', extensions: ['*'] }
+                    ]
+                })
+
+                if (!result.canceled && result.filePath) {
+                    const fs = require('fs')
+                    fs.writeFileSync(result.filePath, csv, 'utf8')
+                    console.log('✅ CSV exported to:', result.filePath)
+                    return result.filePath
+                }
+
+                return null
+            } catch (error) {
+                console.error('❌ Failed to export CSV:', error)
+                throw error
+            }
+        })
+
+        // ListenBrainz Full History Sync (Batched)
+        ipcMain.handle('scrobble:syncAllListenBrainz', async (event, username: string) => {
+            console.log(`🚀 Starting full ListenBrainz sync for user: ${username}`)
+            try {
+                // 1. Fetch all listens (Phase: Fetching)
+                const playCountsMap = await listenBrainzService.fetchAllListens(username, (stats) => {
+                    event.sender.send('scrobble:listenBrainzSyncProgress', {
+                        phase: 'fetching',
+                        fetched: stats.fetched,
+                        page: stats.page
+                    })
+                })
+
+                console.log(`✅ Fetched all listens. Total unique tracks: ${playCountsMap.size}`)
+
+                // 2. Match and update local tracks (Phase: Matching)
+                const tracks = getAllTracks()
+                const db = getDatabase()
+                let updatedCount = 0
+
+                console.log(`🔄 Matching against ${tracks.length} local tracks...`)
+
+                // Use a transaction for bulk updates
+                const updateStmt = db.prepare('UPDATE tracks SET play_count = ? WHERE id = ?')
+
+                const transaction = db.transaction((trackList: any[]) => {
+                    for (let i = 0; i < trackList.length; i++) {
+                        const track = trackList[i]
+
+                        // Normalized key for matching
+                        const artist = (track.artist || '').toLowerCase().trim()
+                        const title = (track.title || '').toLowerCase().trim()
+                        const key = `${artist}|${title}`
+
+                        const listenCount = playCountsMap.get(key)
+                        if (listenCount !== undefined) {
+                            // Protect existing count: Choose the highest between DB and ListenBrainz
+                            const currentDbCount = track.play_count || 0
+                            const finalCount = Math.max(currentDbCount, listenCount)
+                            updateStmt.run(finalCount, track.id)
+                            updatedCount++
+                        }
+
+                        // Progress update every 100 tracks to avoid IPC flooding
+                        if (i % 100 === 0 || i === trackList.length - 1) {
+                            event.sender.send('scrobble:listenBrainzSyncProgress', {
+                                phase: 'matching',
+                                current: i + 1,
+                                total: trackList.length
+                            })
+                        }
+                    }
+                })
+
+                transaction(tracks)
+
+                console.log(`✅ Sync complete. Updated ${updatedCount} tracks.`)
+                return { total: tracks.length, updated: updatedCount }
+            } catch (error) {
+                console.error('❌ Failed ListenBrainz full sync:', error)
+                throw error
+            }
+        })
+
 
         console.log('✅ All IPC handlers registered successfully!')
     } catch (error) {

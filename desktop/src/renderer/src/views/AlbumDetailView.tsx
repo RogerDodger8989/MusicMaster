@@ -261,9 +261,10 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
 
                             <div className="space-y-0.5">
                                 {/* Header */}
-                                <div className="grid grid-cols-[3rem_1fr_6rem_4rem_4rem] gap-4 px-4 py-2 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] border-b border-border/5 mb-2">
+                                <div className="grid grid-cols-[3rem_1fr_3rem_6rem_4rem_4rem] gap-4 px-4 py-2 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] border-b border-border/5 mb-2">
                                     <div className="text-center">#</div>
                                     <div>Title</div>
+                                    <div className="text-right">Plays</div>
                                     <div className="text-right">Rating</div>
                                     <div className="text-center">Love</div>
                                     <div className="text-right">Time</div>
@@ -281,7 +282,7 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                                                 window.dispatchEvent(new CustomEvent('request-track-play', { detail: { track } }))
                                             }}
                                             className={cn(
-                                                "group grid grid-cols-[3rem_1fr_6rem_4rem_4rem] gap-4 px-4 py-2 rounded-md transition-all items-center border border-transparent select-none",
+                                                "group grid grid-cols-[3rem_1fr_3rem_6rem_4rem_4rem] gap-4 px-4 py-2 rounded-md transition-all items-center border border-transparent select-none",
                                                 isCurrentTrack
                                                     ? "bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
                                                     : "hover:bg-white/5 hover:border-white/5"
@@ -329,6 +330,11 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                                                         {track.artist}
                                                     </div>
                                                 )}
+                                            </div>
+
+                                            {/* Play Count */}
+                                            <div className="text-right text-xs text-muted-foreground/60 font-medium tabular-nums">
+                                                {track.playCount > 0 && track.playCount}
                                             </div>
 
                                             {/* Rating */}

@@ -105,7 +105,12 @@ export function AlbumListItem({
             )}
 
             {viewFields.rating && (
-                <div className="hidden sm:flex w-24 justify-end">
+                <div className="hidden sm:flex w-24 justify-end items-center gap-2">
+                    {album.playCount > 0 && (
+                        <span className="text-xs text-muted-foreground font-medium tabular-nums">
+                            {album.playCount}
+                        </span>
+                    )}
                     {album.rating > 0 && <RatingStars rating={album.rating} size={12} readOnly />}
                 </div>
             )}

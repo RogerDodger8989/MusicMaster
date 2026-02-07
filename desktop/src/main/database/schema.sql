@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS tracks (
     bit_depth INTEGER,
     rating INTEGER DEFAULT 0,
     loved INTEGER DEFAULT 0,
+    play_count INTEGER DEFAULT 0,
     release_date TEXT,
     musicbrainz_track_id TEXT,
     musicbrainz_album_id TEXT,

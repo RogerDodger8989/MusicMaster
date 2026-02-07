@@ -213,20 +213,30 @@ export class MusicScanner extends EventEmitter {
             // Parse metadata
             const metadata = await parseFile(filePath)
 
-            // Extract rating and loved status from metadata
+            // Extract rating, loved status, and play count from metadata
             let rating = existingTrack?.rating || 0  // Default: keep existing or 0
             let loved = existingTrack?.loved || false // Default: keep existing or false
+            let playCount = existingTrack?.play_count || 0 // Default: keep existing or 0
 
-            // Only update rating/loved if we find explicit metadata in the file
-            if (metadata.common.rating && metadata.common.rating.length > 0) {
+            // Try to read RATING tag directly (0-5 scale we write ourselves)
+            const ratingTag = metadata.native?.vorbis?.find(t => t.id === 'RATING')
+            if (ratingTag) {
+                const val = parseFloat(ratingTag.value.toString())
+                if (!isNaN(val) && val >= 0 && val <= 5) {
+                    rating = Math.round(val) // Round to nearest integer (0-5)
+                    console.log(`[Scanner] ${path.basename(filePath)} RATING tag: ${val} -> ${rating} stars`)
+                }
+            } else if (metadata.common.rating && metadata.common.rating.length > 0) {
+                // Fallback to common rating metadata (for files without our custom RATING tag)
                 const ratingObj = metadata.common.rating[0]
                 const rawRating = ratingObj.rating || 0
 
-                if (rawRating > 1) {
+                if (rawRating >= 1) {
                     const max = rawRating > 100 ? 255 : 100
                     rating = Math.round((rawRating / max) * 5)
                     console.log(`[Scanner] ${path.basename(filePath)} Raw rating ${rawRating} (scale ${max}) -> ${rating} stars`)
-                } else {
+                } else if (rawRating > 0) {
+                    // Rating between 0-1: already normalized, convert to 0-5
                     rating = Math.round(rawRating * 5)
                     console.log(`[Scanner] ${path.basename(filePath)} Normalized rating ${rawRating} -> ${rating} stars`)
                 }
@@ -235,6 +245,22 @@ export class MusicScanner extends EventEmitter {
                     ratingObj.source?.toLowerCase().includes('heart')) {
                     loved = true
                 }
+            }
+
+            // Extract play count from PLAY_COUNT tag (FLAC/MP3)
+            const playCountTag = metadata.native?.vorbis?.find(t => t.id.toUpperCase() === 'PLAY_COUNT')
+            if (playCountTag) {
+                const val = parseInt(playCountTag.value.toString(), 10)
+                if (!isNaN(val) && val > 0) {
+                    playCount = Math.max(playCount, val) // Keep the higher value
+                    console.log(`[Scanner] ${path.basename(filePath)} Play count from FLAC tag: ${val}`)
+                }
+            }
+            
+            // For MP3: Check ID3 user-defined text frames
+            if (path.extname(filePath).toLowerCase() === '.mp3') {
+                // music-metadata doesn't expose TXXX frames easily, will need NodeID3 for complete implementation
+                // For now, we'll rely on Last.fm/ListenBrainz sync or database values
             }
 
             // Fallback: check custom tags like LOVED or HEART (mostly for FLAC)
@@ -314,6 +340,7 @@ export class MusicScanner extends EventEmitter {
                 coverArtPath: undefined,
                 rating,
                 loved,
+                playCount,
                 releaseDate,
                 musicbrainzTrackId,
                 musicbrainzAlbumId,

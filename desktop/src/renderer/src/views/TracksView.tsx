@@ -130,6 +130,12 @@ export default function TracksView() {
 
                                 {/* Rating & Love */}
                                 <div className="flex items-center justify-center gap-3">
+                                    {/* Play Count */}
+                                    {track.playCount > 0 && (
+                                        <div className="text-xs text-zinc-500 font-medium tabular-nums min-w-[2ch] text-right">
+                                            {track.playCount}
+                                        </div>
+                                    )}
                                     <div className="flex items-center">
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <button

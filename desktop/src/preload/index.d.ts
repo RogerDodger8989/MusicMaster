@@ -44,6 +44,38 @@ declare global {
       util: {
         openExternal: (url: string) => Promise<void>
       }
+      settings: {
+        getAll: () => Promise<Record<string, any>>
+        save: (key: string, value: any) => Promise<boolean>
+      }
+      player: {
+        loadSession: () => Promise<any>
+        saveSession: (session: any) => Promise<boolean>
+      }
+      playlists: {
+        getAll: () => Promise<any[]>
+        create: (name: string, trackIds: string[]) => Promise<string>
+        delete: (id: string) => Promise<boolean>
+        addTrack: (playlistId: string, trackId: string) => Promise<boolean>
+        removeTrack: (playlistId: string, trackId: string, position: number) => Promise<boolean>
+        rename: (id: string, name: string) => Promise<boolean>
+      }
+      scrobble: {
+        recordPlay: (trackId: string) => Promise<boolean>
+        getPending: () => Promise<any[]>
+        submitToLastFM: (scrobbleId: string, sessionKey: string) => Promise<boolean>
+        submitToListenBrainz: (scrobbleId: string) => Promise<boolean>
+        getPlayCount: (trackId: string) => Promise<number>
+        updateLastFmKey: (key: string) => Promise<boolean>
+        updateLastFmSecret: (secret: string) => Promise<boolean>
+        updateListenBrainzToken: (token: string) => Promise<boolean>
+        getLastFmAuthToken: () => Promise<{ token: string; authUrl: string } | null>
+        getLastFmSession: (token: string) => Promise<string | null>
+        syncPlayCount: (trackId: string, lastfmUsername?: string, listenbrainzUsername?: string) => Promise<{ trackId: string; playCount: number; sources: any }>
+        syncAllPlayCounts: (lastfmUsername?: string, listenbrainzUsername?: string, writeToFile?: boolean) => Promise<{ total: number; synced: number; errors: string[] }>
+        exportPlayCountsCSV: () => Promise<string | null>
+        onSyncProgress: (callback: (progress: { current: number; total: number; trackName: string; percentage: number }) => void) => () => void
+      }
     }
   }
 }

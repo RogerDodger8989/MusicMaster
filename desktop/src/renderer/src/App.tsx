@@ -3,6 +3,7 @@ import TopBar from './components/TopBar'
 import { cn } from './lib/utils'
 import Sidebar from './components/Sidebar'
 import PlayerBar from './components/PlayerBar'
+import SyncProgressToast from './components/SyncProgressToast'
 import SettingsView from './views/SettingsView'
 import AlbumsView from './views/AlbumsView'
 import AlbumDetailView from './views/AlbumDetailView'
@@ -65,24 +66,38 @@ function App(): React.JSX.Element {
 
   // Initialize library data and listeners
   useEffect(() => {
-    loadSettings()
-    loadSession()
-    
-    // Start scrobble service and update API keys
-    const settings = useSettings.getState()
-    scrobbleService.start(settings.lastfmSessionKey || undefined)
-    
-    if (settings.lastfmApiKey) {
-      window.api.scrobble.updateLastFmKey(settings.lastfmApiKey).catch(err => {
-        console.error('Failed to set Last.fm key:', err)
-      })
+    const initApp = async () => {
+      console.log('🚀 Initializing App...')
+      await loadSettings()
+      await loadSession()
+
+      // Start scrobble service and update API keys with LOADED settings
+      const settings = useSettings.getState()
+      console.log('🎵 Starting scrobble service with session key:', settings.lastfmSessionKey ? 'present' : 'missing')
+      scrobbleService.start(settings.lastfmSessionKey || undefined)
+
+      if (settings.lastfmApiKey) {
+        console.log('🔑 Pushing Last.fm API key to main process')
+        window.api.scrobble.updateLastFmKey(settings.lastfmApiKey).catch(err => {
+          console.error('Failed to set Last.fm key:', err)
+        })
+      }
+      if (settings.lastfmApiSecret) {
+        console.log('🔑 Pushing Last.fm API secret to main process')
+        window.api.scrobble.updateLastFmSecret(settings.lastfmApiSecret).catch(err => {
+          console.error('Failed to set Last.fm secret:', err)
+        })
+      }
+      if (settings.listenbrainzToken) {
+        console.log('🔑 Pushing ListenBrainz token to main process')
+        window.api.scrobble.updateListenBrainzToken(settings.listenbrainzToken).catch(err => {
+          console.error('Failed to set ListenBrainz token:', err)
+        })
+      }
     }
-    if (settings.listenbrainzToken) {
-      window.api.scrobble.updateListenBrainzToken(settings.listenbrainzToken).catch(err => {
-        console.error('Failed to set ListenBrainz token:', err)
-      })
-    }
-    
+
+    initApp()
+
     return () => {
       scrobbleService.stop()
       initialize()
@@ -287,6 +302,9 @@ function App(): React.JSX.Element {
         onAlbumClick={(id) => navigateTo('album-detail', { albumId: id })}
         onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
       />
+
+      {/* Sync Progress Toast */}
+      <SyncProgressToast />
     </div>
   )
 }

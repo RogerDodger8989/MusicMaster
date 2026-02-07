@@ -36,6 +36,7 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
         file_hash = ?,
         rating = ?,
         loved = ?,
+        play_count = ?,
         release_date = ?,
         musicbrainz_track_id = ?,
         musicbrainz_album_id = ?,
@@ -65,6 +66,7 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
             track.fileHash || null,
             track.rating || 0,
             track.loved ? 1 : 0,
+            track.playCount || 0,
             track.releaseDate || null,
             track.musicbrainzTrackId || null,
             track.musicbrainzAlbumId || null,
@@ -83,11 +85,11 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
       INSERT INTO tracks (
         id, folder_id, file_path, file_hash, title, artist, album, album_artist,
         year, genre, track_num, disc_num, duration, bitrate, format,
-        cover_art_path, rating, loved, release_date, musicbrainz_track_id,
+        cover_art_path, rating, loved, play_count, release_date, musicbrainz_track_id,
         musicbrainz_album_id, sample_rate, bit_depth, replaygain_track_gain,
         replaygain_album_gain, replaygain_track_peak, replaygain_album_peak,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
         stmt.run(
@@ -109,6 +111,7 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
             track.coverArtPath || null,
             track.rating || 0,
             track.loved ? 1 : 0,
+            track.playCount || 0,
             track.releaseDate || null,
             track.musicbrainzTrackId || null,
             track.musicbrainzAlbumId || null,
@@ -242,6 +245,7 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
         coverArtPath: dbTrack.cover_art_path || undefined,
         rating: dbTrack.rating,
         loved: dbTrack.loved === 1,
+        playCount: dbTrack.play_count || 0,
         releaseDate: dbTrack.release_date || undefined,
         musicbrainzTrackId: dbTrack.musicbrainz_track_id || undefined,
         musicbrainzAlbumId: dbTrack.musicbrainz_album_id || undefined,
@@ -311,10 +315,16 @@ export function markScrobbleSubmitted(scrobbleId: string, service: 'lastfm' | 'l
     const stmt = db.prepare(`UPDATE scrobble_queue SET ${column} = 1 WHERE id = ?`)
     stmt.run(scrobbleId)
 
-    // Mark submitted if both services have submitted (or only enabled service has)
+    // Check if both services have submitted
     const row = db.prepare('SELECT lastfm_submitted, listenbrainz_submitted FROM scrobble_queue WHERE id = ?').get(scrobbleId) as any
-    if (row && row.listfm_submitted === 1 && row.listenbrainz_submitted === 1) {
-        db.prepare('UPDATE scrobble_queue SET submitted = 1 WHERE id = ?').run(scrobbleId)
+    // Note: We don't have a 'submitted' column in the schema currently, 
+    // we rely on the individual service columns. If we wanted a global 'submitted' column
+    // we would need to add it to the schema in index.ts.
+    // For now, we'll just fix the typo in case it's used elsewhere.
+    if (row && row.lastfm_submitted === 1 && row.listenbrainz_submitted === 1) {
+        // All enabled services are done. 
+        // We could optionally delete the row here to keep the queue small,
+        // but keeping it for history is fine too.
     }
 }
 
@@ -346,6 +356,9 @@ export function recordPlayHistory(trackId: string): void {
         `)
         stmt.run(id, trackId, now)
     }
+
+    // ALSO update the master play_count in the tracks table for immediate access/performance
+    db.prepare('UPDATE tracks SET play_count = play_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(trackId)
 }
 
 /**
@@ -354,7 +367,7 @@ export function recordPlayHistory(trackId: string): void {
 export function getTrackPlayCount(trackId: string): number {
     const db = getDatabase()
     const row = db
-        .prepare('SELECT COALESCE(SUM(play_count), 0) as total FROM play_history WHERE track_id = ?')
-        .get(trackId) as { total: number } | undefined
-    return row?.total || 0
+        .prepare('SELECT play_count FROM tracks WHERE id = ?')
+        .get(trackId) as { play_count: number } | undefined
+    return row?.play_count || 0
 }

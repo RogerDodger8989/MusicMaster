@@ -1,17 +1,29 @@
 import { useEffect, useState } from 'react'
-import { FolderOpen, Trash2, Eye, EyeOff, Play, ExternalLink } from 'lucide-react'
+import { FolderOpen, Trash2, Eye, EyeOff, Play, ExternalLink, Download } from 'lucide-react'
 import { useFolders } from '../store/folders'
 import { useLibrary } from '../store/library'
 import { useSettings, TrackPlayBehavior, ReplayGainMode } from '../store/settings'
+import { useSyncStore } from '../store/sync'
 import { cn } from '../lib/utils'
 import { scrobbleService } from '../services/scrobbleService'
 
 export default function SettingsView() {
     const { folders, isLoading, loadFolders, addFolder, removeFolder, updateFolderWatch, browseFolder } = useFolders()
     const settings = useSettings()
+    const { progress, startSync, updateProgress, completeSync } = useSyncStore()
     const [lastfmAuthToken, setLastfmAuthToken] = useState('')
     const [lastfmAuthUrl, setLastfmAuthUrl] = useState('')
     const [lastfmAuthInProgress, setLastfmAuthInProgress] = useState(false)
+    const [exportingCSV, setExportingCSV] = useState(false)
+    const [writeToFiles, setWriteToFiles] = useState(false)
+    const [lbSyncProgress, setLbSyncProgress] = useState<{
+        phase: 'fetching' | 'matching';
+        fetched?: number;
+        page?: number;
+        current?: number;
+        total?: number;
+        isRunning: boolean;
+    }>({ isRunning: false, phase: 'fetching' })
 
     useEffect(() => {
         loadFolders()
@@ -21,6 +33,87 @@ export default function SettingsView() {
         // Ensure settings are loaded
         settings.loadSettings()
     }, [])
+
+    useEffect(() => {
+        // Listen for sync progress from main process
+        const unsubscribe = window.api.scrobble.onSyncProgress((syncProgress) => {
+            updateProgress({
+                isRunning: true,
+                current: syncProgress.current,
+                total: syncProgress.total,
+                trackName: syncProgress.trackName,
+                percentage: syncProgress.percentage,
+                errors: []
+            })
+        })
+
+        return () => {
+            unsubscribe()
+        }
+    }, [updateProgress])
+
+    useEffect(() => {
+        // Listen for ListenBrainz full sync progress
+        const unsubscribe = window.api.scrobble.onListenBrainzSyncProgress((progress) => {
+            setLbSyncProgress(prev => ({ ...prev, ...progress, isRunning: true }))
+        })
+
+        return () => {
+            unsubscribe()
+        }
+    }, [])
+
+    const handleSyncPlayCounts = async () => {
+        if (progress?.isRunning) {
+            alert('Sync is already running!')
+            return
+        }
+
+        console.log(`🔍 DEBUG: lastfmUsername: "${settings.lastfmUsername}" (${typeof settings.lastfmUsername})`)
+        console.log(`🔍 DEBUG: listenbrainzUsername: "${settings.listenbrainzUsername}" (${typeof settings.listenbrainzUsername})`)
+
+        startSync()
+
+        try {
+            const result = await window.api.scrobble.syncAllPlayCounts(
+                settings.lastfmUsername || undefined,
+                settings.listenbrainzUsername || undefined,
+                writeToFiles
+            )
+
+            completeSync()
+
+            if (result.errors.length > 0) {
+                alert(`✅ Synced ${result.synced}/${result.total} tracks\n\n❌ Failed tracks:\n${result.errors.slice(0, 10).join('\n')}${result.errors.length > 10 ? `\n...and ${result.errors.length - 10} more` : ''}`)
+            } else {
+                alert(`✅ Successfully synced all ${result.synced} tracks!${!writeToFiles ? '\n\n📝 Note: Play counts updated in database only.\nTo write to files, enable "Write to files" option.' : ''}`)
+            }
+
+            // Reload library to show updated play counts
+            await useLibrary.getState().loadTracks()
+        } catch (error) {
+            console.error('Failed to sync play counts:', error)
+            completeSync()
+            alert('❌ Failed to sync play counts: ' + error)
+        }
+    }
+
+    const handleExportCSV = async () => {
+        setExportingCSV(true)
+        try {
+            const filePath = await window.api.scrobble.exportPlayCountsCSV()
+            if (filePath) {
+                alert(`✅ Play counts exported to:\n${filePath}`)
+            } else {
+                alert('Export cancelled')
+            }
+        } catch (error) {
+            console.error('Failed to export CSV:', error)
+            alert('❌ Failed to export CSV: ' + error)
+        } finally {
+            setExportingCSV(false)
+        }
+    }
 
     const handleLastFmStartAuth = async () => {
         setLastfmAuthInProgress(true)
@@ -102,6 +195,30 @@ export default function SettingsView() {
             await window.api.scanner.start(folderId, folderPath)
         } catch (error) {
             console.error('Scan error:', error)
+        }
+    }
+
+    const handleLbFullSync = async () => {
+        if (!settings.listenbrainzUsername) {
+            alert('Please enter your ListenBrainz username first.')
+            return
+        }
+
+        if (lbSyncProgress.isRunning) return
+
+        setLbSyncProgress({ isRunning: true, phase: 'fetching', fetched: 0, page: 0 })
+
+        try {
+            const result = await window.api.scrobble.syncAllListenBrainz(settings.listenbrainzUsername)
+            alert(`✅ ListenBrainz sync complete!\n\nUpdated play counts for ${result.updated} tracks out of ${result.total}.`)
+
+            // Reload library to show updated play counts
+            await useLibrary.getState().loadTracks()
+        } catch (error) {
+            console.error('ListenBrainz sync failed:', error)
+            alert('❌ ListenBrainz sync failed: ' + error)
+        } finally {
+            setLbSyncProgress(prev => ({ ...prev, isRunning: false }))
         }
     }
 
@@ -299,7 +416,7 @@ export default function SettingsView() {
 
                 <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
                     <h3 className="text-lg font-semibold text-white mb-4">Scrobbling</h3>
-                    
+
                     {/* Important Notice */}
                     <div className="mb-4 p-3 bg-blue-900/20 border border-blue-900/30 rounded-lg">
                         <p className="text-xs text-blue-300 mb-2">
@@ -331,6 +448,17 @@ export default function SettingsView() {
                                 value={settings.listenbrainzToken}
                                 onChange={(e) => settings.setListenbrainzToken(e.target.value)}
                                 placeholder="Paste your ListenBrainz token..."
+                                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 mb-3"
+                            />
+                            <div className="mb-3">
+                                <label className="text-sm font-medium text-zinc-400">ListenBrainz Username</label>
+                                <p className="text-xs text-zinc-600 mt-1">Your ListenBrainz username (for play count sync)</p>
+                            </div>
+                            <input
+                                type="text"
+                                value={settings.listenbrainzUsername}
+                                onChange={(e) => settings.setListenbrainzUsername(e.target.value)}
+                                placeholder="Enter your ListenBrainz username..."
                                 className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                             />
                         </div>
@@ -428,9 +556,130 @@ export default function SettingsView() {
                             </div>
                         )}
 
+                        {settings.lastfmSessionKey && (
+                            <div>
+                                <label className="text-sm font-medium text-zinc-400">Last.fm Username</label>
+                                <p className="text-xs text-zinc-600 mt-1">Your Last.fm username (for play count sync)</p>
+                                <input
+                                    type="text"
+                                    value={settings.lastfmUsername}
+                                    onChange={(e) => settings.setLastfmUsername(e.target.value)}
+                                    placeholder="Enter your Last.fm username..."
+                                    className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 mt-2"
+                                />
+                            </div>
+                        )}
+
                         <p className="text-xs text-zinc-500">
                             📊 <strong>Play Tracking:</strong> Each completed track play is recorded and automatically submitted to configured services.
                         </p>
+
+                        {/* Play Count Sync Section */}
+                        <div className="mt-6 p-4 bg-blue-900/10 border border-blue-900/30 rounded-lg">
+                            <h4 className="text-sm font-semibold text-blue-400 mb-2">📊 Play Count Sync & Export</h4>
+                            <p className="text-xs text-zinc-400 mb-4">
+                                Sync play counts from Last.fm and ListenBrainz, then save the highest value to your database. Optionally write to files (slower).
+                            </p>
+
+                            {progress?.isRunning && (
+                                <div className="mb-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs text-zinc-300">{progress.trackName}</span>
+                                        <span className="text-xs text-zinc-400">{progress.current}/{progress.total}</span>
+                                    </div>
+                                    <div className="w-full bg-zinc-800 rounded-full h-2.5 overflow-hidden">
+                                        <div
+                                            className="bg-blue-600 h-2.5 transition-all duration-300 ease-out"
+                                            style={{ width: `${progress.percentage}%` }}
+                                        ></div>
+                                    </div>
+                                    <p className="text-xs text-zinc-500 mt-1 text-center">{progress.percentage}%</p>
+                                </div>
+                            )}
+
+                            {/* Write to Files checkbox */}
+                            <div className="mb-3 flex items-center gap-2 p-2 bg-yellow-900/10 border border-yellow-900/30 rounded">
+                                <input
+                                    type="checkbox"
+                                    id="writeToFiles"
+                                    checked={writeToFiles}
+                                    onChange={(e) => setWriteToFiles(e.target.checked)}
+                                    className="w-4 h-4 cursor-pointer"
+                                />
+                                <label htmlFor="writeToFiles" className="text-xs text-zinc-300 cursor-pointer">
+                                    <strong>Write to files</strong> (slow, requires metaflac for FLAC)
+                                </label>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleSyncPlayCounts}
+                                        disabled={progress?.isRunning || lbSyncProgress.isRunning}
+                                        className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-700 disabled:text-zinc-500 text-white rounded-lg transition-colors text-sm font-semibold"
+                                    >
+                                        {progress?.isRunning ? 'Syncing...' : 'Sync All (Online)'}
+                                    </button>
+                                    <button
+                                        onClick={handleExportCSV}
+                                        disabled={exportingCSV}
+                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-zinc-700 text-white rounded-lg transition-colors text-sm font-semibold flex items-center gap-2"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        {exportingCSV ? 'Exporting...' : 'Export CSV'}
+                                    </button>
+                                </div>
+
+                                <button
+                                    onClick={handleLbFullSync}
+                                    disabled={lbSyncProgress.isRunning || progress?.isRunning || !settings.listenbrainzUsername}
+                                    className="w-full px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:bg-zinc-700 disabled:text-zinc-500 text-white rounded-lg transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                                >
+                                    <Play className="w-4 h-4" />
+                                    {lbSyncProgress.isRunning ? 'Syncing History...' : 'ListenBrainz Full History Sync'}
+                                </button>
+                            </div>
+
+                            {lbSyncProgress.isRunning && (
+                                <div className="mt-4 p-3 bg-violet-900/10 border border-violet-900/30 rounded-lg">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-medium text-violet-400">
+                                            {lbSyncProgress.phase === 'fetching'
+                                                ? `Fetching: Page ${lbSyncProgress.page} (${lbSyncProgress.fetched?.toLocaleString()} listens)`
+                                                : `Matching: ${lbSyncProgress.current?.toLocaleString()} / ${lbSyncProgress.total?.toLocaleString()} tracks`}
+                                        </span>
+                                        <span className="text-xs text-zinc-500">
+                                            {lbSyncProgress.phase === 'fetching' ? 'Downloading...' : 'Processing...'}
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                                        <div
+                                            className={cn(
+                                                "h-1.5 transition-all duration-300 ease-out",
+                                                lbSyncProgress.phase === 'fetching' ? "bg-violet-500 animate-pulse" : "bg-emerald-500"
+                                            )}
+                                            style={{
+                                                width: lbSyncProgress.phase === 'matching'
+                                                    ? `${((lbSyncProgress.current || 0) / (lbSyncProgress.total || 1)) * 100}%`
+                                                    : '100%'
+                                            }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {!settings.lastfmUsername && !settings.listenbrainzUsername && (
+                                <p className="text-xs text-yellow-400 mt-2">
+                                    ⚠️ Enter at least one username above to enable sync
+                                </p>
+                            )}
+
+                            {!writeToFiles && (
+                                <p className="text-xs text-zinc-500 mt-2">
+                                    💡 <strong>ListenBrainz Full Sync</strong> is highly recommended for users with large history. It fetches your entire history in bulk and matches it locally.
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
 

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { Track } from '../types'
 import { calculateReplayGain } from '../utils/replayGain'
 import { useSettings } from './settings'
+import { useLibrary } from './library'
 
 type PlayMode = 'normal' | 'repeat-all' | 'repeat-one'
 
@@ -89,13 +90,18 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
             // Add to history if 50% played
             if (currentTrack && duration > 0 && progress >= 50) {
-                const { history, historyTrackIds } = get()
+                const { historyTrackIds } = get()
                 const alreadyInHistory = historyTrackIds.has(currentTrack.id)
                 if (!alreadyInHistory) {
                     // Record play for scrobbling
                     console.log('🎵 50% played, recording play:', currentTrack.title, 'by', currentTrack.artist)
                     window.api.scrobble.recordPlay(currentTrack.id).then(() => {
-                        console.log('✅ Play recorded to scrobble queue')
+                        console.log('✅ Play recorded to scrobble queue for:', currentTrack.title)
+                        // Increment local count for immediate feedback
+                        const currentCount = currentTrack.playCount || 0
+                        const newCount = currentCount + 1
+                        useLibrary.getState().updateTrack(currentTrack.id, { playCount: newCount })
+                        set({ trackPlayCount: newCount })
                     }).catch(err => {
                         console.error('❌ Failed to record play:', err)
                     })
@@ -260,7 +266,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
             // Calculate ReplayGain based on current settings
             const mode = useSettings.getState().replayGainMode
             const replayGain = calculateReplayGain(track, mode)
-            
+
             set({
                 queue: [track],
                 currentIndex: 0,
@@ -284,7 +290,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
         playAlbum: (tracks, startIndex = 0) => {
             if (!tracks.length) return
             const targetTrack = tracks[startIndex] || tracks[0]
-            
+
             // Calculate ReplayGain based on current settings
             const mode = useSettings.getState().replayGainMode
             const replayGain = calculateReplayGain(targetTrack, mode)
@@ -443,11 +449,11 @@ export const usePlayer = create<PlayerState>((set, get) => {
             if (prevTrack) {
                 const mode = useSettings.getState().replayGainMode
                 const replayGain = calculateReplayGain(prevTrack, mode)
-                
-                set({ 
-                    currentIndex: prevIndex, 
-                    currentTrack: prevTrack, 
-                    currentTime: 0, 
+
+                set({
+                    currentIndex: prevIndex,
+                    currentTrack: prevTrack,
+                    currentTime: 0,
                     progress: 0,
                     replayGainApplied: replayGain
                 })
@@ -669,6 +675,10 @@ export const usePlayer = create<PlayerState>((set, get) => {
                             activeAudio.load()
                             activeAudio.currentTime = currentTime || 0
                         }
+                        // Fetch play count for the restored track to sync UI
+                        window.api.scrobble.getPlayCount(track.id).then(count => {
+                            set({ trackPlayCount: count })
+                        }).catch(err => console.error('Failed to fetch play count on session load:', err))
                     }
                     preloadNextTrack()
                 }

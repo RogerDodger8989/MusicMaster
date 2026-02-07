@@ -41,6 +41,7 @@ interface LibraryStore {
     toggleArtistLoved: (artistId: string) => Promise<void>
     reanalyzeLibrary: () => Promise<void>
     setScanProgress: (progress: ScanProgress) => void
+    updateTrack: (trackId: string, updates: Partial<Track>) => void
     initialize: () => () => void
 }
 
@@ -299,6 +300,12 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
     },
 
     setScanProgress: (scanProgress) => set({ scanProgress }),
+
+    updateTrack: (trackId, updates) => {
+        set(state => ({
+            tracks: state.tracks.map(t => t.id === trackId ? { ...t, ...updates } : t)
+        }))
+    },
 
     initialize: () => {
         // Initial load

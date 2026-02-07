@@ -25,7 +25,7 @@ export class ListenBrainzService {
     async submitListen(payload: ListenBrainzListenPayload, timestamp?: number): Promise<boolean> {
         const currentToken = getToken()
         console.log('🎵 Submitting listen to ListenBrainz, token:', currentToken ? 'present' : 'missing')
-        
+
         if (!currentToken) {
             console.error('LISTENBRAINZ_TOKEN not found in submitListen')
             return false
@@ -142,6 +142,183 @@ export class ListenBrainzService {
             console.error('Failed to get recent listens from ListenBrainz:', error)
             return null
         }
+    }
+
+    /**
+     * Get user's play count for a specific track
+     * Note: This is an approximation based on recent listens API
+     */
+    async getTrackPlayCount(username: string, artist: string, track: string): Promise<number> {
+        const currentToken = getToken()
+        console.log(`\n🔍 ListenBrainz.getTrackPlayCount()`)
+        console.log(`   Token present: ${!!currentToken}`)
+        console.log(`   Token length: ${currentToken?.length || 0}`)
+
+        if (!currentToken) {
+            console.error('❌ LISTENBRAINZ_TOKEN not found - cannot fetch play count')
+            return 0
+        }
+
+        try {
+            const url = `${BASE_URL}/stats/user/${username}/recordings`
+            console.log(`📡 API Request: GET ${url}`)
+            console.log(`   Params: count=100, range=all_time`)
+
+            // Get listen_count statistics for the track
+            const response = await axios.get(url, {
+                headers: {
+                    'Authorization': `Token ${currentToken}`
+                },
+                params: {
+                    count: 100,
+                    range: 'all_time'
+                }
+            })
+
+            console.log(`✅ API Response: Status ${response.status}`)
+            const recordings = response.data?.payload?.recordings || []
+            console.log(`📊 Total recordings in response: ${recordings.length}`)
+
+            if (recordings.length === 0) {
+                console.warn(`⚠️  No recordings found for user ${username}`)
+                console.warn(`   This could mean:`)
+                console.warn(`   - You haven't scrobbled anything to ListenBrainz`)
+                console.warn(`   - The token is invalid`)
+                console.warn(`   - The username is wrong`)
+                return 0
+            }
+
+            console.log(`\n🔎 Searching for: "${artist}" - "${track}"`)
+            console.log(`   (case-insensitive match)\n`)
+
+            const matchingRecording = recordings.find((rec: any) =>
+                rec.track_metadata?.artist_name?.toLowerCase() === artist.toLowerCase() &&
+                rec.track_metadata?.track_name?.toLowerCase() === track.toLowerCase()
+            )
+
+            if (matchingRecording) {
+                console.log(`✅✅✅ MATCH FOUND!`)
+                console.log(`   Artist: ${matchingRecording.track_metadata?.artist_name}`)
+                console.log(`   Track:  ${matchingRecording.track_metadata?.track_name}`)
+                console.log(`   Listens: ${matchingRecording.listen_count}`)
+                return matchingRecording.listen_count || 0
+            } else {
+                console.log(`❌ NO MATCH - Track not in top 100 recordings`)
+                console.log(`\n📋 Top 5 recordings for comparison:`)
+                recordings.slice(0, 5).forEach((rec: any, i: number) => {
+                    console.log(`   ${i + 1}. "${rec.track_metadata?.artist_name || '?'}" - "${rec.track_metadata?.track_name || '?'}" (${rec.listen_count} listens)`)
+                })
+                return 0
+            }
+        } catch (error: any) {
+            console.error('❌❌❌ LISTENBRAINZ API ERROR:')
+            if (error.response) {
+                console.error(`   Status: ${error.response.status}`)
+                console.error(`   Data:`, error.response.data)
+            } else {
+                console.error(`   Error:`, error.message)
+            }
+            return 0
+        }
+    }
+
+    /**
+     * Fetch all listens for a user using pagination (max_ts)
+     * Returns a map of track count: normalized_string -> count
+     */
+    async fetchAllListens(username: string, onProgress?: (stats: { fetched: number; total?: number; page: number }) => void): Promise<Map<string, number>> {
+        const currentToken = getToken()
+        if (!currentToken) {
+            throw new Error('ListenBrainz token missing')
+        }
+
+        const playCounts = new Map<string, number>()
+        let maxTs: number | undefined = undefined
+        let page = 1
+        let totalFetched = 0
+        let hasMore = true
+        while (hasMore) {
+            let retries = 0
+            const maxRetries = 3
+            let success = false
+
+            while (retries <= maxRetries && !success) {
+                try {
+                    console.log(`[ListenBrainz] 📡 Fetching page ${page} (max_ts: ${maxTs || 'latest'})...`)
+                    const url = `${BASE_URL}/user/${username}/listens`
+                    const response = await axios.get(url, {
+                        headers: { 'Authorization': `Token ${currentToken}` },
+                        params: {
+                            count: 1000,
+                            max_ts: maxTs
+                        }
+                    })
+
+                    const listens = response.data?.payload?.listens || []
+
+                    if (listens.length === 0) {
+                        console.log(`[ListenBrainz] ✅ End of history reached at page ${page}`)
+                        hasMore = false
+                        success = true
+                        break
+                    }
+
+                    for (const listen of listens) {
+                        const metadata = listen.track_metadata
+                        if (metadata) {
+                            const artist = (metadata.artist_name || '').toLowerCase().trim()
+                            const track = (metadata.track_name || '').toLowerCase().trim()
+                            const key = `${artist}|${track}`
+                            playCounts.set(key, (playCounts.get(key) || 0) + 1)
+                        }
+                    }
+
+                    totalFetched += listens.length
+                    console.log(`[ListenBrainz] ✅ Loaded ${listens.length} listens. Total: ${totalFetched}`)
+
+                    if (onProgress) {
+                        onProgress({ fetched: totalFetched, page })
+                    }
+
+                    // Get timestamp of oldest listen for next page
+                    maxTs = listens[listens.length - 1].listened_at
+
+                    if (listens.length < 1000) {
+                        console.log(`[ListenBrainz] ✅ Last page reached (${listens.length} items)`)
+                        hasMore = false
+                    } else {
+                        page++
+                    }
+
+                    success = true
+                    // Rate limit: 400ms delay between successful requests to be extra safe
+                    await new Promise(resolve => setTimeout(resolve, 400))
+                } catch (error: any) {
+                    if (error.response?.status === 429) {
+                        const resetIn = parseInt(error.response.headers['x-ratelimit-reset-in'] || '10')
+                        const waitTime = Math.max(resetIn, 12)
+                        console.warn(`[ListenBrainz] 🛑 Rate limit exceeded (429) on page ${page}. Waiting ${waitTime}s to reset...`)
+                        // Wait for the reset plus a buffer
+                        await new Promise(resolve => setTimeout(resolve, (waitTime + 2) * 1000))
+                        // Try same page again
+                        continue
+                    }
+
+                    retries++
+                    if (retries > maxRetries) {
+                        console.error(`[ListenBrainz] ❌ Final failure fetching page ${page} after ${maxRetries} retries:`, error)
+                        throw error
+                    }
+
+                    // Exponential backoff: 3s, 7s, 15s
+                    const delay = retries === 1 ? 3000 : retries === 2 ? 7000 : 15000
+                    console.warn(`[ListenBrainz] ⚠️ Error fetching page ${page} (attempt ${retries}). Retrying in ${delay}ms...`, error.message)
+                    await new Promise(resolve => setTimeout(resolve, delay))
+                }
+            }
+        }
+
+        return playCounts
     }
 
     /**

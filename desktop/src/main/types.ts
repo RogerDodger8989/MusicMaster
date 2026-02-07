@@ -18,6 +18,7 @@ export interface Track {
     coverArtPath?: string
     rating: number
     loved: boolean
+    playCount: number
     releaseDate?: string
     musicbrainzTrackId?: string
     musicbrainzAlbumId?: string

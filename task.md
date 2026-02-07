@@ -116,26 +116,93 @@
 - [x] Fix Player Bar Navigation (Title/Artist) & Heart
 - [x] Implement Play/Shuffle Confirmation Modal (Replace vs Append)
 - [x] Implement Artist Heart Hover Effect
-- [ ] Implement Album Detail View
-- [ ] Add Queue Management Blue Triangle Rating Badge on Album Cards
+- [x] Implement Album Detail View
+- [x] Add Queue Management Blue Triangle Rating Badge on Album Cards
 - [x] Shrink Album Card Play Button
 - [x] Enable Drag & Drop reordering in Queue playlist
 - [x] Fix Album Grid crowding issue
 - [x] Refine Artist Bio height and toggle button
 - [x] Implement Smart Shuffle (Artist separation)
 - [x] Fix Popular Tracks sorting stability
-- [ ] **Phase 4: Future Roadmap & Extended Features**
+- [x] **Phase 4: Advanced Audio & Features (2026-02-06)**
+    - [x] **Universal Shortcuts**
+        - [x] `Space`: Play/Pause toggle
+        - [x] `Backspace`: Navigate back/close modals
+        - [x] `Esc`: Cancel/Close with priority handling
+        - [x] `Delete`: Clear queue (with confirmation modal)
+    - [x] **ReplayGain Normalization**
+        - [x] Scanner: Extract ReplayGain metadata from FLAC tags
+        - [x] Database: Add ReplayGain columns (track_gain, album_gain, track_peak, album_peak)
+        - [x] Player: Apply volume adjustment based on ReplayGain mode
+        - [x] Settings: Mode selector (Track/Album/Off)
+        - [x] UI: Green RG indicator in PlayerBar
+    - [x] **Gapless Playback**
+        - [x] Dual audio elements (activeAudio/preloadAudio)
+        - [x] Preload pipeline for next track
+        - [x] Seamless crossfade on track end
+        - [x] Fix: Prevent dual-playback bug
+    - [x] **Library Management**
+        - [x] Fast Watch Folder: Auto-start on app launch
+        - [x] Preserve Loved status during re-scans
+    - [x] **ListenBrainz/Last.fm Sync**
+        - [x] Database: Create scrobble_queue and play_history tables
+        - [x] Offline queue system with per-service tracking
+        - [x] Last.fm OAuth flow (token → session key with MD5 signature)
+        - [x] ListenBrainz token-based authentication
+        - [x] Background service (5s interval) for submission
+        - [x] 50% play rule for scrobble recording
+        - [x] Settings: API configuration UI with instructions
+        - [x] UI: Service indicators in PlayerBar (LFM/LB badges)
+    - [x] **Play Count Tracking**
+        - [x] Display play count in Tracks View
+        - [x] Display play count in Albums View (list mode)
+        - [x] Display play count in Album Detail View
+        - [x] Backend: Query play_history table for counts
+- [x] **Phase 6: Play Count Sync Debugging & Fixes (2026-02-06)**
+    - [x] **Rating System Bugfixes**
+        - [x] Fix rating normalization (FMPS_RATING 0.8 read as 0.04)
+        - [x] Update scanner to read RATING tag directly (0-5 scale)
+        - [x] Fix ratings disappearing after rescan
+        - [x] Preserve existing ratings during scanner updates
+    - [x] **Play Count Reading/Writing**
+        - [x] Add PLAY_COUNT tag extraction in scanner.ts
+        - [x] Fix upsertTrack() to save play_count column (INSERT + UPDATE)
+        - [x] Fix dbTrackToTrack() to read from tracks.play_count instead of play_history
+        - [x] Add play_count parameter to scanner's upsertTrack calls
+    - [x] **API Issues & Workarounds**
+        - [x] Identified Last.fm getUserTrackPlayCount() returns global stats
+        - [x] Disable Last.fm playcount sync with warning message
+        - [x] Identified ListenBrainz /stats endpoint limited to top 100 tracks
+        - [x] Create PowerShell script to download all ListenBrainz listens
+        - [x] Implement pagination via max_ts parameter (1000 records per page)
+        - [x] Fix PowerShell do-while loop syntax error
+    - [x] **Debugging Enhancements**
+        - [x] Add extensive logging in syncTrackPlayCount()
+        - [x] Add debugging output in listenbrainz.ts getTrackPlayCount()
+        - [x] Remove destructive library:reset IPC handler
+    - [x] **Tools & Setup**
+        - [x] Install FLAC command-line tools via scoop
+        - [x] Verify metaflac command available
+        - [x] Set up ListenBrainz API token (06bb83a7-d6fe-471c-9da9-5a6cdf5029de)
+        - [x] Verify user has 113,642 total listens on ListenBrainz
+- [ ] **Phase 7: ListenBrainz JSON Import Feature**
+    - [ ] Test PowerShell download script (download_listenbrainz.ps1)
+    - [ ] Verify JSON file contains all ~113k listens
+    - [ ] Create IPC handler: scrobble:importListenBrainzJSON
+    - [ ] Implement JSON parsing and playcount aggregation
+    - [ ] Add matching logic (artist+title fuzzy match, MusicBrainz recording_mbid)
+    - [ ] Update tracks.play_count in database
+    - [ ] Add "Import ListenBrainz JSON" button in Settings UI
+    - [ ] Add file picker dialog for JSON selection
+    - [ ] Test end-to-end playcount import workflow
+- [ ] **Phase 8: Future Roadmap & Extended Features**
     - [ ] **Audio Core Enhancements**
         - [ ] Exclusive Mode: WASAPI (Windows) / ASIO integration for bit-perfect playback
-        - [ ] Gapless Playback: Seamless transitions between tracks
-        - [ ] ReplayGain: Normalize volume across tracks using metadata
         - [ ] Android Mixer Bypass: Direct hardware access for mobile app
     - [ ] **Smart Features & AI**
         - [ ] "Sonic Analysis": Waveform analysis for "Play similar sounding tracks"
         - [ ] "Aura" Visualizer: Dynamic colors based on mood/audio analysis
-        - [ ] Smart Shuffle: Continue improving AI-based randomness (Anti-repetition)
     - [ ] **Library Management**
-        - [ ] Fast Watch Folder: Auto-detect new/changed files
         - [ ] Rescan: "Rescan Tags" option in right-click context menu
         - [ ] Genre Hierarchies: Tree view for sub-genres
     - [ ] **UI/UX Customization**
@@ -143,12 +210,3 @@
         - [ ] Settings: Global text size adjustment
         - [ ] Album Detail: "More from this Artist" section (Sorted by Year)
         - [ ] Taskbar Controls: Prev/Play/Next buttons in OS taskbar preview
-    - [ ] **Sync & Integration**
-        - [ ] ListenBrainz/Last.fm Sync: Two-way sync for Playcount (50% rule), Ratings, and Hearts
-    - [ ] **Universal Shortcuts**
-        - [ ] `Space`: Play/Pause
-        - [ ] `Enter`: Confirm/Ok
-        - [ ] `Esc`: Cancel/Close
-        - [ ] `Backspace`: Go Back
-        - [ ] `Shift+Enter`: Edit Selected Tracks
-        - [ ] `Tab`: Navigate inputs

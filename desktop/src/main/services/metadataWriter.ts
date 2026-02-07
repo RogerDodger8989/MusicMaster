@@ -8,35 +8,38 @@ import path from 'path'
 const execAsync = promisify(exec)
 
 /**
- * Write rating and loved status to audio file
+ * Write rating, loved status, and play count to audio file
  * 
- * FLAC: Uses FMPS_RATING (0.0-1.0) and custom LOVED tag
- * MP3: Uses POPM frame (Popularimeter) with rating 0-255
+ * FLAC: Uses FMPS_RATING (0.0-1.0), LOVED tag, and PLAY_COUNT tag (requires metaflac)
+ * MP3: Uses POPM frame (Popularimeter) with rating 0-255, LOVED, and PLAY_COUNT
  * 
  * @param filePath - Path to audio file
  * @param rating - Rating from 0-5 (supports 0.5 increments)
  * @param loved - Whether track is loved/favorited
+ * @param playCount - Total play count (optional)
  */
 export async function writeMetadata(
     filePath: string,
     rating: number,
-    loved: boolean
+    loved: boolean,
+    playCount?: number
 ): Promise<void> {
     const ext = path.extname(filePath).toLowerCase()
 
     try {
         if (ext === '.flac') {
-            await writeFLACMetadata(filePath, rating, loved)
+            await writeFLACMetadata(filePath, rating, loved, playCount)
         } else if (ext === '.mp3') {
-            await writeMP3Metadata(filePath, rating, loved)
+            await writeMP3Metadata(filePath, rating, loved, playCount)
         } else {
-            throw new Error(`Unsupported file format: ${ext}`)
+            console.log(`⚠️ Unsupported file format: ${ext}, skipping file write`)
+            return
         }
 
-        console.log(`✅ Wrote metadata to ${filePath}: rating=${rating}, loved=${loved}`)
+        console.log(`✅ Wrote metadata to ${filePath}: rating=${rating}, loved=${loved}, playCount=${playCount || 0}`)
     } catch (error) {
         console.error(`❌ Failed to write metadata to ${filePath}:`, error)
-        throw error
+        // Don't throw - just log and continue
     }
 }
 
@@ -46,15 +49,24 @@ export async function writeMetadata(
  * Uses FMPS_RATING tag (MusicBee/foobar2000 compatible)
  * Scale: 0.0 = 0 stars, 0.2 = 1 star, 0.4 = 2 stars, 0.6 = 3 stars, 0.8 = 4 stars, 1.0 = 5 stars
  */
-async function writeFLACMetadata(filePath: string, rating: number, loved: boolean): Promise<void> {
+async function writeFLACMetadata(filePath: string, rating: number, loved: boolean, playCount?: number): Promise<void> {
     // Convert 0-5 rating to 0.0-1.0 scale
     const fmpsRating = (rating / 5).toFixed(2)
+
+    try {
+        // Check if metaflac is available
+        await execAsync('where metaflac')
+    } catch (error) {
+        console.warn('⚠️ metaflac not found - install FLAC tools to write FLAC metadata. Skipping FLAC file write.')
+        throw new Error('metaflac not installed')
+    }
 
     // Remove existing tags
     await execAsync(`metaflac --remove-tag=FMPS_RATING "${filePath}"`)
     await execAsync(`metaflac --remove-tag=FMPS_RATING_USER "${filePath}"`)
     await execAsync(`metaflac --remove-tag=RATING "${filePath}"`)
     await execAsync(`metaflac --remove-tag=LOVED "${filePath}"`)
+    await execAsync(`metaflac --remove-tag=PLAY_COUNT "${filePath}"`)
 
     // Set new tags
     await execAsync(`metaflac --set-tag=FMPS_RATING=${fmpsRating} "${filePath}"`)
@@ -64,30 +76,41 @@ async function writeFLACMetadata(filePath: string, rating: number, loved: boolea
     if (loved) {
         await execAsync(`metaflac --set-tag=LOVED=1 "${filePath}"`)
     }
+
+    if (playCount !== undefined) {
+        await execAsync(`metaflac --set-tag=PLAY_COUNT=${playCount} "${filePath}"`)
+    }
 }
 
-async function writeMP3Metadata(filePath: string, rating: number, loved: boolean): Promise<void> {
+async function writeMP3Metadata(filePath: string, rating: number, loved: boolean, playCount?: number): Promise<void> {
     // Convert 0-5 rating to 0-255 scale
     const popmRating = Math.round((rating / 5) * 255)
 
     // Read existing tags
     const tags = NodeID3.read(filePath)
 
-    // Update POPM frame and userDefinedText for LOVED (Mirroring MusicWest)
+    // Update POPM frame and userDefinedText for LOVED and PLAY_COUNT
     const updatedTags: NodeID3.Tags = {
         ...tags,
         popularimeter: {
-            email: 'MusicWest', // Align email too
+            email: 'MusicWest',
             rating: popmRating,
             counter: 0
         },
         userDefinedText: [
-            ...(tags.userDefinedText?.filter(t => t.description !== 'LOVED') || []),
+            ...(tags.userDefinedText?.filter(t => t.description !== 'LOVED' && t.description !== 'PLAY_COUNT') || []),
             {
                 description: 'LOVED',
                 value: loved ? '1' : '0'
             }
         ]
+    }
+
+    if (playCount !== undefined) {
+        updatedTags.userDefinedText!.push({
+            description: 'PLAY_COUNT',
+            value: playCount.toString()
+        })
     }
 
     // Write tags back to file

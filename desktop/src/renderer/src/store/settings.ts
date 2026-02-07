@@ -15,7 +15,9 @@ interface SettingsStore {
     lastfmApiKey: string
     lastfmApiSecret: string
     lastfmSessionKey: string
+    lastfmUsername: string
     listenbrainzToken: string
+    listenbrainzUsername: string
     lastfmEnabled: boolean
     listenbrainzEnabled: boolean
 
@@ -30,7 +32,9 @@ interface SettingsStore {
     setLastfmApiKey: (key: string) => void
     setLastfmApiSecret: (secret: string) => void
     setLastfmSessionKey: (key: string) => void
+    setLastfmUsername: (username: string) => void
     setListenbrainzToken: (token: string) => void
+    setListenbrainzUsername: (username: string) => void
     setLastfmEnabled: (enabled: boolean) => void
     setListenbrainzEnabled: (enabled: boolean) => void
 
@@ -49,7 +53,9 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     lastfmApiKey: '',
     lastfmApiSecret: '',
     lastfmSessionKey: '',
+    lastfmUsername: '',
     listenbrainzToken: '',
+    listenbrainzUsername: '',
     lastfmEnabled: false,
     listenbrainzEnabled: false,
 
@@ -106,12 +112,20 @@ export const useSettings = create<SettingsStore>((set, get) => ({
         set({ lastfmSessionKey: key })
         window.api.settings.save('lastfmSessionKey', key)
     },
+    setLastfmUsername: (username: string) => {
+        set({ lastfmUsername: username })
+        window.api.settings.save('lastfmUsername', username)
+    },
     setListenbrainzToken: (token: string) => {
         set({ listenbrainzToken: token })
         window.api.settings.save('listenbrainzToken', token)
         window.api.scrobble.updateListenBrainzToken(token).catch(err => {
             console.error('Failed to update ListenBrainz token in service:', err)
         })
+    },
+    setListenbrainzUsername: (username: string) => {
+        set({ listenbrainzUsername: username })
+        window.api.settings.save('listenbrainzUsername', username)
     },
     setLastfmEnabled: (enabled) => {
         set({ lastfmEnabled: enabled })

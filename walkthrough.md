@@ -83,3 +83,242 @@ The playlist and queue system has been fully refined based on your feedback. It 
 2.  **Queue View**: Open the queue and verify that ratings and hearts are visible for every track.
 3.  **Resizing**: Drag the edge of the queue panel and verify that the screen doesn't "turn blue" from text selection.
 4.  **Save/Load**: Use the new buttons at the top of the queue panel to manage your session.
+
+---
+
+## Advanced Audio Features (Phase 4 - 2026-02-06)
+
+### ⌨️ Universal Keyboard Shortcuts
+Global shortcuts work throughout the application except when typing in input fields:
+
+- **Space**: Play/Pause toggle
+- **Backspace**: Navigate back in browser history or close modals (modals have priority)
+- **Esc**: Close/Cancel with priority handling:
+  1. Closes open modals first
+  2. Closes search modal
+  3. Closes queue panel
+- **Delete**: Clear queue (shows confirmation modal to prevent accidental clearing)
+
+### 🎚️ ReplayGain Normalization
+Volume normalization ensures consistent loudness across your entire library:
+
+**How It Works**:
+- Reads ReplayGain tags from FLAC files during scanning
+- Supports both Track Gain and Album Gain modes
+- Automatically adjusts volume using the formula: `volume = baseVolume × 10^(gain/20)`
+- Respects peak values to prevent clipping
+
+**Configuration** (Settings View):
+- **Track Gain Mode**: Normalizes each track individually (default)
+- **Album Gain Mode**: Normalizes entire albums together (preserves album dynamics)
+- **Off**: Disables ReplayGain
+
+**Visual Indicator**:
+- Green "RG" badge appears in PlayerBar when ReplayGain is active
+
+### 🔄 Gapless Playback
+Seamless transitions between tracks with zero silence gaps:
+
+**Implementation**:
+- Uses dual HTML5 Audio elements for crossfading
+- Preloads next track while current track is playing
+- Automatically swaps audio elements at track boundaries
+- Works in all playback modes (normal, shuffle, repeat)
+
+### 📊 Scrobbling System (ListenBrainz & Last.fm)
+
+**Supported Services**:
+- **ListenBrainz**: Token-based authentication (simple setup)
+- **Last.fm**: OAuth flow with API key and shared secret
+
+**Features**:
+- Real-time "Now Playing" updates (sent immediately when track starts)
+- Automatic scrobbling after 50% of track duration
+- Offline-capable queue (scrobbles are queued when services unreachable)
+- Per-service submission tracking (prevents duplicate submissions)
+- Background worker runs every 5 seconds to process queue
+
+**Configuration** (Settings View):
+1. **ListenBrainz**:
+   - Get token from: https://listenbrainz.org/profile/
+   - Paste token into "ListenBrainz Token" field
+   - Enable "ListenBrainz Enabled" checkbox
+
+2. **Last.fm** (3-step process):
+   - Create API account at: https://www.last.fm/api/account/create
+   - Enter API Key and Shared Secret in Settings
+   - Click "Authorize Last.fm" and approve in browser
+   - Session key will be saved automatically
+
+**Visual Indicators**:
+- "LFM" badge in PlayerBar when Last.fm is active
+- "LB" badge in PlayerBar when ListenBrainz is active
+
+### 📈 Play Count Tracking
+Track play statistics are displayed across all views:
+
+**Where It Appears**:
+- **Tracks View**: Small number to left of rating stars
+- **Album Detail View**: Dedicated "Plays" column in track list
+- **Album List View**: Shows play count in ratings section
+
+**How It Works**:
+- Play counts are recorded in the `play_history` database table
+- Only increments when track reaches 50% completion
+- Displays total plays for each track
+- Only shows when playCount > 0 (clean UI for unplayed tracks)
+
+### 📂 Library Management
+
+**Auto-Watch Folders**:
+- All folders with "Watch Enabled" automatically start monitoring on app launch
+- Real-time file system monitoring using `chokidar`
+- Automatically adds new tracks when files are added to watched folders
+
+**Preserve User Data**:
+- Scanner preserves existing ratings and loved status during re-scans
+- Only updates file metadata (title, artist, duration, tags)
+- Play counts and scrobble history are never deleted
+
+**Database Migrations**:
+- Automatic schema updates on app startup
+- No data loss when upgrading between versions
+- All migrations are idempotent (safe to run multiple times)
+
+---
+
+## Play Count Sync System Debugging (Phase 6 - 2026-02-06)
+
+Extensive debugging session to fix playcount synchronization from Last.fm and ListenBrainz.
+
+### 🐛 Bugs Fixed
+
+**1. Rating Normalization Bug**
+- **Issue**: All ratings showed as 1 star after sync, then all ratings disappeared
+- **Root Cause**: FMPS_RATING tag (0.0-1.0 float) was being read as tiny decimals
+  - Example: 4-star rating (0.8) read as 0.04 → normalized to 0 stars
+  - Even 1-star (0.2) became 0.01 and rounded to 0
+- **Fix**: Read RATING tag directly (0-5 integer scale) instead of FMPS_RATING
+- **Impact**: All ratings now display correctly after rescanning
+
+**2. Play Count Not Saved**
+- **Issue**: Scanner read PLAY_COUNT from files but values never appeared in database
+- **Root Cause**: upsertTrack() missing play_count in INSERT/UPDATE SQL statements
+- **Fix**: Added play_count to both SQL statements and parameter bindings
+- **File**: `desktop/src/main/database/tracks.ts`
+
+**3. Play Count Not Read from Files**
+- **Issue**: PLAY_COUNT tag in FLAC files ignored during scanning
+- **Root Cause**: Scanner not extracting PLAY_COUNT from vorbis comments
+- **Fix**: Added playCount extraction alongside rating/loved tags
+- **File**: `desktop/src/main/scanner.ts`
+
+**4. Play Count Not Displayed**
+- **Issue**: UI always showed 0 plays even when database had values
+- **Root Cause**: dbTrackToTrack() calling getTrackPlayCount(play_history) instead of reading tracks.play_count column
+- **Fix**: Changed to read dbTrack.play_count || 0 directly
+- **File**: `desktop/src/main/database/tracks.ts` line 248
+
+**5. Ratings Disappearing After Rescan**
+- **Issue**: Database reset + rescan caused all ratings to vanish
+- **Root Cause**: Scanner overwriting ratings with 0 for existing tracks
+- **Fix**: Preserve existingTrack.rating and existingTrack.loved during updates
+- **File**: `desktop/src/main/scanner.ts`
+
+### ⚠️ API Limitations Discovered
+
+**Last.fm Playcount Issue**:
+- **Problem**: track.getInfo API returns global playcount (millions) instead of personal stats
+  - Tested with username parameter → still returns global stats
+  - Example: User has ~100 plays, API shows 2,000,000+ (global popularity)
+- **Decision**: Disabled Last.fm playcount sync with warning message
+- **Status**: Documented limitation, focus on ListenBrainz instead
+
+**ListenBrainz Stats Limitation**:
+- **Problem**: `/stats/user/{username}/recordings` endpoint limited to top 100 tracks only
+  - User has 113,642 total listens across thousands of tracks
+  - Tracks not in top 100 most-played return 0 (System of a Down example)
+- **Workaround**: Created PowerShell script to download ALL listens
+
+### 📥 ListenBrainz Full Download Workaround
+
+**Solution**: PowerShell script (`desktop/download_listenbrainz.ps1`)
+- **Method**: Use `/listens` endpoint with pagination instead of `/stats`
+- **Pagination**: max_ts parameter (timestamp of oldest listen on current page)
+- **Batch Size**: 1000 listens per page
+- **Output**: listenbrainz_listens.json with complete listen history
+- **Progress**: Real-time page number and total count display
+- **Features**:
+  - UTF-8 encoding for international characters
+  - 100ms delay between requests (API courtesy)
+  - Error handling with graceful termination
+  - Colored output for status monitoring
+
+**Usage**:
+```powershell
+cd desktop
+.\download_listenbrainz.ps1
+```
+
+### 🚀 Next Steps: JSON Import Feature
+
+**Planned Implementation**:
+1. **Download**: Run PowerShell script to get all ~113k listens
+2. **Import Function**: Create IPC handler to read JSON and count playcounts
+3. **Matching Logic**: 
+   - Primary: MusicBrainz recording_mbid
+   - Fallback: Fuzzy string matching (artist + title)
+4. **Database Update**: Bulk update tracks.play_count column
+5. **UI Integration**: Add "Import ListenBrainz JSON" button in Settings
+6. **Verification**: Display success message with updated track count
+
+**Files to Create/Modify**:
+- ✅ `desktop/download_listenbrainz.ps1` (created, syntax fixed)
+- ⏳ `desktop/src/main/ipc.ts` (add import handler)
+- ⏳ `desktop/src/preload/index.ts` (expose import API)
+- ⏳ `desktop/src/renderer/src/views/SettingsView.tsx` (add button)
+
+### 🔧 Tools & Setup
+
+**Installed**:
+- FLAC command-line tools via scoop (`scoop install flac`)
+- metaflac command verified working
+
+**API Credentials**:
+- ListenBrainz Token: `06bb83a7-d6fe-471c-9da9-5a6cdf5029de`
+- Username: `dennis800121`
+- Total Listens: 113,642 (verified via API)
+
+### 🐞 Debugging Enhancements
+
+**Added Extensive Logging**:
+- `syncTrackPlayCount()`: Track ID, artist, title, token presence, DB values, API responses
+- `getTrackPlayCount()`: API URLs, response data, extracted values
+- All playcount operations now traceable in console
+
+**Removed Dangerous Operations**:
+- Deleted `library:reset` IPC handler (was nuking entire database)
+- Prevented accidental data loss during debugging sessions
+
+### ✅ Current Status
+
+**Working Features**:
+- ✅ Ratings display correctly (0-5 stars)
+- ✅ Ratings preserved during rescans
+- ✅ Play counts read from file tags
+- ✅ Play counts saved to database
+- ✅ Play counts displayed in UI (Tracks/Albums/AlbumDetail views)
+- ✅ ListenBrainz scrobbling active
+- ✅ PowerShell download script ready (syntax fixed)
+
+**Pending Work**:
+- ⏳ Test PowerShell script to download JSON
+- ⏳ Verify JSON contains all ~113k listens
+- ⏳ Implement JSON import feature
+- ⏳ Add UI controls for import
+- ⏳ Test end-to-end playcount sync workflow
+
+**Known Limitations**:
+- ⚠️ Last.fm playcount sync disabled (API limitation)
+- ⚠️ ListenBrainz stats API limited to top 100 (workaround via JSON download)
+

@@ -206,6 +206,49 @@ export class LastFmService {
     }
 
     /**
+     * Get user's play count for a specific track
+     * REQUIRES username - counts personal scrobbles from Last.fm
+     */
+    async getUserTrackPlayCount(artist: string, track: string, username: string): Promise<number> {
+        if (!username) {
+            console.warn('⚠️ Username is required to get personal play count from Last.fm')
+            return 0
+        }
+        try {
+            // Fetch user's recent tracks and count matches
+            const response = await axios.get(BASE_URL, {
+                params: {
+                    method: 'user.getRecentTracks',
+                    user: username,
+                    api_key: getApiKey(),
+                    format: 'json',
+                    limit: 500  // Get last 500 scrobbles
+                }
+            })
+            
+            const tracks = response.data?.recenttracks?.track || []
+            let count = 0
+            
+            // Count matching tracks
+            if (Array.isArray(tracks)) {
+                count = tracks.filter(t => 
+                    t.artist?.name?.toLowerCase() === artist.toLowerCase() &&
+                    t.name?.toLowerCase() === track.toLowerCase()
+                ).length
+            } else if (tracks.artist?.name?.toLowerCase() === artist.toLowerCase() && 
+                       tracks.name?.toLowerCase() === track.toLowerCase()) {
+                count = 1
+            }
+            
+            console.log(`👤 Last.fm "${username}" - "${artist} - ${track}": ${count} plays (from last 500 scrobbles)`)
+            return count
+        } catch (error) {
+            console.error('Failed to get Last.fm user play count:', error)
+            return 0
+        }
+    }
+
+    /**
      * Get MD5 hash for Last.fm authentication
      */
     private md5(str: string): string {
