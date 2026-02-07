@@ -11,7 +11,9 @@ import ArtistDetailView from './views/ArtistDetailView'
 import ArtistsView from './views/ArtistsView'
 import TracksView from './views/TracksView'
 import PlaylistsView from './views/PlaylistsView'
+import UnsortedView from './views/UnsortedView'
 import SearchModal from './components/SearchModal'
+import TaggingModal from './components/TaggingModal'
 import QueuePanel from './components/QueuePanel'
 import { TrackPlayOptionModal } from './components/modals/TrackPlayOptionModal'
 import { useLibrary } from './store/library'
@@ -20,7 +22,7 @@ import { usePlayer } from './store/player'
 import { useSettings, TrackPlayBehavior } from './store/settings'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { scrobbleService } from './services/scrobbleService'
-import { Track } from './types'
+import { Track, Album } from './types'
 
 function App(): React.JSX.Element {
   const { initialize } = useLibrary()
@@ -37,6 +39,10 @@ function App(): React.JSX.Element {
   const [queueWidth, setQueueWidth] = useState(400)
   const [isResizing, setIsResizing] = useState(false)
   const [queueSelectedIndex, setQueueSelectedIndex] = useState<number | null>(null)
+
+  const [taggingModalOpen, setTaggingModalOpen] = useState(false)
+  const [selectedItemForTagging, setSelectedItemForTagging] = useState<Track | Album | null>(null)
+  const [taggingItemType, setTaggingItemType] = useState<'track' | 'album'>('track')
 
   const startResizing = useCallback(() => {
     setIsResizing(true)
@@ -116,6 +122,7 @@ function App(): React.JSX.Element {
     },
     onEscapePress: () => {
       setPlayModalOpen(false)
+      setTaggingModalOpen(false)
       if (isQueueOpen) {
         setIsQueueOpen(false)
       }
@@ -148,6 +155,69 @@ function App(): React.JSX.Element {
     window.addEventListener('request-track-play', handleRequest as EventListener)
     return () => window.removeEventListener('request-track-play', handleRequest as EventListener)
   }, [playTrack, playNext, addToQueue])
+
+  // Listen for request-track-tagging
+  useEffect(() => {
+    const handleTaggingRequest = (e: CustomEvent) => {
+      const track = e.detail.track as Track
+      if (track) {
+        setSelectedItemForTagging(track)
+        setTaggingItemType('track')
+        setTaggingModalOpen(true)
+      }
+    }
+    window.addEventListener('request-track-tagging', handleTaggingRequest as EventListener)
+    return () => window.removeEventListener('request-track-tagging', handleTaggingRequest as EventListener)
+  }, [])
+
+  // Listen for request-album-tagging
+  useEffect(() => {
+    const handleAlbumTaggingRequest = (e: CustomEvent) => {
+      const album = e.detail.album as Album
+      if (album) {
+        setSelectedItemForTagging(album)
+        setTaggingItemType('album')
+        setTaggingModalOpen(true)
+      }
+    }
+    window.addEventListener('request-album-tagging', handleAlbumTaggingRequest as EventListener)
+    return () => window.removeEventListener('request-album-tagging', handleAlbumTaggingRequest as EventListener)
+  }, [])
+
+  const handleTaggingSave = async (id: string, metadata: any, type: 'track' | 'album') => {
+    console.log(`💾 [UI] Saving MB Metadata for ${type}:`, id, metadata)
+
+    if (type === 'track') {
+      const track = selectedItemForTagging as Track
+      const mbData = {
+        trackId: metadata.id,
+        albumId: metadata.albumId,
+        artistId: metadata.artistId
+      }
+
+      const success = await window.api.tracks.updateMetadata(
+        id,
+        track.filePath,
+        track.rating,
+        track.loved,
+        mbData
+      )
+
+      if (success) {
+        console.log('✅ [UI] Track metadata saved successfully')
+        initialize()
+      }
+    } else {
+      // Album tagging
+      try {
+        const updatedCount = await window.api.library.tagAlbumMetadata(id, metadata.id)
+        console.log(`✅ [UI] Album tagged successfully. ${updatedCount} tracks updated.`)
+        initialize()
+      } catch (error) {
+        console.error('❌ Failed to tag album:', error)
+      }
+    }
+  }
 
   const handlePlayOptionSelect = useCallback((option: TrackPlayBehavior, remember: boolean) => {
     if (!selectedTrackForPlay) return
@@ -184,6 +254,8 @@ function App(): React.JSX.Element {
         return <TracksView />
       case 'playlists':
         return <PlaylistsView />
+      case 'unsorted':
+        return <UnsortedView />
       case 'album-detail':
         return (
           <AlbumDetailView
@@ -261,6 +333,14 @@ function App(): React.JSX.Element {
         onClose={() => setPlayModalOpen(false)}
         onSelect={handlePlayOptionSelect}
         trackTitle={selectedTrackForPlay?.title || ''}
+      />
+
+      <TaggingModal
+        isOpen={taggingModalOpen}
+        onClose={() => setTaggingModalOpen(false)}
+        item={selectedItemForTagging}
+        itemType={taggingItemType}
+        onSave={handleTaggingSave}
       />
 
       {/* Top Bar */}

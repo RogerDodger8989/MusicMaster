@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS tracks (
     release_date TEXT,
     musicbrainz_track_id TEXT,
     musicbrainz_album_id TEXT,
+    musicbrainz_artist_id TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (folder_id) REFERENCES music_folders(id) ON DELETE CASCADE
@@ -77,6 +78,13 @@ CREATE TABLE IF NOT EXISTS artists (
     track_count INTEGER DEFAULT 0,
     bio TEXT,
     image_path TEXT,
+    musicbrainz_artist_id TEXT,
+    country TEXT,
+    life_span_begin TEXT,
+    life_span_end TEXT,
+    type TEXT,
+    gender TEXT,
+    website TEXT,
     loved INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -197,6 +205,7 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE tracks ADD COLUMN release_date TEXT",
             "ALTER TABLE tracks ADD COLUMN musicbrainz_track_id TEXT",
             "ALTER TABLE tracks ADD COLUMN musicbrainz_album_id TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_artist_id TEXT",
             "ALTER TABLE tracks ADD COLUMN sample_rate INTEGER",
             "ALTER TABLE tracks ADD COLUMN bit_depth INTEGER",
             "ALTER TABLE tracks ADD COLUMN replaygain_track_gain REAL",
@@ -206,6 +215,13 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE albums_cache ADD COLUMN loved INTEGER DEFAULT 0",
             "ALTER TABLE albums_cache ADD COLUMN bio TEXT",
             "ALTER TABLE artists ADD COLUMN loved INTEGER DEFAULT 0",
+            "ALTER TABLE artists ADD COLUMN musicbrainz_artist_id TEXT",
+            "ALTER TABLE artists ADD COLUMN country TEXT",
+            "ALTER TABLE artists ADD COLUMN life_span_begin TEXT",
+            "ALTER TABLE artists ADD COLUMN life_span_end TEXT",
+            "ALTER TABLE artists ADD COLUMN type TEXT",
+            "ALTER TABLE artists ADD COLUMN gender TEXT",
+            "ALTER TABLE artists ADD COLUMN website TEXT",
             "CREATE TABLE IF NOT EXISTS playback_state (id TEXT PRIMARY KEY DEFAULT 'default', current_track_id TEXT, queue_ids TEXT, current_index INTEGER DEFAULT -1, volume REAL DEFAULT 1.0, is_shuffle INTEGER DEFAULT 0, repeat_mode TEXT DEFAULT 'normal', current_time REAL DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
             "CREATE TABLE IF NOT EXISTS scrobble_queue (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, artist TEXT NOT NULL, title TEXT NOT NULL, album TEXT, played_at INTEGER NOT NULL, lastfm_submitted INTEGER DEFAULT 0, listenbrainz_submitted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
             "CREATE TABLE IF NOT EXISTS play_history (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, played_at DATETIME DEFAULT CURRENT_TIMESTAMP, play_count INTEGER DEFAULT 0)",
@@ -288,6 +304,7 @@ export interface DbTrack {
     release_date: string | null
     musicbrainz_track_id: string | null
     musicbrainz_album_id: string | null
+    musicbrainz_artist_id: string | null
     created_at: string
     updated_at: string
 }
@@ -321,6 +338,13 @@ export interface DbArtist {
     track_count: number
     bio: string | null
     image_path: string | null
+    musicbrainz_artist_id: string | null
+    country: string | null
+    life_span_begin: string | null
+    life_span_end: string | null
+    type: string | null
+    gender: string | null
+    website: string | null
     loved: number
     created_at: string
 }

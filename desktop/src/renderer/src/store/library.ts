@@ -126,26 +126,23 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
             const currentTrack = get().tracks.find(t => t.id === trackId)
             if (!currentTrack) return
 
-            // 1. Toggle Protection: If rating is same as current, toggle to 0
+            // Toggle Protection: If rating is same as current, toggle to 0
             let newRating = rating
             if (currentTrack.rating === rating) {
                 newRating = 0
             }
 
-            // 2. Universal Rule: If rating > 0 -> Loved = true. If rating == 0 -> Loved = false
-            const newLoved = newRating > 0 ? true : false
-
             // Optimistic update
             const tracks = get().tracks.map(t =>
-                t.id === trackId ? { ...t, rating: newRating, loved: newLoved } : t
+                t.id === trackId ? { ...t, rating: newRating } : t
             )
             set({ tracks })
 
             // Update Player Store
-            usePlayer.getState().updateTrack(trackId, { rating: newRating, loved: newLoved })
+            usePlayer.getState().updateTrack(trackId, { rating: newRating })
 
             // Call IPC
-            await window.electron.ipcRenderer.invoke('tracks:updateMetadata', trackId, currentTrack.filePath, newRating, newLoved)
+            await window.electron.ipcRenderer.invoke('tracks:updateMetadata', trackId, currentTrack.filePath, newRating, currentTrack.loved)
         } catch (error) {
             console.error('Failed to rate track:', error)
         }
@@ -156,30 +153,20 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
             const currentAlbum = get().albums.find(a => a.id === albumId)
             if (!currentAlbum) return
 
-            // 1. Toggle Protection
+            // Toggle Protection
             let newRating = rating
             if (currentAlbum.rating === rating) {
                 newRating = 0
             }
 
-            // 2. Love Sync
-            const newLoved = newRating > 0 ? true : false
-            const lovedChanged = newLoved !== currentAlbum.loved
-
             // Optimistic update
             const albums = get().albums.map(a =>
-                a.id === albumId ? { ...a, rating: newRating, loved: newLoved } : a
+                a.id === albumId ? { ...a, rating: newRating } : a
             )
             set({ albums })
 
             // IPC Calls
             await window.api.albums.rate(albumId, newRating)
-
-            if (lovedChanged) {
-                if (window.api?.library?.toggleAlbumLoved) {
-                    await window.api.library.toggleAlbumLoved(albumId)
-                }
-            }
         } catch (error) {
             console.error('Failed to rate album:', error)
         }
@@ -191,24 +178,17 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
             if (!track) return
 
             const newLoved = !track.loved
-            let newRating = track.rating
-
-            // Universal Rule: If un-loving, we must also clear rating (0)
-            // Because "Rated track must have heart". So "No Heart" -> "No Rating".
-            if (!newLoved) {
-                newRating = 0
-            }
 
             // Optimistic update
             const tracks = get().tracks.map(t =>
-                t.id === trackId ? { ...t, loved: newLoved, rating: newRating } : t
+                t.id === trackId ? { ...t, loved: newLoved } : t
             )
             set({ tracks })
 
             // Update Player Store
-            usePlayer.getState().updateTrack(trackId, { loved: newLoved, rating: newRating })
+            usePlayer.getState().updateTrack(trackId, { loved: newLoved })
 
-            await window.electron.ipcRenderer.invoke('tracks:updateMetadata', trackId, track.filePath, newRating, newLoved)
+            await window.electron.ipcRenderer.invoke('tracks:updateMetadata', trackId, track.filePath, track.rating, newLoved)
         } catch (error) {
             console.error('Failed to toggle loved:', error)
         }
@@ -225,18 +205,10 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
             if (!album) return
 
             const newLoved = !album.loved
-            let newRating = album.rating
-
-            // Universal Rule: Unlove -> Unrate
-            let ratingChanged = false
-            if (!newLoved && newRating > 0) {
-                newRating = 0
-                ratingChanged = true
-            }
 
             // Optimistic update
             const albums = get().albums.map(a =>
-                a.id === albumId ? { ...a, loved: newLoved, rating: newRating } : a
+                a.id === albumId ? { ...a, loved: newLoved } : a
             )
             set({ albums })
 
@@ -244,10 +216,6 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
                 await window.api.library.toggleAlbumLoved(albumId)
             } else {
                 console.warn('window.api.library.toggleAlbumLoved is not available')
-            }
-
-            if (ratingChanged) {
-                await window.api.albums.rate(albumId, 0)
             }
         } catch (error) {
             console.error('Failed to toggle album loved:', error)

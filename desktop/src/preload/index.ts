@@ -56,8 +56,8 @@ const api = {
       ipcRenderer.invoke('tracks:getCoverBufferByAlbum', albumId),
     rate: (trackId: string, filePath: string, rating: number): Promise<void> =>
       ipcRenderer.invoke('tracks:rate', trackId, filePath, rating),
-    updateMetadata: (trackId: string, filePath: string, rating: number, loved: boolean): Promise<boolean> =>
-      ipcRenderer.invoke('tracks:updateMetadata', trackId, filePath, rating, loved)
+    updateMetadata: (trackId: string, filePath: string, rating: number, loved: boolean, mbData?: any): Promise<boolean> =>
+      ipcRenderer.invoke('tracks:updateMetadata', trackId, filePath, rating, loved, mbData)
   },
 
   // Albums
@@ -77,7 +77,9 @@ const api = {
     getArtists: (): Promise<any[]> => ipcRenderer.invoke('library:getArtists'),
     toggleAlbumLoved: (id: string): Promise<void> => ipcRenderer.invoke('library:toggleAlbumLoved', id),
     toggleArtistLoved: (id: string, loved: boolean): Promise<void> => ipcRenderer.invoke('library:toggleArtistLoved', id, loved),
-    getSimilarArtists: (artist: string): Promise<{ name: string; image: string; match: string }[]> => ipcRenderer.invoke('library:getSimilarArtists', artist)
+    getSimilarArtists: (artist: string): Promise<{ name: string; image: string; match: string }[]> => ipcRenderer.invoke('library:getSimilarArtists', artist),
+    tagAlbumMetadata: (albumId: string, mbAlbumId: string): Promise<number> =>
+      ipcRenderer.invoke('library:tagAlbumMetadata', albumId, mbAlbumId)
   },
 
   // Utils
@@ -139,6 +141,22 @@ const api = {
       ipcRenderer.on('scrobble:listenBrainzSyncProgress', listener)
       return () => ipcRenderer.removeListener('scrobble:listenBrainzSyncProgress', listener)
     }
+  },
+
+  // Metadata & MusicBrainz
+  metadata: {
+    search: (artist: string, title: string, album?: string): Promise<any[]> =>
+      ipcRenderer.invoke('metadata:searchMusicBrainz', artist, title, album),
+    searchAlbums: (artist: string, album: string): Promise<any[]> =>
+      ipcRenderer.invoke('metadata:searchAlbumsMusicBrainz', artist, album),
+    getArtistDetails: (artistId: string): Promise<any> =>
+      ipcRenderer.invoke('metadata:getArtistDetails', artistId),
+    getAlbumDetails: (albumId: string): Promise<any> =>
+      ipcRenderer.invoke('metadata:getAlbumDetails', albumId),
+    exportMissingCSV: (tracks: any[]): Promise<string | null> =>
+      ipcRenderer.invoke('metadata:exportMissingCSV', tracks),
+    updateArtistFacts: (id: string, facts: any): Promise<boolean> =>
+      ipcRenderer.invoke('metadata:updateArtistFacts', id, facts)
   }
 }
 

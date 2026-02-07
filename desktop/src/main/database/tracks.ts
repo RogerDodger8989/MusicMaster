@@ -212,6 +212,22 @@ export function updateTrackLoved(id: string, loved: boolean): void {
 }
 
 /**
+ * Update MusicBrainz IDs for a track
+ */
+export function updateTrackMusicBrainz(id: string, data: { trackId?: string, albumId?: string, artistId?: string }): void {
+    const db = getDatabase()
+    const stmt = db.prepare(`
+        UPDATE tracks 
+        SET musicbrainz_track_id = ?, 
+            musicbrainz_album_id = ?, 
+            musicbrainz_artist_id = ?,
+            updated_at = CURRENT_TIMESTAMP 
+        WHERE id = ?
+    `)
+    stmt.run(data.trackId || null, data.albumId || null, data.artistId || null, id)
+}
+
+/**
  * Calculate file hash (SHA256)
  */
 export function calculateFileHash(filePath: string): string {
@@ -249,6 +265,7 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
         releaseDate: dbTrack.release_date || undefined,
         musicbrainzTrackId: dbTrack.musicbrainz_track_id || undefined,
         musicbrainzAlbumId: dbTrack.musicbrainz_album_id || undefined,
+        musicbrainzArtistId: dbTrack.musicbrainz_artist_id || undefined,
         replayGainTrack: (dbTrack as any).replaygain_track_gain || undefined,
         replayGainAlbum: (dbTrack as any).replaygain_album_gain || undefined,
         replayGainTrackPeak: (dbTrack as any).replaygain_track_peak || undefined,

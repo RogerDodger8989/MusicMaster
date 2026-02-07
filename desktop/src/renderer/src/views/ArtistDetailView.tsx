@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useLibrary } from '../store/library'
 import { usePlayer } from '../store/player'
-import { ArrowLeft, Users, Heart, Play, Shuffle, Hash, ChevronUp, ChevronDown } from 'lucide-react'
+import { ArrowLeft, Users, Heart, Play, Shuffle, Hash, ChevronUp, ChevronDown, Globe, MapPin, Calendar, UserCircle2, RefreshCw } from 'lucide-react'
 import { AlbumCard } from '../components/AlbumCard'
 import { RatingStars } from '../components/RatingStars'
 import { formatDuration } from '../utils/format'
@@ -31,10 +31,68 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
     const [isBioExpanded, setIsBioExpanded] = useState(false)
 
+    // Find artist info
+    const artist = useMemo(() => artists.find(a => a.name === artistName), [artists, artistName])
+
+    const [isSyncing, setIsSyncing] = useState(false)
+
     // State for queue confirmation
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
     const [pendingTracks, setPendingTracks] = useState<any[]>([])
     const [isPendingShuffle, setIsPendingShuffle] = useState(false)
+
+    // Sync artist facts from MusicBrainz
+    const syncArtistFacts = useCallback(async () => {
+        if (!artistName || isSyncing) return
+
+        setIsSyncing(true)
+        try {
+            // 1. Search for artist on MusicBrainz if we don't have an ID
+            let mbArtistId = artist?.musicbrainzArtistId
+
+            if (!mbArtistId) {
+                console.log(`🔍 [UI] Searching MusicBrainz for artist: ${artistName}`)
+                const results = await window.api.metadata.search(artistName, '') // Search for artist name
+                if (results && results.length > 0) {
+                    // Try to find an exact name match
+                    const match = results.find(r => r.artist.toLowerCase() === artistName.toLowerCase()) || results[0]
+                    mbArtistId = match.artistId
+                }
+            }
+
+            if (mbArtistId) {
+                console.log(`🔍 [UI] Fetching detailed facts for MBID: ${mbArtistId}`)
+                const details = await window.api.metadata.getArtistDetails(mbArtistId)
+                if (details) {
+                    const facts = {
+                        musicbrainzArtistId: details.id,
+                        country: details.country,
+                        lifeSpanBegin: details.lifeSpan?.begin,
+                        lifeSpanEnd: details.lifeSpan?.end,
+                        type: details.type,
+                        gender: details.gender,
+                        website: details.website
+                    }
+
+                    await window.api.metadata.updateArtistFacts(artist!.id, facts)
+                    console.log('✅ [UI] Artist facts synced successfully')
+                    // The library store should ideally be refreshed here
+                    // For now, we rely on the next visit or manual refresh
+                }
+            }
+        } catch (error) {
+            console.error('❌ [UI] Failed to sync artist facts:', error)
+        } finally {
+            setIsSyncing(false)
+        }
+    }, [artistName, artist, isSyncing])
+
+    // Auto-sync if missing facts (optional, maybe better as manual button)
+    // useEffect(() => {
+    //     if (artist && !artist.country && !artist.musicbrainzArtistId) {
+    //         syncArtistFacts()
+    //     }
+    // }, [artist])
 
     const handlePlayAll = useCallback(() => {
         // Collect all tracks for this artist
@@ -103,9 +161,6 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
         insertToQueue(tracksToAppend, queue.length)
         setIsConfirmModalOpen(false)
     }
-
-    // Find artist info
-    const artist = useMemo(() => artists.find(a => a.name === artistName), [artists, artistName])
 
     // Filter and sort albums by this artist
     const artistAlbums = useMemo(() => {
@@ -255,37 +310,68 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
                             </div>
 
                             {/* Stats & Genres Pills */}
-                            <div className="flex items-center gap-3 bg-black/40 p-1.5 pl-4 rounded-full border border-white/5 backdrop-blur-md">
-                                <div className="flex items-center gap-4 text-xs font-bold text-white/70 pr-4">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-white">{artistAlbums.length}</span>
-                                        <span className="opacity-40 uppercase tracking-widest text-[9px]">Albums</span>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="flex items-center gap-3 bg-black/40 p-1.5 pl-4 rounded-full border border-white/5 backdrop-blur-md">
+                                    <div className="flex items-center gap-4 text-xs font-bold text-white/70 pr-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-white">{artistAlbums.length}</span>
+                                            <span className="opacity-40 uppercase tracking-widest text-[9px]">Albums</span>
+                                        </div>
+                                        <div className="w-[1px] h-3 bg-white/10" />
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-white">{totalTracks}</span>
+                                            <span className="opacity-40 uppercase tracking-widest text-[9px]">Tracks</span>
+                                        </div>
+                                        {artist?.listeners && (
+                                            <>
+                                                <div className="w-[1px] h-3 bg-white/10" />
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-white">{Number(artist.listeners).toLocaleString()}</span>
+                                                    <span className="opacity-40 uppercase tracking-widest text-[9px]">Listeners</span>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
-                                    <div className="w-[1px] h-3 bg-white/10" />
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-white">{totalTracks}</span>
-                                        <span className="opacity-40 uppercase tracking-widest text-[9px]">Tracks</span>
-                                    </div>
-                                    {artist?.listeners && (
-                                        <>
-                                            <div className="w-[1px] h-3 bg-white/10" />
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-white">{Number(artist.listeners).toLocaleString()}</span>
-                                                <span className="opacity-40 uppercase tracking-widest text-[9px]">Listeners</span>
-                                            </div>
-                                        </>
-                                    )}
+
+                                    {artistGenres.map((genre, i) => (
+                                        <span
+                                            key={i}
+                                            className="px-3 py-1.5 rounded-full bg-white/5 text-white/50 text-[9px] font-black uppercase tracking-widest border border-white/5 hover:text-primary transition-colors cursor-default"
+                                        >
+                                            <Hash size={8} className="inline mr-1 opacity-50" />
+                                            {genre}
+                                        </span>
+                                    ))}
                                 </div>
 
-                                {artistGenres.map((genre, i) => (
-                                    <span
-                                        key={i}
-                                        className="px-3 py-1.5 rounded-full bg-white/5 text-white/50 text-[9px] font-black uppercase tracking-widest border border-white/5 hover:text-primary transition-colors cursor-default"
+                                {/* Quick Facts Section */}
+                                <div className="flex items-center gap-2">
+                                    {artist?.country && (
+                                        <div className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-white/60">
+                                            <MapPin size={10} className="text-primary" />
+                                            {artist.country}
+                                        </div>
+                                    )}
+                                    {artist?.lifeSpanBegin && (
+                                        <div className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-white/60">
+                                            <Calendar size={10} className="text-primary" />
+                                            {artist.lifeSpanBegin.split('-')[0]}
+                                            {artist.lifeSpanEnd ? ` – ${artist.lifeSpanEnd.split('-')[0]}` : artist.lifeSpanBegin ? ' – Present' : ''}
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={syncArtistFacts}
+                                        className={cn(
+                                            "flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-all",
+                                            isSyncing && "animate-pulse brightness-125"
+                                        )}
+                                        title="Sync Artist Facts from MusicBrainz"
+                                        disabled={isSyncing}
                                     >
-                                        <Hash size={8} className="inline mr-1 opacity-50" />
-                                        {genre}
-                                    </span>
-                                ))}
+                                        <RefreshCw size={10} className={cn(isSyncing && "animate-spin")} />
+                                        {isSyncing ? 'Syncing...' : 'Sync Facts'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -401,12 +487,61 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
                             </section>
                         )}
 
-                        {/* Biography */}
-                        <section className="space-y-4">
+                        {/* Biography & Facts */}
+                        <section className="space-y-6">
                             <div className="flex items-center gap-4 opacity-40">
                                 <div className="w-12 h-[1px] bg-white" />
-                                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Biography</h3>
+                                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">About {artistName}</h3>
                             </div>
+
+                            {/* Facts Panel */}
+                            {(artist?.country || artist?.type || artist?.gender || artist?.website) && (
+                                <div className="grid grid-cols-2 gap-4 bg-white/5 rounded-2xl p-6 border border-white/5 backdrop-blur-sm">
+                                    {artist.country && (
+                                        <div className="space-y-1">
+                                            <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Origin</div>
+                                            <div className="text-sm font-bold text-white/90 flex items-center gap-2">
+                                                <MapPin size={12} className="text-primary" /> {artist.country}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {(artist.lifeSpanBegin) && (
+                                        <div className="space-y-1">
+                                            <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Activity</div>
+                                            <div className="text-sm font-bold text-white/90 flex items-center gap-2">
+                                                <Calendar size={12} className="text-primary" />
+                                                {artist.lifeSpanBegin.split('-')[0]}
+                                                {artist.lifeSpanEnd ? ` – ${artist.lifeSpanEnd.split('-')[0]}` : ' – Present'}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {artist.type && (
+                                        <div className="space-y-1">
+                                            <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Type</div>
+                                            <div className="text-sm font-bold text-white/90 flex items-center gap-2">
+                                                <UserCircle2 size={12} className="text-primary" /> {artist.type}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {artist.website && (
+                                        <div className="space-y-1">
+                                            <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Website</div>
+                                            <a
+                                                href={artist.website}
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    window.api.util.openExternal(artist.website!)
+                                                }}
+                                                className="text-sm font-bold text-primary hover:underline flex items-center gap-2 group"
+                                            >
+                                                <Globe size={12} className="group-hover:scale-110 transition-transform" />
+                                                Official Site
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="relative group/bio">
                                 <div
                                     className={cn(

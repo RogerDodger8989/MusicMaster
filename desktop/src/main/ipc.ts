@@ -13,6 +13,7 @@ import {
     getTrackById,
     updateTrackRating,
     updateTrackLoved,
+    updateTrackMusicBrainz,
     getTracksByAlbum,
     dbTrackToTrack,
     addScrobbleToQueue,
@@ -32,9 +33,10 @@ import {
     updateAlbumLoved,
     updateAlbumBio
 } from './database/albums'
-import { getAllArtists, updateArtistLoved } from './database/artists'
+import { getAllArtists, updateArtistLoved, updateArtistFacts } from './database/artists'
 import { lastFmService } from './services/lastfm'
 import { listenBrainzService } from './services/listenbrainz'
+import { musicBrainzService } from './services/musicbrainz'
 import { writeMetadata } from './services/metadataWriter'
 import { searchLibrary } from './database/search'
 import path from 'path'
@@ -347,21 +349,26 @@ export function registerIpcHandlers(): void {
         })
 
         // Revised track rating handler that handles file writing correctly
-        ipcMain.handle('tracks:updateMetadata', async (_, trackId: string, filePath: string, rating: number, loved: boolean) => {
+        ipcMain.handle('tracks:updateMetadata', async (_, trackId: string, filePath: string, rating: number, loved: boolean, mbData?: { trackId?: string, albumId?: string, artistId?: string }) => {
             console.log(`📝 Updating metadata for ${path.basename(filePath)}: Rating=${rating}, Loved=${loved}`)
             try {
                 // 1. Update Database
                 updateTrackRating(trackId, rating)
                 updateTrackLoved(trackId, loved)
+                if (mbData) {
+                    console.log('   Syncing MusicBrainz IDs:', mbData)
+                    updateTrackMusicBrainz(trackId, mbData)
+                }
 
-                // 2. Write to file (Best effort)
-                await writeMetadata(filePath, rating, loved)
+                // 2. Fetch track for complete metadata (including playCount)
+                const track = getTrackById(trackId)
+
+                // 3. Write to file (Best effort)
+                await writeMetadata(filePath, rating, loved, track?.playCount, mbData)
                 console.log('✅ Metadata written to file')
                 return true
             } catch (error) {
                 console.error('❌ Failed to write metadata to file:', error)
-                // We still updated the DB, so maybe return success with warning?
-                // Or throw to let UI know file write failed.
                 throw error
             }
         })
@@ -967,45 +974,148 @@ export function registerIpcHandlers(): void {
             console.log('📊 Exporting play counts to CSV...')
             try {
                 const tracks = getAllTracks()
-
-                // CSV header
                 let csv = 'Artist,Title,Album,Play Count,Rating,Loved\n'
 
-                // Add tracks
                 for (const track of tracks) {
                     const playCount = getTrackPlayCount(track.id)
                     const artist = (track.artist || '').replace(/"/g, '""')
                     const title = (track.title || '').replace(/"/g, '""')
                     const album = (track.album || '').replace(/"/g, '""')
                     const loved = track.loved ? 'Yes' : 'No'
-
                     csv += `"${artist}","${title}","${album}",${playCount},${track.rating || 0},"${loved}"\n`
                 }
 
-                // Save to user's downloads or documents folder
                 const { dialog } = require('electron')
-                const { app } = require('electron')
-                const defaultPath = path.join(app.getPath('downloads'), `musicmaster-playcounts-${Date.now()}.csv`)
-
                 const result = await dialog.showSaveDialog({
                     title: 'Export Play Counts',
-                    defaultPath,
-                    filters: [
-                        { name: 'CSV Files', extensions: ['csv'] },
-                        { name: 'All Files', extensions: ['*'] }
-                    ]
+                    defaultPath: `musicmaster-playcounts-${Date.now()}.csv`,
+                    filters: [{ name: 'CSV Files', extensions: ['csv'] }]
                 })
 
                 if (!result.canceled && result.filePath) {
                     const fs = require('fs')
                     fs.writeFileSync(result.filePath, csv, 'utf8')
-                    console.log('✅ CSV exported to:', result.filePath)
+                    console.log('✅ Play counts CSV exported to:', result.filePath)
                     return result.filePath
                 }
 
                 return null
             } catch (error) {
                 console.error('❌ Failed to export CSV:', error)
+                throw error
+            }
+        })
+
+        // Export missing tracks to CSV
+        ipcMain.handle('metadata:exportMissingCSV', async (_, tracks: any[]) => {
+            console.log('📊 Exporting missing tracks to CSV...')
+            try {
+                const header = 'Title,Artist,Album,File Path\n'
+                const rows = tracks.map((t) =>
+                    `"${t.title}","${t.artist}","${t.album}","${t.filePath}"`
+                ).join('\n')
+                const csv = header + rows
+
+                const { dialog } = require('electron')
+                const result = await dialog.showSaveDialog({
+                    title: 'Export Missing Tracks List',
+                    defaultPath: 'missing_tracks.csv',
+                    filters: [{ name: 'CSV Files', extensions: ['csv'] }]
+                })
+
+                if (!result.canceled && result.filePath) {
+                    const fs = require('fs')
+                    fs.writeFileSync(result.filePath, csv, 'utf8')
+                    console.log('✅ Missing tracks CSV exported to:', result.filePath)
+                    return result.filePath
+                }
+
+                return null
+            } catch (error) {
+                console.error('❌ Failed to export missing tracks CSV:', error)
+                throw error
+            }
+        })
+
+        // MusicBrainz / Metadata
+        ipcMain.handle('metadata:searchMusicBrainz', async (_, artist: string, title: string, album?: string) => {
+            console.log(`🔍 [IPC] Search MB: "${artist}" - "${title}" (${album || 'no album'})`)
+            return musicBrainzService.searchTrack(artist, title, album)
+        })
+
+        ipcMain.handle('metadata:searchAlbumsMusicBrainz', async (_, artist: string, album: string) => {
+            console.log(`🔍 [IPC] Search MB Albums: "${artist}" - "${album}"`)
+            return musicBrainzService.searchAlbum(artist, album)
+        })
+
+        ipcMain.handle('metadata:getArtistDetails', async (_, artistId: string) => {
+            console.log(`🔍 [IPC] Fetch MB Artist: ${artistId}`)
+            return musicBrainzService.getArtistDetails(artistId)
+        })
+
+        ipcMain.handle('metadata:getAlbumDetails', async (_, albumId: string) => {
+            console.log(`🔍 [IPC] Fetch MB Album: ${albumId}`)
+            return musicBrainzService.getAlbumDetails(albumId)
+        })
+
+        ipcMain.handle('metadata:updateArtistFacts', async (_, id: string, facts: any) => {
+            console.log(`🔍 [IPC] Updating Artist Facts for ${id}`)
+            updateArtistFacts(id, facts)
+            return true
+        })
+
+        ipcMain.handle('library:tagAlbumMetadata', async (_, albumId: string, mbAlbumId: string) => {
+            console.log(`🏷️ [IPC] Tagging album ${albumId} with MBID ${mbAlbumId}`)
+            try {
+                // 1. Get MB details (recordings list)
+                const mbAlbum = await musicBrainzService.getAlbumDetails(mbAlbumId)
+                if (!mbAlbum) throw new Error('Failed to fetch MB album details')
+
+                // 2. Get local tracks
+                const album = getAlbumById(albumId)
+                if (!album) throw new Error('Album not found in DB')
+                const localTracks = getTracksByAlbum(album.name, album.artist)
+
+                console.log(`   Found ${localTracks.length} local tracks and ${mbAlbum.media?.[0]?.tracks?.length} MB tracks`)
+
+                // 3. Match and Update
+                let updated = 0
+                for (const mbMedia of mbAlbum.media || []) {
+                    for (const mbTrack of mbMedia.tracks || []) {
+                        // Match local track by track number and title (fuzzy)
+                        const mbTrackNum = mbTrack.number ? parseInt(mbTrack.number) : undefined
+                        const mbTitle = mbTrack.title.toLowerCase()
+
+                        const localMatch = localTracks.find(lt => {
+                            if (mbTrackNum !== undefined && lt.trackNum === mbTrackNum) return true
+                            if (lt.title.toLowerCase() === mbTitle) return true
+                            return false
+                        })
+
+                        if (localMatch) {
+                            const mbData = {
+                                trackId: mbTrack.recording.id,
+                                albumId: mbAlbumId,
+                                artistId: mbAlbum['artist-credit']?.[0]?.artist?.id || ''
+                            }
+
+                            // Update DB
+                            updateTrackMusicBrainz(localMatch.id, mbData)
+                            // Update tags (rating/loved preserved)
+                            await writeMetadata(localMatch.filePath, localMatch.rating, localMatch.loved, localMatch.playCount, mbData)
+                            updated++
+                        }
+                    }
+                }
+
+                // 4. Update Album ID in cache
+                const db = getDatabase()
+                db.prepare('UPDATE albums_cache SET musicbrainz_album_id = ? WHERE id = ?').run(mbAlbumId, albumId)
+
+                console.log(`✅ [IPC] Album tagged. ${updated} tracks updated.`)
+                return updated
+            } catch (error) {
+                console.error('❌ Failed to tag album:', error)
                 throw error
             }
         })

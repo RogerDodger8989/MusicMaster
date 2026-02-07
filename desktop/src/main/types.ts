@@ -22,6 +22,7 @@ export interface Track {
     releaseDate?: string
     musicbrainzTrackId?: string
     musicbrainzAlbumId?: string
+    musicbrainzArtistId?: string
     // ReplayGain metadata (in dB)
     replayGainTrack?: number
     replayGainAlbum?: number
@@ -59,6 +60,14 @@ export interface Artist {
     trackCount: number
     bio?: string
     imagePath?: string
+    musicbrainzArtistId?: string
+    country?: string
+    lifeSpanBegin?: string
+    lifeSpanEnd?: string
+    type?: string
+    gender?: string
+    website?: string
+    loved: boolean
 }
 
 export interface ScanProgress {

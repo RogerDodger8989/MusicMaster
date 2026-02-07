@@ -32,6 +32,7 @@
     "dotenv": "^17.2.3",
     "lucide-react": "^0.563.0",
     "music-metadata": "^9.0.3",
+    "musicbrainz-api": "^1.0.0",
     "node-id3": "^0.2.9",
     "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.11"

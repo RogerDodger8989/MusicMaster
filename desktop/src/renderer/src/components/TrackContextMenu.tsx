@@ -1,4 +1,4 @@
-import { ListPlus, Play, ListMusic, ChevronRight, User, Disc, FolderOpen } from 'lucide-react'
+import { ListPlus, Play, ListMusic, ChevronRight, User, Disc, FolderOpen, Fingerprint } from 'lucide-react'
 import { usePlaylists } from '../store/playlists'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
@@ -70,6 +70,13 @@ export default function TrackContextMenu({ track, x, y, onClose }: TrackContextM
 
     const handleLocateFile = () => {
         window.api.util.showItemInFolder(track.filePath)
+        onClose()
+    }
+
+    const handleIdentify = () => {
+        window.dispatchEvent(new CustomEvent('request-track-tagging', {
+            detail: { track }
+        }))
         onClose()
     }
 
@@ -161,6 +168,16 @@ export default function TrackContextMenu({ track, x, y, onClose }: TrackContextM
             >
                 <FolderOpen size={16} />
                 Locate file in explorer
+            </button>
+
+            <div className="h-px bg-zinc-800 my-1 mx-2" />
+
+            <button
+                onClick={handleIdentify}
+                className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors text-blue-400 hover:text-white"
+            >
+                <Fingerprint size={16} />
+                Identify with MusicBrainz
             </button>
         </div>
     )

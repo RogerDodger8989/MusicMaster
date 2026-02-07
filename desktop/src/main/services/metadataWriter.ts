@@ -7,6 +7,19 @@ import path from 'path'
 
 const execAsync = promisify(exec)
 
+export interface MusicBrainzWriteData {
+    trackId?: string
+    albumId?: string
+    artistId?: string
+    releaseDate?: string
+    label?: string
+    catalogNumber?: string
+    barcode?: string
+    country?: string
+    media?: string
+    genres?: string[]
+}
+
 /**
  * Write rating, loved status, and play count to audio file
  * 
@@ -22,15 +35,16 @@ export async function writeMetadata(
     filePath: string,
     rating: number,
     loved: boolean,
-    playCount?: number
+    playCount?: number,
+    musicBrainzData?: MusicBrainzWriteData
 ): Promise<void> {
     const ext = path.extname(filePath).toLowerCase()
 
     try {
         if (ext === '.flac') {
-            await writeFLACMetadata(filePath, rating, loved, playCount)
+            await writeFLACMetadata(filePath, rating, loved, playCount, musicBrainzData)
         } else if (ext === '.mp3') {
-            await writeMP3Metadata(filePath, rating, loved, playCount)
+            await writeMP3Metadata(filePath, rating, loved, playCount, musicBrainzData)
         } else {
             console.log(`⚠️ Unsupported file format: ${ext}, skipping file write`)
             return
@@ -45,11 +59,14 @@ export async function writeMetadata(
 
 /**
  * Write metadata to FLAC file using metaflac command-line tool
- * 
- * Uses FMPS_RATING tag (MusicBee/foobar2000 compatible)
- * Scale: 0.0 = 0 stars, 0.2 = 1 star, 0.4 = 2 stars, 0.6 = 3 stars, 0.8 = 4 stars, 1.0 = 5 stars
  */
-async function writeFLACMetadata(filePath: string, rating: number, loved: boolean, playCount?: number): Promise<void> {
+async function writeFLACMetadata(
+    filePath: string,
+    rating: number,
+    loved: boolean,
+    playCount?: number,
+    musicBrainzData?: MusicBrainzWriteData
+): Promise<void> {
     // Convert 0-5 rating to 0.0-1.0 scale
     const fmpsRating = (rating / 5).toFixed(2)
 
@@ -80,9 +97,43 @@ async function writeFLACMetadata(filePath: string, rating: number, loved: boolea
     if (playCount !== undefined) {
         await execAsync(`metaflac --set-tag=PLAY_COUNT=${playCount} "${filePath}"`)
     }
+
+    if (musicBrainzData) {
+        const mbTags = [
+            { key: 'MUSICBRAINZ_TRACKID', value: musicBrainzData.trackId },
+            { key: 'MUSICBRAINZ_ALBUMID', value: musicBrainzData.albumId },
+            { key: 'MUSICBRAINZ_ARTISTID', value: musicBrainzData.artistId },
+            { key: 'DATE', value: musicBrainzData.releaseDate },
+            { key: 'ORGANIZATION', value: musicBrainzData.label }, // Label often maps to ORGANIZATION
+            { key: 'CATALOGNUMBER', value: musicBrainzData.catalogNumber },
+            { key: 'BARCODE', value: musicBrainzData.barcode },
+            { key: 'RELEASECOUNTRY', value: musicBrainzData.country },
+            { key: 'MEDIA', value: musicBrainzData.media }
+        ]
+
+        if (musicBrainzData.genres && musicBrainzData.genres.length > 0) {
+            await execAsync(`metaflac --remove-tag=GENRE "${filePath}"`) // Clean existing genres if updating? Or append? usually replace for clean sync
+            for (const genre of musicBrainzData.genres) {
+                await execAsync(`metaflac --set-tag=GENRE="${genre}" "${filePath}"`)
+            }
+        }
+
+        for (const tag of mbTags) {
+            if (tag.value) {
+                await execAsync(`metaflac --remove-tag=${tag.key} "${filePath}"`)
+                await execAsync(`metaflac --set-tag=${tag.key}="${tag.value}" "${filePath}"`)
+            }
+        }
+    }
 }
 
-async function writeMP3Metadata(filePath: string, rating: number, loved: boolean, playCount?: number): Promise<void> {
+async function writeMP3Metadata(
+    filePath: string,
+    rating: number,
+    loved: boolean,
+    playCount?: number,
+    musicBrainzData?: MusicBrainzWriteData
+): Promise<void> {
     // Convert 0-5 rating to 0-255 scale
     const popmRating = Math.round((rating / 5) * 255)
 
@@ -111,6 +162,31 @@ async function writeMP3Metadata(filePath: string, rating: number, loved: boolean
             description: 'PLAY_COUNT',
             value: playCount.toString()
         })
+    }
+
+    if (musicBrainzData) {
+        // Map standard ID3 frames
+        if (musicBrainzData.releaseDate) updatedTags.date = musicBrainzData.releaseDate
+        if (musicBrainzData.label) updatedTags.publisher = musicBrainzData.label // TPUB
+        if (musicBrainzData.genres) updatedTags.genre = musicBrainzData.genres.join(';') // TCON
+
+        // Map TXXX (User Defined) frames
+        const mbMap = [
+            { desc: 'MusicBrainz Release Track Id', val: musicBrainzData.trackId },
+            { desc: 'MusicBrainz Album Id', val: musicBrainzData.albumId },
+            { desc: 'MusicBrainz Artist Id', val: musicBrainzData.artistId },
+            { desc: 'CATALOGNUMBER', val: musicBrainzData.catalogNumber },
+            { desc: 'BARCODE', val: musicBrainzData.barcode },
+            { desc: 'MusicBrainz Album Type', val: musicBrainzData.media }, // Not exact but close
+            { desc: 'RELEASECOUNTRY', val: musicBrainzData.country }
+        ]
+
+        for (const item of mbMap) {
+            if (item.val) {
+                updatedTags.userDefinedText = updatedTags.userDefinedText!.filter(t => t.description !== item.desc)
+                updatedTags.userDefinedText.push({ description: item.desc, value: item.val })
+            }
+        }
     }
 
     // Write tags back to file

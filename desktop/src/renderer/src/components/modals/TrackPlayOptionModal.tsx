@@ -10,8 +10,11 @@ interface TrackPlayOptionModalProps {
     trackTitle: string
 }
 
+import { useDraggable } from '../../hooks/useDraggable'
+
 export function TrackPlayOptionModal({ isOpen, onClose, onSelect, trackTitle }: TrackPlayOptionModalProps) {
     const [remember, setRemember] = useState(false)
+    const { position, handleMouseDown } = useDraggable()
 
     if (!isOpen) return null
 
@@ -43,10 +46,16 @@ export function TrackPlayOptionModal({ isOpen, onClose, onSelect, trackTitle }: 
     ] as const
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-[400px] bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 animate-in fade-in duration-200">
+            <div
+                style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+                className="w-[400px] bg-zinc-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+            >
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-zinc-900/50">
+                <div
+                    className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-zinc-900/50 cursor-move select-none"
+                    onMouseDown={handleMouseDown}
+                >
                     <h3 className="font-bold text-white">Play Track</h3>
                     <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
                         <X size={18} />
