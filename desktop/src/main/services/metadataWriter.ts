@@ -57,8 +57,8 @@ async function writeFLACMetadata(filePath: string, rating: number, loved: boolea
         // Check if metaflac is available
         await execAsync('where metaflac')
     } catch (error) {
-        console.warn('⚠️ metaflac not found - install FLAC tools to write FLAC metadata. Skipping FLAC file write.')
-        throw new Error('metaflac not installed')
+        console.warn('⚠️ metaflac not found - install FLAC tools (part of flac.exe/metaflac.exe) to write FLAC metadata. Skipping FLAC file write.')
+        throw new Error('metaflac not installed on system path')
     }
 
     // Remove existing tags

@@ -329,22 +329,19 @@ export function registerIpcHandlers(): void {
         ipcMain.handle('tracks:rate', async (_, trackId: string, filePath: string, rating: number) => {
             console.log(`⭐ Rating track ${trackId} (${path.basename(filePath)}): ${rating}`)
             try {
-                // 1. Write to file
-                // TODO: Get loved status from DB or pass it in. For now assuming false if not passed?
-                // Actually safer to read it first or default to false.
-                // Let's rely on frontend passing current state or we read it.
-                // Simplified: just write rating, keep loved as is (read from file?? No, that's slow)
-                // Better approach: Update DB first, then try write file.
+                // 1. Get current track to retrieve 'loved' status
+                const track = getTrackById(trackId)
+                if (!track) throw new Error('Track not found')
 
+                // 2. Update DB
                 updateTrackRating(trackId, rating)
 
-                // Write to file (fire and forget or await?)
-                // We should await to report error
-                // We need 'loved' status to write full metadata tag set without erasing 'loved'
-                // For now, let's just update rating. The writeMetadata function requires both.
-                // See implementation of writeMetadata in services/metadataWriter.ts
+                // 3. Write to file (best effort)
+                await writeMetadata(filePath, rating, track.loved, track.playCount)
+                console.log('✅ Rating and metadata written to file')
+                return true
             } catch (error) {
-                console.error('Failed to rate track:', error)
+                console.error('❌ Failed to rate track:', error)
                 throw error
             }
         })
@@ -644,6 +641,15 @@ export function registerIpcHandlers(): void {
                 const track = getTrackById(trackId)
 
                 if (track) {
+                    // Update file metadata with new play count (best effort)
+                    const newCount = getTrackPlayCount(trackId)
+                    console.log(`📊 Updating PLAY_COUNT in file: ${newCount}`)
+                    try {
+                        await writeMetadata(track.filePath, track.rating, track.loved, newCount)
+                    } catch (err) {
+                        console.error('❌ Failed to write playCount to file tags:', err)
+                    }
+
                     // Add to scrobble queue
                     const timestamp = Math.floor(Date.now() / 1000)
                     addScrobbleToQueue(trackId, track.artist, track.title, track.album, timestamp)
