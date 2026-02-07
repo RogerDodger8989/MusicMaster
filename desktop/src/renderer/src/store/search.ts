@@ -1,5 +1,12 @@
 import { create } from 'zustand'
-import { SearchResults } from '../../../main/types'
+import { Artist, Album, Track } from '../api/client'
+
+interface SearchResults {
+    artists: Artist[]
+    albums: Album[]
+    tracks: Track[]
+    playlists: any[]
+}
 
 interface SearchStore {
     query: string
@@ -48,7 +55,7 @@ export const useSearch = create<SearchStore>((set, get) => ({
 
         set({ isSearching: true })
         try {
-            const results = await window.api.library.search(query)
+            const results = await client.search(query)
             set({ results })
         } catch (error) {
             console.error('Search failed:', error)

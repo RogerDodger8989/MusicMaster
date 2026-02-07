@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: musicmaster-server
+    container_name: musicmaster-server
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./music:/music
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MUSIC_PATH=/music
+      - DATA_PATH=/app/data
+      # Add other env vars here
+    restart: unless-stopped

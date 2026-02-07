@@ -82,23 +82,25 @@ function App(): React.JSX.Element {
       console.log('🎵 Starting scrobble service with session key:', settings.lastfmSessionKey ? 'present' : 'missing')
       scrobbleService.start(settings.lastfmSessionKey || undefined)
 
-      if (settings.lastfmApiKey) {
-        console.log('🔑 Pushing Last.fm API key to main process')
-        window.api.scrobble.updateLastFmKey(settings.lastfmApiKey).catch(err => {
-          console.error('Failed to set Last.fm key:', err)
-        })
-      }
-      if (settings.lastfmApiSecret) {
-        console.log('🔑 Pushing Last.fm API secret to main process')
-        window.api.scrobble.updateLastFmSecret(settings.lastfmApiSecret).catch(err => {
-          console.error('Failed to set Last.fm secret:', err)
-        })
-      }
-      if (settings.listenbrainzToken) {
-        console.log('🔑 Pushing ListenBrainz token to main process')
-        window.api.scrobble.updateListenBrainzToken(settings.listenbrainzToken).catch(err => {
-          console.error('Failed to set ListenBrainz token:', err)
-        })
+      if (window.api) {
+        if (settings.lastfmApiKey) {
+          console.log('🔑 Pushing Last.fm API key to main process')
+          window.api.scrobble.updateLastFmKey(settings.lastfmApiKey).catch(err => {
+            console.error('Failed to set Last.fm key:', err)
+          })
+        }
+        if (settings.lastfmApiSecret) {
+          console.log('🔑 Pushing Last.fm API secret to main process')
+          window.api.scrobble.updateLastFmSecret(settings.lastfmApiSecret).catch(err => {
+            console.error('Failed to set Last.fm secret:', err)
+          })
+        }
+        if (settings.listenbrainzToken) {
+          console.log('🔑 Pushing ListenBrainz token to main process')
+          window.api.scrobble.updateListenBrainzToken(settings.listenbrainzToken).catch(err => {
+            console.error('Failed to set ListenBrainz token:', err)
+          })
+        }
       }
     }
 
@@ -195,24 +197,33 @@ function App(): React.JSX.Element {
         artistId: metadata.artistId
       }
 
-      const success = await window.api.tracks.updateMetadata(
-        id,
-        track.filePath,
-        track.rating,
-        track.loved,
-        mbData
-      )
-
-      if (success) {
-        console.log('✅ [UI] Track metadata saved successfully')
-        initialize()
+      if (window.api) {
+        const success = await window.api.tracks.updateMetadata(
+          id,
+          track.filePath,
+          track.rating,
+          track.loved,
+          mbData
+        )
+        if (success) {
+          console.log('✅ [UI] Track metadata saved successfully')
+          initialize()
+        }
+      } else {
+        console.warn('Metadata updates not supported in web mode yet')
       }
+
+
     } else {
       // Album tagging
       try {
-        const updatedCount = await window.api.library.tagAlbumMetadata(id, metadata.id)
-        console.log(`✅ [UI] Album tagged successfully. ${updatedCount} tracks updated.`)
-        initialize()
+        if (window.api) {
+          const updatedCount = await window.api.library.tagAlbumMetadata(id, metadata.id)
+          console.log(`✅ [UI] Album tagged successfully. ${updatedCount} tracks updated.`)
+          initialize()
+        } else {
+          console.warn('Album tagging not supported in web mode yet')
+        }
       } catch (error) {
         console.error('❌ Failed to tag album:', error)
       }

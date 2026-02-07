@@ -3,6 +3,7 @@ import type { Track } from '../types'
 import { calculateReplayGain } from '../utils/replayGain'
 import { useSettings } from './settings'
 import { useLibrary } from './library'
+import { client } from '../api/client'
 
 type PlayMode = 'normal' | 'repeat-all' | 'repeat-one'
 
@@ -72,14 +73,36 @@ if (typeof window !== 'undefined') {
 export const usePlayer = create<PlayerState>((set, get) => {
 
     const getTrackSrc = (track: Track) => {
-        if (!track.filePath) return ''
-        const normalized = track.filePath.replace(/\\/g, '/')
-        return `asset:///${encodeURI(normalized)}`
+        if (!track.id) return ''
+        return client.getAudioUrl(track.id)
     }
 
     const applyEffectiveVolume = (volume: number, replayGain: number) => {
         const finalVolume = Math.min(1, Math.max(0, volume * replayGain))
         activeAudio.volume = finalVolume
+    }
+
+    // --- Persistence Helper ---
+    let saveTimeout: any = null
+    const persistSession = () => {
+        if (saveTimeout) clearTimeout(saveTimeout)
+        saveTimeout = setTimeout(async () => {
+            const state = get()
+            try {
+                // Ensure no circular references or huge objects
+                await client.saveSession({
+                    currentTrackId: state.currentTrack?.id,
+                    queueIds: state.queue.map(t => t.id),
+                    currentIndex: state.currentIndex,
+                    volume: state.volume,
+                    isShuffle: state.isShuffle,
+                    repeatMode: state.repeatMode,
+                    currentTime: state.currentTime
+                })
+            } catch (error) {
+                console.error('Failed to save session:', error)
+            }
+        }, 1000) // Debounce 1s
     }
 
     const attachAudioListeners = () => {
@@ -95,8 +118,16 @@ export const usePlayer = create<PlayerState>((set, get) => {
                 if (!alreadyInHistory) {
                     // Record play for scrobbling
                     console.log('🎵 50% played, recording play:', currentTrack.title, 'by', currentTrack.artist)
-                    window.api.scrobble.recordPlay(currentTrack.id).then(() => {
-                        console.log('✅ Play recorded to scrobble queue for:', currentTrack.title)
+
+                    // Use client to scrobble
+                    client.scrobble(
+                        currentTrack.artist,
+                        currentTrack.title,
+                        currentTrack.album,
+                        currentTrack.duration,
+                        Math.floor(Date.now() / 1000)
+                    ).then(() => {
+                        console.log('✅ Play recorded to scrobble queue via API')
                         // Increment local count for immediate feedback
                         const currentCount = currentTrack.playCount || 0
                         const newCount = currentCount + 1
@@ -105,6 +136,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
                     }).catch(err => {
                         console.error('❌ Failed to record play:', err)
                     })
+
                     historyTrackIds.add(currentTrack.id)
                     set(state => ({
                         history: [currentTrack, ...state.history.filter(t => t.id !== currentTrack.id)].slice(0, 50)
@@ -186,28 +218,6 @@ export const usePlayer = create<PlayerState>((set, get) => {
     // --- Audio Event Listeners ---
     attachAudioListeners()
 
-    // --- Persistence Helper ---
-    let saveTimeout: any = null
-    const persistSession = () => {
-        if (saveTimeout) clearTimeout(saveTimeout)
-        saveTimeout = setTimeout(async () => {
-            const state = get()
-            try {
-                await window.api.player.saveSession({
-                    currentTrackId: state.currentTrack?.id,
-                    queueIds: state.queue.map(t => t.id),
-                    currentIndex: state.currentIndex,
-                    volume: state.volume,
-                    isShuffle: state.isShuffle,
-                    repeatMode: state.repeatMode,
-                    currentTime: state.currentTime
-                })
-            } catch (error) {
-                console.error('Failed to save session:', error)
-            }
-        }, 1000) // Debounce 1s
-    }
-
     // --- Helper to start playback ---
     const loadAndPlay = (track: Track) => {
         const src = getTrackSrc(track)
@@ -280,8 +290,8 @@ export const usePlayer = create<PlayerState>((set, get) => {
             persistSession()
 
             // Fetch play count
-            window.api.scrobble.getPlayCount(track.id).then(count => {
-                set({ trackPlayCount: count })
+            client.getTrack(track.id).then(t => {
+                if (t) set({ trackPlayCount: t.playCount || 0 })
             }).catch(err => {
                 console.error('Failed to fetch play count:', err)
             })
@@ -308,8 +318,8 @@ export const usePlayer = create<PlayerState>((set, get) => {
             persistSession()
 
             // Fetch play count
-            window.api.scrobble.getPlayCount(targetTrack.id).then(count => {
-                set({ trackPlayCount: count })
+            client.getTrack(targetTrack.id).then(t => {
+                if (t) set({ trackPlayCount: t.playCount || 0 })
             }).catch(err => {
                 console.error('Failed to fetch play count:', err)
             })
@@ -408,8 +418,8 @@ export const usePlayer = create<PlayerState>((set, get) => {
                 persistSession()
 
                 // Fetch play count
-                window.api.scrobble.getPlayCount(nextTrack.id).then(count => {
-                    set({ trackPlayCount: count })
+                client.getTrack(nextTrack.id).then(t => {
+                    if (t) set({ trackPlayCount: t.playCount || 0 })
                 }).catch(err => {
                     console.error('Failed to fetch play count:', err)
                 })
@@ -428,8 +438,8 @@ export const usePlayer = create<PlayerState>((set, get) => {
             persistSession()
 
             // Fetch play count
-            window.api.scrobble.getPlayCount(nextTrack.id).then(count => {
-                set({ trackPlayCount: count })
+            client.getTrack(nextTrack.id).then(t => {
+                if (t) set({ trackPlayCount: t.playCount || 0 })
             }).catch(err => {
                 console.error('Failed to fetch play count:', err)
             })
@@ -646,7 +656,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
         loadSession: async () => {
             try {
-                const session = await window.api.player.loadSession()
+                const session = await client.getSession()
                 if (session) {
                     const { queue, currentIndex, volume, isShuffle, repeatMode, currentTime } = session
                     const track = queue && currentIndex >= 0 ? queue[currentIndex] : null
@@ -676,8 +686,8 @@ export const usePlayer = create<PlayerState>((set, get) => {
                             activeAudio.currentTime = currentTime || 0
                         }
                         // Fetch play count for the restored track to sync UI
-                        window.api.scrobble.getPlayCount(track.id).then(count => {
-                            set({ trackPlayCount: count })
+                        client.getTrack(track.id).then(t => {
+                            if (t) set({ trackPlayCount: t.playCount || 0 })
                         }).catch(err => console.error('Failed to fetch play count on session load:', err))
                     }
                     preloadNextTrack()

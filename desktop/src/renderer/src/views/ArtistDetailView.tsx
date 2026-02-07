@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useLibrary } from '../store/library'
 import { usePlayer } from '../store/player'
+import { client } from '../api/client'
 import { ArrowLeft, Users, Heart, Play, Shuffle, Hash, ChevronUp, ChevronDown, Globe, MapPin, Calendar, UserCircle2, RefreshCw } from 'lucide-react'
 import { AlbumCard } from '../components/AlbumCard'
 import { RatingStars } from '../components/RatingStars'
@@ -9,7 +10,7 @@ import { cn } from '../utils'
 import { QueueConfirmationModal } from '../components/QueueConfirmationModal'
 import { useTrackSelection } from '../hooks/useTrackSelection'
 import TrackContextMenu from '../components/TrackContextMenu'
-import type { Track } from '../types'
+import type { Track } from '../types/index'
 
 interface ArtistDetailViewProps {
     artistName: string
@@ -56,7 +57,7 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
 
             if (!mbArtistId) {
                 console.log(`🔍 [UI] Searching MusicBrainz for artist: ${artistName}`)
-                const results = await window.api.metadata.search(artistName, '') // Search for artist name
+                const results = await client.searchMetadata(artistName, '') // Search for artist name
                 if (results && results.length > 0) {
                     // Try to find an exact name match
                     const match = results.find(r => r.artist.toLowerCase() === artistName.toLowerCase()) || results[0]
@@ -66,7 +67,7 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
 
             if (mbArtistId) {
                 console.log(`🔍 [UI] Fetching detailed facts for MBID: ${mbArtistId}`)
-                const details = await window.api.metadata.getArtistDetails(mbArtistId)
+                const details = await client.getArtistDetails(mbArtistId)
                 if (details) {
                     const facts = {
                         musicbrainzArtistId: details.id,
@@ -78,7 +79,7 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
                         website: details.website
                     }
 
-                    await window.api.metadata.updateArtistFacts(artist!.id, facts)
+                    await client.updateArtist(artist!.id, facts)
                     console.log('✅ [UI] Artist facts synced successfully')
                     // The library store should ideally be refreshed here
                     // For now, we rely on the next visit or manual refresh
@@ -242,7 +243,7 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
                     {artist?.imagePath ? (
                         <div className="relative w-full h-full">
                             <img
-                                src={artist.imagePath.startsWith('asset:') ? artist.imagePath : `asset:///${artist.imagePath.replace(/\\/g, '/')}`}
+                                src={client.getArtistImageUrl(artist.id)}
                                 alt={artistName}
                                 className="w-full h-full object-cover object-top grayscale-[0.1] contrast-[1.1]"
                             />
@@ -550,7 +551,7 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
                                                 href={artist.website}
                                                 onClick={(e) => {
                                                     e.preventDefault()
-                                                    window.api.util.openExternal(artist.website!)
+                                                    client.openExternal(artist.website!)
                                                 }}
                                                 className="text-sm font-bold text-primary hover:underline flex items-center gap-2 group"
                                             >
@@ -574,11 +575,7 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
                                         if (anchor) {
                                             e.preventDefault()
                                             const url = anchor.href
-                                            if (window.api?.util?.openExternal) {
-                                                window.api.util.openExternal(url)
-                                            } else {
-                                                window.open(url, '_blank')
-                                            }
+                                            client.openExternal(url)
                                         }
                                     }}
                                 >
@@ -686,11 +683,9 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
                             let mounted = true
                             const fetchSimilar = async () => {
                                 try {
-                                    if (window.api?.library?.getSimilarArtists) {
-                                        const similar = await window.api.library.getSimilarArtists(artistName)
-                                        if (mounted && similar && similar.length > 0) {
-                                            setSimilarArtists(similar.slice(0, 6))
-                                        }
+                                    const similar = await client.getSimilarArtists(artistName)
+                                    if (mounted && similar && similar.length > 0) {
+                                        setSimilarArtists(similar.slice(0, 6))
                                     }
                                 } catch (error) {
                                     console.error("Failed to load similar artists:", error)
@@ -738,11 +733,8 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
                                                             className="w-full h-full object-cover"
                                                             onError={(e) => {
                                                                 // If online image fails, try local if available
-                                                                if (localArtist?.imagePath) {
-                                                                    const src = localArtist.imagePath.startsWith('asset:')
-                                                                        ? localArtist.imagePath
-                                                                        : `asset:///${localArtist.imagePath.replace(/\\/g, '/')}`
-                                                                    e.currentTarget.src = src
+                                                                if (localArtist) {
+                                                                    e.currentTarget.src = client.getArtistImageUrl(localArtist.id)
                                                                 } else {
                                                                     e.currentTarget.style.display = 'none'
                                                                 }
@@ -750,7 +742,7 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
                                                         />
                                                     ) : localArtist?.imagePath ? (
                                                         <img
-                                                            src={localArtist.imagePath.startsWith('asset:') ? localArtist.imagePath : `asset:///${localArtist.imagePath.replace(/\\/g, '/')}`}
+                                                            src={client.getArtistImageUrl(localArtist.id)}
                                                             alt={similar.name}
                                                             className="w-full h-full object-cover"
                                                         />
@@ -778,6 +770,8 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
             <QueueConfirmationModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
+                onReplace={handleConfirmReplace}
+                onAppend={handleConfirmAppend}
                 title="Clear Playlist?"
                 message={`Your playlist is not empty. Would you like to clear it and play top tracks by "${artistName}", or just add them to the end?`}
             />

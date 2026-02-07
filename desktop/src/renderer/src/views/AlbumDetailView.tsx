@@ -2,16 +2,17 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLibrary } from '../store/library'
 import { useNavigation } from '../store/navigation'
 import { usePlayer } from '../store/player'
-import { ArrowLeft, Play, Clock, Heart, Calendar, Disc, Hash, Music as MusicIcon, X } from 'lucide-react'
+import { ArrowLeft, Play, Clock, Heart, Calendar, Hash, Music as MusicIcon, X } from 'lucide-react'
 import { RatingStars } from '../components/RatingStars'
 import { formatDuration } from '../utils/format'
 import { cn } from '../utils'
 import { useDraggable } from '../hooks/useDraggable'
-import { QueueConfirmationModal } from '../components/QueueConfirmationModal'
-import type { Track, Album } from '../types'
 import { useTrackSelection } from '../hooks/useTrackSelection'
+import { QueueConfirmationModal } from '../components/QueueConfirmationModal'
 import TrackContextMenu from '../components/TrackContextMenu'
 import AlbumContextMenu from '../components/AlbumContextMenu'
+import { client } from '../api/client'
+import type { Track, Album } from '../types'
 
 interface AlbumDetailViewProps {
     albumId: string
@@ -38,7 +39,7 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
     useEffect(() => {
         const fetchFullAlbum = async () => {
             try {
-                const data = await window.api.albums.getById(albumId)
+                const data = await client.getAlbum(albumId)
                 if (data) setEnrichedAlbum(data)
             } catch (err) {
                 console.error('Failed to fetch enriched album:', err)
@@ -63,17 +64,6 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
     }, [tracks, album])
 
     const { selectedTracks, handleTrackClick, clearSelection, selectSingleTrack } = useTrackSelection(albumTracks)
-
-    // Group by disc
-    const discs = useMemo(() => {
-        const d = new Map<number, Track[]>()
-        albumTracks.forEach(track => {
-            const discNum = track.discNum || 1
-            if (!d.has(discNum)) d.set(discNum, [])
-            d.get(discNum)?.push(track)
-        })
-        return Array.from(d.entries()).sort((a, b) => a[0] - b[0])
-    }, [albumTracks])
 
     // Load tracks if empty
     useEffect(() => {
@@ -122,32 +112,16 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                     }}
                 >
                     <div className="w-32 h-32 md:w-36 md:h-36 rounded-lg shadow-xl overflow-hidden bg-zinc-900 border border-border/10 transition-transform hover:scale-[1.02]">
-                        {album.coverArtPath ? (
-                            <img
-                                src={album.coverArtPath?.startsWith('asset:') ? album.coverArtPath : `asset:///${album.coverArtPath?.replace(/\\/g, '/')}`}
-                                alt={album.name}
-                                className="w-full h-full object-cover"
-                                onError={async (e) => {
-                                    if (album.id) {
-                                        const img = e.target as HTMLImageElement
-                                        if (img.src.includes('blob:')) return
-                                        try {
-                                            const result = await window.api.tracks.getCoverBufferByAlbum(album.id)
-                                            if (result && result.data) {
-                                                const blob = new Blob([new Uint8Array(result.data)], { type: `image/${result.format || 'jpeg'}` })
-                                                img.src = URL.createObjectURL(blob)
-                                            }
-                                        } catch (err) {
-                                            console.error('Failed to load fallback cover:', err)
-                                        }
-                                    }
-                                }}
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-zinc-600">
-                                <span className="text-4xl text-muted-foreground/30">♪</span>
-                            </div>
-                        )}
+                        <img
+                            src={client.getCoverUrl(album.id)}
+                            alt={album.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                const img = e.target as HTMLImageElement
+                                img.src = '/placeholder-album.png'
+                                img.onerror = null
+                            }}
+                        />
                     </div>
                 </div>
 
@@ -221,7 +195,7 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                             </span>
                             <span className="w-[1px] h-3 bg-white/10" />
                             <span className="flex items-center gap-1">
-                                <Clock size={11} className="opacity-50" /> {formatDuration(album.totalDuration)}
+                                <Clock size={11} className="opacity-50" /> {formatDuration(album.totalDuration || 0)}
                             </span>
                             <span className="w-[1px] h-3 bg-white/10" />
                             <span className="flex items-center gap-1">
@@ -241,7 +215,7 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
             {/* Scrollable Content (Bio + Tracks) */}
             <div className="flex-1 overflow-y-auto custom-scrollbar" onClick={e => e.stopPropagation()}>
                 <div className="max-w-6xl mx-auto p-4 md:pt-4 md:pb-8 md:px-8" onClick={clearSelection}>
-                    {/* Album Bio - Inside scroll area */}
+                    {/* Album Bio */}
                     {album.bio && (
                         <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-1000">
                             <h3 className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.2em]">About the Album</h3>
@@ -268,148 +242,126 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                     )}
 
                     {/* Track List */}
-                    {discs.map(([discNum, discTracks]) => (
-                        <div key={discNum} className="mb-10 last:mb-0">
-                            {discs.length > 1 && (
-                                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border/20 text-muted-foreground text-sm font-bold tracking-tight">
-                                    <Disc size={16} /> Disc {discNum}
-                                </div>
-                            )}
+                    <div className="mb-10">
+                        {/* Header */}
+                        <div className="grid grid-cols-[3rem_1fr_3rem_6rem_4rem_4rem] gap-4 px-4 py-2 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] border-b border-border/5 mb-2">
+                            <div className="text-center">#</div>
+                            <div>Title</div>
+                            <div className="text-right">Played</div>
+                            <div className="text-right">Rating</div>
+                            <div className="text-center">Love</div>
+                            <div className="text-right">Time</div>
+                        </div>
 
-                            <div className="space-y-0.5">
-                                {/* Header */}
-                                <div className="grid grid-cols-[3rem_1fr_3rem_6rem_4rem_4rem] gap-4 px-4 py-2 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] border-b border-border/5 mb-2">
-                                    <div className="text-center">#</div>
-                                    <div>Title</div>
-                                    <div className="text-right">Played</div>
-                                    <div className="text-right">Rating</div>
-                                    <div className="text-center">Love</div>
-                                    <div className="text-right">Time</div>
-                                </div>
+                        <div className="space-y-0.5">
+                            {albumTracks.map((track) => {
+                                const isCurrentTrack = currentTrack?.id === track.id
+                                const isCurrentPlaying = isCurrentTrack && isPlaying
+                                const isSelected = selectedTracks.includes(track.id)
+                                const globalIndex = albumTracks.findIndex(t => t.id === track.id)
 
-                                {discTracks.map((track) => {
-                                    const isCurrentTrack = currentTrack?.id === track.id
-                                    const isCurrentPlaying = isCurrentTrack && isPlaying
-                                    const isSelected = selectedTracks.includes(track.id)
-                                    // Calculate global index for range selection
-                                    const globalIndex = albumTracks.findIndex(t => t.id === track.id)
+                                return (
+                                    <div
+                                        key={track.id}
+                                        onClick={(e) => handleTrackClick(e, track.id, globalIndex)}
+                                        onDoubleClick={(e) => {
+                                            e.stopPropagation()
+                                            window.dispatchEvent(new CustomEvent('request-track-play', { detail: { track } }))
+                                        }}
+                                        onContextMenu={(e) => {
+                                            e.preventDefault()
+                                            if (!isSelected) {
+                                                selectSingleTrack(track.id)
+                                            }
+                                            setTrackContextMenu({ track, x: e.clientX, y: e.clientY })
+                                        }}
+                                        className={cn(
+                                            "group grid grid-cols-[3rem_1fr_3rem_6rem_4rem_4rem] gap-4 px-4 py-2 rounded-md transition-all items-center border border-transparent select-none cursor-default",
+                                            isSelected
+                                                ? "bg-white/10"
+                                                : isCurrentTrack
+                                                    ? "bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
+                                                    : "hover:bg-white/5 hover:border-white/5"
+                                        )}
+                                        draggable
+                                        onDragStart={(e) => {
+                                            const dragIds = isSelected ? selectedTracks : [track.id]
+                                            const dragTracks = tracks.filter(t => dragIds.includes(t.id))
+                                            e.dataTransfer.setData('application/json', JSON.stringify({ type: 'tracks', data: dragTracks }))
+                                            e.dataTransfer.effectAllowed = 'copy'
+                                        }}
+                                    >
+                                        <div className={cn(
+                                            "text-center text-xs relative transition-colors",
+                                            isCurrentTrack ? "text-primary font-bold" : "text-muted-foreground/60 group-hover:text-primary"
+                                        )}>
+                                            <span className="group-hover:hidden transition-opacity">
+                                                {isCurrentPlaying ? <MusicIcon className="w-3 h-3 mx-auto animate-pulse" /> : track.trackNum}
+                                            </span>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); playTrackAction(track); }}
+                                                className="hidden group-hover:flex items-center justify-center absolute inset-0 w-full h-full text-primary">
+                                                <Play size={12} fill="currentColor" />
+                                            </button>
+                                        </div>
 
-                                    return (
-                                        <div
-                                            key={track.id}
-                                            onClick={(e) => handleTrackClick(e, track.id, globalIndex)}
-                                            onDoubleClick={(e) => {
-                                                e.stopPropagation()
-                                                window.dispatchEvent(new CustomEvent('request-track-play', { detail: { track } }))
-                                            }}
-                                            onContextMenu={(e) => {
-                                                e.preventDefault()
-                                                if (!isSelected) {
-                                                    selectSingleTrack(track.id)
-                                                }
-                                                setTrackContextMenu({ track, x: e.clientX, y: e.clientY })
-                                            }}
-                                            className={cn(
-                                                "group grid grid-cols-[3rem_1fr_3rem_6rem_4rem_4rem] gap-4 px-4 py-2 rounded-md transition-all items-center border border-transparent select-none cursor-default",
-                                                isSelected
-                                                    ? "bg-white/10"
-                                                    : isCurrentTrack
-                                                        ? "bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
-                                                        : "hover:bg-white/5 hover:border-white/5"
-                                            )}
-                                            draggable
-                                            onDragStart={(e) => {
-                                                const dragIds = isSelected ? selectedTracks : [track.id]
-                                                const dragTracks = tracks.filter(t => dragIds.includes(t.id))
-
-                                                e.dataTransfer.setData('application/json', JSON.stringify({
-                                                    type: 'tracks',
-                                                    data: dragTracks
-                                                }))
-                                                e.dataTransfer.effectAllowed = 'copy'
-                                            }}
-                                        >
-                                            {/* Track Number / Play Icon */}
+                                        <div className="min-w-0">
                                             <div className={cn(
-                                                "text-center text-xs relative transition-colors",
-                                                isCurrentTrack ? "text-primary font-bold" : "text-muted-foreground/60 group-hover:text-primary"
-                                            )}>
-                                                <span className="group-hover:hidden transition-opacity">
-                                                    {isCurrentPlaying ? <MusicIcon className="w-3 h-3 mx-auto animate-pulse" /> : track.trackNum}
-                                                </span>
-                                                <button
+                                                "text-[13px] font-medium truncate transition-colors",
+                                                isCurrentTrack ? "text-primary" : "text-foreground/90 group-hover:text-foreground"
+                                            )}>{track.title}</div>
+                                            {track.artist && (
+                                                <div className="text-[11px] text-muted-foreground/60 truncate hover:text-primary/80 cursor-pointer inline-block transition-colors"
                                                     onClick={(e) => {
                                                         e.stopPropagation()
-                                                        playTrackAction(track)
+                                                        navigateTo('artist-detail', { artistName: track.artist })
                                                     }}
-                                                    className="hidden group-hover:flex items-center justify-center absolute inset-0 w-full h-full text-primary">
-                                                    <Play size={12} fill="currentColor" />
-                                                </button>
-                                            </div>
-
-                                            {/* Title */}
-                                            <div className="min-w-0">
-                                                <div className={cn(
-                                                    "text-[13px] font-medium truncate transition-colors",
-                                                    isCurrentTrack ? "text-primary" : "text-foreground/90 group-hover:text-foreground"
-                                                )}>{track.title}</div>
-                                                {track.artist && (
-                                                    <div className="text-[11px] text-muted-foreground/60 truncate hover:text-primary/80 cursor-pointer inline-block transition-colors"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            navigateTo('artist-detail', { artistName: track.artist })
-                                                        }}
-                                                    >
-                                                        {track.artist}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Play Count */}
-                                            <div className="text-right text-xs text-muted-foreground/60 font-medium tabular-nums">
-                                                {track.playCount > 0 && track.playCount}
-                                            </div>
-
-                                            {/* Rating */}
-                                            <div className={cn(
-                                                "flex justify-end transition-opacity duration-300",
-                                                track.rating > 0 ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                                            )}>
-                                                <RatingStars
-                                                    rating={track.rating}
-                                                    size={12}
-                                                    onChange={(r) => rateTrack(track.id, r)}
-                                                />
-                                            </div>
-
-                                            {/* Loved Heart */}
-                                            <div className="flex justify-center">
-                                                <button
-                                                    onClick={() => toggleLoved(track.id)}
-                                                    className={cn(
-                                                        "transition-all hover:scale-110 active:scale-95 duration-200",
-                                                        track.loved
-                                                            ? "text-red-500 opacity-100"
-                                                            : "text-muted-foreground/20 opacity-0 group-hover:opacity-100 hover:text-red-400"
-                                                    )}
                                                 >
-                                                    <Heart size={14} fill={track.loved ? "currentColor" : "none"} />
-                                                </button>
-                                            </div>
-
-                                            {/* Duration */}
-                                            <div className={cn(
-                                                "text-right text-[11px] font-medium tabular-nums transition-colors",
-                                                isCurrentTrack ? "text-primary/70 font-bold" : "text-muted-foreground/60 group-hover:text-foreground"
-                                            )}>
-                                                {formatDuration(track.duration)}
-                                            </div>
+                                                    {track.artist}
+                                                </div>
+                                            )}
                                         </div>
-                                    )
-                                })}
-                            </div>
+
+                                        <div className="text-right text-xs text-muted-foreground/60 font-medium tabular-nums">
+                                            {track.playCount > 0 && track.playCount}
+                                        </div>
+
+                                        <div className={cn(
+                                            "flex justify-end transition-opacity duration-300",
+                                            track.rating > 0 ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                        )}>
+                                            <RatingStars
+                                                rating={track.rating}
+                                                size={12}
+                                                onChange={(r) => rateTrack(track.id, r)}
+                                            />
+                                        </div>
+
+                                        <div className="flex justify-center">
+                                            <button
+                                                onClick={() => toggleLoved(track.id)}
+                                                className={cn(
+                                                    "transition-all hover:scale-110 active:scale-95 duration-200",
+                                                    track.loved
+                                                        ? "text-red-500 opacity-100"
+                                                        : "text-muted-foreground/20 opacity-0 group-hover:opacity-100 hover:text-red-400"
+                                                )}
+                                            >
+                                                <Heart size={14} fill={track.loved ? "currentColor" : "none"} />
+                                            </button>
+                                        </div>
+
+                                        <div className={cn(
+                                            "text-right text-[11px] font-medium tabular-nums transition-colors",
+                                            isCurrentTrack ? "text-primary/70 font-bold" : "text-muted-foreground/60 group-hover:text-foreground"
+                                        )}>
+                                            {formatDuration(track.duration)}
+                                        </div>
+                                    </div>
+                                )
+                            })}
                         </div>
-                    ))}
+                    </div>
                 </div>
             </div>
 
@@ -433,19 +385,9 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                         onMouseDown={handleMouseDown}
                     >
                         <img
-                            src={album.coverArtPath?.startsWith('asset:') ? album.coverArtPath : `asset:///${album.coverArtPath?.replace(/\\/g, '/')}`}
+                            src={client.getCoverUrl(album.id)}
                             alt={album.name}
                             className="max-w-full max-h-full h-auto w-auto object-contain shadow-2xl rounded-lg border border-white/10"
-                            onError={(e) => {
-                                const img = e.target as HTMLImageElement
-                                if (img.src.includes('blob:')) return
-                                window.api.tracks.getCoverBufferByAlbum(album.id).then(result => {
-                                    if (result && result.data) {
-                                        const blob = new Blob([new Uint8Array(result.data)], { type: `image/${result.format || 'jpeg'}` })
-                                        img.src = URL.createObjectURL(blob)
-                                    }
-                                })
-                            }}
                         />
                     </div>
 

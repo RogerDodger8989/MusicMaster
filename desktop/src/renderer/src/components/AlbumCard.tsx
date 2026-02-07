@@ -3,6 +3,7 @@ import { cn } from '../utils'
 import { Play, Heart } from 'lucide-react'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
+import { client } from '../api/client'
 import { useState } from 'react'
 import AlbumContextMenu from './AlbumContextMenu'
 
@@ -121,28 +122,17 @@ export function AlbumCard({ album, onClick, onPlayOptions, className }: AlbumCar
                         </div>
                     )}
 
-                    {album.coverArtPath ? (
+                    {/* Cover Art */}
+                    {(album.coverArtPath || album.id) ? (
                         <img
-                            src={album.coverArtPath.startsWith('asset:') ? album.coverArtPath : `asset:///${album.coverArtPath.replace(/\\/g, '/')}`}
+                            src={client.getCoverUrl(album.id)}
                             alt={album.name}
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             loading="lazy"
-                            onError={async (e) => {
-                                if (album.id) {
-                                    const img = e.target as HTMLImageElement
-                                    // Prevent infinite loop if fallback also fails
-                                    if (img.src.includes('blob:')) return
-
-                                    try {
-                                        const result = await (window as any).api.tracks.getCoverBufferByAlbum(album.id)
-                                        if (result && result.data) {
-                                            const blob = new Blob([result.data], { type: `image/${result.format || 'jpeg'}` })
-                                            img.src = URL.createObjectURL(blob)
-                                        }
-                                    } catch (err) {
-                                        console.error('Failed to load fallback cover:', err)
-                                    }
-                                }
+                            onError={(e) => {
+                                const img = e.target as HTMLImageElement;
+                                img.style.display = 'none'; // Hide if failed
+                                console.warn(`Failed to load cover for ${album.name}`);
                             }}
                         />
                     ) : (

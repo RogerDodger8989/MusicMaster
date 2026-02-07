@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { Track } from '../types'
+import { client } from '../api/client'
 
 export interface Playlist {
     id: string
@@ -31,7 +32,7 @@ export const usePlaylists = create<PlaylistStore>((set, get) => ({
     fetchPlaylists: async () => {
         set({ isLoading: true, error: null })
         try {
-            const playlists = await window.api.playlists.getAll()
+            const playlists = await client.getPlaylists()
             set({ playlists, isLoading: false })
         } catch (error) {
             console.error('Failed to fetch playlists:', error)
@@ -41,10 +42,10 @@ export const usePlaylists = create<PlaylistStore>((set, get) => ({
 
     createPlaylist: async (name, trackIds) => {
         try {
-            const id = await window.api.playlists.create(name, trackIds)
+            const result = await client.createPlaylist(name, trackIds)
             // Refresh to get the full object (with formatted dates, etc.)
             await get().fetchPlaylists()
-            return id
+            return result?.id || null
         } catch (error) {
             console.error('Failed to create playlist:', error)
             return null
@@ -53,13 +54,11 @@ export const usePlaylists = create<PlaylistStore>((set, get) => ({
 
     deletePlaylist: async (id) => {
         try {
-            const success = await window.api.playlists.delete(id)
-            if (success) {
-                set(state => ({
-                    playlists: state.playlists.filter(p => p.id !== id)
-                }))
-            }
-            return success
+            await client.deletePlaylist(id)
+            set(state => ({
+                playlists: state.playlists.filter(p => p.id !== id)
+            }))
+            return true
         } catch (error) {
             console.error('Failed to delete playlist:', error)
             return false
@@ -68,11 +67,9 @@ export const usePlaylists = create<PlaylistStore>((set, get) => ({
 
     addTrackToPlaylist: async (playlistId, trackId) => {
         try {
-            const success = await window.api.playlists.addTrack(playlistId, trackId)
-            if (success) {
-                await get().fetchPlaylists()
-            }
-            return success
+            await client.addToPlaylist(playlistId, trackId)
+            await get().fetchPlaylists()
+            return true
         } catch (error) {
             console.error('Failed to add track to playlist:', error)
             return false
@@ -81,11 +78,9 @@ export const usePlaylists = create<PlaylistStore>((set, get) => ({
 
     removeTrackFromPlaylist: async (playlistId, trackId, position) => {
         try {
-            const success = await window.api.playlists.removeTrack(playlistId, trackId, position)
-            if (success) {
-                await get().fetchPlaylists()
-            }
-            return success
+            await client.removeFromPlaylist(playlistId, trackId, position)
+            await get().fetchPlaylists()
+            return true
         } catch (error) {
             console.error('Failed to remove track from playlist:', error)
             return false
@@ -94,13 +89,11 @@ export const usePlaylists = create<PlaylistStore>((set, get) => ({
 
     renamePlaylist: async (id, name) => {
         try {
-            const success = await window.api.playlists.rename(id, name)
-            if (success) {
-                set(state => ({
-                    playlists: state.playlists.map(p => p.id === id ? { ...p, name } : p)
-                }))
-            }
-            return success
+            await client.renamePlaylist(id, name)
+            set(state => ({
+                playlists: state.playlists.map(p => p.id === id ? { ...p, name } : p)
+            }))
+            return true
         } catch (error) {
             console.error('Failed to rename playlist:', error)
             return false

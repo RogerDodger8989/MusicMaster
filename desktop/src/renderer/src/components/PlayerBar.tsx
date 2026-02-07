@@ -5,6 +5,7 @@ import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
 import { formatDuration } from '../utils/format'
 import { useSettings } from '../store/settings'
+import { client } from '../api/client'
 
 interface PlayerBarProps {
     onQueueToggle?: () => void
@@ -94,11 +95,12 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
             {/* Currently Playing Info */}
             <div className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-16 h-16 bg-zinc-800 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 relative">
-                    {displayCover ? (
+                    {currentTrack ? (
                         <img
-                            src={displayCover.startsWith('asset:') ? displayCover : `asset:///${displayCover.replace(/\\/g, '/')}`}
+                            src={client.getCoverUrl(albums.find(a => a.name === currentTrack.album && a.artist === (currentTrack.albumArtist || currentTrack.artist))?.id || '')}
                             alt={currentTrack?.album || 'Album Art'}
                             className="w-full h-full object-cover"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                         />
                     ) : (
                         <Music className="w-8 h-8 text-zinc-600" />

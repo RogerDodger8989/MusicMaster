@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { FolderOpen, Trash2, Eye, EyeOff, Play, ExternalLink, Download, Database, RefreshCw } from 'lucide-react'
 import { useFolders } from '../store/folders'
 import { useLibrary } from '../store/library'
 import { useSettings, TrackPlayBehavior, ReplayGainMode } from '../store/settings'
 import { useSyncStore } from '../store/sync'
 import { cn } from '../lib/utils'
-import { scrobbleService } from '../services/scrobbleService'
 import MusicBrainzProgressModal from '../components/modals/MusicBrainzProgressModal'
+import { client } from '../api/client'
+import { FileBrowserModal } from '../components/FileBrowserModal'
 
 export default function SettingsView() {
     const { folders, isLoading, loadFolders, addFolder, removeFolder, updateFolderWatch, browseFolder } = useFolders()
@@ -15,16 +16,8 @@ export default function SettingsView() {
     const [lastfmAuthToken, setLastfmAuthToken] = useState('')
     const [lastfmAuthUrl, setLastfmAuthUrl] = useState('')
     const [lastfmAuthInProgress, setLastfmAuthInProgress] = useState(false)
-    const [exportingCSV, setExportingCSV] = useState(false)
     const [writeToFiles, setWriteToFiles] = useState(false)
-    const [lbSyncProgress, setLbSyncProgress] = useState<{
-        phase: 'fetching' | 'matching';
-        fetched?: number;
-        page?: number;
-        current?: number;
-        total?: number;
-        isRunning: boolean;
-    }>({ isRunning: false, phase: 'fetching' })
+    const [isBrowserOpen, setIsBrowserOpen] = useState(false)
 
     // MusicBrainz Enhancement State
     const [mbCoverage, setMbCoverage] = useState<{
@@ -49,84 +42,105 @@ export default function SettingsView() {
     })
     const [mbWriteToFiles, setMbWriteToFiles] = useState(true)
 
-    useEffect(() => {
-        loadFolders()
-    }, [])
+    // Polling Intervals
+    const syncPollRef = useRef<NodeJS.Timeout | null>(null)
+    const enhancePollRef = useRef<NodeJS.Timeout | null>(null)
+    const fileSyncPollRef = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
-        // Ensure settings are loaded
+        loadFolders()
         settings.loadSettings()
     }, [])
 
     useEffect(() => {
-        // Listen for sync progress from main process
-        const unsubscribe = window.api.scrobble.onSyncProgress((syncProgress) => {
-            updateProgress({
-                isRunning: true,
-                current: syncProgress.current,
-                total: syncProgress.total,
-                trackName: syncProgress.trackName,
-                percentage: syncProgress.percentage,
-                errors: []
-            })
-        })
+        // Poll for Scrobble Sync Status if running
+        if (progress?.isRunning) {
+            syncPollRef.current = setInterval(async () => {
+                try {
+                    const status = await client.getSyncStatus()
+                    if (status.isRunning) {
+                        updateProgress({
+                            isRunning: true,
+                            current: status.current,
+                            total: status.total,
+                            trackName: status.trackName,
+                            percentage: status.percentage,
+                            errors: status.errors
+                        })
+                    } else if (status.total > 0 && !status.isRunning) {
+                        // Finished
+                        updateProgress({
+                            isRunning: false,
+                            current: status.total,
+                            total: status.total,
+                            trackName: 'Complete',
+                            percentage: 100,
+                            errors: status.errors
+                        })
+                        clearInterval(syncPollRef.current!)
+                        completeSync()
+                    }
+                } catch (e) {
+                    console.error('Sync Poll Error', e)
+                }
+            }, 1000)
+        }
 
         return () => {
-            unsubscribe()
+            if (syncPollRef.current) clearInterval(syncPollRef.current)
         }
-    }, [updateProgress])
-
-    useEffect(() => {
-        // Listen for ListenBrainz full sync progress
-        const unsubscribe = window.api.scrobble.onListenBrainzSyncProgress((progress) => {
-            setLbSyncProgress(prev => ({ ...prev, ...progress, isRunning: true }))
-        })
-
-        return () => {
-            unsubscribe()
-        }
-    }, [])
+    }, [progress?.isRunning])
 
     // Load MusicBrainz coverage stats
     useEffect(() => {
         loadMbCoverage()
     }, [])
 
-    // Listen for MusicBrainz enhancement progress
+    // Poll for Enhancement Progress
     useEffect(() => {
-        const unsubscribe = window.api.musicbrainz.onEnhanceProgress((progress) => {
-            setMbEnhanceProgress(prev => ({
-                ...prev,
-                current: progress.current,
-                total: progress.total,
-                trackName: progress.trackName
-            }))
-        })
+        if (mbEnhanceProgress.isOpen && mbEnhanceProgress.operation === 'enhance' && !mbEnhanceProgress.isComplete) {
+            enhancePollRef.current = setInterval(async () => {
+                try {
+                    const status = await client.getEnhanceStatus()
 
-        return () => {
-            unsubscribe()
+                    if (status.isRunning) {
+                        setMbEnhanceProgress(prev => ({
+                            ...prev,
+                            current: status.current,
+                            total: status.total,
+                            trackName: status.trackName
+                        }))
+                    }
+                } catch (e) { }
+            }, 1000)
         }
-    }, [])
+        return () => { if (enhancePollRef.current) clearInterval(enhancePollRef.current) }
+    }, [mbEnhanceProgress.isOpen, mbEnhanceProgress.operation, mbEnhanceProgress.isComplete])
 
-    // Listen for MusicBrainz sync progress
+    // Poll for File Sync Progress
     useEffect(() => {
-        const unsubscribe = window.api.musicbrainz.onSyncProgress((progress) => {
-            setMbEnhanceProgress(prev => ({
-                ...prev,
-                current: progress.current,
-                total: progress.total,
-                trackName: progress.trackPath
-            }))
-        })
-
-        return () => {
-            unsubscribe()
+        if (mbEnhanceProgress.isOpen && mbEnhanceProgress.operation === 'sync' && !mbEnhanceProgress.isComplete) {
+            fileSyncPollRef.current = setInterval(async () => {
+                try {
+                    const status = await client.getFileSyncStatus()
+                    if (status.isRunning) {
+                        setMbEnhanceProgress(prev => ({
+                            ...prev,
+                            current: status.current,
+                            total: status.total,
+                            trackName: status.trackPath
+                        }))
+                    }
+                } catch (e) { }
+            }, 1000)
         }
-    }, [])
+        return () => { if (fileSyncPollRef.current) clearInterval(fileSyncPollRef.current) }
+    }, [mbEnhanceProgress.isOpen, mbEnhanceProgress.operation, mbEnhanceProgress.isComplete])
+
 
     const loadMbCoverage = async () => {
         try {
-            const stats = await window.api.musicbrainz.getCoverage()
+            const stats = await client.getCoverage()
             setMbCoverage(stats)
         } catch (error) {
             console.error('Failed to load MusicBrainz coverage:', error)
@@ -139,28 +153,30 @@ export default function SettingsView() {
             return
         }
 
-        console.log(`🔍 DEBUG: lastfmUsername: "${settings.lastfmUsername}" (${typeof settings.lastfmUsername})`)
-        console.log(`🔍 DEBUG: listenbrainzUsername: "${settings.listenbrainzUsername}" (${typeof settings.listenbrainzUsername})`)
-
         startSync()
 
         try {
-            const result = await window.api.scrobble.syncAllPlayCounts(
-                settings.lastfmUsername || undefined,
-                settings.listenbrainzUsername || undefined,
+            await client.syncScrobble(
+                settings.lastfmUsername || '',
+                settings.listenbrainzUsername || '',
                 writeToFiles
             )
 
-            completeSync()
+            // Poll will update progress.
+            const checkDone = setInterval(async () => {
+                const status = await client.getSyncStatus()
+                if (!status.isRunning) {
+                    clearInterval(checkDone)
+                    completeSync()
+                    if (status.errors && status.errors.length > 0) {
+                        alert(`✅ Synced with errors.\nDetails in console.`)
+                    } else {
+                        alert('✅ Successfully synced play counts!')
+                    }
+                    await useLibrary.getState().loadTracks()
+                }
+            }, 2000)
 
-            if (result.errors.length > 0) {
-                alert(`✅ Synced ${result.synced}/${result.total} tracks\n\n❌ Failed tracks:\n${result.errors.slice(0, 10).join('\n')}${result.errors.length > 10 ? `\n...and ${result.errors.length - 10} more` : ''}`)
-            } else {
-                alert(`✅ Successfully synced all ${result.synced} tracks!${!writeToFiles ? '\n\n📝 Note: Play counts updated in database only.\nTo write to files, enable "Write to files" option.' : ''}`)
-            }
-
-            // Reload library to show updated play counts
-            await useLibrary.getState().loadTracks()
         } catch (error) {
             console.error('Failed to sync play counts:', error)
             completeSync()
@@ -169,35 +185,19 @@ export default function SettingsView() {
     }
 
     const handleExportCSV = async () => {
-        setExportingCSV(true)
-        try {
-            const filePath = await window.api.scrobble.exportPlayCountsCSV()
-            if (filePath) {
-                alert(`✅ Play counts exported to:\n${filePath}`)
-            } else {
-                alert('Export cancelled')
-            }
-        } catch (error) {
-            console.error('Failed to export CSV:', error)
-            alert('❌ Failed to export CSV: ' + error)
-        } finally {
-            setExportingCSV(false)
-        }
+        alert('CSV Export not supported in Server Mode yet.')
     }
 
     const handleLastFmStartAuth = async () => {
         setLastfmAuthInProgress(true)
         try {
-            const result = await window.api.scrobble.getLastFmAuthToken()
-            if (result) {
+            const result = await client.getLastFmAuthToken()
+            if (result && result.token) {
                 setLastfmAuthToken(result.token)
                 setLastfmAuthUrl(result.authUrl)
-                console.log('✅ Last.fm auth started. Token:', result.token.substring(0, 8) + '...')
-                console.log('Auth URL:', result.authUrl)
-                // Automatically open URL
                 window.open(result.authUrl, '_blank')
             } else {
-                alert('Failed to get auth token from Last.fm. Check console for errors.')
+                alert('Failed to get auth token from Last.fm.')
             }
         } catch (error) {
             console.error('Failed to get Last.fm auth token:', error)
@@ -212,12 +212,10 @@ export default function SettingsView() {
             return
         }
         try {
-            console.log('🔄 Completing Last.fm auth with token:', lastfmAuthToken.substring(0, 8) + '...')
-            const sessionKey = await window.api.scrobble.getLastFmSession(lastfmAuthToken)
-            if (sessionKey) {
-                settings.setLastfmSessionKey(sessionKey)
-                scrobbleService.setLastFmSession(sessionKey)
-                console.log('✅ Last.fm session obtained and updated in service:', sessionKey.substring(0, 8) + '...')
+            const result = await client.createLastFmSession(lastfmAuthToken)
+            if (result && result.sessionKey) {
+                settings.setLastfmSessionKey(result.sessionKey)
+                console.log('✅ Last.fm session obtained')
                 setLastfmAuthToken('')
                 setLastfmAuthUrl('')
                 alert('Last.fm authenticated successfully!')
@@ -230,18 +228,16 @@ export default function SettingsView() {
         }
     }
 
-    // MusicBrainz Enhancement Handlers
     const handleEnhanceLibrary = async () => {
         if (mbEnhanceProgress.isOpen && !mbEnhanceProgress.isComplete) {
             alert('Enhancement is already running!')
             return
         }
 
-        if (!confirm('This will search MusicBrainz for all tracks without MBIDs and update your library. This may take several minutes depending on your library size.\n\nContinue?')) {
+        if (!confirm('This will search MusicBrainz for all tracks without MBIDs and update your library. This may take several minutes.\n\nContinue?')) {
             return
         }
 
-        // Open progress modal
         setMbEnhanceProgress({
             isOpen: true,
             current: 0,
@@ -251,20 +247,26 @@ export default function SettingsView() {
         })
 
         try {
-            const result = await window.api.musicbrainz.enhanceLibrary(mbWriteToFiles)
+            await client.enhanceLibrary(mbWriteToFiles)
 
-            // Show results
-            setMbEnhanceProgress(prev => ({
-                ...prev,
-                isComplete: true,
-                results: result
-            }))
-
-            // Reload coverage stats
-            await loadMbCoverage()
-
-            // Reload library to show updated data
-            await useLibrary.getState().loadTracks()
+            // Poll for completion
+            const checkDone = setInterval(async () => {
+                const status = await client.getEnhanceStatus()
+                if (!status.isRunning) {
+                    clearInterval(checkDone)
+                    setMbEnhanceProgress(prev => ({
+                        ...prev,
+                        isComplete: true,
+                        results: {
+                            enhanced: status.enhanced,
+                            failed: status.failed,
+                            noMatch: status.noMatch
+                        }
+                    }))
+                    await loadMbCoverage()
+                    await useLibrary.getState().loadTracks()
+                }
+            }, 2000)
 
         } catch (error) {
             console.error('Failed to enhance library:', error)
@@ -291,7 +293,6 @@ export default function SettingsView() {
             return
         }
 
-        // Open progress modal
         setMbEnhanceProgress({
             isOpen: true,
             current: 0,
@@ -301,14 +302,24 @@ export default function SettingsView() {
         })
 
         try {
-            const result = await window.api.musicbrainz.syncToFiles()
+            await client.syncMetadata()
 
-            // Show results
-            setMbEnhanceProgress(prev => ({
-                ...prev,
-                isComplete: true,
-                results: result
-            }))
+            // Poll for completion
+            const checkDone = setInterval(async () => {
+                const status = await client.getFileSyncStatus()
+                if (!status.isRunning) {
+                    clearInterval(checkDone)
+                    setMbEnhanceProgress(prev => ({
+                        ...prev,
+                        isComplete: true,
+                        results: {
+                            success: status.success,
+                            failed: status.failed,
+                            skipped: status.skipped
+                        }
+                    }))
+                }
+            }, 2000)
 
         } catch (error) {
             console.error('Failed to sync to files:', error)
@@ -320,27 +331,21 @@ export default function SettingsView() {
         }
     }
 
-    const handleAddFolder = async () => {
+    const handleAddFolder = () => {
+        setIsBrowserOpen(true)
+    }
+
+    const handleFolderSelected = async (path: string) => {
+        setIsBrowserOpen(false)
         try {
-            console.log('handleAddFolder: Starting...')
-            console.log('window.api:', window.api)
-
-            const folderPath = await browseFolder()
-            console.log('Selected folder:', folderPath)
-
-            if (folderPath) {
-                // Add folder to database
-                await addFolder(folderPath, false)
-                console.log('Folder added successfully')
-
-                // Reload folders to get the new folder with ID
+            if (path) {
+                await addFolder(path, false)
                 await loadFolders()
 
-                // Get the newly added folder
-                const newFolder = folders.find(f => f.path === folderPath)
+                // Let's find the new folder ID to trigger scan
+                const updatedFolders = await client.getFolders()
+                const newFolder = updatedFolders.find(f => f.path === path)
                 if (newFolder) {
-                    // Automatically start scanning the new folder
-                    console.log('Auto-starting scan for new folder...')
                     await handleScanFolder(newFolder.id, newFolder.path)
                 }
             }
@@ -352,38 +357,21 @@ export default function SettingsView() {
 
     const handleScanFolder = async (folderId: string, folderPath: string) => {
         try {
-            await window.api.scanner.start(folderId, folderPath)
+            await client.startScan(folderId, folderPath)
+            alert('Scan started')
         } catch (error) {
             console.error('Scan error:', error)
         }
     }
 
-    const handleLbFullSync = async () => {
-        if (!settings.listenbrainzUsername) {
-            alert('Please enter your ListenBrainz username first.')
-            return
-        }
-
-        if (lbSyncProgress.isRunning) return
-
-        setLbSyncProgress({ isRunning: true, phase: 'fetching', fetched: 0, page: 0 })
-
-        try {
-            const result = await window.api.scrobble.syncAllListenBrainz(settings.listenbrainzUsername)
-            alert(`✅ ListenBrainz sync complete!\n\nUpdated play counts for ${result.updated} tracks out of ${result.total}.`)
-
-            // Reload library to show updated play counts
-            await useLibrary.getState().loadTracks()
-        } catch (error) {
-            console.error('ListenBrainz sync failed:', error)
-            alert('❌ ListenBrainz sync failed: ' + error)
-        } finally {
-            setLbSyncProgress(prev => ({ ...prev, isRunning: false }))
-        }
-    }
-
     return (
         <div className="max-w-5xl mx-auto">
+            <FileBrowserModal
+                isOpen={isBrowserOpen}
+                onClose={() => setIsBrowserOpen(false)}
+                onSelect={handleFolderSelected}
+                title="Select Music Folder"
+            />
             {/* MusicBrainz Progress Modal */}
             <MusicBrainzProgressModal
                 isOpen={mbEnhanceProgress.isOpen}
@@ -449,7 +437,6 @@ export default function SettingsView() {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    {/* Scan Button */}
                                     <button
                                         onClick={() => handleScanFolder(folder.id, folder.path)}
                                         className={cn(
@@ -461,7 +448,6 @@ export default function SettingsView() {
                                         <Play className="w-4 h-4" />
                                     </button>
 
-                                    {/* Watch Toggle */}
                                     <button
                                         onClick={() => updateFolderWatch(folder.id, !folder.watchEnabled)}
                                         className={cn(
@@ -478,7 +464,6 @@ export default function SettingsView() {
                                         )}
                                     </button>
 
-                                    {/* Remove Button */}
                                     <button
                                         onClick={() => removeFolder(folder.id)}
                                         className={cn(
@@ -591,7 +576,6 @@ export default function SettingsView() {
                 <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
                     <h3 className="text-lg font-semibold text-white mb-4">Scrobbling</h3>
 
-                    {/* Important Notice */}
                     <div className="mb-4 p-3 bg-blue-900/20 border border-blue-900/30 rounded-lg">
                         <p className="text-xs text-blue-300 mb-2">
                             <strong>📋 Before you start:</strong>
@@ -779,6 +763,7 @@ export default function SettingsView() {
                                     checked={writeToFiles}
                                     onChange={(e) => setWriteToFiles(e.target.checked)}
                                     className="w-4 h-4 cursor-pointer"
+                                    title="Write to files (slow, requires metaflac for FLAC)"
                                 />
                                 <label htmlFor="writeToFiles" className="text-xs text-zinc-300 cursor-pointer">
                                     <strong>Write to files</strong> (slow, requires metaflac for FLAC)
@@ -789,194 +774,84 @@ export default function SettingsView() {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={handleSyncPlayCounts}
-                                        disabled={progress?.isRunning || lbSyncProgress.isRunning}
+                                        disabled={progress?.isRunning}
                                         className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-700 disabled:text-zinc-500 text-white rounded-lg transition-colors text-sm font-semibold"
                                     >
                                         {progress?.isRunning ? 'Syncing...' : 'Sync All (Online)'}
                                     </button>
                                     <button
                                         onClick={handleExportCSV}
-                                        disabled={exportingCSV}
                                         className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-zinc-700 text-white rounded-lg transition-colors text-sm font-semibold flex items-center gap-2"
                                     >
                                         <Download className="w-4 h-4" />
-                                        {exportingCSV ? 'Exporting...' : 'Export CSV'}
+                                        CSV
                                     </button>
                                 </div>
-
-                                <button
-                                    onClick={handleLbFullSync}
-                                    disabled={lbSyncProgress.isRunning || progress?.isRunning || !settings.listenbrainzUsername}
-                                    className="w-full px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:bg-zinc-700 disabled:text-zinc-500 text-white rounded-lg transition-colors text-sm font-semibold flex items-center justify-center gap-2"
-                                >
-                                    <Play className="w-4 h-4" />
-                                    {lbSyncProgress.isRunning ? 'Syncing History...' : 'ListenBrainz Full History Sync'}
-                                </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
 
-                            {lbSyncProgress.isRunning && (
-                                <div className="mt-4 p-3 bg-violet-900/10 border border-violet-900/30 rounded-lg">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-medium text-violet-400">
-                                            {lbSyncProgress.phase === 'fetching'
-                                                ? `Fetching: Page ${lbSyncProgress.page} (${lbSyncProgress.fetched?.toLocaleString()} listens)`
-                                                : `Matching: ${lbSyncProgress.current?.toLocaleString()} / ${lbSyncProgress.total?.toLocaleString()} tracks`}
-                                        </span>
-                                        <span className="text-xs text-zinc-500">
-                                            {lbSyncProgress.phase === 'fetching' ? 'Downloading...' : 'Processing...'}
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-                                        <div
-                                            className={cn(
-                                                "h-1.5 transition-all duration-300 ease-out",
-                                                lbSyncProgress.phase === 'fetching' ? "bg-violet-500 animate-pulse" : "bg-emerald-500"
-                                            )}
-                                            style={{
-                                                width: lbSyncProgress.phase === 'matching'
-                                                    ? `${((lbSyncProgress.current || 0) / (lbSyncProgress.total || 1)) * 100}%`
-                                                    : '100%'
-                                            }}
-                                        ></div>
+                {/* MusicBrainz Enhancement Section */}
+                <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
+                    <h3 className="text-lg font-semibold text-white mb-4">Metadata Enhancement</h3>
+                    <div className="space-y-4">
+                        <p className="text-sm text-zinc-500">
+                            Enhance your library with metadata from MusicBrainz and AcousticBrainz.
+                            This will find ISRC codes, release dates, and better tags.
+                        </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+                                <div className="text-xs text-zinc-500 mb-1">Total Tracks</div>
+                                <div className="text-2xl font-bold text-white">{mbCoverage?.totalTracks || 0}</div>
+                            </div>
+                            <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+                                <div className="text-xs text-zinc-500 mb-1">Matched with MusicBrainz</div>
+                                <div className="flex items-end gap-2">
+                                    <div className="text-2xl font-bold text-green-400">{mbCoverage?.tracksWithMBID || 0}</div>
+                                    <div className="text-xs text-zinc-500 mb-1">
+                                        ({mbCoverage?.coveragePercentage || 0}%)
                                     </div>
                                 </div>
-                            )}
-
-                            {!settings.lastfmUsername && !settings.listenbrainzUsername && (
-                                <p className="text-xs text-yellow-400 mt-2">
-                                    ⚠️ Enter at least one username above to enable sync
-                                </p>
-                            )}
-
-                            {!writeToFiles && (
-                                <p className="text-xs text-zinc-500 mt-2">
-                                    💡 <strong>ListenBrainz Full Sync</strong> is highly recommended for users with large history. It fetches your entire history in bulk and matches it locally.
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
-                    <h3 className="text-lg font-semibold text-white mb-4">MusicBrainz Integration</h3>
-                    
-                    {/* Coverage Statistics */}
-                    {mbCoverage && (
-                        <div className="mb-6 p-4 bg-zinc-900 border border-zinc-800 rounded-lg">
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-sm text-zinc-400">Library Coverage</span>
-                                <span className="text-2xl font-bold text-blue-400">
-                                    {mbCoverage.coveragePercentage.toFixed(1)}%
-                                </span>
-                            </div>
-                            <div className="h-2 bg-zinc-800 rounded-full overflow-hidden mb-3">
-                                <div
-                                    className="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-500"
-                                    style={{ width: `${mbCoverage.coveragePercentage}%` }}
-                                />
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-zinc-500">
-                                <span>{mbCoverage.tracksWithMBID} / {mbCoverage.totalTracks} tracks have MBIDs</span>
-                                <button
-                                    onClick={loadMbCoverage}
-                                    className="p-1 hover:bg-zinc-800 rounded transition-colors"
-                                    title="Refresh stats"
-                                >
-                                    <RefreshCw className="w-3 h-3" />
-                                </button>
                             </div>
                         </div>
-                    )}
 
-                    {/* Enhancement Options */}
-                    <div className="space-y-4">
-                        {/* Write to Files Option */}
-                        <div className="flex items-center justify-between p-3 bg-zinc-900 border border-zinc-800 rounded-lg">
-                            <div>
-                                <p className="text-sm font-medium text-white">Write MBIDs to Files</p>
-                                <p className="text-xs text-zinc-500 mt-1">
-                                    Save MusicBrainz metadata directly to audio files (FLAC/MP3)
-                                </p>
-                            </div>
+                        <div className="mb-3 flex items-center gap-2 p-2 bg-yellow-900/10 border border-yellow-900/30 rounded">
+                            <input
+                                type="checkbox"
+                                id="mbWriteToFiles"
+                                checked={mbWriteToFiles}
+                                onChange={(e) => setMbWriteToFiles(e.target.checked)}
+                                className="w-4 h-4 cursor-pointer"
+                                title="Write metadata to files (during enhancement)"
+                            />
+                            <label htmlFor="mbWriteToFiles" className="text-xs text-zinc-300 cursor-pointer">
+                                <strong>Write metadata to files</strong> (during enhancement)
+                            </label>
+                        </div>
+
+                        <div className="flex gap-2">
                             <button
-                                onClick={() => setMbWriteToFiles(!mbWriteToFiles)}
-                                className={cn(
-                                    'relative w-12 h-6 rounded-full transition-colors',
-                                    mbWriteToFiles ? 'bg-blue-600' : 'bg-zinc-700'
-                                )}
+                                onClick={handleEnhanceLibrary}
+                                disabled={mbEnhanceProgress.isOpen}
+                                className="flex-1 px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:bg-zinc-800 disabled:text-zinc-500 text-white rounded-lg transition-colors text-sm font-semibold flex items-center justify-center gap-2"
                             >
-                                <div
-                                    className={cn(
-                                        'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform',
-                                        mbWriteToFiles && 'translate-x-6'
-                                    )}
-                                />
+                                <Database className="w-4 h-4" />
+                                Enhance Library (Search & Match)
                             </button>
-                        </div>
 
-                        {/* Enhance Library Button */}
-                        <button
-                            onClick={handleEnhanceLibrary}
-                            disabled={mbEnhanceProgress.isOpen && !mbEnhanceProgress.isComplete}
-                            className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <Database className="w-5 h-5" />
-                            Enhance Library with MusicBrainz
-                        </button>
-
-                        {/* Sync to Files Button */}
-                        {mbCoverage && mbCoverage.tracksWithMBID > 0 && (
                             <button
                                 onClick={handleSyncToFiles}
-                                disabled={mbEnhanceProgress.isOpen && !mbEnhanceProgress.isComplete}
-                                className="w-full px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={mbEnhanceProgress.isOpen}
+                                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-zinc-300 rounded-lg transition-colors text-sm font-semibold flex items-center gap-2"
+                                title="Write matched metadata to files"
                             >
-                                <RefreshCw className="w-5 h-5" />
-                                Sync MBIDs to Files ({mbCoverage.tracksWithMBID} tracks)
+                                <RefreshCw className="w-4 h-4" />
+                                Sync DB to Files
                             </button>
-                        )}
+                        </div>
                     </div>
-
-                    {/* Info Box */}
-                    <div className="mt-4 p-3 bg-blue-900/20 border border-blue-900/50 rounded-lg">
-                        <p className="text-xs text-blue-300">
-                            <strong>MusicBrainz Enhancement</strong> searches for high-quality metadata including:
-                            recording MBIDs, ISRCs, album types, genres, audio analysis (BPM, key, mood), and more.
-                            This data is saved to your database and optionally written to audio file tags.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="p-6 bg-red-900/10 border border-red-900/50 rounded-lg">
-                    <h3 className="text-lg font-semibold text-red-500 mb-4">Maintenance</h3>
-                    <div className="flex flex-wrap gap-4">
-                        <button
-                            onClick={() => useLibrary.getState().reanalyzeLibrary()}
-                            className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors flex items-center gap-2"
-                        >
-                            <Play className="w-4 h-4 text-blue-500" />
-                            Re-analyze Library
-                        </button>
-                        <button
-                            onClick={async () => {
-                                if (confirm('Are you sure you want to completely RESET your music library? This will clear all tracks, albums, and statistics.')) {
-                                    await window.api.library.reset()
-                                    const library = useLibrary.getState()
-                                    await library.loadTracks()
-                                    await library.loadAlbums()
-                                    await library.loadGenres()
-                                    await loadFolders()
-                                }
-                            }}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            Reset Library
-                        </button>
-                    </div>
-                    <p className="text-xs text-red-500/70 mt-3">
-                        Use Reset Library if your collection becomes out of sync or shows orphaned files.
-                    </p>
                 </div>
             </div>
         </div>

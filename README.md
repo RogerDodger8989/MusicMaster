@@ -1,194 +1,119 @@
 ﻿# MusicMaster
 
-A high-fidelity desktop music player built with Electron, React, and TypeScript. MusicMaster provides a premium listening experience with advanced audio features, scrobbling support, and intelligent library management.
+A high-fidelity desktop music player built with Electron, React, and TypeScript. MusicMaster has been refactored into a client-server architecture, featuring a headless Node.js/Express backend (Server) and a refined desktop frontend (Client).
+
+## Architecture
+
+MusicMaster now operates as two distinct components:
+
+1.  **Server**: A headless Node.js application managing the database, file scanning, metadata (MusicBrainz/AcousticBrainz), and scrobbling. It provides a REST API for the client.
+2.  **Client (Desktop)**: An Electron application delivering the premium user interface, audio playback, and visual experience. It communicates with the Server via the REST API.
 
 ## Features
 
-###  Core Playback
-- **High-Quality Audio**: Hardware-accelerated playback for FLAC, MP3, M4A, and more
-- **Gapless Playback**: Seamless transitions between tracks with dual-audio preloading
-- **ReplayGain Normalization**: Consistent volume across your entire library (Track/Album modes)
-- **Smart Queue Management**: Drag-and-drop reordering, persistent playlists
-- **Universal Shortcuts**: Space (Play/Pause), Backspace (Navigate), Esc (Close), Delete (Clear Queue)
+###  Server
+-   **Centralized Database**: `better-sqlite3` data store for all library metadata.
+-   **Headless Scanning**: Fast, non-blocking file scanning (FLAC, MP3, M4A).
+-   **Metadata Services**:
+    -   MusicBrainz integration for track/artist/album identification.
+    -   AcousticBrainz integration for BPM, key, and mood data.
+    -   Writing metadata tags (rating, loved status) back to files (MP3/FLAC).
+-   **Scrobbling**: Background submission to Last.fm and ListenBrainz.
+-   **API**: Comprehensive REST API for all library operations.
 
-###  Scrobbling & Statistics
-- **ListenBrainz Integration**: Token-based scrobbling with offline queue support
-- **Last.fm Integration**: Full OAuth flow with "Now Playing" and scrobble submission
-- **Play Count Tracking**: Track-level statistics displayed across all views
-- **50% Rule**: Scrobbles only recorded after track reaches 50% duration
-
-###  Library Management
-- **Fast Scanner**: Multi-threaded FLAC/MP3 metadata extraction with ReplayGain support
-- **Watch Folders**: Automatic library updates with file system monitoring
-- **Smart Ratings**: Universal rating logic (0-5 stars) with automatic loved status sync
-- **Album Art**: Embedded cover extraction with fallback support
-- **MusicBrainz Enhancement**: Enrich your library with comprehensive metadata
-  - Complete track metadata identification and matching
-  - BPM, key, and mood detection via AcousticBrainz
-  - Advanced fuzzy matching algorithms for accurate identification
-  - Batch processing with progress tracking
-  - Writes MusicBrainz IDs, BPM, and key directly to FLAC/MP3 tags
-
-###  Modern UI
-- **Responsive Design**: Adapts beautifully to any window size
-- **Interactive Cards**: Album/Artist cards with quick-play buttons and rating badges
-- **Draggable Modals**: Settings, search, and playlist controls can be repositioned
-- **Visual Indicators**: ReplayGain badge, scrobbling status (LFM/LB), loved ribbons
-- **Multi-select**: `Ctrl`/`Shift` + Click support across all track views for batch management
-- **Rich Context Menus**: Comprehensive actions on tracks, albums, and artists (Play Next, Add to Queue, Identify)
-
-## Technology Stack
-
-- **Frontend**: React 18 + TypeScript + Zustand (state management)
-- **Backend**: Electron + Node.js + better-sqlite3
-- **Audio**: HTML5 Web Audio API with dual-element gapless architecture
-- **Styling**: TailwindCSS with custom dark theme
-- **Build**: Vite + electron-builder
+###  Client (Desktop)
+-   **High-Quality Audio**: Hardware-accelerated playback via Web Audio API.
+-   **Gapless Playback**: Seamless transitions with dual-audio preloading.
+-   **Modern UI**: React 18 + TailwindCSS with a custom premium dark theme.
+-   **Rich Interactions**: Context menus, drag-and-drop queue, multi-select.
+-   **Visualizations**: Scrobble status, ReplayGain indicators, loved ribbons.
 
 ## Development
 
 ### Prerequisites
-- Node.js 18+
-- npm or yarn
+-   Node.js 18+
+-   npm or yarn
+-   Docker (optional, for server deployment)
 
 ### Setup
+
+#### 1. Server
 ```bash
-# Install dependencies
+cd server
+npm install
+npm start
+# Server runs on http://localhost:3000
+```
+
+#### 2. Client
+```bash
 cd desktop
 npm install
-
-# Run in development mode
 npm run dev
+# Frontend runs in development mode, connecting to localhost:3000
+```
 
-# Build for production
-npm run build
+### Production Build via Docker
+You can run the full backend stack using Docker Compose:
+
+```bash
+docker-compose up -d
 ```
 
 ### Project Structure
 ```
-desktop/
- src/
-    main/           # Electron main process
-       database/   # SQLite schema & queries
-       services/   # Last.fm, ListenBrainz, metadata
-       scanner.ts  # Library scanning with ReplayGain
-       ipc.ts      # IPC handlers
-    renderer/       # React frontend
-       components/ # UI components
-       views/      # Main application views
-       store/      # Zustand stores
-       hooks/      # Custom React hooks
-    preload/        # Electron preload scripts
+/
+├── server/                 # Backend Node.js Application
+│   ├── src/
+│   │   ├── api/           # REST API Routes & Controllers
+│   │   ├── database/      # SQLite Schema & Queries
+│   │   ├── services/      # External Services (MusicBrainz, Last.fm)
+│   │   └── index.ts       # Server Entry Point
+│   ├── Dockerfile
+│   └── package.json
+│
+├── desktop/                # Frontend Electron Application
+│   ├── src/
+│   │   ├── main/          # Electron Main Process (Window Management)
+│   │   ├── renderer/      # React Frontend (UI)
+│   │   │   ├── api/       # API Client (RestClient)
+│   │   │   ├── components/
+│   │   │   ├── views/
+│   │   │   └── store/
+│   │   └── preload/
+│   └── package.json
+└── docker-compose.yml      # Container Orchestration
 ```
 
 ## Configuration
 
-### Scrobbling Setup
+### Environment Variables (Server)
+Create a `.env` file in `server/`:
 
-**ListenBrainz**:
-1. Get your token from: https://listenbrainz.org/profile/
-2. Paste token in Settings  ListenBrainz Token
-3. Enable "ListenBrainz Enabled" checkbox
+```env
+PORT=3000
+MUSIC_PATH=/path/to/music      # For local dev or Docker volume
+LISTENBRAINZ_TOKEN=...          # Optional
+```
 
-**Last.fm**:
-1. Create API account: https://www.last.fm/api/account/create
-2. Enter API Key and Shared Secret in Settings
-3. Click "Authorize Last.fm" and approve in browser
-4. Session key saves automatically
-
-### ReplayGain
-- Scans REPLAYGAIN_* tags from FLAC files automatically
-- Configure in Settings: Track Gain, Album Gain, or Off
-- Green "RG" indicator appears in PlayerBar when active
-
-### Watch Folders
-- Enable "Watch Enabled" for any music folder in Settings
-- Folders automatically monitor for new files on app startup
-- Changes detected in real-time using file system watchers
-
-### MusicBrainz Enhancement
-- **Purpose**: Enrich your library with comprehensive metadata from MusicBrainz and AcousticBrainz
-- **What It Does**:
-  - Identifies tracks using fuzzy matching (artist + title + album + duration)
-  - Fetches MusicBrainz IDs (recording, release, artist)
-  - Retrieves audio analysis: BPM, musical key, mood tags
-  - Writes metadata directly to file tags (MUSICBRAINZ_TRACKID, BPM, KEY)
-- **How to Use**:
-  1. Go to Settings → Library Management
-  2. Click "Enhance Library with MusicBrainz"
-  3. Monitor progress in the modal (shows current track, success/skip/error counts)
-  4. Process completes automatically, metadata saved to both database and file tags
-- **Technical Details**:
-  - Uses MusicBrainz API with advanced matching algorithms
-  - Score-based confidence system (0-100) ensures accurate identification
-  - Duration tolerance: ±2 seconds for flexible matching
-  - AcousticBrainz integration for audio analysis data
-  - Respects API rate limits with built-in delays
+### Frontend Configuration
+The frontend automatically connects to `http://localhost:3000` by default. This can be configured in `desktop/src/renderer/src/api/client.ts`.
 
 ## Database Schema
-
-**Tracks**: Core music library with metadata, ratings, and ReplayGain values  
-**Albums**: Album metadata with aggregated ratings and play counts  
-**Artists**: Artist information with Last.fm biographies and similar artists  
-**Playlists**: Named track collections with ordering  
-**Scrobble Queue**: Offline-capable scrobbling with per-service submission tracking  
-**Play History**: Track play records with play count aggregation  
-**MusicBrainz Tables**: Comprehensive metadata enhancement system
-  - `musicbrainz_recordings`: Track-level MusicBrainz IDs and AcousticBrainz data (BPM, key, mood)
-  - `musicbrainz_releases`: Album-level MusicBrainz IDs and metadata
-  - `musicbrainz_artists`: Artist MusicBrainz IDs with fuzzy matching support
-  - `enhancement_log`: Processing history with timestamps and status tracking  
-
-## Advanced Features
-
-### Dual-Audio Gapless Architecture
-Uses two HTML5 Audio elements to eliminate gaps:
-1. `activeAudio`: Currently playing track
-2. `preloadAudio`: Next track preloaded and ready
-3. Seamless swap on track boundaries using `onended` event
-
-### Offline Scrobbling
-- Scrobbles queued locally when services unreachable
-- Background worker processes queue every 5 seconds
-- Per-service tracking prevents duplicate submissions
-- Automatic retry with exponential backoff
-
-### Smart Scanner
-- Multi-threaded metadata extraction
-- Preserves user ratings and loved status during re-scans
-- ReplayGain tag extraction (TRACK_GAIN, ALBUM_GAIN, PEAK values)
-- Automatic album art embedding with fallback support
-
-### Play Count Sync & Management
-- **File Tag Reading**: Extracts PLAY_COUNT from FLAC/MP3 tags during scanning
-- **Database Persistence**: Stores play counts in tracks.play_count column
-- **ListenBrainz Import**: PowerShell script (`download_listenbrainz.ps1`) downloads all listen history
-- **Known Limitations**: 
-  - Last.fm API returns global playcounts instead of personal stats (disabled)
-  - ListenBrainz `/stats` endpoint limited to top 100 tracks
-  - Solution: Download full listen history via `/listens` endpoint with pagination
-
-### Rating System Fixes (2026-02-06)
-- **Fixed**: Rating normalization bug where FMPS_RATING (0.8) was read as 0.04
-- **Solution**: Read RATING tag directly (0-5 integer scale) instead of FMPS_RATING
-- **Fixed**: All ratings disappearing after database reset + rescan
-- **Solution**: Preserve existing track ratings during scan, don't overwrite with 0
+The server manages a SQLite database with tables for:
+-   **Tracks**, **Albums**, **Artists**, **Genres**
+-   **Playlists** & **PlaylistTracks**
+-   **PlaybackState** (Session persistence)
+-   **UserSettings**
+-   **ScrobbleQueue** & **PlayHistory**
+-   **MusicBrainz** (Cache & Metadata)
 
 ## Future Roadmap
 
-Check out the full [Project Roadmap](ROADMAP.md) for detailed feature plans.
-
-- **Universal Delete Control**: Modal-confirmed deletion from playlists
-- **History Menu**: Right-click Back/Forward buttons for navigation history
-- **MusicBrainz Integration**: Comprehensive tagging (MBID, AcoustID) and fact fetching
-- **Library Management**: Missing tracks modal and automatic "Inbox" folder handling
-- **Playback Connectivity**: Chromecast, Apple, and Sonos support
-- **Integrated Last.fm Dashboard**: In-app statistics, reports, and private listening mode
-- **Exclusive Mode**: WASAPI/ASIO support for bit-perfect playback
-- **Sonic Analysis**: BPM, key detection, and similarity matching
-- **Taskbar Controls**: Windows taskbar media integration
-- **Two-way Sync**: Import ratings/playcounts from Last.fm
+-   **Frontend Migration**: Complete migration of all UI components to use the new `RestClient`.
+-   **Authentication**: Add user accounts/auth to the Server API.
+-   **Mobile App**: Potential mobile client consuming the Server API.
+-   **Web Client**: Standalone web interface hosted by the server.
 
 ## License
-
 MIT

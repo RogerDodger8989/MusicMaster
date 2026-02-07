@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { SortField, SortOrder, ViewMode } from '../types'
+import { client } from '../api/client'
 
 export type TrackPlayBehavior = 'ask' | 'play_next' | 'add_last' | 'replace'
 export type ReplayGainMode = 'track' | 'album' | 'off'
@@ -61,15 +62,15 @@ export const useSettings = create<SettingsStore>((set, get) => ({
 
     setViewMode: (viewMode) => {
         set({ viewMode })
-        window.api.settings.save('viewMode', viewMode)
+        client.saveSetting('viewMode', viewMode)
     },
     setSortField: (sortField) => {
         set({ sortField })
-        window.api.settings.save('sortField', sortField)
+        client.saveSetting('sortField', sortField)
     },
     setSortOrder: (sortOrder) => {
         set({ sortOrder })
-        window.api.settings.save('sortOrder', sortOrder)
+        client.saveSetting('sortOrder', sortOrder)
     },
     toggleSection: (section) => {
         const current = get().visibleSections
@@ -80,65 +81,57 @@ export const useSettings = create<SettingsStore>((set, get) => ({
             updated = [...current, section]
         }
         set({ visibleSections: updated })
-        window.api.settings.save('visibleSections', updated)
+        client.saveSetting('visibleSections', updated)
     },
     setTrackPlayBehavior: (behavior) => {
         set({ trackPlayBehavior: behavior })
-        window.api.settings.save('trackPlayBehavior', behavior)
+        client.saveSetting('trackPlayBehavior', behavior)
     },
     setReplayGainMode: (mode) => {
         set({ replayGainMode: mode })
-        window.api.settings.save('replayGainMode', mode)
+        client.saveSetting('replayGainMode', mode)
     },
     setGaplessEnabled: (enabled) => {
         set({ gaplessEnabled: enabled })
-        window.api.settings.save('gaplessEnabled', enabled)
+        client.saveSetting('gaplessEnabled', enabled)
     },
     setLastfmApiKey: (key) => {
         set({ lastfmApiKey: key })
-        window.api.settings.save('lastfmApiKey', key)
-        window.api.scrobble.updateLastFmKey(key).catch(err => {
-            console.error('Failed to update Last.fm key in service:', err)
-        })
+        client.saveSetting('lastfmApiKey', key)
+        // client.scrobble.updateLastFmKey(key) // Handled by saveSetting in backend?
     },
     setLastfmApiSecret: (secret) => {
         set({ lastfmApiSecret: secret })
-        window.api.settings.save('lastfmApiSecret', secret)
-        window.api.scrobble.updateLastFmSecret(secret).catch(err => {
-            console.error('Failed to update Last.fm secret in service:', err)
-        })
+        client.saveSetting('lastfmApiSecret', secret)
     },
     setLastfmSessionKey: (key: string) => {
         set({ lastfmSessionKey: key })
-        window.api.settings.save('lastfmSessionKey', key)
+        client.saveSetting('lastfmSessionKey', key)
     },
     setLastfmUsername: (username: string) => {
         set({ lastfmUsername: username })
-        window.api.settings.save('lastfmUsername', username)
+        client.saveSetting('lastfmUsername', username)
     },
     setListenbrainzToken: (token: string) => {
         set({ listenbrainzToken: token })
-        window.api.settings.save('listenbrainzToken', token)
-        window.api.scrobble.updateListenBrainzToken(token).catch(err => {
-            console.error('Failed to update ListenBrainz token in service:', err)
-        })
+        client.saveSetting('listenbrainzToken', token)
     },
     setListenbrainzUsername: (username: string) => {
         set({ listenbrainzUsername: username })
-        window.api.settings.save('listenbrainzUsername', username)
+        client.saveSetting('listenbrainzUsername', username)
     },
     setLastfmEnabled: (enabled) => {
         set({ lastfmEnabled: enabled })
-        window.api.settings.save('lastfmEnabled', enabled)
+        client.saveSetting('lastfmEnabled', enabled)
     },
     setListenbrainzEnabled: (enabled) => {
         set({ listenbrainzEnabled: enabled })
-        window.api.settings.save('listenbrainzEnabled', enabled)
+        client.saveSetting('listenbrainzEnabled', enabled)
     },
 
     loadSettings: async () => {
         try {
-            const settings = await window.api.settings.getAll()
+            const settings = await client.getSettings()
             if (settings && Object.keys(settings).length > 0) {
                 set(settings)
             }

@@ -1,0 +1,91 @@
+[2026-02-07T18:03:24.624Z] Spotify credentials not found in env
+[2026-02-07T18:12:58.382Z] Spotify credentials not found in env
+[2026-02-07T18:13:04.725Z] Spotify credentials not found in env
+[2026-02-07T18:13:10.117Z] Spotify credentials not found in env
+[2026-02-07T18:13:37.130Z] Spotify credentials not found in env
+[2026-02-07T18:54:08.656Z] Spotify credentials not found in env
+[2026-02-07T18:54:12.279Z] Spotify credentials not found in env
+[2026-02-07T19:14:06.934Z] Requesting Spotify Token...
+[2026-02-07T19:14:06.940Z] Requesting Spotify Token...
+[2026-02-07T19:14:06.942Z] Requesting Spotify Token...
+[2026-02-07T19:14:06.943Z] Requesting Spotify Token...
+[2026-02-07T19:14:06.944Z] Requesting Spotify Token...
+[2026-02-07T19:14:06.945Z] Requesting Spotify Token...
+[2026-02-07T19:14:06.946Z] Requesting Spotify Token...
+[2026-02-07T19:14:06.947Z] Requesting Spotify Token...
+[2026-02-07T19:14:06.948Z] Requesting Spotify Token...
+[2026-02-07T19:14:06.949Z] Requesting Spotify Token...
+[2026-02-07T19:14:07.099Z] Spotify Token Acquired
+[2026-02-07T19:14:07.125Z] Spotify Token Acquired
+[2026-02-07T19:14:07.130Z] Spotify Token Acquired
+[2026-02-07T19:14:07.133Z] Spotify Token Acquired
+[2026-02-07T19:14:07.135Z] Spotify Token Acquired
+[2026-02-07T19:14:07.137Z] Spotify Token Acquired
+[2026-02-07T19:14:07.139Z] Spotify Token Acquired
+[2026-02-07T19:14:07.141Z] Spotify Token Acquired
+[2026-02-07T19:14:07.142Z] Spotify Token Acquired
+[2026-02-07T19:14:07.145Z] Spotify Token Acquired
+[2026-02-07T19:14:07.393Z] Found image for Slipknot: https://i.scdn.co/image/ab6761610000e5ebd0cdb283a7384a0edb665182
+[2026-02-07T19:14:07.408Z] Found image for Snot: https://i.scdn.co/image/ab6761610000e5ebae03ae0c5fd62fe2428769e8
+[2026-02-07T19:14:07.419Z] Found image for Daron Malakian and Scars on Broadway: https://i.scdn.co/image/ab6761610000e5eb13f6ccb5f761c17e2c928518
+[2026-02-07T19:14:07.420Z] Found image for Linkin Park: https://i.scdn.co/image/ab6761610000e5eb527d95dabbe8b8b527e8136f
+[2026-02-07T19:14:07.421Z] Found image for Limp Bizkit: https://i.scdn.co/image/4654955890cb62a6abe9daadfd2b3ecdee8036e4
+[2026-02-07T19:14:07.421Z] Found image for Avenged Sevenfold: https://i.scdn.co/image/ab6761610000e5eb5942de17bb5b5951b178929d
+[2026-02-07T19:14:07.457Z] Found image for Korn: https://i.scdn.co/image/ab6761610000e5eb29af2ffb6f4ddd6324f878bc
+[2026-02-07T19:14:07.470Z] Found image for Serj Tankian: https://i.scdn.co/image/ab6761610000e5ebfda268d9e79a9a51bed597b1
+[2026-02-07T19:14:07.482Z] Found image for Deftones: https://i.scdn.co/image/ab6761610000e5ebe3ac5eb948e78d9285d1dbdb
+[2026-02-07T19:14:07.485Z] Found image for Scars on Broadway: https://i.scdn.co/image/ab6761610000e5eb13f6ccb5f761c17e2c928518
+[2026-02-07T19:14:12.822Z] Found image for Deftones: https://i.scdn.co/image/ab6761610000e5ebe3ac5eb948e78d9285d1dbdb
+[2026-02-07T19:14:12.826Z] Found image for Serj Tankian: https://i.scdn.co/image/ab6761610000e5ebfda268d9e79a9a51bed597b1
+[2026-02-07T19:14:12.838Z] Found image for Daron Malakian and Scars on Broadway: https://i.scdn.co/image/ab6761610000e5eb13f6ccb5f761c17e2c928518
+[2026-02-07T19:14:12.867Z] Found image for Scars on Broadway: https://i.scdn.co/image/ab6761610000e5eb13f6ccb5f761c17e2c928518
+[2026-02-07T19:14:12.871Z] Found image for Limp Bizkit: https://i.scdn.co/image/4654955890cb62a6abe9daadfd2b3ecdee8036e4
+[2026-02-07T19:14:12.885Z] Found image for Linkin Park: https://i.scdn.co/image/ab6761610000e5eb527d95dabbe8b8b527e8136f
+[2026-02-07T19:14:12.887Z] Found image for Korn: https://i.scdn.co/image/ab6761610000e5eb29af2ffb6f4ddd6324f878bc
+[2026-02-07T19:14:12.905Z] Found image for Snot: https://i.scdn.co/image/ab6761610000e5ebae03ae0c5fd62fe2428769e8
+[2026-02-07T19:14:12.914Z] Found image for Avenged Sevenfold: https://i.scdn.co/image/ab6761610000e5eb5942de17bb5b5951b178929d
+[2026-02-07T19:14:12.928Z] Found image for Slipknot: https://i.scdn.co/image/ab6761610000e5ebd0cdb283a7384a0edb665182
+[2026-02-07T19:16:11.804Z] Spotify credentials not found in env
+[2026-02-07T19:16:27.185Z] Requesting Spotify Token...
+[2026-02-07T19:16:27.339Z] Spotify Token Acquired
+[2026-02-07T19:16:27.682Z] Found image for System of a Down: https://i.scdn.co/image/ab6761610000e5eb60063d3451ade8f9fab397c2
+[2026-02-07T19:16:36.622Z] Requesting Spotify Token...
+[2026-02-07T19:16:36.628Z] Requesting Spotify Token...
+[2026-02-07T19:16:36.629Z] Requesting Spotify Token...
+[2026-02-07T19:16:36.630Z] Requesting Spotify Token...
+[2026-02-07T19:16:36.630Z] Requesting Spotify Token...
+[2026-02-07T19:16:36.631Z] Requesting Spotify Token...
+[2026-02-07T19:16:36.632Z] Requesting Spotify Token...
+[2026-02-07T19:16:36.632Z] Requesting Spotify Token...
+[2026-02-07T19:16:36.633Z] Requesting Spotify Token...
+[2026-02-07T19:16:36.634Z] Requesting Spotify Token...
+[2026-02-07T19:16:36.788Z] Spotify Token Acquired
+[2026-02-07T19:16:36.795Z] Spotify Token Acquired
+[2026-02-07T19:16:36.800Z] Spotify Token Acquired
+[2026-02-07T19:16:36.801Z] Spotify Token Acquired
+[2026-02-07T19:16:36.803Z] Spotify Token Acquired
+[2026-02-07T19:16:36.804Z] Spotify Token Acquired
+[2026-02-07T19:16:36.806Z] Spotify Token Acquired
+[2026-02-07T19:16:36.808Z] Spotify Token Acquired
+[2026-02-07T19:16:36.810Z] Spotify Token Acquired
+[2026-02-07T19:16:36.811Z] Spotify Token Acquired
+[2026-02-07T19:16:37.048Z] Found image for Daron Malakian and Scars on Broadway: https://i.scdn.co/image/ab6761610000e5eb13f6ccb5f761c17e2c928518
+[2026-02-07T19:16:37.066Z] Found image for Snot: https://i.scdn.co/image/ab6761610000e5ebae03ae0c5fd62fe2428769e8
+[2026-02-07T19:16:37.086Z] Found image for Korn: https://i.scdn.co/image/ab6761610000e5eb29af2ffb6f4ddd6324f878bc
+[2026-02-07T19:16:37.116Z] Found image for Linkin Park: https://i.scdn.co/image/ab6761610000e5eb527d95dabbe8b8b527e8136f
+[2026-02-07T19:16:37.123Z] Found image for Slipknot: https://i.scdn.co/image/ab6761610000e5ebd0cdb283a7384a0edb665182
+[2026-02-07T19:16:37.134Z] Found image for Scars on Broadway: https://i.scdn.co/image/ab6761610000e5eb13f6ccb5f761c17e2c928518
+[2026-02-07T19:16:37.135Z] Found image for Serj Tankian: https://i.scdn.co/image/ab6761610000e5ebfda268d9e79a9a51bed597b1
+[2026-02-07T19:16:37.146Z] Found image for Limp Bizkit: https://i.scdn.co/image/4654955890cb62a6abe9daadfd2b3ecdee8036e4
+[2026-02-07T19:16:37.150Z] Found image for Avenged Sevenfold: https://i.scdn.co/image/ab6761610000e5eb5942de17bb5b5951b178929d
+[2026-02-07T19:16:37.159Z] Found image for Deftones: https://i.scdn.co/image/ab6761610000e5ebe3ac5eb948e78d9285d1dbdb
+[2026-02-07T19:16:37.586Z] Found image for Slipknot: https://i.scdn.co/image/ab6761610000e5ebd0cdb283a7384a0edb665182
+[2026-02-07T19:16:37.589Z] Found image for Daron Malakian and Scars on Broadway: https://i.scdn.co/image/ab6761610000e5eb13f6ccb5f761c17e2c928518
+[2026-02-07T19:16:37.601Z] Found image for Scars on Broadway: https://i.scdn.co/image/ab6761610000e5eb13f6ccb5f761c17e2c928518
+[2026-02-07T19:16:37.639Z] Found image for Serj Tankian: https://i.scdn.co/image/ab6761610000e5ebfda268d9e79a9a51bed597b1
+[2026-02-07T19:16:37.641Z] Found image for Avenged Sevenfold: https://i.scdn.co/image/ab6761610000e5eb5942de17bb5b5951b178929d
+[2026-02-07T19:16:37.646Z] Found image for Limp Bizkit: https://i.scdn.co/image/4654955890cb62a6abe9daadfd2b3ecdee8036e4
+[2026-02-07T19:16:37.647Z] Found image for Deftones: https://i.scdn.co/image/ab6761610000e5ebe3ac5eb948e78d9285d1dbdb
+[2026-02-07T19:16:37.647Z] Found image for Korn: https://i.scdn.co/image/ab6761610000e5eb29af2ffb6f4ddd6324f878bc
+[2026-02-07T19:16:37.657Z] Found image for Snot: https://i.scdn.co/image/ab6761610000e5ebae03ae0c5fd62fe2428769e8
+[2026-02-07T19:16:37.657Z] Found image for Linkin Park: https://i.scdn.co/image/ab6761610000e5eb527d95dabbe8b8b527e8136f
