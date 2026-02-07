@@ -22,6 +22,12 @@ A high-fidelity desktop music player built with Electron, React, and TypeScript.
 - **Watch Folders**: Automatic library updates with file system monitoring
 - **Smart Ratings**: Universal rating logic (0-5 stars) with automatic loved status sync
 - **Album Art**: Embedded cover extraction with fallback support
+- **MusicBrainz Enhancement**: Enrich your library with comprehensive metadata
+  - Complete track metadata identification and matching
+  - BPM, key, and mood detection via AcousticBrainz
+  - Advanced fuzzy matching algorithms for accurate identification
+  - Batch processing with progress tracking
+  - Writes MusicBrainz IDs, BPM, and key directly to FLAC/MP3 tags
 
 ###  Modern UI
 - **Responsive Design**: Adapts beautifully to any window size
@@ -100,6 +106,25 @@ desktop/
 - Folders automatically monitor for new files on app startup
 - Changes detected in real-time using file system watchers
 
+### MusicBrainz Enhancement
+- **Purpose**: Enrich your library with comprehensive metadata from MusicBrainz and AcousticBrainz
+- **What It Does**:
+  - Identifies tracks using fuzzy matching (artist + title + album + duration)
+  - Fetches MusicBrainz IDs (recording, release, artist)
+  - Retrieves audio analysis: BPM, musical key, mood tags
+  - Writes metadata directly to file tags (MUSICBRAINZ_TRACKID, BPM, KEY)
+- **How to Use**:
+  1. Go to Settings → Library Management
+  2. Click "Enhance Library with MusicBrainz"
+  3. Monitor progress in the modal (shows current track, success/skip/error counts)
+  4. Process completes automatically, metadata saved to both database and file tags
+- **Technical Details**:
+  - Uses MusicBrainz API with advanced matching algorithms
+  - Score-based confidence system (0-100) ensures accurate identification
+  - Duration tolerance: ±2 seconds for flexible matching
+  - AcousticBrainz integration for audio analysis data
+  - Respects API rate limits with built-in delays
+
 ## Database Schema
 
 **Tracks**: Core music library with metadata, ratings, and ReplayGain values  
@@ -108,6 +133,11 @@ desktop/
 **Playlists**: Named track collections with ordering  
 **Scrobble Queue**: Offline-capable scrobbling with per-service submission tracking  
 **Play History**: Track play records with play count aggregation  
+**MusicBrainz Tables**: Comprehensive metadata enhancement system
+  - `musicbrainz_recordings`: Track-level MusicBrainz IDs and AcousticBrainz data (BPM, key, mood)
+  - `musicbrainz_releases`: Album-level MusicBrainz IDs and metadata
+  - `musicbrainz_artists`: Artist MusicBrainz IDs with fuzzy matching support
+  - `enhancement_log`: Processing history with timestamps and status tracking  
 
 ## Advanced Features
 

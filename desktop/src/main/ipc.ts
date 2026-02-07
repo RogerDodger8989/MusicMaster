@@ -1382,6 +1382,182 @@ export function registerIpcHandlers(): void {
         })
 
         /**
+         * Get release candidates for manual match selection
+         * Returns multiple MusicBrainz release options with track listings
+         */
+        ipcMain.handle('musicbrainz:getCandidates', async (_, trackId: number) => {
+            console.log(`🔍 [IPC] Getting match candidates for track ${trackId}...`)
+            
+            try {
+                const track = getTrackById(trackId)
+                if (!track) {
+                    throw new Error(`Track ${trackId} not found`)
+                }
+
+                // Import services
+                const { musicBrainzService } = await import('./services/musicbrainz')
+                const { scoreReleaseCandidates } = await import('./services/matcher')
+
+                // Get release candidates from MusicBrainz
+                const candidates = await musicBrainzService.getReleaseCandidates(
+                    track.artist,
+                    track.title,
+                    track.album,
+                    10 // limit to top 10 results
+                )
+
+                if (candidates.length === 0) {
+                    console.log(`   ⚠️ No candidates found for track ${trackId}`)
+                    return {
+                        track: {
+                            id: track.id,
+                            title: track.title,
+                            artist: track.artist,
+                            album: track.album,
+                            duration: track.duration
+                        },
+                        candidates: []
+                    }
+                }
+
+                // Score candidates with track matching
+                const scoredCandidates = scoreReleaseCandidates(
+                    track.artist,
+                    track.title,
+                    track.album || '',
+                    track.duration,
+                    candidates
+                )
+
+                console.log(`   ✅ Found ${scoredCandidates.length} candidates, best confidence: ${scoredCandidates[0]?.confidence}%`)
+
+                return {
+                    track: {
+                        id: track.id,
+                        title: track.title,
+                        artist: track.artist,
+                        album: track.album,
+                        duration: track.duration
+                    },
+                    candidates: scoredCandidates
+                }
+            } catch (error) {
+                console.error(`❌ Failed to get candidates for track ${trackId}:`, error)
+                throw error
+            }
+        })
+
+        /**
+         * Apply selected release to track
+         * Writes MusicBrainz IDs and optionally fetches audio analysis
+         */
+        ipcMain.handle('musicbrainz:applyCandidate', async (_, trackId: number, candidate: any, writeToFile = true) => {
+            console.log(`✅ [IPC] Applying selected candidate for track ${trackId}...`)
+            
+            try {
+                const track = getTrackById(trackId)
+                if (!track) {
+                    throw new Error(`Track ${trackId} not found`)
+                }
+
+                const db = getDatabase()
+                const { musicBrainzService } = await import('./services/musicbrainz')
+                const { getAcousticBrainzData } = await import('./services/acousticbrainz')
+                const { writeMusicBrainzMetadata } = await import('./services/metadataWriter')
+
+                // Fetch audio analysis from AcousticBrainz
+                console.log(`   🎵 Fetching audio analysis for ${candidate.recordingMbid}...`)
+                const audioAnalysis = await getAcousticBrainzData(candidate.recordingMbid)
+
+                // Update database with MusicBrainz metadata
+                db.prepare(`
+                    INSERT INTO musicbrainz_recordings (track_id, recording_mbid, bpm, key, mood, last_updated)
+                    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    ON CONFLICT(track_id) DO UPDATE SET
+                        recording_mbid = excluded.recording_mbid,
+                        bpm = excluded.bpm,
+                        key = excluded.key,
+                        mood = excluded.mood,
+                        last_updated = CURRENT_TIMESTAMP
+                `).run(
+                    track.id,
+                    candidate.recordingMbid,
+                    audioAnalysis?.bpm || null,
+                    audioAnalysis?.key || null,
+                    audioAnalysis?.mood || null
+                )
+
+                // Update release and artist tables
+                if (candidate.releaseMbid) {
+                    db.prepare(`
+                        INSERT INTO musicbrainz_releases (album_id, release_mbid, release_group_mbid, last_updated)
+                        VALUES ((SELECT album_id FROM tracks WHERE id = ?), ?, ?, CURRENT_TIMESTAMP)
+                        ON CONFLICT(album_id) DO UPDATE SET
+                            release_mbid = excluded.release_mbid,
+                            release_group_mbid = excluded.release_group_mbid,
+                            last_updated = CURRENT_TIMESTAMP
+                    `).run(track.id, candidate.releaseMbid, candidate.releaseGroupMbid || null)
+                }
+
+                if (candidate.artistMbid) {
+                    db.prepare(`
+                        INSERT INTO musicbrainz_artists (artist_id, artist_mbid, last_updated)
+                        VALUES ((SELECT artist_id FROM tracks WHERE id = ?), ?, CURRENT_TIMESTAMP)
+                        ON CONFLICT(artist_id) DO UPDATE SET
+                            artist_mbid = excluded.artist_mbid,
+                            last_updated = CURRENT_TIMESTAMP
+                    `).run(track.id, candidate.artistMbid)
+                }
+
+                // Write to file tags if requested
+                if (writeToFile && track.filePath) {
+                    console.log(`   💾 Writing tags to file: ${track.filePath}`)
+                    await writeMusicBrainzMetadata(track.filePath, {
+                        recordingMbid: candidate.recordingMbid,
+                        releaseMbid: candidate.releaseMbid,
+                        artistMbid: candidate.artistMbid,
+                        bpm: audioAnalysis?.bpm,
+                        key: audioAnalysis?.key
+                    })
+                }
+
+                // Log success
+                db.prepare(`
+                    INSERT INTO enhancement_log (id, track_id, status, message, created_at)
+                    VALUES (?, ?, 'success', ?, CURRENT_TIMESTAMP)
+                `).run(
+                    `${track.id}-${Date.now()}`,
+                    track.id,
+                    `Manually matched: ${candidate.albumName} (${candidate.year || 'unknown year'})`
+                )
+
+                console.log(`   ✅ Successfully applied candidate to track ${trackId}`)
+
+                return {
+                    success: true,
+                    mbid: candidate.recordingMbid,
+                    bpm: audioAnalysis?.bpm,
+                    key: audioAnalysis?.key
+                }
+            } catch (error) {
+                console.error(`❌ Failed to apply candidate to track ${trackId}:`, error)
+                
+                // Log error
+                const db = getDatabase()
+                db.prepare(`
+                    INSERT INTO enhancement_log (id, track_id, status, message, created_at)
+                    VALUES (?, ?, 'error', ?, CURRENT_TIMESTAMP)
+                `).run(
+                    `${trackId}-${Date.now()}`,
+                    trackId,
+                    `Failed to apply candidate: ${error.message}`
+                )
+
+                throw error
+            }
+        })
+
+        /**
          * Enhance entire library with MusicBrainz metadata
          * Only enhances tracks that don't have MBIDs yet
          */

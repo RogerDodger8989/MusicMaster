@@ -122,6 +122,40 @@ declare global {
           noMatch: number
           alreadyHasMBID: number
         }>
+        getCandidates: (trackId: number) => Promise<{
+          track: {
+            id: number
+            title: string
+            artist: string
+            album: string
+            duration: number
+          }
+          candidates: Array<{
+            recordingMbid: string
+            releaseMbid: string
+            releaseGroupMbid?: string
+            artistMbid?: string
+            artistName: string
+            albumName: string
+            year?: number
+            country?: string
+            format?: string
+            label?: string
+            confidence: number
+            tracks: Array<{
+              title: string
+              duration: number
+              expectedDuration: number
+              position: number
+            }>
+          }>
+        }>
+        applyCandidate: (trackId: number, candidate: any, writeToFile?: boolean) => Promise<{
+          success: boolean
+          mbid?: string
+          bpm?: number
+          key?: string
+        }>
         syncToFiles: (trackIds?: number[]) => Promise<{
           success: number
           failed: number

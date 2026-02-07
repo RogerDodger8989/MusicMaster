@@ -577,6 +577,118 @@ export class MusicBrainzService {
     /**
      * Clear cache (for testing or manual cache invalidation)
      */
+    /**
+     * Get detailed release candidates with track listings
+     * Used for manual match selection UI
+     */
+    async getReleaseCandidates(
+        artist: string,
+        title: string,
+        album?: string,
+        limit: number = 10
+    ): Promise<Array<{
+        recordingMbid: string
+        releaseMbid: string
+        releaseGroupMbid?: string
+        artistMbid?: string
+        artistName: string
+        albumName: string
+        year?: number
+        country?: string
+        format?: string
+        label?: string
+        tracks: Array<{
+            title: string
+            duration: number
+            position: number
+        }>
+    }>> {
+        try {
+            // First, search for recordings
+            const trackResults = await this.searchTrack(artist, title, album)
+            if (trackResults.length === 0) {
+                return []
+            }
+
+            const candidates: Array<any> = []
+            const seenReleases = new Set<string>()
+
+            // For each track result, get the release details
+            for (const track of trackResults.slice(0, limit)) {
+                if (!track.albumId || seenReleases.has(track.albumId)) {
+                    continue
+                }
+                seenReleases.add(track.albumId)
+
+                const releaseDetails = await this.getReleaseDetails(track.albumId)
+                if (!releaseDetails) {
+                    continue
+                }
+
+                // Extract track listing from all media
+                const tracks: Array<{
+                    title: string
+                    duration: number
+                    position: number
+                }> = []
+
+                for (const media of releaseDetails.media || []) {
+                    for (const track of media.tracks || []) {
+                        tracks.push({
+                            title: track.title,
+                            duration: Math.round(track.length / 1000), // ms to seconds
+                            position: parseInt(track.position) || tracks.length + 1
+                        })
+                    }
+                }
+
+                // Extract label
+                let label = ''
+                if (
+                    releaseDetails['label-info'] &&
+                    releaseDetails['label-info'].length > 0
+                ) {
+                    label = releaseDetails['label-info'][0]?.label?.name || ''
+                }
+
+                // Extract year from date
+                let year: number | undefined
+                if (releaseDetails.date) {
+                    const yearMatch = releaseDetails.date.match(/^(\d{4})/)
+                    if (yearMatch) {
+                        year = parseInt(yearMatch[1])
+                    }
+                }
+
+                // Get primary format
+                const format =
+                    releaseDetails.media?.[0]?.format ||
+                    releaseDetails.packaging ||
+                    'Unknown'
+
+                candidates.push({
+                    recordingMbid: track.id,
+                    releaseMbid: releaseDetails.id,
+                    releaseGroupMbid: releaseDetails['release-group']?.id,
+                    artistMbid: track.artistId,
+                    artistName: track.artist,
+                    albumName: releaseDetails.title,
+                    year,
+                    country: releaseDetails.country,
+                    format,
+                    label,
+                    tracks
+                })
+            }
+
+            console.log(`✅ Found ${candidates.length} release candidates`)
+            return candidates
+        } catch (error) {
+            console.error('Failed to get release candidates:', error)
+            return []
+        }
+    }
+
     clearCache(): void {
         queryCache.clear()
         console.log('✅ MB cache cleared')

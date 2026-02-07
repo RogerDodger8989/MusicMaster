@@ -195,7 +195,51 @@
     - [ ] Add "Import ListenBrainz JSON" button in Settings UI
     - [ ] Add file picker dialog for JSON selection
     - [ ] Test end-to-end playcount import workflow
-- [ ] **Phase 8: Future Roadmap & Extended Features**
+- [x] **Phase 8: MusicBrainz Metadata Enhancement (2026-02-07)**
+    - [x] **Database Schema (Block 1)**
+        - [x] Create `musicbrainz_recordings` table (mbid, bpm, key, mood, timestamps)
+        - [x] Create `musicbrainz_releases` table (release_mbid, album association)
+        - [x] Create `musicbrainz_artists` table (artist_mbid with fuzzy matching)
+        - [x] Create `enhancement_log` table (processing history and status)
+        - [x] Add TypeScript interfaces (MusicBrainzRecording, Release, Artist, etc.)
+        - [x] Implement database query functions (upsert, fetch, log operations)
+    - [x] **API Integration & Matching (Block 2)**
+        - [x] Implement MusicBrainz API client with search and lookup endpoints
+        - [x] Implement AcousticBrainz API client for audio analysis (BPM, key, mood)
+        - [x] Create advanced fuzzy matching system:
+          - [x] Artist name matching with normalization
+          - [x] Album name matching with year tolerance
+          - [x] Track title matching with acronym handling
+          - [x] Duration matching with ±2s tolerance
+          - [x] Score-based confidence system (0-100)
+        - [x] Implement batch processing with error handling
+    - [x] **Metadata Writer & UI (Block 3)**
+        - [x] Create MetadataWriter service (FLAC/MP3 tag writing)
+        - [x] Write MUSICBRAINZ_TRACKID, MUSICBRAINZ_ALBUMID, MUSICBRAINZ_ARTISTID
+        - [x] Write BPM and KEY tags from AcousticBrainz data
+        - [x] Implement IPC handlers:
+          - [x] `musicbrainz:enhance` - Main enhancement endpoint
+          - [x] `musicbrainz:getRecordingInfo` - Fetch single track info
+          - [x] `musicbrainz:getEnhancementLog` - Retrieve processing history
+        - [x] Create EnhancementProgressModal with real-time updates
+        - [x] Add "Enhance Library with MusicBrainz" button in Settings
+        - [x] Display processing stats (processed, successful, skipped, errors)
+    - [x] **Bug Fixes**
+        - [x] Fix node-fetch import error (use native fetch API)
+        - [x] Remove unsupported timeout parameters from fetch calls
+        - [x] Fix duplicate MatchConfidence export in matcher.ts
+        - [x] Fix unused variable warnings
+    - [x] **Block 4: Manual Match Selection UI (2026-02-07)**
+        - [x] Create MatchSelectionModal component with release selection
+        - [x] Add getReleaseCandidates() to MusicBrainz service
+        - [x] Add scoreReleaseCandidates() to matcher service
+        - [x] Add IPC handlers: musicbrainz:getCandidates, musicbrainz:applyCandidate
+        - [x] Update preload API exposure (index.ts, index.d.ts)
+        - [x] Create ManualMatchView for standalone manual matching
+        - [x] Display multiple release options with track listings
+        - [x] Show confidence scores and highlight duration differences
+        - [x] Allow user to select correct match before writing tags
+- [ ] **Phase 9: Future Roadmap & Extended Features**
     - [ ] **Audio Core Enhancements**
         - [ ] Exclusive Mode: WASAPI (Windows) / ASIO integration for bit-perfect playback
         - [ ] Android Mixer Bypass: Direct hardware access for mobile app

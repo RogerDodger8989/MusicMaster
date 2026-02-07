@@ -169,6 +169,8 @@ const api = {
     enhanceTrack: (trackId: number, writeToFile = true) => ipcRenderer.invoke('musicbrainz:enhanceTrack', trackId, writeToFile),
     enhanceTracks: (trackIds: number[], writeToFiles = true) => ipcRenderer.invoke('musicbrainz:enhanceTracks', trackIds, writeToFiles),
     enhanceLibrary: (writeToFiles = true) => ipcRenderer.invoke('musicbrainz:enhanceLibrary', writeToFiles),
+    getCandidates: (trackId: number) => ipcRenderer.invoke('musicbrainz:getCandidates', trackId),
+    applyCandidate: (trackId: number, candidate: any, writeToFile = true) => ipcRenderer.invoke('musicbrainz:applyCandidate', trackId, candidate, writeToFile),
     syncToFiles: (trackIds?: number[]) => ipcRenderer.invoke('musicbrainz:syncToFiles', trackIds),
     refreshMetadata: (trackIds: number[]) => ipcRenderer.invoke('musicbrainz:refreshMetadata', trackIds),
     onEnhanceProgress: (callback: (progress: { current: number; total: number; trackId: number; trackName: string }) => void) => {

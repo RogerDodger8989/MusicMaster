@@ -368,3 +368,92 @@ export async function advancedMatch(
         confidence: best.confidence
     }
 }
+
+/**
+ * Score multiple release candidates with track info
+ * Used for manual match selection UI
+ */
+export function scoreReleaseCandidates(
+    localArtist: string,
+    localTitle: string,
+    localAlbum: string,
+    localDuration: number,
+    candidates: Array<{
+        recordingMbid: string
+        releaseMbid: string
+        artistName: string
+        albumName: string
+        tracks: Array<{
+            title: string
+            duration: number
+            position: number
+        }>
+    }>
+): Array<{
+    recordingMbid: string
+    releaseMbid: string
+    releaseGroupMbid?: string
+    artistMbid?: string
+    artistName: string
+    albumName: string
+    year?: number
+    country?: string
+    format?: string
+    label?: string
+    confidence: number
+    tracks: Array<{
+        title: string
+        duration: number
+        expectedDuration: number
+        position: number
+    }>
+}> {
+    return candidates.map((candidate) => {
+        // Base score from artist/title/album matching
+        const baseScore = calculateMatchScore(
+            localArtist,
+            localTitle,
+            localAlbum,
+            candidate.artistName,
+            '',
+            candidate.albumName
+        )
+
+        // Find the track in the release
+        let trackScore = 0
+        let matchedTrack: any = null
+
+        for (const track of candidate.tracks) {
+            const titleScore = stringSimilarity(
+                normalizeString(localTitle),
+                normalizeString(track.title)
+            ) * 100
+
+            // Duration tolerance: ±2 seconds
+            const durationDiff = Math.abs(track.duration - localDuration)
+            const durationScore = durationDiff <= 2 ? 100 : Math.max(0, 100 - durationDiff * 10)
+
+            const combinedScore = titleScore * 0.7 + durationScore * 0.3
+
+            if (combinedScore > trackScore) {
+                trackScore = combinedScore
+                matchedTrack = track
+            }
+        }
+
+        // Final confidence score (base + track match)
+        const confidence = Math.round((baseScore * 0.6 + trackScore * 0.4))
+
+        // Add expected duration to all tracks
+        const tracksWithExpected = candidate.tracks.map(track => ({
+            ...track,
+            expectedDuration: localDuration
+        }))
+
+        return {
+            ...candidate,
+            confidence,
+            tracks: tracksWithExpected
+        }
+    }).sort((a, b) => b.confidence - a.confidence) // Sort by confidence
+}
