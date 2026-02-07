@@ -9,6 +9,9 @@ import { cn } from '../utils'
 import { useDraggable } from '../hooks/useDraggable'
 import { QueueConfirmationModal } from '../components/QueueConfirmationModal'
 import type { Track, Album } from '../types'
+import { useTrackSelection } from '../hooks/useTrackSelection'
+import TrackContextMenu from '../components/TrackContextMenu'
+import AlbumContextMenu from '../components/AlbumContextMenu'
 
 interface AlbumDetailViewProps {
     albumId: string
@@ -23,6 +26,8 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
     const [isBioExpanded, setIsBioExpanded] = useState(false)
     const [enrichedAlbum, setEnrichedAlbum] = useState<Album | null>(null)
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+    const [trackContextMenu, setTrackContextMenu] = useState<{ track: Track, x: number, y: number } | null>(null)
+    const [albumContextMenu, setAlbumContextMenu] = useState<{ album: Album, x: number, y: number } | null>(null)
     const { position, handleMouseDown } = useDraggable()
 
     // Find album
@@ -56,6 +61,8 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                 return trackA - trackB
             })
     }, [tracks, album])
+
+    const { selectedTracks, handleTrackClick, clearSelection, selectSingleTrack } = useTrackSelection(albumTracks)
 
     // Group by disc
     const discs = useMemo(() => {
@@ -99,11 +106,21 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
     }
 
     return (
-        <div className="h-full flex flex-col bg-background/95 overflow-hidden">
+        <div className="h-full flex flex-col bg-background/95 overflow-hidden" onClick={clearSelection}>
             {/* Header / Hero - Fixed and Compact */}
-            <div className="p-4 md:p-6 flex flex-col md:flex-row gap-6 bg-gradient-to-b from-primary/5 to-transparent relative flex-shrink-0">
+            <div className="p-4 md:p-6 flex flex-col md:flex-row gap-6 bg-gradient-to-b from-primary/5 to-transparent relative flex-shrink-0" onClick={e => e.stopPropagation()}>
                 {/* Cover Art - Smaller */}
-                <div className="flex-shrink-0 group relative cursor-zoom-in" onClick={() => setIsZoomed(true)}>
+                <div
+                    className="flex-shrink-0 group relative cursor-zoom-in"
+                    onClick={() => setIsZoomed(true)}
+                    onContextMenu={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        if (album) {
+                            setAlbumContextMenu({ album, x: e.clientX, y: e.clientY })
+                        }
+                    }}
+                >
                     <div className="w-32 h-32 md:w-36 md:h-36 rounded-lg shadow-xl overflow-hidden bg-zinc-900 border border-border/10 transition-transform hover:scale-[1.02]">
                         {album.coverArtPath ? (
                             <img
@@ -222,8 +239,8 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
             </div>
 
             {/* Scrollable Content (Bio + Tracks) */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-                <div className="max-w-6xl mx-auto p-4 md:pt-4 md:pb-8 md:px-8">
+            <div className="flex-1 overflow-y-auto custom-scrollbar" onClick={e => e.stopPropagation()}>
+                <div className="max-w-6xl mx-auto p-4 md:pt-4 md:pb-8 md:px-8" onClick={clearSelection}>
                     {/* Album Bio - Inside scroll area */}
                     {album.bio && (
                         <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-1000">
@@ -273,25 +290,41 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                                 {discTracks.map((track) => {
                                     const isCurrentTrack = currentTrack?.id === track.id
                                     const isCurrentPlaying = isCurrentTrack && isPlaying
+                                    const isSelected = selectedTracks.includes(track.id)
+                                    // Calculate global index for range selection
+                                    const globalIndex = albumTracks.findIndex(t => t.id === track.id)
 
                                     return (
                                         <div
                                             key={track.id}
+                                            onClick={(e) => handleTrackClick(e, track.id, globalIndex)}
                                             onDoubleClick={(e) => {
                                                 e.stopPropagation()
                                                 window.dispatchEvent(new CustomEvent('request-track-play', { detail: { track } }))
                                             }}
+                                            onContextMenu={(e) => {
+                                                e.preventDefault()
+                                                if (!isSelected) {
+                                                    selectSingleTrack(track.id)
+                                                }
+                                                setTrackContextMenu({ track, x: e.clientX, y: e.clientY })
+                                            }}
                                             className={cn(
-                                                "group grid grid-cols-[3rem_1fr_3rem_6rem_4rem_4rem] gap-4 px-4 py-2 rounded-md transition-all items-center border border-transparent select-none",
-                                                isCurrentTrack
-                                                    ? "bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
-                                                    : "hover:bg-white/5 hover:border-white/5"
+                                                "group grid grid-cols-[3rem_1fr_3rem_6rem_4rem_4rem] gap-4 px-4 py-2 rounded-md transition-all items-center border border-transparent select-none cursor-default",
+                                                isSelected
+                                                    ? "bg-white/10"
+                                                    : isCurrentTrack
+                                                        ? "bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
+                                                        : "hover:bg-white/5 hover:border-white/5"
                                             )}
                                             draggable
                                             onDragStart={(e) => {
+                                                const dragIds = isSelected ? selectedTracks : [track.id]
+                                                const dragTracks = tracks.filter(t => dragIds.includes(t.id))
+
                                                 e.dataTransfer.setData('application/json', JSON.stringify({
                                                     type: 'tracks',
-                                                    data: [track]
+                                                    data: dragTracks
                                                 }))
                                                 e.dataTransfer.effectAllowed = 'copy'
                                             }}
@@ -437,6 +470,24 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                 title="Clear Playlist?"
                 message={`Your playlist is not empty. Would you like to clear it and play "${album.name}", or just add it to the end?`}
             />
+
+            {trackContextMenu && (
+                <TrackContextMenu
+                    track={trackContextMenu.track}
+                    x={trackContextMenu.x}
+                    y={trackContextMenu.y}
+                    onClose={() => setTrackContextMenu(null)}
+                />
+            )}
+
+            {albumContextMenu && (
+                <AlbumContextMenu
+                    album={albumContextMenu.album}
+                    x={albumContextMenu.x}
+                    y={albumContextMenu.y}
+                    onClose={() => setAlbumContextMenu(null)}
+                />
+            )}
         </div>
     )
 }

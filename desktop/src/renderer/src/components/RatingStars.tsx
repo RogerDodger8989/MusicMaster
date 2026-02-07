@@ -23,16 +23,11 @@ export function RatingStars({
 
     const currentRating = hoverRating !== null ? hoverRating : rating
 
-    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    const handleMouseMove = (_e: React.MouseEvent<HTMLDivElement>, index: number) => {
         if (readOnly) return
 
-        const rect = e.currentTarget.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const width = rect.width
-
-        // Check if hovering over first half or full star
-        const isHalf = x < width / 2
-        setHoverRating(index + (isHalf ? 0.5 : 1))
+        // Strict integer rating - no halves
+        setHoverRating(index + 1)
     }
 
     const handleClick = () => {
@@ -40,11 +35,27 @@ export function RatingStars({
         onChange(hoverRating)
     }
 
+    const handleZeroClick = (e: React.MouseEvent) => {
+        e.stopPropagation()
+        if (readOnly || !onChange) return
+        onChange(0)
+    }
+
     return (
         <div
-            className={cn('flex items-center gap-0.5', readOnly ? 'cursor-default' : 'cursor-pointer', className)}
+            className={cn('flex items-center gap-0.5 relative', readOnly ? 'cursor-default' : 'cursor-pointer', className)}
             onMouseLeave={() => setHoverRating(null)}
         >
+            {/* Invisible Hit Area for 0 Stars (Left of first star) */}
+            {!readOnly && (
+                <div
+                    className="absolute -left-3 top-0 bottom-0 w-3 z-10"
+                    onClick={handleZeroClick}
+                    onMouseEnter={() => setHoverRating(0)}
+                    title="Clear Rating"
+                />
+            )}
+
             {Array.from({ length: maxRating }).map((_, i) => {
                 const starValue = i + 1
                 const isFull = currentRating >= starValue

@@ -15,12 +15,27 @@ export async function aggregateAlbums(): Promise<void> {
 
     console.log('🎵 Aggregating albums from tracks...')
 
+    // 0. Backup manual ratings
+    // Since IDs change on re-aggregation (UUIDs), we must backup by Name+Artist
+    const ratingBackup = new Map<string, { rating: number, loved: number }>()
+    try {
+        const existing = db.prepare('SELECT name, artist, rating, loved FROM albums_cache WHERE rating > 0 OR loved = 1').all() as any[]
+        for (const row of existing) {
+            const key = `${row.name}|${row.artist}`
+            ratingBackup.set(key, { rating: row.rating, loved: row.loved })
+        }
+        console.log(`💾 Backed up ${ratingBackup.size} manual album ratings/loved status`)
+    } catch (e) {
+        console.warn('Could not backup ratings (might be first run):', e)
+    }
+
     // Clear existing cache
     console.log('🗑️ Clearing existing album and artist cache...')
     db.prepare('DELETE FROM albums_cache').run()
     db.prepare('DELETE FROM artists').run()
 
     // 1. Get all aggregated data from tracks
+    // NOTE: Removed MAX(rating) and MAX(loved) from aggregation to prevent auto-rating
     const rows = db.prepare(`
         SELECT
             COALESCE(NULLIF(album, ''), 'Unknown Album') as name,
@@ -33,8 +48,6 @@ export async function aggregateAlbums(): Promise<void> {
             SUM(duration) as total_duration,
             MAX(cover_art_path) as cover_art_path,
             MAX(musicbrainz_album_id) as musicbrainz_album_id,
-            MAX(rating) as rating, -- Preserve manual ratings from tracks
-            MAX(loved) as loved,
             MAX(last_played) as last_played,
             SUM(play_count) as play_count
         FROM tracks
@@ -46,8 +59,7 @@ export async function aggregateAlbums(): Promise<void> {
         return
     }
 
-    console.log(`📊 Aggregated ${rows.length} albums. Sample ratings:`)
-    rows.slice(0, 5).forEach(r => console.log(`   - ${r.name}: ${r.rating} stars (${r.track_count} tracks)`))
+    console.log(`📊 Aggregated ${rows.length} albums.`)
 
     // 2. Prepare Insert Statement
     const insertStmt = db.prepare(`
@@ -83,18 +95,18 @@ export async function aggregateAlbums(): Promise<void> {
                     .join(' / ')
             }
 
-            // Preservation of manual ratings: 
-            // Check if this album already exists in cache and keep its rating if it does?
-            // Actually, the user wants it to be manual. If we re-aggregate, we might lose it if it's ONLY in DB.
-            // But the user said "ONLY TAGS". So if Album Rating is manual, it should be read from tags?
-            // Standard tags don't have Album Rating. 
-            // I will implement writing the rating to EACH track when the album is rated.
-            // That way, even if I use AVG(rating) or MAX(rating), it reflects the manual choice.
-            // Let's use MAX(rating) for now so the manual rating shows up.
+            // Restore manual rating/loved
+            const key = `${album.name}|${album.artist}`
+            const filteredBackup = ratingBackup.get(key)
+
+            const finalRating = filteredBackup?.rating || 0
+            const finalLoved = filteredBackup?.loved || 0
 
             insertStmt.run({
                 ...album,
                 genre: processedGenre,
+                rating: finalRating,
+                loved: finalLoved,
                 id
             })
         }

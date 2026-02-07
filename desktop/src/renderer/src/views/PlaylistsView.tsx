@@ -1,19 +1,29 @@
 import { ListMusic, Play, Shuffle, Trash2, Clock, Hash, X } from 'lucide-react'
 import { usePlaylists, Playlist } from '../store/playlists'
 import { usePlayer } from '../store/player'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { cn } from '../lib/utils'
 import { formatDuration } from '../utils/format'
 import { PlaylistMosaic } from '../components/PlaylistMosaic'
+import { useTrackSelection } from '../hooks/useTrackSelection'
 
 export default function PlaylistsView() {
     const { playlists, fetchPlaylists, deletePlaylist, removeTrackFromPlaylist, isLoading } = usePlaylists()
     const { playAlbum, currentTrack, isPlaying } = usePlayer()
     const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
-    const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(null)
     const [showDeletePlaylistConfirm, setShowDeletePlaylistConfirm] = useState(false)
     const [showRemoveTrackConfirm, setShowRemoveTrackConfirm] = useState(false)
     const [deletingId, setDeletingId] = useState<string | null>(null)
+
+    // Reset selection when playlist changes
+    useEffect(() => {
+        // clearSelection is handled by the hook but we need to ensure unique instance for each playlist view if needed
+        // But since hook is called inside, it resets when component re-mounts or we can force it.
+        // Actually, we need to pass the tracks to the hook.
+    }, [selectedPlaylist])
+
+    const playlistTracks = useMemo(() => selectedPlaylist?.tracks || [], [selectedPlaylist])
+    const { selectedTracks, handleTrackClick, clearSelection, selectSingleTrack, setSelectedTracks } = useTrackSelection(playlistTracks)
 
     useEffect(() => {
         fetchPlaylists()
@@ -27,10 +37,18 @@ export default function PlaylistsView() {
     }
 
     const handleRemoveTrack = async () => {
-        if (selectedPlaylist && selectedTrackIndex !== null) {
-            const track = selectedPlaylist.tracks[selectedTrackIndex]
-            await removeTrackFromPlaylist(selectedPlaylist.id, track.id, selectedTrackIndex)
-            setSelectedTrackIndex(null)
+        if (selectedPlaylist && selectedTracks.length > 0) {
+            // Find all instances of selected tracks
+            const tracksToRemove = selectedPlaylist.tracks
+                .map((t, idx) => ({ id: t.id, index: idx }))
+                .filter(t => selectedTracks.includes(t.id))
+                .sort((a, b) => b.index - a.index) // Sort descending to avoid index shift issues
+
+            for (const item of tracksToRemove) {
+                await removeTrackFromPlaylist(selectedPlaylist.id, item.id, item.index)
+            }
+
+            setSelectedTracks([])
             setShowRemoveTrackConfirm(false)
         }
     }
@@ -38,14 +56,14 @@ export default function PlaylistsView() {
     // Handle Delete key
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Delete' && selectedPlaylist && selectedTrackIndex !== null) {
+            if (e.key === 'Delete' && selectedPlaylist && selectedTracks.length > 0) {
                 e.preventDefault()
                 setShowRemoveTrackConfirm(true)
             }
         }
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [selectedPlaylist, selectedTrackIndex])
+    }, [selectedPlaylist, selectedTracks])
 
     // Handle Enter/Esc in modals
     useEffect(() => {
@@ -71,7 +89,7 @@ export default function PlaylistsView() {
         }
         window.addEventListener('keydown', handleModalKeys)
         return () => window.removeEventListener('keydown', handleModalKeys)
-    }, [showDeletePlaylistConfirm, showRemoveTrackConfirm, deletingId, selectedPlaylist, selectedTrackIndex])
+    }, [showDeletePlaylistConfirm, showRemoveTrackConfirm, deletingId, selectedPlaylist, selectedTracks])
 
     if (isLoading && playlists.length === 0) {
         return (
@@ -103,7 +121,7 @@ export default function PlaylistsView() {
                             <button
                                 onClick={() => {
                                     setSelectedPlaylist(null)
-                                    setSelectedTrackIndex(null)
+                                    setSelectedTracks([])
                                 }}
                                 className="text-blue-500 text-sm font-bold hover:underline mb-2 block"
                             >
@@ -158,20 +176,37 @@ export default function PlaylistsView() {
                         <div></div>
                     </div>
 
-                    <div className="divide-y divide-zinc-900">
+                    <div className="divide-y divide-zinc-900" onClick={clearSelection}>
                         {selectedPlaylist.tracks.map((track, idx) => {
                             const isActive = currentTrack?.id === track.id
-                            const isSelected = selectedTrackIndex === idx
+                            const isSelected = selectedTracks.includes(track.id)
                             return (
                                 <div
                                     key={`${track.id}-${idx}`}
                                     onDoubleClick={() => playAlbum(selectedPlaylist.tracks, idx)}
-                                    onClick={() => setSelectedTrackIndex(isSelected ? null : idx)}
+                                    onClick={(e) => handleTrackClick(e, track.id, idx)}
+                                    onContextMenu={(e) => {
+                                        if (!isSelected) {
+                                            selectSingleTrack(track.id)
+                                        }
+                                    }}
                                     className={cn(
-                                        "group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_4rem_4rem] gap-4 px-6 py-4 items-center transition-all cursor-pointer",
-                                        isActive && "bg-blue-600/5",
+                                        "group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_4rem_4rem] gap-4 px-6 py-4 items-center transition-all cursor-pointer border border-transparent select-none",
+                                        isActive && !isSelected && "bg-blue-600/5",
                                         isSelected ? "bg-blue-600/20" : "hover:bg-white/5"
                                     )}
+                                    draggable
+                                    onDragStart={(e) => {
+                                        const dragIds = isSelected ? selectedTracks : [track.id]
+                                        // We want to drag the actual tracks relative to this playlist context
+                                        const dragTracks = selectedPlaylist.tracks.filter(t => dragIds.includes(t.id))
+
+                                        e.dataTransfer.setData('application/json', JSON.stringify({
+                                            type: 'tracks',
+                                            data: dragTracks
+                                        }))
+                                        e.dataTransfer.effectAllowed = 'copy'
+                                    }}
                                 >
                                     <div className="text-center text-xs font-bold text-zinc-600">
                                         {isActive && isPlaying ? (
@@ -198,7 +233,7 @@ export default function PlaylistsView() {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation()
-                                                setSelectedTrackIndex(idx)
+                                                selectSingleTrack(track.id)
                                                 setShowRemoveTrackConfirm(true)
                                             }}
                                             className="p-1.5 text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
@@ -223,7 +258,9 @@ export default function PlaylistsView() {
                             </div>
                             <h4 className="text-white text-xl font-bold mb-2">Remove track?</h4>
                             <p className="text-zinc-500 text-sm mb-6 leading-relaxed">
-                                {selectedTrackIndex !== null && selectedPlaylist.tracks[selectedTrackIndex]?.title}
+                                {selectedTracks.length > 1
+                                    ? `Are you sure you want to remove ${selectedTracks.length} tracks from this playlist?`
+                                    : "Are you sure you want to remove this track?"}
                             </p>
                             <div className="flex gap-3">
                                 <button

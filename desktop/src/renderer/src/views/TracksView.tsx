@@ -5,6 +5,7 @@ import { usePlayer } from '../store/player'
 import { cn } from '../lib/utils'
 import TrackContextMenu from '../components/TrackContextMenu'
 import { Track } from '../types'
+import { useTrackSelection } from '../hooks/useTrackSelection'
 
 export default function TracksView() {
     const { tracks, toggleLoved, rateTrack } = useLibrary()
@@ -22,6 +23,8 @@ export default function TracksView() {
         )
     }, [tracks, searchQuery])
 
+    const { selectedTracks, handleTrackClick, clearSelection, selectSingleTrack } = useTrackSelection(filteredTracks)
+
     const formatDuration = (seconds: number) => {
         const mins = Math.floor(seconds / 60)
         const secs = Math.floor(seconds % 60)
@@ -29,14 +32,14 @@ export default function TracksView() {
     }
 
     return (
-        <div className="p-8 space-y-6 max-w-7xl mx-auto">
+        <div className="p-8 space-y-6 max-w-7xl mx-auto" onClick={clearSelection}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold text-white">Tracks</h2>
                     <p className="text-zinc-500 text-sm mt-1">{filteredTracks.length} tracks in your library</p>
                 </div>
 
-                <div className="relative w-full md:w-80">
+                <div className="relative w-full md:w-80" onClick={e => e.stopPropagation()}>
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                     <input
                         type="text"
@@ -48,7 +51,7 @@ export default function TracksView() {
                 </div>
             </div>
 
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden" onClick={e => e.stopPropagation()}>
                 <div className="grid grid-cols-[3rem_2fr_1.5fr_1.5fr_3rem_1fr_4rem] gap-4 px-6 py-3 border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-900/50">
                     <div className="text-center flex justify-center"><Hash className="w-3 h-3" /></div>
                     <div>Title</div>
@@ -63,31 +66,42 @@ export default function TracksView() {
                     {filteredTracks.map((track, idx) => {
                         const isCurrentTrack = currentTrack?.id === track.id
                         const isCurrentPlaying = isCurrentTrack && isPlaying
+                        const isSelected = selectedTracks.includes(track.id)
 
                         return (
                             <div
                                 key={track.id}
+                                onClick={(e) => handleTrackClick(e, track.id, idx)}
                                 onDoubleClick={(e) => {
                                     e.stopPropagation()
                                     window.dispatchEvent(new CustomEvent('request-track-play', { detail: { track } }))
                                 }}
                                 onContextMenu={(e) => {
                                     e.preventDefault()
+                                    // If right-clicking outside selection, select this one
+                                    if (!isSelected) {
+                                        selectSingleTrack(track.id)
+                                    }
                                     setContextMenu({ track, x: e.clientX, y: e.clientY })
                                 }}
                                 draggable
                                 onDragStart={(e) => {
+                                    const dragIds = isSelected ? selectedTracks : [track.id]
+                                    const dragTracks = tracks.filter(t => dragIds.includes(t.id))
+
                                     e.dataTransfer.setData('application/json', JSON.stringify({
                                         type: 'tracks',
-                                        data: [track]
+                                        data: dragTracks
                                     }))
                                     e.dataTransfer.effectAllowed = 'copy'
                                 }}
                                 className={cn(
-                                    "group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_3rem_1fr_4rem] gap-4 px-6 py-3 items-center transition-all cursor-grab active:cursor-grabbing",
-                                    isCurrentTrack
-                                        ? "bg-blue-600/10 hover:bg-blue-600/20"
-                                        : "hover:bg-white/5"
+                                    "group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_3rem_1fr_4rem] gap-4 px-6 py-3 items-center transition-all cursor-default select-none",
+                                    isSelected
+                                        ? "bg-white/10 hover:bg-white/10"
+                                        : isCurrentTrack
+                                            ? "bg-blue-600/10 hover:bg-blue-600/20"
+                                            : "hover:bg-white/5"
                                 )}
                             >
                                 {/* Index / Playing Icon */}

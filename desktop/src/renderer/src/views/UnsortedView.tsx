@@ -3,7 +3,10 @@ import { Folder, FileQuestion, Play, Search, Fingerprint, ChevronRight, ChevronD
 import { useLibrary } from '../store/library'
 import { usePlayer } from '../store/player'
 import { Track } from '../types'
+import { cn } from '../utils'
 import TrackContextMenu from '../components/TrackContextMenu'
+
+import { useTrackSelection } from '../hooks/useTrackSelection'
 
 export default function UnsortedView() {
     const { tracks } = useLibrary()
@@ -53,8 +56,10 @@ export default function UnsortedView() {
         }))
     }
 
+    const { selectedTracks, handleTrackClick, clearSelection, selectSingleTrack } = useTrackSelection(filteredTracks)
+
     return (
-        <div className="p-8 space-y-6 max-w-7xl mx-auto h-full flex flex-col">
+        <div className="p-8 space-y-6 max-w-7xl mx-auto h-full flex flex-col" onClick={clearSelection}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold text-white flex items-center gap-3">
@@ -113,44 +118,81 @@ export default function UnsortedView() {
 
                                 {expandedFolders.has(path) && (
                                     <div className="bg-black/20 pb-2">
-                                        {folderTracks.map((track) => (
-                                            <div
-                                                key={track.id}
-                                                onDoubleClick={() => playTrack(track)}
-                                                onContextMenu={(e) => {
-                                                    e.preventDefault()
-                                                    setContextMenu({ track, x: e.clientX, y: e.clientY })
-                                                }}
-                                                className="group flex items-center gap-4 px-12 py-2.5 hover:bg-white/5 transition-all cursor-pointer border-l-2 border-transparent hover:border-blue-500/50"
-                                            >
-                                                <div className="w-8 h-8 rounded bg-zinc-900 flex items-center justify-center group-hover:bg-zinc-800 transition-colors">
-                                                    <Play size={12} className="text-zinc-500 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all" />
-                                                    <span className="text-[10px] text-zinc-600 font-bold group-hover:hidden">
-                                                        {track.trackNum || '-'}
-                                                    </span>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="text-sm font-semibold text-zinc-300 group-hover:text-white truncate">
-                                                        {track.title || track.filePath.split(/[/\\]/).pop()}
-                                                    </div>
-                                                    <div className="text-[10px] text-zinc-500 truncate flex items-center gap-2">
-                                                        <span className="font-bold">{track.artist}</span>
-                                                        <span className="opacity-30">•</span>
-                                                        <span>{track.album}</span>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={(e) => {
+                                        {folderTracks.map((track) => {
+                                            const isSelected = selectedTracks.includes(track.id)
+                                            const globalIndex = filteredTracks.findIndex(t => t.id === track.id)
+
+                                            return (
+                                                <div
+                                                    key={track.id}
+                                                    onClick={(e) => handleTrackClick(e, track.id, globalIndex)}
+                                                    onDoubleClick={(e) => {
                                                         e.stopPropagation()
-                                                        handleIdentify(track)
+                                                        playTrack(track)
                                                     }}
-                                                    className="p-2 rounded-lg bg-zinc-900 text-zinc-500 hover:text-blue-400 hover:bg-zinc-800 transition-all border border-zinc-800 opacity-0 group-hover:opacity-100"
-                                                    title="Identify with MusicBrainz"
+                                                    onContextMenu={(e) => {
+                                                        e.preventDefault()
+                                                        if (!isSelected) {
+                                                            selectSingleTrack(track.id)
+                                                        }
+                                                        setContextMenu({ track, x: e.clientX, y: e.clientY })
+                                                    }}
+                                                    className={cn(
+                                                        "group flex items-center gap-4 px-12 py-2.5 transition-all cursor-pointer border-l-2 select-none",
+                                                        isSelected
+                                                            ? "bg-white/10 border-blue-500"
+                                                            : "hover:bg-white/5 border-transparent hover:border-blue-500/50"
+                                                    )}
+                                                    draggable
+                                                    onDragStart={(e) => {
+                                                        const dragIds = isSelected ? selectedTracks : [track.id]
+                                                        const dragTracks = filteredTracks.filter(t => dragIds.includes(t.id))
+
+                                                        e.dataTransfer.setData('application/json', JSON.stringify({
+                                                            type: 'tracks',
+                                                            data: dragTracks
+                                                        }))
+                                                        e.dataTransfer.effectAllowed = 'copy'
+                                                    }}
                                                 >
-                                                    <Fingerprint size={14} />
-                                                </button>
-                                            </div>
-                                        ))}
+                                                    <div className="w-8 h-8 rounded bg-zinc-900 flex items-center justify-center group-hover:bg-zinc-800 transition-colors">
+                                                        {isSelected ? (
+                                                            <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                                        ) : (
+                                                            <>
+                                                                <Play size={12} className="text-zinc-500 group-hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-all" />
+                                                                <span className="text-[10px] text-zinc-600 font-bold group-hover:hidden">
+                                                                    {track.trackNum || '-'}
+                                                                </span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className={cn(
+                                                            "text-sm font-semibold truncate transition-colors",
+                                                            isSelected ? "text-white" : "text-zinc-300 group-hover:text-white"
+                                                        )}>
+                                                            {track.title || track.filePath.split(/[/\\]/).pop()}
+                                                        </div>
+                                                        <div className="text-[10px] text-zinc-500 truncate flex items-center gap-2">
+                                                            <span className="font-bold">{track.artist}</span>
+                                                            <span className="opacity-30">•</span>
+                                                            <span>{track.album}</span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleIdentify(track)
+                                                        }}
+                                                        className="p-2 rounded-lg bg-zinc-900 text-zinc-500 hover:text-blue-400 hover:bg-zinc-800 transition-all border border-zinc-800 opacity-0 group-hover:opacity-100"
+                                                        title="Identify with MusicBrainz"
+                                                    >
+                                                        <Fingerprint size={14} />
+                                                    </button>
+                                                </div>
+                                            )
+                                        })}
                                     </div>
                                 )}
                             </div>

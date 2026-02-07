@@ -7,6 +7,9 @@ import { RatingStars } from '../components/RatingStars'
 import { formatDuration } from '../utils/format'
 import { cn } from '../utils'
 import { QueueConfirmationModal } from '../components/QueueConfirmationModal'
+import { useTrackSelection } from '../hooks/useTrackSelection'
+import TrackContextMenu from '../components/TrackContextMenu'
+import type { Track } from '../types'
 
 interface ArtistDetailViewProps {
     artistName: string
@@ -30,6 +33,7 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
     const [sortBy, setSortBy] = useState<'year' | 'popularity'>('year')
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
     const [isBioExpanded, setIsBioExpanded] = useState(false)
+    const [contextMenu, setContextMenu] = useState<{ track: Track, x: number, y: number } | null>(null)
 
     // Find artist info
     const artist = useMemo(() => artists.find(a => a.name === artistName), [artists, artistName])
@@ -213,6 +217,8 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
             .map(([genre]) => genre)
     }, [artistAlbums])
 
+    const { selectedTracks, handleTrackClick, clearSelection, selectSingleTrack } = useTrackSelection(topTracks)
+
     if (!artistAlbums.length && !artist) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-zinc-500 bg-background">
@@ -228,7 +234,7 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
     }
 
     return (
-        <div className="h-full flex flex-col bg-background relative">
+        <div className="h-full flex flex-col bg-background relative" onClick={clearSelection}>
             {/* Immersive Hero Section - Now hosting most content */}
             <div className="relative h-full w-full overflow-y-auto custom-scrollbar">
                 {/* Fixed Background Image Overlay */}
@@ -390,25 +396,39 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
                                     {topTracks.map((track, i) => {
                                         const isCurrentTrack = currentTrack?.id === track.id
                                         const isCurrentPlaying = isCurrentTrack && isPlaying
+                                        const isSelected = selectedTracks.includes(track.id)
 
                                         return (
                                             <div
                                                 key={track.id}
+                                                onClick={(e) => handleTrackClick(e, track.id, i)}
+                                                onContextMenu={(e) => {
+                                                    e.preventDefault()
+                                                    if (!isSelected) {
+                                                        selectSingleTrack(track.id)
+                                                    }
+                                                    setContextMenu({ track, x: e.clientX, y: e.clientY })
+                                                }}
                                                 onDoubleClick={(e) => {
                                                     e.stopPropagation()
                                                     window.dispatchEvent(new CustomEvent('request-track-play', { detail: { track } }))
                                                 }}
                                                 className={cn(
                                                     "group flex items-center gap-4 px-4 py-3 rounded-xl transition-all cursor-pointer border border-transparent select-none",
-                                                    isCurrentTrack
-                                                        ? "bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
-                                                        : "hover:bg-white/5 hover:border-white/5"
+                                                    isSelected
+                                                        ? "bg-white/10"
+                                                        : isCurrentTrack
+                                                            ? "bg-primary/20 hover:bg-primary/30 text-primary border-primary/20"
+                                                            : "hover:bg-white/5 hover:border-white/5"
                                                 )}
                                                 draggable
                                                 onDragStart={(e) => {
+                                                    const dragIds = isSelected ? selectedTracks : [track.id]
+                                                    const dragTracks = tracks.filter(t => dragIds.includes(t.id))
+
                                                     e.dataTransfer.setData('application/json', JSON.stringify({
                                                         type: 'tracks',
-                                                        data: [track]
+                                                        data: dragTracks
                                                     }))
                                                     e.dataTransfer.effectAllowed = 'copy'
                                                 }}
@@ -758,11 +778,18 @@ export default function ArtistDetailView({ artistName, onBack, onAlbumClick }: A
             <QueueConfirmationModal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
-                onReplace={handleConfirmReplace}
-                onAppend={handleConfirmAppend}
                 title="Clear Playlist?"
-                message={`Your playlist is not empty. Would you like to clear it and play ${pendingTracks.length} tracks by ${artistName}, or just add them to the end?`}
+                message={`Your playlist is not empty. Would you like to clear it and play top tracks by "${artistName}", or just add them to the end?`}
             />
+
+            {contextMenu && (
+                <TrackContextMenu
+                    track={contextMenu.track}
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    onClose={() => setContextMenu(null)}
+                />
+            )}
         </div >
     )
 }
