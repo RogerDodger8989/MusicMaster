@@ -1,0 +1,924 @@
+{
+  "first-release-date": "2002-10-26",
+  "disambiguation": "",
+  "relations": [
+    {
+      "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+      "ended": false,
+      "source-credit": "",
+      "artist": {
+        "name": "Andy Wallace",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+        "disambiguation": "engineer",
+        "country": "US",
+        "type": "Person",
+        "sort-name": "Wallace, Andy"
+      },
+      "type": "mix",
+      "target-type": "artist",
+      "direction": "backward",
+      "begin": null,
+      "attributes": [],
+      "attribute-values": {},
+      "end": null,
+      "attribute-ids": {},
+      "target-credit": ""
+    },
+    {
+      "url": {
+        "resource": "https://open.spotify.com/track/11i33j50Gsr90pRoDJBrEA",
+        "id": "976e2cce-a862-452f-b6ca-ed4dbcabd134"
+      },
+      "ended": false,
+      "source-credit": "",
+      "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+      "target-type": "url",
+      "type": "free streaming",
+      "attribute-values": {},
+      "end": null,
+      "attributes": [],
+      "begin": null,
+      "direction": "forward",
+      "target-credit": "",
+      "attribute-ids": {}
+    },
+    {
+      "end": null,
+      "attribute-values": {},
+      "begin": null,
+      "attributes": [],
+      "direction": "forward",
+      "target-credit": "",
+      "attribute-ids": {},
+      "ended": false,
+      "source-credit": "",
+      "type-id": "a3005666-a872-32c3-ad06-98af558e99b0",
+      "target-type": "work",
+      "work": {
+        "type-id": "f061270a-2fd6-32f1-a641-f0f8676d14e6",
+        "languages": [
+          "eng"
+        ],
+        "id": "b0d6f2af-27e5-3e8d-b90d-19e2a07b0a6c",
+        "language": "eng",
+        "title": "Chic ’n’ Stu",
+        "attributes": [],
+        "disambiguation": "",
+        "type": "Song",
+        "iswcs": []
+      },
+      "type": "performance"
+    }
+  ],
+  "releases": [
+    {
+      "barcode": "4547366009149",
+      "disambiguation": "",
+      "release-events": [
+        {
+          "area": {
+            "name": "Japan",
+            "type-id": null,
+            "id": "2db42837-c832-3c27-b4a3-08198f75693c",
+            "disambiguation": "",
+            "type": null,
+            "sort-name": "Japan",
+            "iso-3166-1-codes": [
+              "JP"
+            ]
+          },
+          "date": "2002-10-26"
+        }
+      ],
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "packaging": "Jewel Case",
+      "date": "2002-10-26",
+      "country": "JP",
+      "status": "Official",
+      "artist-credit": [
+        {
+          "artist": {
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "name": "System of a Down",
+            "disambiguation": "",
+            "country": "US",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "sort-name": "System of a Down",
+            "type": "Group"
+          },
+          "joinphrase": "",
+          "name": "System of a Down"
+        }
+      ],
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "title": "Steal This Album!",
+      "quality": "normal",
+      "id": "55604f39-1e22-4570-b0c0-59b6c49742b8",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe"
+    },
+    {
+      "date": "2002-11-25",
+      "country": "GB",
+      "status": "Official",
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "packaging": "Jewel Case",
+      "id": "c3502349-4781-4136-a9d6-02aec80281a4",
+      "quality": "normal",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "artist-credit": [
+        {
+          "name": "System of a Down",
+          "joinphrase": "",
+          "artist": {
+            "country": "US",
+            "disambiguation": "",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "name": "System of a Down",
+            "sort-name": "System of a Down",
+            "type": "Group"
+          }
+        }
+      ],
+      "title": "Steal This Album!",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": "",
+      "barcode": "5099751024828",
+      "release-events": [
+        {
+          "area": {
+            "type": null,
+            "sort-name": "United Kingdom",
+            "iso-3166-1-codes": [
+              "GB"
+            ],
+            "name": "United Kingdom",
+            "type-id": null,
+            "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+            "disambiguation": ""
+          },
+          "date": "2002-11-25"
+        }
+      ]
+    },
+    {
+      "release-events": [
+        {
+          "date": "2002-11-26",
+          "area": {
+            "iso-3166-1-codes": [
+              "US"
+            ],
+            "sort-name": "United States",
+            "type": null,
+            "disambiguation": "",
+            "id": "489ce91b-6658-3307-9877-795b68554c98",
+            "type-id": null,
+            "name": "United States"
+          }
+        }
+      ],
+      "disambiguation": "clean",
+      "barcode": "696998711822",
+      "id": "03c1ead4-7093-457c-99c8-ab4d5a4d7654",
+      "quality": "normal",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "artist-credit": [
+        {
+          "artist": {
+            "sort-name": "System of a Down",
+            "type": "Group",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "name": "System of a Down",
+            "country": "US",
+            "disambiguation": "",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6"
+          },
+          "name": "System of a Down",
+          "joinphrase": ""
+        }
+      ],
+      "title": "Steal This Album!",
+      "packaging-id": null,
+      "date": "2002-11-26",
+      "country": "US",
+      "status": "Official",
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "packaging": null
+    },
+    {
+      "release-events": [
+        {
+          "area": {
+            "name": "Taiwan",
+            "disambiguation": "",
+            "type": null,
+            "type-id": null,
+            "id": "41637cec-9a4f-389c-86d2-fc6abf3357b5",
+            "iso-3166-2-codes": [
+              "CN-71"
+            ],
+            "sort-name": "Taiwan",
+            "iso-3166-1-codes": [
+              "TW"
+            ]
+          },
+          "date": "2002-11-26"
+        }
+      ],
+      "disambiguation": "",
+      "barcode": "4893391094927",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "quality": "normal",
+      "id": "5c9b8759-5cf7-38bd-b7bf-4ae10039a43a",
+      "packaging-id": null,
+      "title": "Steal This Album!",
+      "artist-credit": [
+        {
+          "name": "System of a Down",
+          "joinphrase": "",
+          "artist": {
+            "sort-name": "System of a Down",
+            "type": "Group",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "name": "System of a Down",
+            "disambiguation": "",
+            "country": "US",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6"
+          }
+        }
+      ],
+      "status": "Official",
+      "date": "2002-11-26",
+      "country": "TW",
+      "packaging": null,
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      }
+    },
+    {
+      "packaging": "Jewel Case",
+      "text-representation": {
+        "script": null,
+        "language": null
+      },
+      "status": "Official",
+      "country": "XE",
+      "date": "2002-11-26",
+      "title": "Steal This Album!",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "name": "System of a Down",
+          "artist": {
+            "type": "Group",
+            "sort-name": "System of a Down",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "country": "US",
+            "disambiguation": "",
+            "name": "System of a Down",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+          }
+        }
+      ],
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "id": "c95dc7f7-2989-4b8a-98bc-dbd952b61636",
+      "quality": "normal",
+      "barcode": "5099751024828",
+      "disambiguation": "",
+      "release-events": [
+        {
+          "area": {
+            "iso-3166-1-codes": [
+              "XE"
+            ],
+            "sort-name": "Europe",
+            "type": null,
+            "disambiguation": "",
+            "id": "89a675c2-3e37-3518-b83c-418bad59a85a",
+            "type-id": null,
+            "name": "Europe"
+          },
+          "date": "2002-11-26"
+        }
+      ]
+    },
+    {
+      "country": "CA",
+      "date": "2002-11-26",
+      "status": "Official",
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "packaging": "Jewel Case",
+      "id": "d5e089ba-cec8-3b96-9825-841c6443ede1",
+      "quality": "normal",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "name": "System of a Down",
+          "artist": {
+            "type": "Group",
+            "sort-name": "System of a Down",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "country": "US",
+            "disambiguation": "",
+            "name": "System of a Down",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+          }
+        }
+      ],
+      "title": "Steal This Album!",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "disambiguation": "",
+      "barcode": "696998706224",
+      "release-events": [
+        {
+          "area": {
+            "iso-3166-1-codes": [
+              "CA"
+            ],
+            "sort-name": "Canada",
+            "type": null,
+            "disambiguation": "",
+            "id": "71bbafaa-e825-3e15-8ca9-017dcad1748b",
+            "type-id": null,
+            "name": "Canada"
+          },
+          "date": "2002-11-26"
+        },
+        {
+          "area": {
+            "disambiguation": "",
+            "id": "89a675c2-3e37-3518-b83c-418bad59a85a",
+            "type-id": null,
+            "name": "Europe",
+            "iso-3166-1-codes": [
+              "XE"
+            ],
+            "sort-name": "Europe",
+            "type": null
+          },
+          "date": "2002-11-26"
+        },
+        {
+          "area": {
+            "iso-3166-1-codes": [
+              "US"
+            ],
+            "sort-name": "United States",
+            "type": null,
+            "disambiguation": "",
+            "id": "489ce91b-6658-3307-9877-795b68554c98",
+            "type-id": null,
+            "name": "United States"
+          },
+          "date": "2002-11-26"
+        }
+      ]
+    },
+    {
+      "title": "Steal This Album!",
+      "packaging-id": null,
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "name": "System of a Down",
+          "artist": {
+            "name": "System of a Down",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "country": "US",
+            "disambiguation": "",
+            "type": "Group",
+            "sort-name": "System of a Down"
+          }
+        }
+      ],
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "id": "edcb9c4a-8a39-3e07-b19d-ac5be340b35a",
+      "quality": "normal",
+      "packaging": null,
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "status": "Official",
+      "date": "2002-11-29",
+      "country": "AU",
+      "release-events": [
+        {
+          "area": {
+            "iso-3166-1-codes": [
+              "AU"
+            ],
+            "type": null,
+            "sort-name": "Australia",
+            "id": "106e0bec-b638-3b37-b731-f53d507dc00e",
+            "disambiguation": "",
+            "name": "Australia",
+            "type-id": null
+          },
+          "date": "2002-11-29"
+        }
+      ],
+      "barcode": "9399700106473",
+      "disambiguation": ""
+    },
+    {
+      "country": "NL",
+      "date": "2002-11",
+      "status": "Official",
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "packaging": "Jewel Case",
+      "quality": "normal",
+      "id": "c74c7c8d-64c8-3505-bb02-d1f941605525",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "artist-credit": [
+        {
+          "artist": {
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "name": "System of a Down",
+            "disambiguation": "",
+            "country": "US",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "sort-name": "System of a Down",
+            "type": "Group"
+          },
+          "joinphrase": "",
+          "name": "System of a Down"
+        }
+      ],
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "title": "Steal This Album!",
+      "disambiguation": "",
+      "barcode": "5099751024897",
+      "release-events": [
+        {
+          "date": "2002-11",
+          "area": {
+            "type": null,
+            "sort-name": "Netherlands",
+            "iso-3166-1-codes": [
+              "NL"
+            ],
+            "name": "Netherlands",
+            "type-id": null,
+            "id": "ef1b7cc0-cd26-36f4-8ea0-04d9623786c7",
+            "disambiguation": ""
+          }
+        }
+      ]
+    },
+    {
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "packaging": null,
+      "country": "MX",
+      "date": "2002",
+      "status": "Official",
+      "artist-credit": [
+        {
+          "artist": {
+            "disambiguation": "",
+            "country": "US",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "name": "System of a Down",
+            "sort-name": "System of a Down",
+            "type": "Group"
+          },
+          "joinphrase": "",
+          "name": "System Of A Down"
+        }
+      ],
+      "title": "Steal This Album!",
+      "packaging-id": null,
+      "id": "e1514123-2b3b-44c2-9615-7bb0117afac5",
+      "quality": "normal",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "barcode": "7509951024828",
+      "disambiguation": "",
+      "release-events": [
+        {
+          "area": {
+            "name": "Mexico",
+            "type-id": null,
+            "id": "3e08b2cd-69f3-317c-b1e4-e71be581839e",
+            "disambiguation": "",
+            "type": null,
+            "sort-name": "Mexico",
+            "iso-3166-1-codes": [
+              "MX"
+            ]
+          },
+          "date": "2002"
+        }
+      ]
+    },
+    {
+      "disambiguation": "",
+      "barcode": null,
+      "release-events": [
+        {
+          "date": "2002",
+          "area": {
+            "name": "United States",
+            "type-id": null,
+            "id": "489ce91b-6658-3307-9877-795b68554c98",
+            "disambiguation": "",
+            "type": null,
+            "sort-name": "United States",
+            "iso-3166-1-codes": [
+              "US"
+            ]
+          }
+        }
+      ],
+      "status": "Promotion",
+      "country": "US",
+      "date": "2002",
+      "packaging": "Cardboard/Paper Sleeve",
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "status-id": "518ffc83-5cde-34df-8627-81bff5093d92",
+      "id": "71a150d8-ffa4-3e07-aca8-ee35d02d571c",
+      "quality": "normal",
+      "title": "Steal This Album!",
+      "packaging-id": "f7101ce3-0384-39ce-9fde-fbbd0044d35f",
+      "artist-credit": [
+        {
+          "artist": {
+            "name": "System of a Down",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "disambiguation": "",
+            "country": "US",
+            "type": "Group",
+            "sort-name": "System of a Down"
+          },
+          "name": "System of a Down",
+          "joinphrase": ""
+        }
+      ]
+    },
+    {
+      "disambiguation": "",
+      "barcode": null,
+      "release-events": [
+        {
+          "date": "2002",
+          "area": {
+            "disambiguation": "",
+            "id": "71bbafaa-e825-3e15-8ca9-017dcad1748b",
+            "type-id": null,
+            "name": "Canada",
+            "iso-3166-1-codes": [
+              "CA"
+            ],
+            "sort-name": "Canada",
+            "type": null
+          }
+        }
+      ],
+      "status": "Official",
+      "country": "CA",
+      "date": "2002",
+      "packaging": "Jewel Case",
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "quality": "normal",
+      "id": "d01c61e1-997f-4f73-8818-22c9d996e74d",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "title": "Steal This Album!",
+      "artist-credit": [
+        {
+          "name": "System of a Down",
+          "joinphrase": "",
+          "artist": {
+            "type": "Group",
+            "sort-name": "System of a Down",
+            "name": "System of a Down",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "disambiguation": "",
+            "country": "US"
+          }
+        }
+      ]
+    },
+    {
+      "date": "2002",
+      "country": "RU",
+      "status": "Official",
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "packaging": "Jewel Case",
+      "quality": "normal",
+      "id": "3fe9f5c0-8a4e-450d-a620-a886e0171a16",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "artist-credit": [
+        {
+          "artist": {
+            "disambiguation": "",
+            "country": "US",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "name": "System of a Down",
+            "sort-name": "System of a Down",
+            "type": "Group"
+          },
+          "joinphrase": "",
+          "name": "System of a Down"
+        }
+      ],
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "title": "Steal This Album!",
+      "disambiguation": "",
+      "barcode": "4606817014009",
+      "release-events": [
+        {
+          "area": {
+            "type-id": null,
+            "name": "Russia",
+            "disambiguation": "",
+            "id": "1f1fc3a4-9500-39b8-9f10-f0a465557eef",
+            "sort-name": "Russia",
+            "type": null,
+            "iso-3166-1-codes": [
+              "RU"
+            ]
+          },
+          "date": "2002"
+        }
+      ]
+    },
+    {
+      "barcode": "5099751024828",
+      "disambiguation": "",
+      "release-events": [
+        {
+          "date": "2004-06-07",
+          "area": {
+            "name": "Germany",
+            "type-id": null,
+            "id": "85752fda-13c4-31a3-bee5-0e5cb1f51dad",
+            "disambiguation": "",
+            "type": null,
+            "sort-name": "Germany",
+            "iso-3166-1-codes": [
+              "DE"
+            ]
+          }
+        }
+      ],
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "packaging": "Jewel Case",
+      "country": "DE",
+      "date": "2004-06-07",
+      "status": "Official",
+      "artist-credit": [
+        {
+          "name": "System of a Down",
+          "joinphrase": "",
+          "artist": {
+            "sort-name": "System of a Down",
+            "type": "Group",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "name": "System of a Down",
+            "disambiguation": "",
+            "country": "US",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6"
+          }
+        }
+      ],
+      "title": "Steal This Album!",
+      "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+      "id": "2e9eec60-ee5d-3a26-a650-73287e0f349f",
+      "quality": "normal",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe"
+    },
+    {
+      "status": "Official",
+      "date": "2011",
+      "country": "US",
+      "packaging": "Other",
+      "text-representation": {
+        "script": "Latn",
+        "language": "eng"
+      },
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "id": "6a550c30-5342-4084-973d-132763e3eb43",
+      "quality": "normal",
+      "title": "System of a Down: 5 Album Bundle",
+      "packaging-id": "815b7785-8284-3926-8f04-e48bc6c4d102",
+      "artist-credit": [
+        {
+          "name": "System of a Down",
+          "joinphrase": "",
+          "artist": {
+            "type": "Group",
+            "sort-name": "System of a Down",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "disambiguation": "",
+            "country": "US",
+            "name": "System of a Down",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b"
+          }
+        }
+      ],
+      "disambiguation": "",
+      "barcode": "886979082724",
+      "release-events": [
+        {
+          "area": {
+            "id": "489ce91b-6658-3307-9877-795b68554c98",
+            "disambiguation": "",
+            "name": "United States",
+            "type-id": null,
+            "iso-3166-1-codes": [
+              "US"
+            ],
+            "type": null,
+            "sort-name": "United States"
+          },
+          "date": "2011"
+        }
+      ]
+    },
+    {
+      "release-events": [
+        {
+          "area": {
+            "iso-3166-1-codes": [
+              "XE"
+            ],
+            "type": null,
+            "sort-name": "Europe",
+            "id": "89a675c2-3e37-3518-b83c-418bad59a85a",
+            "disambiguation": "",
+            "name": "Europe",
+            "type-id": null
+          },
+          "date": "2018-10-12"
+        }
+      ],
+      "barcode": "190758656212",
+      "disambiguation": "",
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "name": "System of a Down",
+          "artist": {
+            "sort-name": "System of a Down",
+            "type": "Group",
+            "country": "US",
+            "disambiguation": "",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "name": "System of a Down"
+          }
+        }
+      ],
+      "title": "Steal This Album!",
+      "packaging-id": "e724a489-a7e8-30a1-a17c-30dfd6831202",
+      "id": "8c253171-30c1-4e05-bcac-96d73ee422b5",
+      "quality": "normal",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "packaging": "Gatefold Cover",
+      "date": "2018-10-12",
+      "country": "XE",
+      "status": "Official"
+    },
+    {
+      "disambiguation": "clean",
+      "status": "Official",
+      "barcode": "696998711822",
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "packaging": "None",
+      "quality": "normal",
+      "id": "ddc48125-3f61-4ac2-b474-b399c831ef2c",
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "artist-credit": [
+        {
+          "joinphrase": "",
+          "name": "System of a Down",
+          "artist": {
+            "type": "Group",
+            "sort-name": "System of a Down",
+            "name": "System of a Down",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "country": "US",
+            "disambiguation": ""
+          }
+        }
+      ],
+      "packaging-id": "119eba76-b343-3e02-a292-f0f00644bb9b",
+      "title": "Steal This Album!"
+    },
+    {
+      "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+      "quality": "normal",
+      "id": "dcc5b32e-cd0d-4338-b303-d1e70aa6e592",
+      "packaging-id": "119eba76-b343-3e02-a292-f0f00644bb9b",
+      "title": "Steal This Album!",
+      "artist-credit": [
+        {
+          "artist": {
+            "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+            "disambiguation": "",
+            "country": "US",
+            "name": "System of a Down",
+            "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+            "type": "Group",
+            "sort-name": "System of a Down"
+          },
+          "name": "System of a Down",
+          "joinphrase": ""
+        }
+      ],
+      "status": "Official",
+      "country": "XW",
+      "date": "",
+      "packaging": "None",
+      "text-representation": {
+        "language": "eng",
+        "script": "Latn"
+      },
+      "release-events": [
+        {
+          "area": {
+            "type": null,
+            "sort-name": "[Worldwide]",
+            "iso-3166-1-codes": [
+              "XW"
+            ],
+            "name": "[Worldwide]",
+            "type-id": null,
+            "id": "525d4e18-3d00-31b9-a58b-a146a916de8f",
+            "disambiguation": ""
+          },
+          "date": ""
+        }
+      ],
+      "disambiguation": "",
+      "barcode": "696998706224"
+    }
+  ],
+  "video": false,
+  "id": "abec8ec7-def4-43f9-ae20-307cda57a66a",
+  "title": "Chic ’n’ Stu",
+  "artist-credit": [
+    {
+      "artist": {
+        "disambiguation": "",
+        "country": "US",
+        "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "name": "System of a Down",
+        "sort-name": "System of a Down",
+        "type": "Group"
+      },
+      "name": "System of a Down",
+      "joinphrase": ""
+    }
+  ],
+  "length": 143626
+}

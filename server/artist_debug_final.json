@@ -1,0 +1,26 @@
+[
+  {
+    "id": "84acf0fe-1bcd-4386-9525-0adb156f38e3",
+    "name": "System of a Down",
+    "image_path": "C:\\Users\\denni\\Desktop\\Apps\\MusicMaster\\server\\data\\external_cache\\ext_artist_84acf0fe-1bcd-4386-9525-0adb156f38e3.jpg",
+    "musicbrainz_artist_id": null
+  },
+  {
+    "id": "3158aa60-1225-4a61-8088-6f101d518215",
+    "name": "Andy Wallace",
+    "image_path": "C:\\Users\\denni\\Desktop\\Apps\\MusicMaster\\server\\data\\external_cache\\artist_3158aa60-1225-4a61-8088-6f101d518215.jpg",
+    "musicbrainz_artist_id": null
+  },
+  {
+    "id": "5e5b93a6-adf7-4a9f-98fa-7399c5046b72",
+    "name": "Daron Malakian",
+    "image_path": "C:\\Users\\denni\\Desktop\\Apps\\MusicMaster\\server\\data\\external_cache\\artist_5e5b93a6-adf7-4a9f-98fa-7399c5046b72.jpg",
+    "musicbrainz_artist_id": null
+  },
+  {
+    "id": "89b809d0-1fc9-49b0-b600-07596574b464",
+    "name": "Rick Rubin",
+    "image_path": "C:\\Users\\denni\\Desktop\\Apps\\MusicMaster\\server\\data\\external_cache\\artist_89b809d0-1fc9-49b0-b600-07596574b464.jpg",
+    "musicbrainz_artist_id": null
+  }
+]

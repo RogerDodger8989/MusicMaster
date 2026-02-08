@@ -1,0 +1,100 @@
+﻿--- Applying Verified Data & Enriching ---
+Initializing database at: C:\Users\denni\Desktop\Apps\MusicMaster\server\data\musicmaster.db
+Loading MusicBrainz extended schema (Module 1)...
+Database initialized successfully
+Updating album "Steal This Album!" with verified MBID: 2e9eec60-ee5d-3a26-a650-73287e0f349f
+Working with Album ID: 00cb5348-5894-493c-89a9-007786643e2d
+Fetching verified release details...
+[MusicBrainz] Looking up release: 2e9eec60-ee5d-3a26-a650-73287e0f349f
+Fetched release: Steal This Album!
+Saving album credits...
+Extracted roles from release: {
+  "mix": [
+    {
+      "name": "Andy Wallace",
+      "mbid": "05f87a3d-df77-42a0-b004-f1990b609dd5"
+    }
+  ],
+  "producer": [
+    {
+      "name": "Daron Malakian",
+      "mbid": "42ba45d2-4938-4bf5-9121-5caffc719c4d"
+    },
+    {
+      "name": "Rick Rubin",
+      "mbid": "07aebfa0-55d6-47e0-a284-12330e3eae0d"
+    }
+  ]
+}
+Found 2 unique roles on release.
+  Adding Album Credit: Andy Wallace as mix
+  Fetching image for Andy Wallace...
+  Γ£à Saved image for Andy Wallace: C:\Users\denni\Desktop\Apps\MusicMaster\server\data\external_cache\artist_3158aa60-1225-4a61-8088-6f101d518215.jpg
+[Database] Added album credit to album 00cb5348-5894-493c-89a9-007786643e2d: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Adding Album Credit: Daron Malakian as producer
+  Fetching image for Daron Malakian...
+  Γ£à Saved image for Daron Malakian: C:\Users\denni\Desktop\Apps\MusicMaster\server\data\external_cache\artist_5e5b93a6-adf7-4a9f-98fa-7399c5046b72.jpg
+[Database] Added album credit to album 00cb5348-5894-493c-89a9-007786643e2d: Artist 5e5b93a6-adf7-4a9f-98fa-7399c5046b72 as producer
+  Adding Album Credit: Rick Rubin as producer
+  Fetching image for Rick Rubin...
+  Γ£à Saved image for Rick Rubin: C:\Users\denni\Desktop\Apps\MusicMaster\server\data\external_cache\artist_89b809d0-1fc9-49b0-b600-07596574b464.jpg
+[Database] Added album credit to album 00cb5348-5894-493c-89a9-007786643e2d: Artist 89b809d0-1fc9-49b0-b600-07596574b464 as producer
+Processing 16 tracks with verified mappings...
+  Enriching track: Chic ΓÇÖnΓÇÖ Stu (abec8ec7-def4-43f9-ae20-307cda57a66a)
+[MusicBrainz] Looking up recording: abec8ec7-def4-43f9-ae20-307cda57a66a
+[Database] Added performer to track a65c744c-e040-49be-99e8-60afc2aed4a2: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: Innervision (6c682506-ff4f-49bd-9378-afb1ffc298be)
+[MusicBrainz] Looking up recording: 6c682506-ff4f-49bd-9378-afb1ffc298be
+[Database] Added performer to track 09e9c207-aa43-4ba2-9e9e-eb41818d6439: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: Bubbles (ef3fe014-e0fc-4cc1-89a8-a315abfbe562)
+[MusicBrainz] Looking up recording: ef3fe014-e0fc-4cc1-89a8-a315abfbe562
+[Database] Added performer to track ed354228-e005-466a-904c-f95aa1395314: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: Boom! (17623b39-ec09-4f57-8ee4-859adbe02eca)
+[MusicBrainz] Looking up recording: 17623b39-ec09-4f57-8ee4-859adbe02eca
+[Database] Added performer to track 863693f7-fcfb-4287-a7ab-a0faf27556b8: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: N├╝guns (59fd9ca4-6b79-4531-9307-e19ca4bbf983)
+[MusicBrainz] Looking up recording: 59fd9ca4-6b79-4531-9307-e19ca4bbf983
+[Database] Added performer to track b9b7f0ff-ec3f-4a47-8ae9-404b2810248a: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+node.exe :   No verified MBID found for track: A.D.D.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/n
+ode_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~
+    + CategoryInfo          : NotSpecified: (  No verified M...r 
+trac    k: A.D.D.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Enriching track: Mr. Jack (51de9aee-39d2-4c36-a66e-85dbcce0f865)
+[MusicBrainz] Looking up recording: 51de9aee-39d2-4c36-a66e-85dbcce0f865
+[Database] Added performer to track baf5316c-937d-4fce-87a8-ad7b24ec0200: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: IΓÇÉEΓÇÉAΓÇÉIΓÇÉAΓÇÉIΓÇÉO (2f410dcf-19ba-4858-9ea1-8b8ccd9dd749)
+[MusicBrainz] Looking up recording: 2f410dcf-19ba-4858-9ea1-8b8ccd9dd749
+[Database] Added performer to track bb94951c-e0c6-469c-bd5c-e1c3d56dac87: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: 36 (3e52e34b-e1b2-46c8-82c2-11c89ff2b9f0)
+[MusicBrainz] Looking up recording: 3e52e34b-e1b2-46c8-82c2-11c89ff2b9f0
+[Database] Added performer to track 4b1dfc9f-58e7-4fa5-85be-13531c684915: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: Pictures (e9e28ade-ebfb-43b4-968c-fcce3fd64080)
+[MusicBrainz] Looking up recording: e9e28ade-ebfb-43b4-968c-fcce3fd64080
+[Database] Added performer to track eebd2de4-19a7-4da4-bf19-61ada144e82b: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: Highway Song (fdd307f7-d3cd-4815-ae93-5c9132a4a509)
+[MusicBrainz] Looking up recording: fdd307f7-d3cd-4815-ae93-5c9132a4a509
+[Database] Added performer to track 2a1c4a51-adbe-419e-9321-4a54ba6597b6: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: Fuck the System (af66cae3-fa8d-41a0-b266-6a03a7732b79)
+[MusicBrainz] Looking up recording: af66cae3-fa8d-41a0-b266-6a03a7732b79
+[Database] Added performer to track 045e9a9b-303b-41b9-924f-919e29be3524: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: Ego Brain (ba608f66-8139-46ba-a4e1-7b15d437be4e)
+[MusicBrainz] Looking up recording: ba608f66-8139-46ba-a4e1-7b15d437be4e
+[Database] Added performer to track d844c69a-5ce8-45bc-a4aa-f6515676ef28: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: Thetawaves (ac737987-dcf6-482a-9ebb-28600a4165f1)
+[MusicBrainz] Looking up recording: ac737987-dcf6-482a-9ebb-28600a4165f1
+[Database] Added performer to track 1a8e0ca8-a28e-4724-a4a6-1bcad2a5ec69: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: Roulette (99d13135-476d-45d8-911c-40b0a1f6b37a)
+[MusicBrainz] Looking up recording: 99d13135-476d-45d8-911c-40b0a1f6b37a
+[Database] Added performer to track 238e7bf9-6eb3-4ade-aef2-57f92a00bccc: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+  Enriching track: Streamline (9a21f281-e36d-4a49-ac58-07e04d36a12b)
+[MusicBrainz] Looking up recording: 9a21f281-e36d-4a49-ac58-07e04d36a12b
+[Database] Added performer to track 1dffa04a-917b-4a15-ba8e-484ba200e15d: Artist 3158aa60-1225-4a61-8088-6f101d518215 as mix
+[Database] Added performer to track 1dffa04a-917b-4a15-ba8e-484ba200e15d: Artist 89b809d0-1fc9-49b0-b600-07596574b464 as producer
+--- Enrichment Complete! ---
+Final Database Stats: Performers=16, AlbumCredits=3

@@ -8,6 +8,7 @@ export interface MusicClient {
   // Albums
   getAlbums(sort?: string, genre?: string): Promise<Album[]>
   getAlbum(id: string): Promise<Album | null>
+  getAlbumPerformers(id: string): Promise<any[]>
   updateAlbum(id: string, updates: Partial<Album>): Promise<void>
   getGenres(): Promise<{ genre: string; count: number }[]>
 
@@ -86,6 +87,8 @@ export interface MusicClient {
   searchMetadata(artist: string, title?: string, album?: string): Promise<any[]>
   searchAlbums(artist: string, album: string): Promise<any[]>
   getArtistDetails(id: string): Promise<any>
+  getArtistMembers(id: string): Promise<any[]>
+  updateArtist(id: string, updates: any): Promise<void>
   getCandidates(trackId: string): Promise<{ candidates: any[] }>
   applyCandidate(trackId: string, candidate: any, options: { writeToFile: boolean; selectedFields?: string[] }): Promise<void>
   tagAlbumMetadata(albumId: string, mbAlbumId: string): Promise<number>
@@ -121,6 +124,10 @@ export class DomClient implements MusicClient {
     return this.api.albums.getById(id)
   }
 
+  async getAlbumPerformers(_id: string): Promise<any[]> {
+    return []
+  }
+
   async updateAlbum(id: string, updates: Partial<Album>): Promise<void> {
     if (updates.rating !== undefined) await this.api.albums.updateRating(id, updates.rating)
     if (updates.loved !== undefined) await this.api.albums.updateLoved(id, updates.loved)
@@ -139,9 +146,7 @@ export class DomClient implements MusicClient {
   }
 
   async updateArtist(id: string, updates: Partial<Artist>): Promise<void> {
-    if (this.api.artists.update) {
-      return this.api.artists.update(id, updates)
-    }
+    return this.api.artists.update(id, updates)
   }
 
   async getTracks(filter?: {
@@ -282,6 +287,14 @@ export class DomClient implements MusicClient {
     }
     return {}
   }
+
+  async getArtistMembers(id: string): Promise<any[]> {
+    if (this.api.artists && this.api.artists.getMembers) {
+      return this.api.artists.getMembers(id)
+    }
+    return []
+  }
+
   async getCandidates(trackId: string): Promise<{ candidates: any[] }> {
     if (this.api.musicbrainz && this.api.musicbrainz.getCandidates) {
       return this.api.musicbrainz.getCandidates(trackId)
@@ -368,6 +381,10 @@ export class RestClient implements MusicClient {
     return this.req<Album>(`/api/albums/${id}`)
   }
 
+  async getAlbumPerformers(id: string): Promise<any[]> {
+    return this.req<any[]>(`/api/albums/${id}/performers`)
+  }
+
   async updateAlbum(id: string, updates: Partial<Album>): Promise<void> {
     await this.req(`/api/albums/${id}`, { method: 'PUT', body: JSON.stringify(updates) })
   }
@@ -384,9 +401,6 @@ export class RestClient implements MusicClient {
     return this.req<Artist>(`/api/artists/${id}`)
   }
 
-  async updateArtist(id: string, updates: Partial<Artist>): Promise<void> {
-    await this.req(`/api/artists/${id}`, { method: 'PUT', body: JSON.stringify(updates) })
-  }
 
   async getTracks(filter?: {
     folderId?: string
@@ -606,6 +620,18 @@ export class RestClient implements MusicClient {
 
   async getArtistDetails(id: string): Promise<any> {
     return this.req<any>(`/api/metadata/artist/${id}`)
+  }
+
+  async getArtistMembers(id: string): Promise<any[]> {
+    return this.req<any[]>(`/api/artists/${id}/members`)
+  }
+
+  async updateArtist(id: string, updates: any): Promise<void> {
+    await this.req<any>(`/api/artists/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+      headers: { 'Content-Type': 'application/json' }
+    })
   }
 
   async getCandidates(trackId: string): Promise<{ candidates: any[] }> {

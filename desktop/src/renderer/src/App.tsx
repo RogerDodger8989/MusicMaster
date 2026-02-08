@@ -355,6 +355,7 @@ function App(): React.JSX.Element {
             artistName={viewParams?.artistName}
             onBack={() => goBack()}
             onAlbumClick={(id) => navigateTo('album-detail', { albumId: id })}
+            onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
           />
         )
       case 'home':

@@ -2,6 +2,8 @@ import { Request, Response } from 'express'
 import {
     getTrackById,
     getTracksByFolder,
+    getTracksByAlbum,
+    getAllTracks,
     updateTrackRating,
     updateTrackLoved,
     updateTrackPlayCount,
@@ -48,16 +50,10 @@ export const listTracks = (req: Request, res: Response) => {
         } else if (albumId) {
             const album = db.prepare('SELECT name, artist FROM albums_cache WHERE id = ?').get(String(albumId)) as any
             if (album) {
-                const rows = db.prepare(`
-                    SELECT * FROM tracks 
-                    WHERE album = ? AND (album_artist = ? OR artist = ?)
-                    ORDER BY disc_num, track_num
-                 `).all(album.name, album.artist, album.artist) as any[]
-                tracks = rows.map(dbTrackToTrack)
+                tracks = getTracksByAlbum(album.name, album.artist)
             }
         } else {
-            const rows = db.prepare('SELECT * FROM tracks LIMIT 50').all() as any[]
-            tracks = rows.map(dbTrackToTrack)
+            tracks = getAllTracks()
         }
 
         res.json(tracks)

@@ -8,6 +8,18 @@ import {
     updateAlbumLoved,
     getAllGenres
 } from '../../database/albums'
+import { getAlbumPerformers as fetchMBPerformers } from '../../database/musicbrainz'
+
+export const getAlbumPerformers = (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string
+        const performers = fetchMBPerformers(id)
+        res.json(performers)
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to fetch album performers' })
+    }
+}
 
 export const listAlbums = (req: Request, res: Response) => {
     try {

@@ -1,0 +1,4 @@
+{
+  "help": "For usage, please see: https://musicbrainz.org/development/mmd",
+  "error": "vocal-rels is not a valid inc parameter for the recording resource."
+}

@@ -1,0 +1,149 @@
+﻿--- Applying Verified Data & Enriching ---
+Initializing database at: C:\Users\denni\Desktop\Apps\MusicMaster\server\data\musicmaster.db
+Loading MusicBrainz extended schema (Module 1)...
+Database initialized successfully
+Updating album "Steal This Album!" with verified MBID: 2e9eec60-ee5d-3a26-a650-73287e0f349f
+Working with Album ID: c5080b0b-f3c5-48ff-a9ad-17eacb4fdd32
+Fetching verified release details...
+[MusicBrainz] Looking up release: 2e9eec60-ee5d-3a26-a650-73287e0f349f
+Fetched release: Steal This Album!
+Saving album credits...
+[MusicBrainz] extractRoles: processing 5 relations
+Extracted roles from release: {
+  "mix": [
+    {
+      "name": "Andy Wallace",
+      "mbid": "05f87a3d-df77-42a0-b004-f1990b609dd5"
+    }
+  ],
+  "producer": [
+    {
+      "name": "Daron Malakian",
+      "mbid": "42ba45d2-4938-4bf5-9121-5caffc719c4d"
+    },
+    {
+      "name": "Rick Rubin",
+      "mbid": "07aebfa0-55d6-47e0-a284-12330e3eae0d"
+    }
+  ]
+}
+Found 2 unique roles on release.
+  Adding Album Credit: Andy Wallace as mix
+node.exe : [Database] Failed to add album credit: SqliteError: FO
+REIGN KEY constraint failed
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/n
+ode_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~
+    + CategoryInfo          : NotSpecified: ([Database] Fail...n 
+   straint failed:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    at addAlbumCredit (C:\Users\denni\Desktop\Apps\MusicMaster\se
+rver\src\database\musicbrainz.ts:660:12)
+    at main (C:\Users\denni\Desktop\Apps\MusicMaster\server\apply
+_and_enrich.js:39:13)
+    at processTicksAndRejections (node:internal/process/task_queu
+es:103:5) {
+  code: 'SQLITE_CONSTRAINT_FOREIGNKEY'
+} {
+  albumId: 'c5080b0b-f3c5-48ff-a9ad-17eacb4fdd32',
+  artistId: '179f00ba-735f-4bfb-a2e4-41abd0b78435',
+  role: 'mix'
+}
+  Adding Album Credit: Daron Malakian as producer
+[Database] Failed to add album credit: SqliteError: FOREIGN KEY c
+onstraint failed
+    at addAlbumCredit (C:\Users\denni\Desktop\Apps\MusicMaster\se
+rver\src\database\musicbrainz.ts:660:12)
+    at main (C:\Users\denni\Desktop\Apps\MusicMaster\server\apply
+_and_enrich.js:39:13)
+    at processTicksAndRejections (node:internal/process/task_queu
+es:103:5) {
+  code: 'SQLITE_CONSTRAINT_FOREIGNKEY'
+} {
+  albumId: 'c5080b0b-f3c5-48ff-a9ad-17eacb4fdd32',
+  artistId: '57fb031d-8476-4f0f-b111-8ea30b287c11',
+  role: 'producer'
+}
+  Adding Album Credit: Rick Rubin as producer
+[Database] Failed to add album credit: SqliteError: FOREIGN KEY c
+onstraint failed
+    at addAlbumCredit (C:\Users\denni\Desktop\Apps\MusicMaster\se
+rver\src\database\musicbrainz.ts:660:12)
+    at main (C:\Users\denni\Desktop\Apps\MusicMaster\server\apply
+_and_enrich.js:39:13)
+    at processTicksAndRejections (node:internal/process/task_queu
+es:103:5) {
+  code: 'SQLITE_CONSTRAINT_FOREIGNKEY'
+} {
+  albumId: 'c5080b0b-f3c5-48ff-a9ad-17eacb4fdd32',
+  artistId: '4f1c2ce7-931d-425d-881a-5805b72717c5',
+  role: 'producer'
+}
+Processing 16 tracks with verified mappings...
+  Enriching track: Chic ΓÇÖnΓÇÖ Stu (abec8ec7-def4-43f9-ae20-307cda57a66a)
+[MusicBrainz] Looking up recording: abec8ec7-def4-43f9-ae20-307cda57a66a
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track a65c744c-e040-49be-99e8-60afc2aed4a2: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: Innervision (6c682506-ff4f-49bd-9378-afb1ffc298be)
+[MusicBrainz] Looking up recording: 6c682506-ff4f-49bd-9378-afb1ffc298be
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track 09e9c207-aa43-4ba2-9e9e-eb41818d6439: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: Bubbles (ef3fe014-e0fc-4cc1-89a8-a315abfbe562)
+[MusicBrainz] Looking up recording: ef3fe014-e0fc-4cc1-89a8-a315abfbe562
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track ed354228-e005-466a-904c-f95aa1395314: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: Boom! (17623b39-ec09-4f57-8ee4-859adbe02eca)
+[MusicBrainz] Looking up recording: 17623b39-ec09-4f57-8ee4-859adbe02eca
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track 863693f7-fcfb-4287-a7ab-a0faf27556b8: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: N├╝guns (59fd9ca4-6b79-4531-9307-e19ca4bbf983)
+[MusicBrainz] Looking up recording: 59fd9ca4-6b79-4531-9307-e19ca4bbf983
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track b9b7f0ff-ec3f-4a47-8ae9-404b2810248a: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  No verified MBID found for track: A.D.D.
+  Enriching track: Mr. Jack (51de9aee-39d2-4c36-a66e-85dbcce0f865)
+[MusicBrainz] Looking up recording: 51de9aee-39d2-4c36-a66e-85dbcce0f865
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track baf5316c-937d-4fce-87a8-ad7b24ec0200: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: IΓÇÉEΓÇÉAΓÇÉIΓÇÉAΓÇÉIΓÇÉO (2f410dcf-19ba-4858-9ea1-8b8ccd9dd749)
+[MusicBrainz] Looking up recording: 2f410dcf-19ba-4858-9ea1-8b8ccd9dd749
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track bb94951c-e0c6-469c-bd5c-e1c3d56dac87: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: 36 (3e52e34b-e1b2-46c8-82c2-11c89ff2b9f0)
+[MusicBrainz] Looking up recording: 3e52e34b-e1b2-46c8-82c2-11c89ff2b9f0
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track 4b1dfc9f-58e7-4fa5-85be-13531c684915: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: Pictures (e9e28ade-ebfb-43b4-968c-fcce3fd64080)
+[MusicBrainz] Looking up recording: e9e28ade-ebfb-43b4-968c-fcce3fd64080
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track eebd2de4-19a7-4da4-bf19-61ada144e82b: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: Highway Song (fdd307f7-d3cd-4815-ae93-5c9132a4a509)
+[MusicBrainz] Looking up recording: fdd307f7-d3cd-4815-ae93-5c9132a4a509
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track 2a1c4a51-adbe-419e-9321-4a54ba6597b6: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: Fuck the System (af66cae3-fa8d-41a0-b266-6a03a7732b79)
+[MusicBrainz] Looking up recording: af66cae3-fa8d-41a0-b266-6a03a7732b79
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track 045e9a9b-303b-41b9-924f-919e29be3524: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: Ego Brain (ba608f66-8139-46ba-a4e1-7b15d437be4e)
+[MusicBrainz] Looking up recording: ba608f66-8139-46ba-a4e1-7b15d437be4e
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track d844c69a-5ce8-45bc-a4aa-f6515676ef28: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: Thetawaves (ac737987-dcf6-482a-9ebb-28600a4165f1)
+[MusicBrainz] Looking up recording: ac737987-dcf6-482a-9ebb-28600a4165f1
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track 1a8e0ca8-a28e-4724-a4a6-1bcad2a5ec69: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: Roulette (99d13135-476d-45d8-911c-40b0a1f6b37a)
+[MusicBrainz] Looking up recording: 99d13135-476d-45d8-911c-40b0a1f6b37a
+[MusicBrainz] extractRoles: processing 3 relations
+[Database] Added performer to track 238e7bf9-6eb3-4ade-aef2-57f92a00bccc: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+  Enriching track: Streamline (9a21f281-e36d-4a49-ac58-07e04d36a12b)
+[MusicBrainz] Looking up recording: 9a21f281-e36d-4a49-ac58-07e04d36a12b
+[MusicBrainz] extractRoles: processing 4 relations
+[Database] Added performer to track 1dffa04a-917b-4a15-ba8e-484ba200e15d: Artist 179f00ba-735f-4bfb-a2e4-41abd0b78435 as mix
+[Database] Added performer to track 1dffa04a-917b-4a15-ba8e-484ba200e15d: Artist 4f1c2ce7-931d-425d-881a-5805b72717c5 as producer
+--- Enrichment Complete! ---
+Final Database Stats: Performers=16, AlbumCredits=0

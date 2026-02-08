@@ -32,8 +32,23 @@ export interface Track {
   replayGainAlbum?: number
   replayGainTrackPeak?: number
   replayGainAlbumPeak?: number
+
+  // Audio Analysis (AcousticBrainz)
+  bpm?: number
+  key?: string
+  moodAcoustic?: number
+  moodAggressive?: number
+  moodElectronic?: number
+  moodHappy?: number
+  moodSad?: number
+  moodRelaxed?: number
+  moodParty?: number
+  energy?: number
+  danceability?: number
+
   createdAt: Date
   updatedAt: Date
+  performers?: Array<{ name: string; role: string; id: string }>
 }
 
 export interface Album {
@@ -52,6 +67,13 @@ export interface Album {
   lastPlayed?: Date
   releaseDate?: string
   musicbrainzAlbumId?: string
+  label?: string
+  country?: string
+  catalogNumber?: string
+  barcode?: string
+  albumType?: string
+  status?: string
+  enrichedAt?: Date
   bio?: string
   createdAt: Date
   updatedAt: Date

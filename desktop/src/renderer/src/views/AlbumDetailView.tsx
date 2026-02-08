@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLibrary } from '../store/library'
 import { useNavigation } from '../store/navigation'
 import { usePlayer } from '../store/player'
-import { ArrowLeft, Play, Clock, Heart, Calendar, Hash, Music as MusicIcon, X } from 'lucide-react'
+import { ArrowLeft, Play, Clock, Heart, Calendar, Hash, Music as MusicIcon, X, Users } from 'lucide-react'
 import { RatingStars } from '../components/RatingStars'
 import { formatDuration } from '../utils/format'
 import { cn } from '../utils'
@@ -33,29 +33,35 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
   const [isZoomed, setIsZoomed] = useState(false)
   const [isBioExpanded, setIsBioExpanded] = useState(false)
   const [enrichedAlbum, setEnrichedAlbum] = useState<Album | null>(null)
+  const [performers, setPerformers] = useState<any[]>([])
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [albumContextMenu, setAlbumContextMenu] = useState<{
     album: Album
     x: number
     y: number
   } | null>(null)
+  const [showOnlyPerformers, setShowOnlyPerformers] = useState(true)
   const { position, handleMouseDown } = useDraggable()
 
   // Find album
   const storeAlbum = useMemo(() => albums.find((a) => a.id === albumId), [albums, albumId])
   const album = enrichedAlbum || storeAlbum
 
-  // Fetch full album details (including bio) on mount
+  // Fetch full album details and performers
   useEffect(() => {
-    const fetchFullAlbum = async () => {
+    const fetchData = async () => {
       try {
-        const data = await client.getAlbum(albumId)
-        if (data) setEnrichedAlbum(data)
+        const [albumData, performersData] = await Promise.all([
+          client.getAlbum(albumId),
+          client.getAlbumPerformers(albumId)
+        ])
+        if (albumData) setEnrichedAlbum(albumData)
+        if (performersData) setPerformers(performersData)
       } catch (err) {
-        console.error('Failed to fetch enriched album:', err)
+        console.error('Failed to fetch album details/performers:', err)
       }
     }
-    fetchFullAlbum()
+    fetchData()
   }, [albumId])
 
   // Find tracks for this album
@@ -286,6 +292,85 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
             </div>
           )}
 
+          {/* Performers & Credits */}
+          {performers.length > 0 && (
+            <div className="mb-8 space-y-6 animate-in fade-in slide-in-from-top-2 duration-1000 delay-200">
+              <div className="flex items-center justify-between border-b border-border/5 pb-2">
+                <h3 className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.2em] flex items-center gap-2">
+                  <Users size={12} strokeWidth={2.5} />
+                  Credits
+                </h3>
+                <label className="flex items-center gap-2 group cursor-pointer select-none">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={showOnlyPerformers}
+                      onChange={(e) => setShowOnlyPerformers(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-7 h-4 bg-muted-foreground/10 rounded-full peer peer-checked:bg-primary/40 transition-colors" />
+                    <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-muted-foreground/40 rounded-full peer-checked:translate-x-3 peer-checked:bg-primary transition-all duration-300" />
+                  </div>
+                  <span className="text-[10px] font-bold text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors uppercase tracking-widest">
+                    Only Performers
+                  </span>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6">
+                {(() => {
+                  // Categorize roles
+                  const categorized = performers.reduce((acc: any, p) => {
+                    const role = p.role?.toLowerCase() || ''
+                    const isProduction = role.includes('producer') ||
+                      role.includes('engineer') ||
+                      role.includes('mix') ||
+                      role.includes('master') ||
+                      role.includes('director') ||
+                      role.includes('conductor') ||
+                      role.includes('arranger') ||
+                      role.includes('coordinator') ||
+                      role.includes('design') ||
+                      role.includes('photography') ||
+                      role.includes('art') ||
+                      role.includes('technician') ||
+                      role.includes('editor') ||
+                      role.includes('management') ||
+                      role.includes('legal') ||
+                      role.includes('publisher')
+
+                    if (showOnlyPerformers && isProduction) return acc
+
+                    const artistName = p.artist_name
+                    if (!acc[artistName]) {
+                      acc[artistName] = {
+                        name: artistName,
+                        roles: new Set(),
+                        isProduction
+                      }
+                    }
+                    acc[artistName].roles.add(p.role)
+                    return acc
+                  }, {})
+
+                  return Object.values(categorized).map((artist: any) => (
+                    <div key={artist.name} className="flex flex-col gap-0.5 group/credit">
+                      <button
+                        onClick={() => navigateTo('artist-detail', { artistName: artist.name })}
+                        className="text-[14px] font-semibold text-zinc-200 group-hover/credit:text-primary transition-colors text-left"
+                      >
+                        {artist.name}
+                      </button>
+                      <div className="text-[11px] text-muted-foreground/60 leading-tight">
+                        {Array.from(artist.roles).join(', ')}
+                      </div>
+                    </div>
+                  ))
+                })()}
+              </div>
+            </div>
+          )}
+
           {/* Track List */}
           <div className="mb-10">
             {/* Header */}
@@ -382,17 +467,22 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                       >
                         {track.title}
                       </div>
-                      {track.artist && (
-                        <div
-                          className="text-[11px] text-muted-foreground/60 truncate hover:text-primary/80 cursor-pointer inline-block transition-colors"
+                      <div className="flex items-center gap-2 truncate">
+                        <span
+                          className="text-[11px] text-muted-foreground/60 hover:text-primary/80 cursor-pointer transition-colors"
                           onClick={(e) => {
                             e.stopPropagation()
                             navigateTo('artist-detail', { artistName: track.artist })
                           }}
                         >
                           {track.artist}
-                        </div>
-                      )}
+                        </span>
+                        {(track.bpm || track.key) && (
+                          <span className="text-[10px] text-muted-foreground/30 font-light tabular-nums">
+                            • {[track.bpm && `${Math.round(track.bpm)} BPM`, track.key].filter(Boolean).join(' • ')}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="text-right text-xs text-muted-foreground/60 font-medium tabular-nums">

@@ -58,3 +58,15 @@ Found: 0 artists, 0 albums, 1 tracks
 --- SEARCH START: "chi" (Normalized: "chi") ---
 DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
 Found: 0 artists, 0 albums, 1 tracks
+
+--- SEARCH START: "an" (Normalized: "an") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 2 artists, 0 albums, 0 tracks
+
+--- SEARCH START: "and" (Normalized: "and") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 0 albums, 0 tracks
+
+--- SEARCH START: "andy" (Normalized: "andy") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 0 albums, 0 tracks

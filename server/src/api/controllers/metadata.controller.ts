@@ -56,6 +56,9 @@ export const getMusicBrainzDetails = async (req: Request, res: Response) => {
         } else if (type === 'recording') {
             const details = await musicBrainzService.getRecordingDetails(id)
             res.json({ details })
+        } else if (type === 'artist') {
+            const details = await musicBrainzService.getArtistDetails(id)
+            res.json({ details })
         } else {
             res.status(400).json({ error: 'Invalid entity type' })
         }
@@ -65,6 +68,19 @@ export const getMusicBrainzDetails = async (req: Request, res: Response) => {
         } else {
             res.status(500).json({ error: 'An unknown error occurred' })
         }
+    }
+}
+
+export const getArtistDetails = async (req: Request, res: Response) => {
+    const id = req.params.id as string
+    try {
+        const details = await musicBrainzService.getArtistDetails(id)
+        if (!details) {
+            return res.status(404).json({ error: 'Artist not found' })
+        }
+        res.json(details)
+    } catch (error: any) {
+        res.status(500).json({ error: error.message })
     }
 }
 

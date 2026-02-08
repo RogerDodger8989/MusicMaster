@@ -49,6 +49,7 @@ interface LibraryStore {
   toggleLoved: (trackId: string) => Promise<void>
   toggleAlbumLoved: (albumId: string) => Promise<void>
   toggleArtistLoved: (artistId: string) => Promise<void>
+  updateArtist: (artistId: string, updates: Partial<Artist>) => Promise<void>
   reanalyzeLibrary: () => Promise<void>
   setScanProgress: (progress: ScanProgress) => void
   updateTrack: (trackId: string, updates: Partial<Track>) => void
@@ -231,6 +232,19 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
       await client.toggleArtistLoved(artistId, newLoved)
     } catch (error) {
       console.error('Failed to toggle artist loved:', error)
+    }
+  },
+
+  updateArtist: async (artistId, updates) => {
+    try {
+      // Optimistic update
+      set((state) => ({
+        artists: state.artists.map((a) => (a.id === artistId ? { ...a, ...updates } : a))
+      }))
+
+      await client.updateArtist(artistId, updates)
+    } catch (error) {
+      console.error('Failed to update artist:', error)
     }
   },
 

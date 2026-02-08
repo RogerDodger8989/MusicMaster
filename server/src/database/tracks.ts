@@ -144,13 +144,57 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
 }
 
 /**
+ * Helper to attach performers to tracks
+ */
+function attachPerformers(tracks: Track[]): Track[] {
+    const db = getDatabase()
+    const trackIds = tracks.map(t => t.id)
+
+    if (trackIds.length === 0) return tracks
+
+    // Fetch all performers for these tracks
+    // distinct roles per artist per track
+    const performers = db.prepare(`
+        SELECT p.track_id, a.name, a.id as artist_id, p.role 
+        FROM performers p 
+        JOIN artists a ON p.artist_id = a.id
+    `).all() as any[]
+
+    // Group by track_id
+    const performersMap = new Map<string, Array<{ name: string, role: string, id: string }>>()
+
+    for (const p of performers) {
+        if (!performersMap.has(p.track_id)) {
+            performersMap.set(p.track_id, [])
+        }
+        performersMap.get(p.track_id)?.push({
+            name: p.name,
+            role: p.role,
+            id: p.artist_id
+        })
+    }
+
+    // Attach to tracks
+    return tracks.map(t => ({
+        ...t,
+        performers: performersMap.get(t.id) || []
+    }))
+}
+
+/**
  * Get all tracks
  */
 export function getAllTracks(): Track[] {
     const db = getDatabase()
-    const stmt = db.prepare('SELECT * FROM tracks ORDER BY artist, album, disc_num, track_num')
-    const rows = stmt.all() as DbTrack[]
-    return rows.map(dbTrackToTrack)
+    const stmt = db.prepare(`
+        SELECT t.*, ac.id as album_id 
+        FROM tracks t
+        LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
+        ORDER BY t.artist, t.album, t.disc_num, t.track_num
+    `)
+    const rows = stmt.all() as (DbTrack & { album_id?: string })[]
+    const tracks = rows.map(dbTrackToTrack)
+    return attachPerformers(tracks)
 }
 
 /**
@@ -158,9 +202,16 @@ export function getAllTracks(): Track[] {
  */
 export function getTracksByFolder(folderId: string): Track[] {
     const db = getDatabase()
-    const stmt = db.prepare('SELECT * FROM tracks WHERE folder_id = ? ORDER BY artist, album, disc_num, track_num')
-    const rows = stmt.all(folderId) as DbTrack[]
-    return rows.map(dbTrackToTrack)
+    const stmt = db.prepare(`
+        SELECT t.*, ac.id as album_id 
+        FROM tracks t
+        LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
+        WHERE t.folder_id = ? 
+        ORDER BY t.artist, t.album, t.disc_num, t.track_num
+    `)
+    const rows = stmt.all(folderId) as (DbTrack & { album_id?: string })[]
+    const tracks = rows.map(dbTrackToTrack)
+    return attachPerformers(tracks)
 }
 
 /**
@@ -178,13 +229,16 @@ export function deleteTrackByPath(filePath: string): void {
 export function getTracksByAlbum(name: string, artist: string): Track[] {
     const db = getDatabase()
     const stmt = db.prepare(`
-        SELECT * FROM tracks 
-        WHERE COALESCE(NULLIF(album, ''), 'Unknown Album') = ? 
-        AND COALESCE(album_artist, artist, 'Unknown Artist') = ?
-        ORDER BY disc_num, track_num
+        SELECT t.*, ac.id as album_id 
+        FROM tracks t 
+        LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
+        WHERE COALESCE(NULLIF(t.album, ''), 'Unknown Album') = ? 
+        AND COALESCE(t.album_artist, t.artist, 'Unknown Artist') = ?
+        ORDER BY t.disc_num, t.track_num
     `)
-    const rows = stmt.all(name, artist) as DbTrack[]
-    return rows.map(dbTrackToTrack)
+    const rows = stmt.all(name, artist) as (DbTrack & { album_id?: string })[]
+    const tracks = rows.map(dbTrackToTrack)
+    return attachPerformers(tracks)
 }
 
 /**
@@ -192,8 +246,13 @@ export function getTracksByAlbum(name: string, artist: string): Track[] {
  */
 export function getTrackById(id: string): Track | null {
     const db = getDatabase()
-    const stmt = db.prepare('SELECT * FROM tracks WHERE id = ?')
-    const row = stmt.get(id) as DbTrack | undefined
+    const stmt = db.prepare(`
+        SELECT t.*, ac.id as album_id
+        FROM tracks t
+        LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
+        WHERE t.id = ?
+    `)
+    const row = stmt.get(id) as (DbTrack & { album_id?: string }) | undefined
     return row ? dbTrackToTrack(row) : null
 }
 
@@ -202,8 +261,13 @@ export function getTrackById(id: string): Track | null {
  */
 export function getTrackByPath(filePath: string): Track | null {
     const db = getDatabase()
-    const stmt = db.prepare('SELECT * FROM tracks WHERE file_path = ?')
-    const row = stmt.get(filePath) as DbTrack | undefined
+    const stmt = db.prepare(`
+        SELECT t.*, ac.id as album_id
+        FROM tracks t
+        LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
+        WHERE t.file_path = ?
+    `)
+    const row = stmt.get(filePath) as (DbTrack & { album_id?: string }) | undefined
     return row ? dbTrackToTrack(row) : null
 }
 
@@ -292,6 +356,7 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
         musicbrainzRecordingId: dbTrack.musicbrainz_recording_id || undefined,
         musicbrainzReleaseGroupId: dbTrack.musicbrainz_release_group_id || undefined,
         musicbrainzWorkId: dbTrack.musicbrainz_work_id || undefined,
+        albumId: (dbTrack as any).album_id, // Joined from albums_cache
         replayGainTrack: dbTrack.replaygain_track_gain || undefined,
         replayGainAlbum: dbTrack.replaygain_album_gain || undefined,
         replayGainTrackPeak: dbTrack.replaygain_track_peak || undefined,

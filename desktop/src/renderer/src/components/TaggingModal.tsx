@@ -175,18 +175,18 @@ export default function TaggingModal({
                     {itemType === 'track' ? (item as Track).album : (item as Album).name}
                   </span>
                 </div>
-                {itemType === 'track' && (item as Track).musicbrainzTrackId && (
-                  <div className="flex items-center gap-2 text-blue-400/80 text-[10px] font-mono mt-1">
-                    <Info size={10} />
-                    <span className="truncate">T-ID: {(item as Track).musicbrainzTrackId}</span>
+                {(itemType === 'track' && (item as Track).musicbrainzTrackId) ? (
+                  <div className="flex items-center gap-2 text-blue-400 text-[10px] font-mono mt-2 bg-blue-400/10 px-2 py-1 rounded border border-blue-400/20">
+                    <Check size={10} />
+                    <span className="truncate">Track MBID Found: {(item as Track).musicbrainzTrackId}</span>
                   </div>
-                )}
-                {item.musicbrainzAlbumId && (
-                  <div className="flex items-center gap-2 text-purple-400/80 text-[10px] font-mono">
-                    <Info size={10} />
-                    <span className="truncate">A-ID: {item.musicbrainzAlbumId}</span>
+                ) : null}
+                {item.musicbrainzAlbumId ? (
+                  <div className="flex items-center gap-2 text-purple-400 text-[10px] font-mono mt-1 bg-purple-400/10 px-2 py-1 rounded border border-purple-400/20">
+                    <Check size={10} />
+                    <span className="truncate">Album MBID Found: {item.musicbrainzAlbumId}</span>
                   </div>
-                )}
+                ) : null}
               </div>
             </section>
 

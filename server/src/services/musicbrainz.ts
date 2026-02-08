@@ -5,14 +5,23 @@ import {
     MBRecordingResponse,
 } from '../database/types.musicbrainz'
 
+const MB_MIRROR_URL = process.env.MUSICBRAINZ_MIRROR_URL
 const mbApi = new MusicBrainzApi({
     appName: 'MusicMaster',
     appVersion: '1.0.0',
-    appContactInfo: 'https://github.com/RogerDodger8989/MusicMaster'
+    appContactInfo: 'https://github.com/RogerDodger8989/MusicMaster',
+    baseUrl: MB_MIRROR_URL || 'https://musicbrainz.org'
 })
 
+export interface MBArtistMember {
+    name: string
+    mbid: string
+    role: string
+}
+
 // Rate limiting: MusicBrainz requires delays between requests
-const RATE_LIMIT_MS = 1100 // 1 second + buffer
+// If using a local mirror, we can go much faster
+const RATE_LIMIT_MS = MB_MIRROR_URL ? 100 : 1100 // 0.1s for mirror, 1.1s for public
 
 // Cache for recent queries (TTL: 1 hour)
 const queryCache = new Map<string, { data: any; timestamp: number }>()
@@ -154,6 +163,44 @@ export interface MBReleaseFull {
 }
 
 export class MusicBrainzService {
+    async getArtistMembers(artistId: string): Promise<MBArtistMember[]> {
+        const cacheKey = `artist_members_${artistId}`
+        const cached = getFromCache(cacheKey)
+        if (cached) return cached
+
+        await applyRateLimit()
+
+        try {
+            const artist = await (mbApi as any).lookup('artist', artistId, ['artist-rels'])
+            const relations = artist.relations || []
+            const members: MBArtistMember[] = relations
+                .filter((rel: any) => rel.type === 'member of band' || rel.type === 'member of')
+                .map((rel: any) => {
+                    let role = 'Band Member'
+                    const attributes = rel.attributes || []
+                    if (attributes.length > 0) {
+                        const cleanAttrs = attributes.filter((a: string) =>
+                            !['additional', 'guest', 'solo', 'minor', 'backdrops', 'programming'].includes(a.toLowerCase())
+                        )
+                        if (cleanAttrs.length > 0) {
+                            role = cleanAttrs.map((a: string) => a.charAt(0).toUpperCase() + a.slice(1)).join(', ')
+                        }
+                    }
+                    return {
+                        name: rel.artist.name,
+                        mbid: rel.artist.id,
+                        role: role
+                    }
+                })
+
+            cacheResult(cacheKey, members)
+            return members
+        } catch (error) {
+            console.error('Failed to fetch artist members:', error)
+            return []
+        }
+    }
+
     async searchTrack(
         artist: string,
         title: string,
@@ -344,10 +391,10 @@ export class MusicBrainzService {
             }
 
             await applyRateLimit()
+            console.log(`[MusicBrainz] Looking up recording: ${recordingId}`);
             const recording = (await (mbApi as any).lookup('recording', recordingId, [
                 'artists',
                 'releases',
-                'recordings',
                 'url-rels',
                 'tags',
                 'genres',
@@ -373,6 +420,7 @@ export class MusicBrainzService {
             }
 
             await applyRateLimit()
+            console.log(`[MusicBrainz] Looking up release: ${releaseId}`);
             const release = (await (mbApi as any).lookup('release', releaseId, [
                 'artists',
                 'labels',
@@ -625,15 +673,46 @@ export class MusicBrainzService {
         }
     }
 
-    extractRoles(item: MBRecordingFull | MBReleaseFull): Record<string, string[]> {
-        const roles: Record<string, string[]> = {}
+    extractRoles(item: any): Record<string, { name: string; mbid?: string }[]> {
+        const roles: Record<string, { name: string; mbid?: string }[]> = {}
         const relations = item.relations || []
 
         for (const rel of relations) {
-            if (rel['target-type'] === 'artist' && rel.artist) {
-                const roleName = rel.type // e.g., "producer", "conductor"
+            const targetType = rel['target-type'] || (rel as any).targetType;
+            const artist = rel.artist;
+
+            if (targetType === 'artist' && artist) {
+                let roleName = rel.type // e.g., "performer", "vocal", "instrument"
+
+                const attributes = rel.attributes || []
+                if (attributes.length > 0) {
+                    // Filter out metadata-like attributes
+                    const cleanAttributes = attributes.filter((a: string) =>
+                        !['additional', 'guest', 'solo', 'minor', 'backdrops', 'programming'].includes(a.toLowerCase())
+                    )
+
+                    if (cleanAttributes.length > 0) {
+                        // Handle "co" attribute for producers/conductors
+                        if (attributes.includes('co') && (roleName === 'producer' || roleName === 'conductor')) {
+                            roleName = `co-${roleName}`
+                        } else {
+                            // Join attributes for specific roles like "lead vocals" or "electric guitar"
+                            // But avoid redundant prefixes if the role name is already specific
+                            const specificAttr = cleanAttributes[0].toLowerCase()
+                            if (roleName === 'performer' || roleName === 'vocal' || roleName === 'instrument' || roleName === 'performance') {
+                                roleName = specificAttr
+                            } else if (!roleName.toLowerCase().includes(specificAttr)) {
+                                roleName = `${specificAttr} ${roleName}`
+                            }
+                        }
+                    }
+                }
+
                 if (!roles[roleName]) roles[roleName] = []
-                roles[roleName].push(rel.artist.name)
+                roles[roleName].push({
+                    name: artist.name,
+                    mbid: artist.id
+                })
             }
         }
 

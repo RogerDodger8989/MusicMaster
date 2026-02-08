@@ -72,3 +72,17 @@ export const toggleArtistLoved = (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to love artist' })
     }
 }
+
+export const getArtistMembers = async (req: Request, res: Response) => {
+    try {
+        const { musicBrainzService } = await import('../../services/lastfm')
+        const id = req.params.id as string
+
+        // Use the service to fetch members from MusicBrainz
+        const members = await musicBrainzService.getArtistMembers(id)
+        res.json(members)
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to fetch artist members' })
+    }
+}

@@ -37,9 +37,10 @@ The goal is to resolve the `SqliteError` in `albums_cache`, ensure metadata pers
 - Update `tagAlbumMetadata` to save the new metadata fields (`label`, `country`, etc.) to `albums_cache`.
 - Ensure `album_type` and `status` are correctly saved.
 
-### Frontend UI
-#### [MODIFY] [TaggingModal.tsx](file:///c:/Users/denni/Desktop/Apps/MusicMaster/desktop/src/renderer/src/components/TaggingModal.tsx)
-- Reorder result list: Move album cover to the left of the details.
+### [UI] Tagging Modal & Confirmation
+#### [MODIFY] [TagConfirmationModal.tsx](file:///c:/Users/denni/Desktop/Apps/MusicMaster/desktop/src/renderer/src/components/TagConfirmationModal.tsx)
+- [x] Fix MBID status display to check for both `musicbrainzTrackId` and `musicbrainzAlbumId`.
+- [ ] Improve "Current" value display for MBIDs to show the actual ID if present.
 - Display "Country" (e.g., 🇺🇸 US, 🇬🇧 GB) in the search results.
 - Show existing MusicBrainz IDs in the "Current Metadata" section to prove they are detected.
 
@@ -52,8 +53,52 @@ The goal is to resolve the `SqliteError` in `albums_cache`, ensure metadata pers
 - Tag an album and verify the server logs show success instead of `SqliteError`.
 - Verify the new UI layout in the Tagging Modal.
 - Check that the "Current Metadata" section shows existing IDs if the track was already tagged.
-- **Reordering Persistence**: Update IPC handlers to support reordering tracks within a playlist in the database.
-- **Store Updates**: Sync the `usePlaylists` store with reordering actions.
+# Deep Metadata & Performer Enhancements
+
+# Performer Filtering & Rich Roles Enhancement
+
+## User Review Required
+
+> [!IMPORTANT]
+> Some artist detail views for credit contributors will now operate in "Discovery" mode if no local albums are found. This allows users to read biographies and see relationships even for artists not in their physical library.
+
+## Proposed Changes
+
+### [Component] MusicBrainz Service (Server)
+
+#### [MODIFY] [musicbrainz.ts](file:///c:/Users/denni/Desktop/Apps/MusicMaster/server/src/services/musicbrainz.ts)
+- Update `getArtistMembers` to extract `attributes` from `artist-rels` (e.g., "lead vocals", "drums") to provide more descriptive roles than generic "Band Member".
+- Ensure `getRecordingDetails` and other lookup methods correctly request and parse necessary relations.
+
+### [Component] Database (Server)
+
+#### [MODIFY] [musicbrainz.ts](file:///c:/Users/denni/Desktop/Apps/MusicMaster/server/src/database/musicbrainz.ts)
+- Ensure `addPerformer` and `addAlbumCredit` can handle richer role strings.
+
+### [Component] Enrichment Scripts
+
+#### [MODIFY] [apply_and_enrich.js](file:///c:/Users/denni/Desktop/Apps/MusicMaster/server/apply_and_enrich.js)
+- Ensure artist images are fetched for ALL contributors during enrichment, not just the main album artist.
+- Store specific band member roles (Vocals, Guitar) instead of generic "Band Member".
+
+### [Component] Artist Detail View (Client)
+
+#### [MODIFY] [ArtistDetailView.tsx](file:///c:/Users/denni/Desktop/Apps/MusicMaster/desktop/src/renderer/src/views/AlbumDetailView.tsx)
+- Implement "Discovery" mode: If `albums` count is 0, display a "Discovery" badge and focus on Biography and Relationships.
+- Add **"Member Of"** section: Show groups the artist is a member of (clickable).
+- Add **"Appears On"** section: List albums (in the library) where this artist appears as a contributor/performer.
+- Ensure similarity artists are clickable and navigate to their own detail view in Discovery mode.
+
+## Verification Plan
+
+### Automated Tests
+- Run re-enrichment script for "Steal This Album!" and verify roles in DB via SQL.
+- Test `MusicBrainzService.getArtistMembers` with a known group MBID.
+
+### Manual Verification
+- Navigate to "Serj Tankian" from the credits section and verify image, biography, and "Member Of" (System of a Down) are visible.
+- Verify "System of a Down" in the Similarity section navigates back to the band's view.
+- Toggle "Only Performers" and confirm the list updates correctly with rich roles.
 
 ## 2. Advanced Audio Features [COMPLETED - 2026-02-06]
 
@@ -175,6 +220,24 @@ Display play statistics across all views.
 - Scanner checks existing track rating/loved before overwriting
 - Only updates file metadata (title, artist, duration, etc.)
 - Rating and loved flags remain unchanged during re-scans
+
+- [ ] **Phase 9: Full Library Automation & Deep Metadata**
+    - [ ] **Background Enrichment Worker**
+        - [ ] Automated fetching of performers/relationships for any track with an MBID
+        - [ ] Automatic AcousticBrainz integration (Mood, BPM, Key) for all newly scanned tracks
+        - [ ] Setting: "Auto-Enrich Library Metadata" (Toggle)
+        - [ ] **Rate-Limit Safety**: Implement strictly enforced 1.1s delay between requests to prevent API bans.
+        - [ ] **Smart Batching**: Process by Album MBID instead of individual tracks. (Reduces requests from 100k to ~7k for a typical library).
+        - [ ] **Local Mirror Support**: Support custom `MB_API_BASE` for users running a local MusicBrainz server (No rate limits).
+    - [ ] **Deep Metadata UI**
+        - [ ] Add "Performers & Credits" section to `AlbumDetailView`
+        - [ ] Display Mood/Energy tags in `TracksView` and `PlayerBar`
+        - [ ] Implement color-coded "Relationship" pills (Producer, Engineer, etc.)
+- **Rescan Context Menu**: Right-click option to rescan individual files/folders
+
+### ☁️ Sync & Connectivity
+- **Two-way Rating Sync**: Import ratings/loved status from Last.fm back to local library
+- **Playcount Sync**: Merge remote playcounts with local statistics
 
 ## 3. Future Feature Roadmap (Phase 5+)
 
@@ -601,6 +664,9 @@ musicbrainz: {
 - **Root Cause**: Native fetch doesn't support timeout parameter (node-fetch extension)
 - **Solution**: Removed `timeout: 10000` from all fetch calls (3 instances)
 - **Alternative**: Use AbortController for timeout implementation if needed
+- [x] Fix duplicate function implementations in `client.ts`
+- [x] Add `/api/metadata/artist/:id` endpoint in backend
+- [x] Verify "Member Of" bidirectional logic
 
 **Duplicate Export Fix**:
 - **Issue**: "MatchConfidence exported twice" TypeScript warning
@@ -900,3 +966,23 @@ musicbrainz: {
 - Add route for ManualMatchView in App.tsx
 - Add "Identify" option to TrackContextMenu
 - Integrate into automatic enhancement workflow
+
+## Phase 10: Final Metadata & Performer Fixes [IN PROGRESS]
+
+This phase addresses the issue where performers and credits were not being saved due to invalid API parameters and incorrect/truncated MBIDs.
+
+### [COMPLETED] Database Robustness
+- **`upsertArtistWithMBID`**: Refactored to handle name-based matching when MBID is missing and to update MBIDs for existing artist records. This prevents unique constraint violations during performer insertion.
+
+### [COMPLETED] API Fixes
+- **Verified `inc` Parameters**: Applied correct parameters to `getRecordingDetails` and `getReleaseDetails`.
+  - **Recording**: Removed `vocal-rels`, `performance-rels` (invalid). Added `artist-rels`, `work-rels`, `instrument-rels`.
+  - **Release**: Removed `performance-rels` (invalid). Added `recording-level-rels`, `work-level-rels`.
+
+### [TODO] Data Correction
+- **Release MBID**: Manually update 'Steal This Album!' to the verified working MBID: `2e9eec60-ee5d-3a26-a650-73287e0f349f`.
+- **Enrichment Run**: Trigger `diag_final.js` with verified track mappings to populate `performers` and `album_credits` tables.
+
+### Verification
+- Run `final_status_check.js` to confirm counts are > 0.
+- Verify UI display of performers in Album Detail View.

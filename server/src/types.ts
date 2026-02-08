@@ -26,11 +26,25 @@ export interface Track {
     musicbrainzRecordingId?: string
     musicbrainzReleaseGroupId?: string
     musicbrainzWorkId?: string
+    albumId?: string // Joined from albums_cache
     // ReplayGain metadata (in dB)
     replayGainTrack?: number
     replayGainAlbum?: number
     replayGainTrackPeak?: number
     replayGainAlbumPeak?: number
+    // Audio Analysis (AcousticBrainz)
+    bpm?: number
+    key?: string
+    moodAcoustic?: number
+    moodAggressive?: number
+    moodElectronic?: number
+    moodHappy?: number
+    moodSad?: number
+    moodRelaxed?: number
+    moodParty?: number
+    energy?: number
+    danceability?: number
+
     createdAt: Date
     updatedAt: Date
 }
@@ -51,6 +65,13 @@ export interface Album {
     lastPlayed?: Date
     releaseDate?: string
     musicbrainzAlbumId?: string
+    label?: string
+    country?: string
+    catalogNumber?: string
+    barcode?: string
+    albumType?: string
+    status?: string
+    enrichedAt?: Date
     bio?: string
     createdAt: Date
     updatedAt: Date

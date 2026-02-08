@@ -77,7 +77,7 @@ export const getArtistImage = (req: Request, res: Response) => {
     try {
         const { id } = req.params
         const db = getDatabase()
-        const artist = db.prepare('SELECT image_path as imagePath FROM artists WHERE id = ?').get(id) as any
+        const artist = db.prepare('SELECT image_path as imagePath FROM artists WHERE id = ? OR mbid = ?').get(id, id) as any
 
         if (artist && artist.imagePath && fs.existsSync(artist.imagePath)) {
             res.sendFile(artist.imagePath)

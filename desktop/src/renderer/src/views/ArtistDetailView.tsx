@@ -30,14 +30,17 @@ interface ArtistDetailViewProps {
   artistName: string
   onBack: () => void
   onAlbumClick: (albumId: string) => void
+  onArtistClick?: (artistName: string) => void
 }
 
 export default function ArtistDetailView({
   artistName,
   onBack,
-  onAlbumClick
+  onAlbumClick,
+  onArtistClick
 }: ArtistDetailViewProps) {
-  const { albums, artists, tracks, rateTrack, toggleLoved, toggleArtistLoved } = useLibrary()
+  const { albums, artists, tracks, rateTrack, toggleLoved, toggleArtistLoved, updateArtist } =
+    useLibrary()
   const {
     playTrack,
     playAlbum,
@@ -52,16 +55,97 @@ export default function ArtistDetailView({
   const [sortBy, setSortBy] = useState<'year' | 'popularity'>('year')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [isBioExpanded, setIsBioExpanded] = useState(false)
+  const [artistMembers, setArtistMembers] = useState<any[]>([])
+  const [appearances, setAppearances] = useState<any[]>([])
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false)
   const [artistContextMenu, setArtistContextMenu] = useState<{
     artist: Artist
     x: number
     y: number
   } | null>(null)
 
-  // Find artist info
-  const artist = useMemo(() => artists.find((a) => a.name === artistName), [artists, artistName])
+  // Find artist info locally
+  const localArtist = useMemo(() => artists.find((a) => a.name === artistName), [artists, artistName])
+
+  const [remoteArtist, setRemoteArtist] = useState<Artist | null>(null)
+  const [isLoadingRemote, setIsLoadingRemote] = useState(false)
+
+  // Combined artist object (local, or fallback to remote)
+  const artist = localArtist || remoteArtist
 
   const [isSyncing, setIsSyncing] = useState(false)
+  const [similarArtists, setSimilarArtists] = useState<
+    { name: string; image: string; match: string }[]
+  >([])
+
+  // Fetch remote artist if not found locally
+  useEffect(() => {
+    if (localArtist || !artistName) return
+
+    let mounted = true
+    const fetchRemote = async () => {
+      setIsLoadingRemote(true)
+      console.log(`🔍 [UI] Artist not in library. Fetching remote data for: ${artistName}`)
+      try {
+        // 1. Search for artist
+        const results = await client.searchMetadata(artistName, '')
+        if (mounted && results && results.length > 0) {
+          const match = results.find((r) => r.artist.toLowerCase() === artistName.toLowerCase()) || results[0]
+
+          if (match) {
+            // 2. Get details
+            const details = await client.getArtistDetails(match.artistId)
+            if (mounted && details) {
+              // Construct a virtual artist object
+              const virtualArtist: Artist = {
+                id: details.id, // Use MBID as ID
+                name: details.name,
+                albumCount: 0,
+                trackCount: 0,
+                bio: details.biography || details.bio, // Handle both potential fields
+                imagePath: details.image,
+                musicbrainzArtistId: details.id,
+                country: details.country,
+                lifeSpanBegin: details.lifeSpan?.begin,
+                lifeSpanEnd: details.lifeSpan?.end,
+                type: details.type,
+                gender: details.gender,
+                website: details.website,
+                loved: false
+              }
+              setRemoteArtist(virtualArtist)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch remote artist:', error)
+      } finally {
+        if (mounted) setIsLoadingRemote(false)
+      }
+    }
+
+    fetchRemote()
+    return () => { mounted = false }
+  }, [artistName, localArtist])
+
+  // Fetch similar artists when artistName changes
+  useEffect(() => {
+    let mounted = true
+    const fetchSimilar = async () => {
+      try {
+        const similar = await client.getSimilarArtists(artistName)
+        if (mounted && similar && similar.length > 0) {
+          setSimilarArtists(similar.slice(0, 6))
+        }
+      } catch (error) {
+        console.error('Failed to load similar artists:', error)
+      }
+    }
+    fetchSimilar()
+    return () => {
+      mounted = false
+    }
+  }, [artistName])
 
   // State for queue confirmation
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
@@ -102,7 +186,7 @@ export default function ArtistDetailView({
             website: details.website
           }
 
-          await client.updateArtist(artist!.id, facts)
+          await updateArtist(artist!.id, facts)
           console.log('✅ [UI] Artist facts synced successfully')
           // The library store should ideally be refreshed here
           // For now, we rely on the next visit or manual refresh
@@ -115,12 +199,12 @@ export default function ArtistDetailView({
     }
   }, [artistName, artist, isSyncing])
 
-  // Auto-sync if missing facts (optional, maybe better as manual button)
-  // useEffect(() => {
-  //     if (artist && !artist.country && !artist.musicbrainzArtistId) {
-  //         syncArtistFacts()
-  //     }
-  // }, [artist])
+  // Auto-sync if missing facts
+  useEffect(() => {
+    if (artist && !artist.musicbrainzArtistId && !isSyncing) {
+      syncArtistFacts()
+    }
+  }, [artist, isSyncing, syncArtistFacts])
 
   const handlePlayAll = useCallback(() => {
     // Collect all tracks for this artist
@@ -166,7 +250,7 @@ export default function ArtistDetailView({
     const shuffled = [...tracksToShuffle]
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
-      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+        ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
     playAlbum(shuffled)
     if (!isShuffle) {
@@ -188,12 +272,68 @@ export default function ArtistDetailView({
     if (isPendingShuffle) {
       for (let i = tracksToAppend.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1))
-        ;[tracksToAppend[i], tracksToAppend[j]] = [tracksToAppend[j], tracksToAppend[i]]
+          ;[tracksToAppend[i], tracksToAppend[j]] = [tracksToAppend[j], tracksToAppend[i]]
       }
     }
     insertToQueue(tracksToAppend, queue.length)
     setIsConfirmModalOpen(false)
   }
+
+  // Fetch members and appearances if available
+  useEffect(() => {
+    const fetchArtistData = async () => {
+      if (!artist?.musicbrainzArtistId) return
+
+      setIsLoadingMembers(true)
+      try {
+        const [members, details] = await Promise.all([
+          client.getArtistMembers(artist.musicbrainzArtistId),
+          client.getArtistDetails(artist.musicbrainzArtistId)
+        ])
+        setArtistMembers(members)
+
+        // improved auto-sync for image
+        if (!artist.imagePath && details.image) {
+          console.log('[AutoSync] Updating artist image from MusicBrainz', details.image)
+          await updateArtist(artist.id, { imagePath: details.image })
+        }
+      } catch (error) {
+        console.error('Failed to fetch artist data:', error)
+      } finally {
+        setIsLoadingMembers(false)
+      }
+    }
+
+    fetchArtistData()
+  }, [artist?.musicbrainzArtistId, artist?.imagePath, artist?.id, updateArtist])
+
+  // Process appearances (from other artists' albums in local library)
+  useEffect(() => {
+    if (!artist || !tracks.length) return
+
+    // Find tracks where this artist appears but is not the main album artist
+    const guestTracks = tracks.filter(t => {
+      const isAlbumArtist = t.albumArtist === artistName
+      if (isAlbumArtist) return false
+
+      const isTrackArtist = t.artist === artistName
+      // Check performers (using name or ID)
+      const isPerformer = t.performers?.some(p =>
+        p.name === artistName ||
+        (p.id && artist.id && p.id === artist.id) ||
+        (p.id && artist.musicbrainzArtistId && p.id === artist.musicbrainzArtistId)
+      )
+
+      return isTrackArtist || isPerformer
+    })
+
+    // Get unique albums from these tracks
+    const appearanceAlbums = Array.from(new Set(guestTracks.map(t => t.albumId)))
+      .map(id => albums.find(a => a.id === id))
+      .filter(Boolean) as any[]
+
+    setAppearances(appearanceAlbums)
+  }, [tracks, albums, artistName, artist])
 
   // Filter and sort albums by this artist
   const artistAlbums = useMemo(() => {
@@ -249,6 +389,15 @@ export default function ArtistDetailView({
 
   const { selectedTracks, handleTrackClick, clearSelection, selectSingleTrack } =
     useTrackSelection(topTracks)
+
+  if (isLoadingRemote) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-zinc-500 bg-background">
+        <RefreshCw className="w-8 h-8 animate-spin mb-4" />
+        <p className="text-xl font-medium">Fetching artist info...</p>
+      </div>
+    )
+  }
 
   if (!artistAlbums.length && !artist) {
     return (
@@ -720,181 +869,211 @@ export default function ArtistDetailView({
           </div>
 
           {/* Discography - Organized Grid */}
-          <section className="mt-8 space-y-6">
-            <div className="flex items-end justify-between border-b border-white/5 pb-4">
-              <div className="space-y-1">
-                <h3 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-                  Discography
-                </h3>
-                <p className="text-zinc-500 font-bold text-[10px] tracking-widest uppercase">
-                  {sortBy === 'year' ? 'Chronological Order' : 'Most Popular'}
-                </p>
+          {artistAlbums.length > 0 && (
+            <section className="mt-8 space-y-6">
+              <div className="flex items-end justify-between border-b border-white/5 pb-4">
+                <div className="space-y-1">
+                  <h3 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
+                    Discography
+                  </h3>
+                  <p className="text-zinc-500 font-bold text-[10px] tracking-widest uppercase">
+                    {sortBy === 'year' ? 'Chronological Order' : 'Most Popular'}
+                  </p>
+                </div>
+                <div className="flex items-center bg-white/5 p-1 rounded-full border border-white/5 backdrop-blur-sm">
+                  <button
+                    onClick={() => {
+                      if (sortBy === 'year') setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
+                      else {
+                        setSortBy('year')
+                        setSortOrder('desc')
+                      }
+                    }}
+                    className={cn(
+                      'px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2',
+                      sortBy === 'year'
+                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                        : 'text-white/40 hover:text-white/60'
+                    )}
+                  >
+                    BY YEAR
+                    {sortBy === 'year' &&
+                      (sortOrder === 'desc' ? (
+                        <ChevronDown size={10} strokeWidth={3} />
+                      ) : (
+                        <ChevronUp size={10} strokeWidth={3} />
+                      ))}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (sortBy === 'popularity') setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
+                      else {
+                        setSortBy('popularity')
+                        setSortOrder('desc')
+                      }
+                    }}
+                    className={cn(
+                      'px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2',
+                      sortBy === 'popularity'
+                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                        : 'text-white/40 hover:text-white/60'
+                    )}
+                  >
+                    BY POPULARITY
+                    {sortBy === 'popularity' &&
+                      (sortOrder === 'desc' ? (
+                        <ChevronDown size={10} strokeWidth={3} />
+                      ) : (
+                        <ChevronUp size={10} strokeWidth={3} />
+                      ))}
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center bg-white/5 p-1 rounded-full border border-white/5 backdrop-blur-sm">
-                <button
-                  onClick={() => {
-                    if (sortBy === 'year') setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
-                    else {
-                      setSortBy('year')
-                      setSortOrder('desc')
-                    }
-                  }}
-                  className={cn(
-                    'px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2',
-                    sortBy === 'year'
-                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                      : 'text-white/40 hover:text-white/60'
-                  )}
-                >
-                  BY YEAR
-                  {sortBy === 'year' &&
-                    (sortOrder === 'desc' ? (
-                      <ChevronDown size={10} strokeWidth={3} />
-                    ) : (
-                      <ChevronUp size={10} strokeWidth={3} />
-                    ))}
-                </button>
-                <button
-                  onClick={() => {
-                    if (sortBy === 'popularity') setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
-                    else {
-                      setSortBy('popularity')
-                      setSortOrder('desc')
-                    }
-                  }}
-                  className={cn(
-                    'px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2',
-                    sortBy === 'popularity'
-                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                      : 'text-white/40 hover:text-white/60'
-                  )}
-                >
-                  BY POPULARITY
-                  {sortBy === 'popularity' &&
-                    (sortOrder === 'desc' ? (
-                      <ChevronDown size={10} strokeWidth={3} />
-                    ) : (
-                      <ChevronUp size={10} strokeWidth={3} />
-                    ))}
-                </button>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-8 gap-y-10">
-              {artistAlbums.map((album) => (
-                <AlbumCard
-                  key={album.id}
-                  album={album}
-                  onClick={() => onAlbumClick(album.id)}
-                  className="bg-transparent p-0 hover:bg-transparent"
-                />
-              ))}
-            </div>
-          </section>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-8 gap-y-10">
+                {artistAlbums.map((album) => (
+                  <AlbumCard
+                    key={album.id}
+                    album={album}
+                    onClick={() => onAlbumClick(album.id)}
+                    className="bg-transparent p-0 hover:bg-transparent"
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Member of / Group Members */}
+          {artistMembers.length > 0 && (
+            <section className="mt-16 space-y-6">
+              <div className="flex items-center gap-4 opacity-40">
+                <div className="w-12 h-[1px] bg-white" />
+                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                  {artist?.type === 'Group' || artist?.type === 'Band' ? 'Members' : 'Member Of'}
+                </h3>
+              </div>
+              {isLoadingMembers ? (
+                <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6 animate-pulse">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="h-10 bg-white/5 rounded-lg" />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                  {artistMembers.map((member, i) => (
+                    <div key={`${member.mbid}-${i}`} className="group flex flex-col gap-2">
+                      <button
+                        onClick={() => onArtistClick && onArtistClick(member.name)}
+                        className="text-white/90 hover:text-white font-bold text-sm text-left truncate transition-colors hover:underline"
+                      >
+                        {member.name}
+                      </button>
+                      <span className="text-zinc-500 font-medium text-[10px] tracking-widest uppercase truncate">
+                        {member.role}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Appearances */}
+          {appearances.length > 0 && (
+            <section className="mt-16 space-y-6">
+              <div className="flex items-end justify-between border-b border-white/5 pb-4">
+                <div className="space-y-1">
+                  <h3 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
+                    Appears On
+                  </h3>
+                  <p className="text-zinc-500 font-bold text-[10px] tracking-widest uppercase">
+                    Guest Contributions
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-8 gap-y-10">
+                {appearances.map((album) => (
+                  <AlbumCard
+                    key={album.id}
+                    album={album}
+                    onClick={() => onAlbumClick(album.id)}
+                    className="bg-transparent p-0 hover:bg-transparent"
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Related Artists */}
           {/* Related Artists (Last.fm) */}
-          {(() => {
-            const [similarArtists, setSimilarArtists] = useState<
-              { name: string; image: string; match: string }[]
-            >([])
+          {/* Related Artists */}
+          {similarArtists.length > 0 && (
+            <section className="mt-16 space-y-6 pb-12">
+              <div className="flex items-center gap-4 opacity-40">
+                <div className="w-12 h-[1px] bg-white" />
+                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                  Similarity
+                </h3>
+              </div>
 
-            // Fetch similar artists when artistName changes
-            useEffect(() => {
-              let mounted = true
-              const fetchSimilar = async () => {
-                try {
-                  const similar = await client.getSimilarArtists(artistName)
-                  if (mounted && similar && similar.length > 0) {
-                    setSimilarArtists(similar.slice(0, 6))
-                  }
-                } catch (error) {
-                  console.error('Failed to load similar artists:', error)
-                }
-              }
-              fetchSimilar()
-              return () => {
-                mounted = false
-              }
-            }, [artistName])
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                {similarArtists.map((similar) => {
+                  // Check if this artist exists locally
+                  const localArtist = artists.find((a) => a.name === similar.name)
+                  const albumCount = localArtist
+                    ? albums.filter((album) => album.artist === similar.name).length
+                    : 0
 
-            if (similarArtists.length === 0) return null
-
-            return (
-              <section className="mt-16 space-y-6 pb-12">
-                <div className="flex items-center gap-4 opacity-40">
-                  <div className="w-12 h-[1px] bg-white" />
-                  <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                    Similarity
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                  {similarArtists.map((similar) => {
-                    // Check if this artist exists locally
-                    const localArtist = artists.find((a) => a.name === similar.name)
-                    const albumCount = localArtist
-                      ? albums.filter((album) => album.artist === similar.name).length
-                      : 0
-
-                    return (
-                      <button
-                        key={similar.name}
-                        onClick={() => {
-                          // Navigate to this artist standardly
-                          // The view will handle if tracks/albums are empty (as per user request)
-                          const event = new CustomEvent('navigate', {
-                            detail: { view: 'artist', artistName: similar.name }
-                          })
-                          window.dispatchEvent(event)
-                        }}
-                        className="group flex flex-col items-center gap-3 p-4 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
-                      >
-                        <div className="w-full aspect-square rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center border border-white/10 group-hover:border-primary/50 transition-all overflow-hidden">
-                          {similar.image ? (
-                            <img
-                              src={similar.image}
-                              alt={similar.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                // If online image fails, try local if available
-                                if (localArtist) {
-                                  e.currentTarget.src = client.getArtistImageUrl(localArtist.id)
-                                } else {
-                                  e.currentTarget.style.display = 'none'
-                                }
-                              }}
-                            />
-                          ) : localArtist?.imagePath ? (
-                            <img
-                              src={client.getArtistImageUrl(localArtist.id)}
-                              alt={similar.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Users
-                              size={32}
-                              className="text-white/40 group-hover:text-primary/60 transition-colors"
-                            />
-                          )}
+                  return (
+                    <button
+                      key={similar.name}
+                      onClick={() => onArtistClick && onArtistClick(similar.name)}
+                      className="group flex flex-col items-center gap-3 p-4 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+                    >
+                      <div className="w-full aspect-square rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center border border-white/10 group-hover:border-primary/50 transition-all overflow-hidden">
+                        {similar.image ? (
+                          <img
+                            src={similar.image}
+                            alt={similar.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // If online image fails, try local if available
+                              if (localArtist) {
+                                e.currentTarget.src = client.getArtistImageUrl(localArtist.id)
+                              } else {
+                                e.currentTarget.style.display = 'none'
+                              }
+                            }}
+                          />
+                        ) : localArtist?.imagePath ? (
+                          <img
+                            src={client.getArtistImageUrl(localArtist.id)}
+                            alt={similar.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Users
+                            size={32}
+                            className="text-white/40 group-hover:text-primary/60 transition-colors"
+                          />
+                        )}
+                      </div>
+                      <div className="w-full text-center">
+                        <div className="text-xs font-bold text-white/90 group-hover:text-white leading-tight transition-colors min-h-[2.5rem] flex items-center justify-center px-1">
+                          {similar.name}
                         </div>
-                        <div className="w-full text-center">
-                          <div className="text-xs font-bold text-white/90 group-hover:text-white leading-tight transition-colors min-h-[2.5rem] flex items-center justify-center px-1">
-                            {similar.name}
-                          </div>
-                          <div className="text-[10px] font-medium text-white/30 uppercase tracking-wider mt-0.5">
-                            {localArtist
-                              ? `${albumCount} ${albumCount === 1 ? 'Album' : 'Albums'}`
-                              : 'Discovery'}
-                          </div>
+                        <div className="text-[10px] font-medium text-white/30 uppercase tracking-wider mt-0.5">
+                          {localArtist
+                            ? `${albumCount} ${albumCount === 1 ? 'Album' : 'Albums'}`
+                            : 'Discovery'}
                         </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </section>
-            )
-          })()}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          )}
         </div>
       </div>
       <QueueConfirmationModal

@@ -68,7 +68,7 @@ export function updateTrackWithMBID(
  */
 export function upsertArtistWithMBID(
     name: string,
-    mbid: string,
+    mbid: string | null = null,
     countryCode: string | null = null,
     artistType: string | null = null,
     lifeSpanBegin: string | null = null,
@@ -81,50 +81,63 @@ export function upsertArtistWithMBID(
 ): string {
     try {
         const db = getDatabase()
-        const artistId = uuidv4()
 
-        const stmt = db.prepare(`
+        // 1. Try to find existing artist by MBID if provided
+        let existing: { id: string, name: string, mbid: string | null } | undefined
+        if (mbid) {
+            existing = db.prepare('SELECT id, name, mbid FROM artists WHERE mbid = ?').get(mbid) as any
+        }
+
+        // 2. Fallback: Try to find by name (and country if provided)
+        if (!existing) {
+            if (countryCode) {
+                existing = db.prepare('SELECT id, name, mbid FROM artists WHERE name = ? AND country = ?').get(name, countryCode) as any
+            } else {
+                existing = db.prepare('SELECT id, name, mbid FROM artists WHERE name = ?').get(name) as any
+            }
+        }
+
+        if (existing) {
+            // Update existing artist
+            db.prepare(`
+                UPDATE artists SET
+                    name = ?,
+                    mbid = COALESCE(?, mbid),
+                    country = COALESCE(?, country),
+                    artist_type = COALESCE(?, artist_type),
+                    life_span_begin = COALESCE(?, life_span_begin),
+                    life_span_end = COALESCE(?, life_span_end),
+                    bio = COALESCE(?, bio),
+                    website = COALESCE(?, website),
+                    image_path = COALESCE(?, image_path),
+                    name_sort_order = COALESCE(?, name_sort_order),
+                    gender_other = COALESCE(?, gender_other),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `).run(
+                name, mbid, countryCode, artistType, lifeSpanBegin, lifeSpanEnd,
+                bio, website, imagePath, nameSortOrder, genderOther,
+                existing.id
+            )
+            return existing.id
+        }
+
+        // 3. Insert new artist
+        const artistId = uuidv4()
+        db.prepare(`
             INSERT INTO artists (
                 id, name, mbid, country, artist_type,
                 life_span_begin, life_span_end, bio, website, image_path,
                 name_sort_order, gender_other, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(mbid) DO UPDATE SET
-                name = excluded.name,
-                country = COALESCE(excluded.country, country),
-                artist_type = COALESCE(excluded.artist_type, artist_type),
-                life_span_begin = COALESCE(excluded.life_span_begin, life_span_begin),
-                life_span_end = COALESCE(excluded.life_span_end, life_span_end),
-                bio = COALESCE(excluded.bio, bio),
-                website = COALESCE(excluded.website, website),
-                image_path = COALESCE(excluded.image_path, image_path),
-                name_sort_order = COALESCE(excluded.name_sort_order, name_sort_order),
-                gender_other = COALESCE(excluded.gender_other, gender_other),
-                updated_at = CURRENT_TIMESTAMP
-        `)
-
-        stmt.run(
-            artistId,
-            name,
-            mbid,
-            countryCode,
-            artistType,
-            lifeSpanBegin,
-            lifeSpanEnd,
-            bio,
-            website,
-            imagePath,
-            nameSortOrder,
-            genderOther
+        `).run(
+            artistId, name, mbid, countryCode, artistType,
+            lifeSpanBegin, lifeSpanEnd, bio, website, imagePath,
+            nameSortOrder, genderOther
         )
-
-        // Return existing ID if artist already exists
-        const existing = db
-            .prepare('SELECT id FROM artists WHERE mbid = ?')
-            .get(mbid) as { id: string } | undefined
-        return existing?.id || artistId
+        return artistId
     } catch (error) {
-        console.error('Failed to upsert artist:', error)
+        console.error('Failed to upsert artist:', error, { name, mbid })
         throw error
     }
 }
@@ -612,5 +625,79 @@ export function getMBIDCoverageStats(): {
             tracks_with_isrc: 0,
             artists_with_mbid: 0
         }
+    }
+}
+
+/**
+ * Add or update a track performer/credit
+ */
+export function addPerformer(trackId: string, artistId: string, role: string) {
+    try {
+        const db = getDatabase()
+        db.prepare(`
+            INSERT INTO performers (id, track_id, artist_id, role, updated_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(track_id, artist_id, role) DO UPDATE SET
+                updated_at = CURRENT_TIMESTAMP
+        `).run(uuidv4(), trackId, artistId, role)
+        console.log(`[Database] Added performer to track ${trackId}: Artist ${artistId} as ${role}`)
+    } catch (error) {
+        console.error(`[Database] Failed to add performer:`, error, { trackId, artistId, role })
+    }
+}
+
+/**
+ * Add or update an album credit
+ */
+export function addAlbumCredit(albumId: string, artistId: string, role: string) {
+    try {
+        const db = getDatabase()
+        db.prepare(`
+            INSERT INTO album_credits (id, album_id, artist_id, role, updated_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(album_id, artist_id, role) DO UPDATE SET
+                updated_at = CURRENT_TIMESTAMP
+        `).run(uuidv4(), albumId, artistId, role)
+        console.log(`[Database] Added album credit to album ${albumId}: Artist ${artistId} as ${role}`)
+    } catch (error) {
+        console.error(`[Database] Failed to add album credit:`, error, { albumId, artistId, role })
+    }
+}
+/**
+ * Get all performers and credits for an album
+ */
+export function getAlbumPerformers(albumId: string): any[] {
+    try {
+        const db = getDatabase()
+
+        // Find all track IDs for this album
+        const album = db.prepare("SELECT name, artist FROM albums_cache WHERE id = ?").get(albumId) as { name: string, artist: string } | undefined
+        if (!album) return []
+
+        const tracks = db.prepare("SELECT id FROM tracks WHERE album = ? AND (album_artist = ? OR artist = ?)").all(album.name, album.artist, album.artist) as { id: string }[]
+        const trackIds = tracks.map(t => t.id)
+
+        if (trackIds.length === 0) return []
+
+        // Get performers for all these tracks
+        const performers = db.prepare(`
+            SELECT p.*, a.name as artist_name, a.image_path as artist_image
+            FROM performers p
+            LEFT JOIN artists a ON p.artist_id = a.id
+            WHERE p.track_id IN (${trackIds.map(() => '?').join(',')})
+        `).all(...trackIds)
+
+        // Get album-level credits too
+        const albumCredits = db.prepare(`
+            SELECT ac.*, a.name as artist_name, a.image_path as artist_image
+            FROM album_credits ac
+            LEFT JOIN artists a ON ac.artist_id = a.id
+            WHERE ac.album_id = ?
+        `).all(albumId)
+
+        return [...performers, ...albumCredits]
+    } catch (error) {
+        console.error('Failed to get album performers:', error)
+        return []
     }
 }

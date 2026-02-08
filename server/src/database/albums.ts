@@ -30,9 +30,10 @@ export async function aggregateAlbums(): Promise<void> {
     }
 
     // Clear existing cache
-    console.log('🗑️ Clearing existing album and artist cache...')
-    db.prepare('DELETE FROM albums_cache').run()
-    db.prepare('DELETE FROM artists').run()
+    console.log('🗑️ Updating album cache...')
+    // We don't blind wipe anymore to preserve links and credits
+    // db.prepare('DELETE FROM albums_cache').run()
+    // db.prepare('DELETE FROM artists').run()
 
     // 1. Get all aggregated data from tracks
     // NOTE: Removed MAX(rating) and MAX(loved) from aggregation to prevent auto-rating
@@ -61,8 +62,8 @@ export async function aggregateAlbums(): Promise<void> {
 
     console.log(`📊 Aggregated ${rows.length} albums.`)
 
-    // 2. Prepare Insert Statement
-    const insertStmt = db.prepare(`
+    // 2. Prepare Insert/Upsert Statement
+    const insertAlbumStmt = db.prepare(`
         INSERT INTO albums_cache (
             id, name, artist, year, release_date, genre,
             disc_count, track_count, total_duration, cover_art_path,
@@ -72,12 +73,28 @@ export async function aggregateAlbums(): Promise<void> {
             @disc_count, @track_count, @total_duration, @cover_art_path,
             @musicbrainz_album_id, @rating, @loved, @last_played, @play_count, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
         )
+        ON CONFLICT(name, artist) DO UPDATE SET
+            year = excluded.year,
+            release_date = excluded.release_date,
+            genre = excluded.genre,
+            disc_count = excluded.disc_count,
+            track_count = excluded.track_count,
+            total_duration = excluded.total_duration,
+            cover_art_path = excluded.cover_art_path,
+            musicbrainz_album_id = excluded.musicbrainz_album_id,
+            last_played = excluded.last_played,
+            play_count = excluded.play_count,
+            updated_at = CURRENT_TIMESTAMP
     `)
 
-    // 3. Insert records with generated IDs
+    // Create a temporary set of active album names+artists to clean up removed ones later if needed
+    const activeAlbums = new Set<string>()
+
+    // 3. Insert/Upsert records with generated IDs
     const insertTransaction = db.transaction((albums: any[]) => {
         for (const album of albums) {
             const id = randomUUID()
+            activeAlbums.add(`${album.name}|${album.artist}`)
 
             // Post-process genres: take up to 5 unique ones
             let processedGenre = album.genres_raw || 'Unknown'
@@ -102,7 +119,7 @@ export async function aggregateAlbums(): Promise<void> {
             const finalRating = filteredBackup?.rating || 0
             const finalLoved = filteredBackup?.loved || 0
 
-            insertStmt.run({
+            insertAlbumStmt.run({
                 ...album,
                 genre: processedGenre,
                 rating: finalRating,
@@ -128,8 +145,12 @@ export async function aggregateAlbums(): Promise<void> {
         `).all() as any[]
 
         const insertArtistStmt = db.prepare(`
-            INSERT INTO artists (id, name, album_count, track_count)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO artists (id, name, album_count, track_count, updated_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(name) DO UPDATE SET
+                album_count = excluded.album_count,
+                track_count = excluded.track_count,
+                updated_at = CURRENT_TIMESTAMP
         `)
 
         const artistTransaction = db.transaction((artists: any[]) => {
@@ -220,18 +241,20 @@ export async function aggregateAlbums(): Promise<void> {
                 let imagePath: string | null = null
 
                 if (imageUrl) {
-                    const cachedPath = await lastFmService.downloadImage(imageUrl, `ext_artist_${artist.id}.jpg`)
+                    const cachedPath = await lastFmService.downloadImage(imageUrl, `artist_${artist.id}.jpg`)
                     if (cachedPath) {
                         imagePath = cachedPath
                     }
                 }
 
+                if (imagePath) {
+                    db.prepare('UPDATE artists SET image_path = ? WHERE id = ?').run(imagePath, artist.id)
+                }
+                if (info?.bio?.summary) {
+                    db.prepare('UPDATE artists SET bio = ? WHERE id = ?').run(info.bio.summary, artist.id)
+                }
+
                 if (imagePath || info?.bio?.summary) {
-                    db.prepare('UPDATE artists SET image_path = ?, bio = ? WHERE id = ?').run(
-                        imagePath || null,
-                        info?.bio?.summary || null,
-                        artist.id
-                    )
                     console.log(`[ArtistInfo] Enriched ${artist.name} (Bio: ${!!info?.bio?.summary}, Image: ${!!imagePath})`)
                 }
             } catch (err) {
@@ -408,6 +431,13 @@ export function dbAlbumToAlbum(row: DbAlbumCache): Album {
         totalDuration: row.total_duration,
         coverArtPath: row.cover_art_path || undefined,
         musicbrainzAlbumId: row.musicbrainz_album_id || undefined,
+        label: (row as any).label || undefined,
+        country: (row as any).country || undefined,
+        catalogNumber: (row as any).catalog_number || undefined,
+        barcode: (row as any).barcode || undefined,
+        albumType: (row as any).album_type || undefined,
+        status: (row as any).status || undefined,
+        enrichedAt: (row as any).enriched_at ? new Date((row as any).enriched_at) : undefined,
         rating: row.rating,
         loved: Boolean(row.loved),
         playCount: row.play_count,

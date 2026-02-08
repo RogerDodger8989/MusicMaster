@@ -488,3 +488,6 @@ export class LastFmService {
 }
 
 export const lastFmService = new LastFmService()
+
+import { MusicBrainzService } from './musicbrainz'
+export const musicBrainzService = new MusicBrainzService()

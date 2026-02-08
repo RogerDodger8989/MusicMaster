@@ -1,0 +1,1160 @@
+[
+  {
+    "id": "c95dc7f7-2989-4b8a-98bc-dbd952b61636",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "packaging": "Jewel Case",
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002-11-26",
+    "country": "XE",
+    "release-events": [
+      {
+        "date": "2002-11-26",
+        "area": {
+          "id": "89a675c2-3e37-3518-b83c-418bad59a85a",
+          "name": "Europe",
+          "sort-name": "Europe",
+          "iso-3166-1-codes": [
+            "XE"
+          ]
+        }
+      }
+    ],
+    "barcode": "5099751024828",
+    "label-info": [
+      {
+        "catalog-number": "COL 510248 2",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      },
+      {
+        "catalog-number": "5102482000",
+        "label": {
+          "id": "f5be9cfe-e1af-405c-a074-caeaed6797c0",
+          "name": "American Recordings"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "be6311d9-307e-36e2-bc8e-66bebf4270fe",
+        "format": "CD",
+        "disc-count": 1,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "03c1ead4-7093-457c-99c8-ab4d5a4d7654",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "disambiguation": "clean",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002-11-26",
+    "country": "US",
+    "release-events": [
+      {
+        "date": "2002-11-26",
+        "area": {
+          "id": "489ce91b-6658-3307-9877-795b68554c98",
+          "name": "United States",
+          "sort-name": "United States",
+          "iso-3166-1-codes": [
+            "US"
+          ]
+        }
+      }
+    ],
+    "barcode": "696998711822",
+    "label-info": [
+      {
+        "catalog-number": "CK 87118",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "c17ede7a-4467-3117-af3c-80960d37846c",
+        "format": "CD",
+        "disc-count": 1,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "edcb9c4a-8a39-3e07-b19d-ac5be340b35a",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002-11-29",
+    "country": "AU",
+    "release-events": [
+      {
+        "date": "2002-11-29",
+        "area": {
+          "id": "106e0bec-b638-3b37-b731-f53d507dc00e",
+          "name": "Australia",
+          "sort-name": "Australia",
+          "iso-3166-1-codes": [
+            "AU"
+          ]
+        }
+      }
+    ],
+    "barcode": "9399700106473",
+    "label-info": [
+      {
+        "catalog-number": "5102482000",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "f97cb233-d271-397a-b164-58924e062226",
+        "format": "CD",
+        "disc-count": 2,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "2e9eec60-ee5d-3a26-a650-73287e0f349f",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "packaging": "Jewel Case",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2004-06-07",
+    "country": "DE",
+    "release-events": [
+      {
+        "date": "2004-06-07",
+        "area": {
+          "id": "85752fda-13c4-31a3-bee5-0e5cb1f51dad",
+          "name": "Germany",
+          "sort-name": "Germany",
+          "iso-3166-1-codes": [
+            "DE"
+          ]
+        }
+      }
+    ],
+    "barcode": "5099751024828",
+    "asin": "B00007B5VM",
+    "label-info": [
+      {
+        "catalog-number": "COL 510248 2",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      },
+      {
+        "catalog-number": "5102482000",
+        "label": {
+          "id": "f5be9cfe-e1af-405c-a074-caeaed6797c0",
+          "name": "American Recordings"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "a943573f-6b44-360d-8930-fa61d4d2676a",
+        "format": "CD",
+        "disc-count": 4,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "ddc48125-3f61-4ac2-b474-b399c831ef2c",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "119eba76-b343-3e02-a292-f0f00644bb9b",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "disambiguation": "clean",
+    "packaging": "None",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "barcode": "696998711822",
+    "label-info": [
+      {
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "ce8ea51e-2aa5-3b46-b6df-3ef24414e941",
+        "format": "Digital Media",
+        "disc-count": 0,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "d5e089ba-cec8-3b96-9825-841c6443ede1",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "packaging": "Jewel Case",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002-11-26",
+    "country": "CA",
+    "release-events": [
+      {
+        "date": "2002-11-26",
+        "area": {
+          "id": "71bbafaa-e825-3e15-8ca9-017dcad1748b",
+          "name": "Canada",
+          "sort-name": "Canada",
+          "iso-3166-1-codes": [
+            "CA"
+          ]
+        }
+      },
+      {
+        "date": "2002-11-26",
+        "area": {
+          "id": "489ce91b-6658-3307-9877-795b68554c98",
+          "name": "United States",
+          "sort-name": "United States",
+          "iso-3166-1-codes": [
+            "US"
+          ]
+        }
+      },
+      {
+        "date": "2002-11-26",
+        "area": {
+          "id": "89a675c2-3e37-3518-b83c-418bad59a85a",
+          "name": "Europe",
+          "sort-name": "Europe",
+          "iso-3166-1-codes": [
+            "XE"
+          ]
+        }
+      }
+    ],
+    "barcode": "696998706224",
+    "asin": "B00007E8V4",
+    "label-info": [
+      {
+        "label": {
+          "id": "f5be9cfe-e1af-405c-a074-caeaed6797c0",
+          "name": "American Recordings"
+        }
+      },
+      {
+        "catalog-number": "CK 87062",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "fa891bd8-6db0-39a0-9c8a-d1493fa7f40c",
+        "format": "CD",
+        "disc-count": 4,
+        "track-count": 16
+      }
+    ],
+    "tags": [
+      {
+        "count": 2,
+        "name": "rock"
+      },
+      {
+        "count": 1,
+        "name": "heavy metal"
+      },
+      {
+        "count": 3,
+        "name": "nu metal"
+      },
+      {
+        "count": 1,
+        "name": "alternative"
+      },
+      {
+        "count": 2,
+        "name": "alternative metal"
+      }
+    ]
+  },
+  {
+    "id": "dcc5b32e-cd0d-4338-b303-d1e70aa6e592",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "119eba76-b343-3e02-a292-f0f00644bb9b",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "packaging": "None",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "",
+    "country": "XW",
+    "release-events": [
+      {
+        "date": "",
+        "area": {
+          "id": "525d4e18-3d00-31b9-a58b-a146a916de8f",
+          "name": "[Worldwide]",
+          "sort-name": "[Worldwide]",
+          "iso-3166-1-codes": [
+            "XW"
+          ]
+        }
+      }
+    ],
+    "barcode": "696998706224",
+    "label-info": [
+      {
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      },
+      {
+        "label": {
+          "id": "f5be9cfe-e1af-405c-a074-caeaed6797c0",
+          "name": "American Recordings"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "daf9bb88-5c19-3cd7-8965-c91843ea3367",
+        "format": "Digital Media",
+        "disc-count": 0,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "c3502349-4781-4136-a9d6-02aec80281a4",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "packaging": "Jewel Case",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002-11-25",
+    "country": "GB",
+    "release-events": [
+      {
+        "date": "2002-11-25",
+        "area": {
+          "id": "8a754a16-0027-3a29-b6d7-2b40ea0481ed",
+          "name": "United Kingdom",
+          "sort-name": "United Kingdom",
+          "iso-3166-1-codes": [
+            "GB"
+          ]
+        }
+      }
+    ],
+    "barcode": "5099751024828",
+    "asin": "B00007B5VM",
+    "label-info": [
+      {
+        "catalog-number": "COL 510248 2",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "2ddbe8da-0742-3b1c-af76-001ce62b864b",
+        "format": "CD",
+        "disc-count": 2,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "5c9b8759-5cf7-38bd-b7bf-4ae10039a43a",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002-11-26",
+    "country": "TW",
+    "release-events": [
+      {
+        "date": "2002-11-26",
+        "area": {
+          "id": "41637cec-9a4f-389c-86d2-fc6abf3357b5",
+          "name": "Taiwan",
+          "sort-name": "Taiwan",
+          "iso-3166-1-codes": [
+            "TW"
+          ]
+        }
+      }
+    ],
+    "barcode": "4893391094927",
+    "label-info": [
+      {
+        "catalog-number": "CK 87062",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "65b58fe4-65bb-31ba-b1e2-7d1fa6ecb2ea",
+        "format": "CD",
+        "disc-count": 2,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "71a150d8-ffa4-3e07-aca8-ee35d02d571c",
+    "score": 100,
+    "status-id": "518ffc83-5cde-34df-8627-81bff5093d92",
+    "packaging-id": "f7101ce3-0384-39ce-9fde-fbbd0044d35f",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Promotion",
+    "packaging": "Cardboard/Paper Sleeve",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002",
+    "country": "US",
+    "release-events": [
+      {
+        "date": "2002",
+        "area": {
+          "id": "489ce91b-6658-3307-9877-795b68554c98",
+          "name": "United States",
+          "sort-name": "United States",
+          "iso-3166-1-codes": [
+            "US"
+          ]
+        }
+      }
+    ],
+    "label-info": [
+      {
+        "catalog-number": "ACK-87062",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "ceef1bf0-8cba-3b1f-88bd-0bc5563daf1f",
+        "format": "CD",
+        "disc-count": 2,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "c74c7c8d-64c8-3505-bb02-d1f941605525",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "packaging": "Jewel Case",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002-11",
+    "country": "NL",
+    "release-events": [
+      {
+        "date": "2002-11",
+        "area": {
+          "id": "ef1b7cc0-cd26-36f4-8ea0-04d9623786c7",
+          "name": "Netherlands",
+          "sort-name": "Netherlands",
+          "iso-3166-1-codes": [
+            "NL"
+          ]
+        }
+      }
+    ],
+    "barcode": "5099751024897",
+    "asin": "B00007EHWR",
+    "label-info": [
+      {
+        "catalog-number": "COL 510248 9",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "11dfdd8d-e127-3224-9243-4d3d05efbb60",
+        "format": "CD",
+        "disc-count": 2,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "8c253171-30c1-4e05-bcac-96d73ee422b5",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "e724a489-a7e8-30a1-a17c-30dfd6831202",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 2,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "packaging": "Gatefold Cover",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2018-10-12",
+    "country": "XE",
+    "release-events": [
+      {
+        "date": "2018-10-12",
+        "area": {
+          "id": "89a675c2-3e37-3518-b83c-418bad59a85a",
+          "name": "Europe",
+          "sort-name": "Europe",
+          "iso-3166-1-codes": [
+            "XE"
+          ]
+        }
+      }
+    ],
+    "barcode": "190758656212",
+    "asin": "B07FVFD6HX",
+    "label-info": [
+      {
+        "catalog-number": "19075865621",
+        "label": {
+          "id": "f5be9cfe-e1af-405c-a074-caeaed6797c0",
+          "name": "American Recordings"
+        }
+      },
+      {
+        "catalog-number": "19075865621",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      },
+      {
+        "catalog-number": "19075865621",
+        "label": {
+          "id": "45ffe1d8-92da-4750-9a4a-f42861f46e2c",
+          "name": "Legacy"
+        }
+      },
+      {
+        "catalog-number": "19075865621",
+        "label": {
+          "id": "9e6b4d7f-4958-4db7-8504-d89e315836af",
+          "name": "Sony Music"
+        }
+      },
+      {
+        "catalog-number": "190758656212",
+        "label": {
+          "id": "f5be9cfe-e1af-405c-a074-caeaed6797c0",
+          "name": "American Recordings"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "62281e3d-752f-37b7-a6eb-877600186568",
+        "format": "12\" Vinyl",
+        "disc-count": 0,
+        "track-count": 8
+      },
+      {
+        "id": "7a48e652-acb1-322c-add1-548d8988c0a1",
+        "format": "12\" Vinyl",
+        "disc-count": 0,
+        "track-count": 8
+      }
+    ]
+  },
+  {
+    "id": "55604f39-1e22-4570-b0c0-59b6c49742b8",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "packaging": "Jewel Case",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002-10-26",
+    "country": "JP",
+    "release-events": [
+      {
+        "date": "2002-10-26",
+        "area": {
+          "id": "2db42837-c832-3c27-b4a3-08198f75693c",
+          "name": "Japan",
+          "sort-name": "Japan",
+          "iso-3166-1-codes": [
+            "JP"
+          ]
+        }
+      }
+    ],
+    "barcode": "4547366009149",
+    "asin": "B00007DXSX",
+    "label-info": [
+      {
+        "catalog-number": "SICP 311",
+        "label": {
+          "id": "f5be9cfe-e1af-405c-a074-caeaed6797c0",
+          "name": "American Recordings"
+        }
+      },
+      {
+        "catalog-number": "SICP 311",
+        "label": {
+          "id": "c9a4ea86-7611-4fff-9f4f-41f18be7e14b",
+          "name": "Sony Records International"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "6052132f-b19c-34bb-aa17-190219f7e9c3",
+        "format": "CD",
+        "disc-count": 0,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "d01c61e1-997f-4f73-8818-22c9d996e74d",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "packaging": "Jewel Case",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002",
+    "country": "CA",
+    "release-events": [
+      {
+        "date": "2002",
+        "area": {
+          "id": "71bbafaa-e825-3e15-8ca9-017dcad1748b",
+          "name": "Canada",
+          "sort-name": "Canada",
+          "iso-3166-1-codes": [
+            "CA"
+          ]
+        }
+      }
+    ],
+    "label-info": [
+      {
+        "catalog-number": "CK 87062",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      },
+      {
+        "catalog-number": "88697596212B",
+        "label": {
+          "id": "f5be9cfe-e1af-405c-a074-caeaed6797c0",
+          "name": "American Recordings"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "2fa75e1a-bdb4-3ade-b906-9a566029e883",
+        "format": "CD",
+        "disc-count": 0,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "3fe9f5c0-8a4e-450d-a620-a886e0171a16",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+    "artist-credit-id": "9398fdf1-f23d-3c3d-aaa0-28f6faa8fcb8",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "packaging": "Jewel Case",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System of a Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002",
+    "country": "RU",
+    "release-events": [
+      {
+        "date": "2002",
+        "area": {
+          "id": "1f1fc3a4-9500-39b8-9f10-f0a465557eef",
+          "name": "Russia",
+          "sort-name": "Russia",
+          "iso-3166-1-codes": [
+            "RU"
+          ]
+        }
+      }
+    ],
+    "barcode": "4606817014009",
+    "label-info": [
+      {
+        "catalog-number": "COL 510248 0",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "c03c0adb-da6b-3f5b-a0f5-68694ce0a350",
+        "format": "CD",
+        "disc-count": 1,
+        "track-count": 16
+      }
+    ]
+  },
+  {
+    "id": "e1514123-2b3b-44c2-9615-7bb0117afac5",
+    "score": 100,
+    "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+    "artist-credit-id": "2b2b8d68-a3de-3992-9cb4-5cbfe7f5f55c",
+    "count": 1,
+    "title": "Steal This Album!",
+    "status": "Official",
+    "text-representation": {
+      "language": "eng",
+      "script": "Latn"
+    },
+    "artist-credit": [
+      {
+        "name": "System Of A Down",
+        "artist": {
+          "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+          "name": "System of a Down",
+          "sort-name": "System of a Down"
+        }
+      }
+    ],
+    "release-group": {
+      "id": "3351730c-7853-38f3-8d56-1bf627de4523",
+      "type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "primary-type-id": "f529b476-6e62-324f-b0aa-1f3e33d313fc",
+      "title": "Steal This Album!",
+      "primary-type": "Album"
+    },
+    "date": "2002",
+    "country": "MX",
+    "release-events": [
+      {
+        "date": "2002",
+        "area": {
+          "id": "3e08b2cd-69f3-317c-b1e4-e71be581839e",
+          "name": "Mexico",
+          "sort-name": "Mexico",
+          "iso-3166-1-codes": [
+            "MX"
+          ]
+        }
+      }
+    ],
+    "barcode": "7509951024828",
+    "label-info": [
+      {
+        "catalog-number": "2 510248",
+        "label": {
+          "id": "011d1192-6f65-45bd-85c4-0400dd45693e",
+          "name": "Columbia"
+        }
+      },
+      {
+        "catalog-number": "2 510248",
+        "label": {
+          "id": "f5be9cfe-e1af-405c-a074-caeaed6797c0",
+          "name": "American Recordings"
+        }
+      }
+    ],
+    "track-count": 16,
+    "media": [
+      {
+        "id": "4d7a43e0-be19-4e82-8ee0-17a1fbc30025",
+        "format": "CD",
+        "disc-count": 0,
+        "track-count": 16
+      }
+    ]
+  }
+]

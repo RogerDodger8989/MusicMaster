@@ -28,5 +28,8 @@ app.listen(PORT, () => {
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`Last.fm API Key: ${process.env.LASTFM_API_KEY ? 'Present' : 'MISSING'}`);
     console.log(`Spotify Client ID: ${process.env.SPOTIFY_CLIENT_ID ? 'Present' : 'MISSING'}`);
-});
 
+    // Start background tasks
+    const { backgroundEnricher } = require('./services/enricher');
+    backgroundEnricher.start(10000); // Process one album every 10 seconds
+});

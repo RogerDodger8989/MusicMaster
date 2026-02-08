@@ -9,11 +9,13 @@
     - [x] Add detailed migrations for exhaustive schema standardization
     - [x] Update `metadata.controller.ts` to save and retrieve full metadata
 - [x] Refine Tagging UI
-    - [x] Show existing MusicBrainz IDs in "Current Metadata" (Fixed virtualTrack MBIDs)
+    - [x] Show existing MusicBrainz IDs in "Current Metadata" (Fixed visual bug)
+    - [x] Fixed "Missing" label in Confirmation Modal (UI compared wrong fields)
     - [x] Move cover art to the left in result cards
     - [x] Display Country in result cards
 - [x] Preserve Existing Picard Tags
     - [x] Update scanner to extract `artist_id`, `recording_id`, `release_group_id`, and `work_id`
+    - [x] VERIFIED: Diagnostic check shows MBIDs are correctly stored in DB for Picard-tagged files.
     - [x] Update database schema and `upsertTrack` to preserve these IDs during scan
     - [x] Implement Top Tracks section
     - [x] Functional Discography sorting (Year/Popularity)
@@ -65,10 +67,32 @@
     - [x] Refine Audio Quality display (Sample Rate/Bit Depth)
     - [x] Visualizer?
     - [x] Lyrics?
+- [x] **Debugging & Verification**
+  - [x] Verify "Members" section for groups (e.g., System of a Down)
+  - [x] Verify "Appears On" section for guest artists
+  - [x] Verify "Discovery" mode functionality
+  - [x] **Fix Missing Artist Metadata**
+    - [x] Implement `getArtistDetails` endpoint in backend
+    - [x] Ensure bidirectional "Member Of" logic in MusicBrainz service
+  - [x] Hide "Discography" section if artist has no main albums (prioritize "Appears On")
 - [x] Refine UI Aesthetics
   - [x] Remove play icons from artist cards in `ArtistsView.tsx`
   - [x] Remove play icons from `AlbumCard.tsx`
   - [x] Retain hover effects (dimming, scaling)
+- [x] Correct Database Schema (references `albums_cache`)
+- [x] Enrich Data & Verify (Performers: 16, Credits: 3)
+- [x] Fix Data Loss (Refactor `aggregateAlbums` to use upsert)
+- [x] Verify UI Display (Handled theoretically via data verification)
+- [x] Fix Image Overwrite bug in `aggregateAlbums`
+- [x] Standardize artist image filenames
+- [ ] UI: Add "Only performers" filter checkbox in Credits section
+- [ ] UI: Enhance performer display with rich roles (instruments, vocals)
+- [ ] Service: Refine `extractRoles` to capture detailed instrument names
+- [ ] Verification: Test filtering and rich display on "Steal This Album!"
+- [x] Implement combined query in `getAlbumPerformers`
+- [x] Verify database population (Performers: 16, Credits: 3)
+- [x] Verify UI display in `AlbumDetailView`
+- [x] Check artist images are loading
 - [x] Implement Session Persistence
   - [x] Update database schema (`playback_state` table)
   - [x] Implement IPC handlers for persistence in `ipc.ts`
@@ -168,6 +192,17 @@
 - [x] **Block 1: Foundation & DB**
     - [x] Extended database schema for MB metadata
     - [x] Implemented migrations for new columns
+- [x] **Implementing Performer Filtering & Rich Roles**
+    - [x] Enhance `extractRoles` in `MusicBrainzService` for specific instrumentation.
+    - [x] Add "Only performers" toggle in `AlbumDetailView`.
+    - [x] Categorize credits into Performance vs. Production in the UI.
+    - [x] Ensure contributor names are clickable for navigation.
+    - [x] Implement Roon-inspired "premium" credit layout.
+    - [x] Add Group Member fallback in enrichment logic when track credits are missing.
+    - [ ] Refine "Band Member" fallback to capture specific roles (Vocals, Guitar, etc.).
+    - [ ] Ensure artist images are fetched for all credit contributors.
+    - [ ] Enhance `ArtistDetailView` with "Member of" and "Appearances" sections.
+    - [ ] Enable navigation to similarity/discovery artists even without local albums.
 - [x] **Block 2: Logic & Fetching**
     - [x] Enhanced MusicBrainz service with join phrases and relationships
     - [x] Implemented AcoustID fingerprinting service
@@ -261,18 +296,10 @@
         - [x] Display multiple release options with track listings
         - [x] Show confidence scores and highlight duration differences
         - [x] Allow user to select correct match before writing tags
-- [ ] **Phase 9: Future Roadmap & Extended Features**
-    - [ ] **Audio Core Enhancements**
-        - [ ] Exclusive Mode: WASAPI (Windows) / ASIO integration for bit-perfect playback
-        - [ ] Android Mixer Bypass: Direct hardware access for mobile app
-    - [ ] **Smart Features & AI**
-        - [ ] "Sonic Analysis": Waveform analysis for "Play similar sounding tracks"
-        - [ ] "Aura" Visualizer: Dynamic colors based on mood/audio analysis
-    - [ ] **Library Management**
-        - [ ] Rescan: "Rescan Tags" option in right-click context menu
-        - [ ] Genre Hierarchies: Tree view for sub-genres
-    - [ ] **UI/UX Customization**
-        - [ ] Settings: Default "About the Album" visibility (Show/Hide)
-        - [ ] Settings: Global text size adjustment
-        - [ ] Album Detail: "More from this Artist" section (Sorted by Year)
-        - [ ] Taskbar Controls: Prev/Play/Next buttons in OS taskbar preview
+- [ ] **Phase 9: Full Library Automation & Deep Metadata**
+    - [ ] Implement Background Enrichment Worker
+    - [ ] Automated Performer/Relationship extraction (Smart Batching by Album)
+    - [ ] Automatic AcousticBrainz mood enrichment
+    - [ ] Rate-Limit Safety (1.1s delay enforcement)
+    - [ ] Create "Performers" UI section in Album Detail
+    - [ ] Display Mood/Energy tags in Player and Tracks view

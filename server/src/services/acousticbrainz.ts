@@ -64,6 +64,14 @@ export interface AcousticBrainzHighLevel {
         electronic: number
         not_electronic: number
     }
+    mood_relaxed: {
+        relaxed: number
+        not_relaxed: number
+    }
+    mood_party: {
+        party: number
+        not_party: number
+    }
     tonal_atonal: {
         atonal: number
         tonal: number

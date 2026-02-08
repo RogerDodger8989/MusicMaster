@@ -146,6 +146,7 @@ export default function TagConfirmationModal({
         t.title.toLowerCase() === track.title.toLowerCase() // Simple fuzzy match for display
     ) || candidate.tracks?.[0] // Fallback
 
+    const currentMBID = track.musicbrainzTrackId || track.musicbrainzAlbumId
     const fields: MetadataField[] = [
         { key: 'title', label: 'Title', icon: Music, currentValue: track.title, newValue: candidateTrack?.title || candidate.title },
         { key: 'artist', label: 'Artist', icon: User, currentValue: track.artist, newValue: candidate.artistName },
@@ -154,7 +155,7 @@ export default function TagConfirmationModal({
         { key: 'trackNum', label: 'Track #', icon: Hash, currentValue: track.trackNum, newValue: candidateTrack?.position },
         { key: 'label', label: 'Label', icon: Building2, currentValue: undefined, newValue: candidate.label }, // Usually missing in local
         { key: 'country', label: 'Country', icon: Flag, currentValue: undefined, newValue: candidate.country },
-        { key: 'mbids', label: 'MusicBrainz IDs', icon: Barcode, currentValue: track.musicbrainzTrackId ? 'Present' : 'Missing', newValue: 'Update ID' },
+        { key: 'mbids', label: 'MusicBrainz IDs', icon: Barcode, currentValue: currentMBID ? `ID: ${currentMBID.substring(0, 8)}...` : 'Missing', newValue: 'Update ID' },
     ]
 
 

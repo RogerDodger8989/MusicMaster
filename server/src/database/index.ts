@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS album_artists (
     join_phrase TEXT,
     sort_position INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE,
+    FOREIGN KEY (album_id) REFERENCES albums_cache(id) ON DELETE CASCADE,
     FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE,
     UNIQUE(album_id, artist_id, role)
 );
@@ -111,8 +111,10 @@ CREATE TABLE IF NOT EXISTS performers (
     credited_as TEXT,
     sort_position INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE,
-    FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE
+    FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE,
+    UNIQUE(track_id, artist_id, role)
 );
 
 -- Album credits
@@ -124,8 +126,10 @@ CREATE TABLE IF NOT EXISTS album_credits (
     credited_as TEXT,
     sort_position INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE,
-    FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (album_id) REFERENCES albums_cache(id) ON DELETE CASCADE,
+    FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE,
+    UNIQUE(album_id, artist_id, role)
 );
 
 -- Release info for different pressings
@@ -145,7 +149,7 @@ CREATE TABLE IF NOT EXISTS release_info (
     disc_count INTEGER DEFAULT 1,
     track_count INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+    FOREIGN KEY (album_id) REFERENCES albums_cache(id) ON DELETE CASCADE
 );
 
 -- Labels
@@ -167,7 +171,7 @@ CREATE TABLE IF NOT EXISTS album_labels (
     label_id TEXT NOT NULL,
     catalog_number TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE,
+    FOREIGN KEY (album_id) REFERENCES albums_cache(id) ON DELETE CASCADE,
     FOREIGN KEY (release_id) REFERENCES release_info(id) ON DELETE SET NULL,
     FOREIGN KEY (label_id) REFERENCES labels(id) ON DELETE CASCADE
 );
@@ -399,6 +403,7 @@ CREATE TABLE IF NOT EXISTS albums_cache (
     last_played DATETIME,
     bio TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    enriched_at DATETIME,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(name, artist)
 );
@@ -597,6 +602,7 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE albums_cache ADD COLUMN media TEXT",
             "ALTER TABLE albums_cache ADD COLUMN release_group_mbid TEXT",
             "ALTER TABLE albums_cache ADD COLUMN release_title TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN enriched_at DATETIME",
 
             // Missing tracks columns for MusicBrainz
             "ALTER TABLE tracks ADD COLUMN movement TEXT",
@@ -648,7 +654,11 @@ export function initDatabase(): Database.Database {
             "CREATE TABLE IF NOT EXISTS scrobble_queue (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, artist TEXT NOT NULL, title TEXT NOT NULL, album TEXT, played_at INTEGER NOT NULL, lastfm_submitted INTEGER DEFAULT 0, listenbrainz_submitted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
             "CREATE TABLE IF NOT EXISTS play_history (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, played_at DATETIME DEFAULT CURRENT_TIMESTAMP, play_count INTEGER DEFAULT 0)",
             "ALTER TABLE play_history ADD COLUMN play_count INTEGER DEFAULT 0",
-            "ALTER TABLE play_history ADD COLUMN fraction_played REAL DEFAULT 1.0"
+            "ALTER TABLE play_history ADD COLUMN fraction_played REAL DEFAULT 1.0",
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_performers_unique ON performers(track_id, artist_id, role)",
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_album_credits_unique ON album_credits(album_id, artist_id, role)",
+            "ALTER TABLE performers ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP",
+            "ALTER TABLE album_credits ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
         ]
 
         for (const migration of migrations) {

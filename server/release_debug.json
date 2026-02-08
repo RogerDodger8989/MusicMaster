@@ -1,0 +1,2343 @@
+{
+  "packaging": "Jewel Case",
+  "title": "Steal This Album!",
+  "barcode": "5099751024828",
+  "text-representation": {
+    "language": "eng",
+    "script": "Latn"
+  },
+  "release-events": [
+    {
+      "area": {
+        "type-id": null,
+        "disambiguation": "",
+        "type": null,
+        "name": "Germany",
+        "sort-name": "Germany",
+        "iso-3166-1-codes": [
+          "DE"
+        ],
+        "id": "85752fda-13c4-31a3-bee5-0e5cb1f51dad"
+      },
+      "date": "2004-06-07"
+    }
+  ],
+  "packaging-id": "ec27701a-4a22-37f4-bfac-6616e0f9750a",
+  "quality": "normal",
+  "cover-art-archive": {
+    "count": 0,
+    "front": false,
+    "artwork": false,
+    "back": false,
+    "darkened": false
+  },
+  "asin": "B00007B5VM",
+  "disambiguation": "",
+  "media": [
+    {
+      "format-id": "9712d52a-4509-3d4b-a1a2-67c88c643e31",
+      "format": "CD",
+      "position": 1,
+      "title": "",
+      "track-count": 16,
+      "track-offset": 0,
+      "id": "a943573f-6b44-360d-8930-fa61d4d2676a",
+      "tracks": [
+        {
+          "length": 143626,
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "artist": {
+                "country": "US",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "name": "System of a Down",
+                "sort-name": "System of a Down",
+                "type": "Group",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": ""
+              },
+              "name": "System of a Down"
+            }
+          ],
+          "id": "b1cda55b-698a-3e2b-a08a-d10d50c82137",
+          "recording": {
+            "first-release-date": "2002-10-26",
+            "disambiguation": "",
+            "video": false,
+            "title": "Chic ’n’ Stu",
+            "relations": [
+              {
+                "target-credit": "",
+                "attribute-ids": {},
+                "artist": {
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "sort-name": "Wallace, Andy",
+                  "name": "Andy Wallace",
+                  "country": "US",
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "engineer"
+                },
+                "direction": "backward",
+                "target-type": "artist",
+                "source-credit": "",
+                "ended": false,
+                "attributes": [],
+                "end": null,
+                "attribute-values": {},
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "type": "mix",
+                "begin": null
+              },
+              {
+                "ended": true,
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "target-type": "label",
+                "source-credit": "",
+                "target-credit": "",
+                "begin": "2002",
+                "attributes": [],
+                "end": "2002",
+                "label": {
+                  "type": "Holding",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "label-code": null,
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "sort-name": "American Recordings, LLC",
+                  "name": "American Recordings, LLC"
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "attribute-ids": {},
+                "direction": "backward"
+              },
+              {
+                "target-credit": "Sony Music Entertainment",
+                "target-type": "label",
+                "source-credit": "",
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "ended": true,
+                "direction": "backward",
+                "attribute-ids": {},
+                "label": {
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "type": "Holding",
+                  "name": "Sony Music Entertainment",
+                  "sort-name": "Sony Music Entertainment",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c"
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "attributes": [],
+                "end": "2002",
+                "begin": "2002"
+              },
+              {
+                "attribute-ids": {},
+                "direction": "forward",
+                "end": null,
+                "attributes": [],
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "target-credit": "",
+                "source-credit": "",
+                "url": {
+                  "resource": "https://open.spotify.com/track/11i33j50Gsr90pRoDJBrEA",
+                  "id": "976e2cce-a862-452f-b6ca-ed4dbcabd134"
+                },
+                "target-type": "url",
+                "ended": false,
+                "type": "free streaming",
+                "attribute-values": {}
+              }
+            ],
+            "artist-credit": [
+              {
+                "artist": {
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "country": "US",
+                  "type": "Group",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": ""
+                },
+                "joinphrase": "",
+                "name": "System of a Down"
+              }
+            ],
+            "id": "abec8ec7-def4-43f9-ae20-307cda57a66a",
+            "length": 143626
+          },
+          "number": "1",
+          "title": "Chic ’n’ Stu",
+          "position": 1
+        },
+        {
+          "length": 153773,
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "artist": {
+                "country": "US",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "sort-name": "System of a Down",
+                "name": "System of a Down",
+                "type": "Group",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": ""
+              },
+              "name": "System of a Down"
+            }
+          ],
+          "id": "2d136786-7660-34e6-8c89-6a9b9b56d9fe",
+          "recording": {
+            "relations": [
+              {
+                "target-credit": "",
+                "direction": "backward",
+                "target-type": "artist",
+                "source-credit": "",
+                "attribute-ids": {},
+                "artist": {
+                  "country": "US",
+                  "sort-name": "Wallace, Andy",
+                  "name": "Andy Wallace",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "engineer"
+                },
+                "attribute-values": {},
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "type": "mix",
+                "ended": false,
+                "attributes": [],
+                "end": null,
+                "begin": null
+              },
+              {
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": "",
+                "begin": "2002",
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "label-code": null,
+                  "type": "Holding",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "name": "American Recordings, LLC",
+                  "sort-name": "American Recordings, LLC"
+                },
+                "attribute-ids": {},
+                "direction": "backward"
+              },
+              {
+                "attribute-ids": {},
+                "direction": "backward",
+                "begin": "2002",
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "type": "Holding",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "name": "Sony Music Entertainment",
+                  "sort-name": "Sony Music Entertainment"
+                },
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": "Sony Music Entertainment",
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {}
+              },
+              {
+                "end": null,
+                "attributes": [],
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "attribute-ids": {},
+                "direction": "forward",
+                "ended": false,
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "url": {
+                  "resource": "https://open.spotify.com/track/0Xmbtw7NhNiDnL4BWy5wDh",
+                  "id": "f81f5195-deed-4b6c-9e19-e75bbbd5c2da"
+                },
+                "source-credit": "",
+                "target-type": "url"
+              }
+            ],
+            "id": "6c682506-ff4f-49bd-9378-afb1ffc298be",
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "country": "US",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "type": "Group",
+                  "disambiguation": ""
+                },
+                "name": "System of a Down"
+              }
+            ],
+            "length": 153773,
+            "first-release-date": "2002-10-26",
+            "disambiguation": "",
+            "video": false,
+            "title": "Innervision"
+          },
+          "title": "Innervision",
+          "number": "2",
+          "position": 2
+        },
+        {
+          "position": 3,
+          "number": "3",
+          "title": "Bubbles",
+          "recording": {
+            "video": false,
+            "title": "Bubbles",
+            "first-release-date": "2002-10-26",
+            "disambiguation": "",
+            "id": "ef3fe014-e0fc-4cc1-89a8-a315abfbe562",
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "country": "US",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "type": "Group",
+                  "disambiguation": ""
+                },
+                "name": "System of a Down"
+              }
+            ],
+            "length": 116893,
+            "relations": [
+              {
+                "end": null,
+                "ended": false,
+                "attributes": [],
+                "type": "mix",
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "attribute-values": {},
+                "begin": null,
+                "target-credit": "",
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "type": "Person",
+                  "disambiguation": "engineer",
+                  "name": "Andy Wallace",
+                  "sort-name": "Wallace, Andy",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "country": "US"
+                },
+                "attribute-ids": {},
+                "source-credit": "",
+                "direction": "backward",
+                "target-type": "artist"
+              },
+              {
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "ended": true,
+                "target-credit": "",
+                "source-credit": "",
+                "target-type": "label",
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "name": "American Recordings, LLC",
+                  "sort-name": "American Recordings, LLC",
+                  "label-code": null,
+                  "type": "Holding",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings"
+                },
+                "end": "2002",
+                "attributes": [],
+                "begin": "2002",
+                "direction": "backward",
+                "attribute-ids": {}
+              },
+              {
+                "target-credit": "Sony Music Entertainment",
+                "source-credit": "",
+                "target-type": "label",
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "ended": true,
+                "direction": "backward",
+                "attribute-ids": {},
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "label-code": null,
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "name": "Sony Music Entertainment",
+                  "sort-name": "Sony Music Entertainment",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c"
+                },
+                "end": "2002",
+                "attributes": [],
+                "begin": "2002"
+              },
+              {
+                "begin": null,
+                "end": null,
+                "attributes": [],
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attribute-ids": {},
+                "direction": "forward",
+                "ended": false,
+                "type": "free streaming",
+                "attribute-values": {},
+                "source-credit": "",
+                "url": {
+                  "resource": "https://open.spotify.com/track/4dJMoLxnO93Ys7SqZNIxlg",
+                  "id": "f7e06dec-0d1f-485a-9ede-672b8183900c"
+                },
+                "target-type": "url",
+                "target-credit": ""
+              }
+            ]
+          },
+          "length": 116893,
+          "artist-credit": [
+            {
+              "artist": {
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "type": "Group",
+                "disambiguation": "",
+                "country": "US",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "name": "System of a Down",
+                "sort-name": "System of a Down"
+              },
+              "joinphrase": "",
+              "name": "System of a Down"
+            }
+          ],
+          "id": "983893ca-e7c9-3e94-a823-24d381301167"
+        },
+        {
+          "position": 4,
+          "number": "4",
+          "title": "Boom!",
+          "recording": {
+            "disambiguation": "",
+            "first-release-date": "2002-10-26",
+            "video": false,
+            "title": "Boom!",
+            "relations": [
+              {
+                "attribute-ids": {},
+                "artist": {
+                  "sort-name": "Wallace, Andy",
+                  "name": "Andy Wallace",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "country": "US",
+                  "disambiguation": "engineer",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "type": "Person"
+                },
+                "direction": "backward",
+                "target-type": "artist",
+                "source-credit": "",
+                "target-credit": "",
+                "begin": null,
+                "ended": false,
+                "attributes": [],
+                "end": null,
+                "attribute-values": {},
+                "type": "mix",
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe"
+              },
+              {
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "ended": true,
+                "target-type": "label",
+                "source-credit": "",
+                "target-credit": "",
+                "begin": "2002",
+                "label": {
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "name": "American Recordings, LLC",
+                  "sort-name": "American Recordings, LLC",
+                  "label-code": null,
+                  "type": "Holding",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings"
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "attributes": [],
+                "end": "2002",
+                "direction": "backward",
+                "attribute-ids": {}
+              },
+              {
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "name": "Sony Music Entertainment",
+                  "sort-name": "Sony Music Entertainment"
+                },
+                "end": "2002",
+                "attributes": [],
+                "begin": "2002",
+                "direction": "backward",
+                "attribute-ids": {},
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "ended": true,
+                "target-credit": "Sony Music Entertainment",
+                "source-credit": "",
+                "target-type": "label"
+              },
+              {
+                "attribute-values": {},
+                "type": "free streaming",
+                "ended": false,
+                "target-credit": "",
+                "target-type": "url",
+                "source-credit": "",
+                "url": {
+                  "resource": "https://open.spotify.com/track/5en63QU81VfRQIsoqBcfde",
+                  "id": "9d330041-6389-48a8-9513-454ed77144a5"
+                },
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attributes": [],
+                "end": null,
+                "begin": null,
+                "direction": "forward",
+                "attribute-ids": {}
+              }
+            ],
+            "length": 134906,
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "type": "Group",
+                  "name": "System of a Down",
+                  "sort-name": "System of a Down",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "country": "US"
+                },
+                "name": "System of a Down"
+              }
+            ],
+            "id": "17623b39-ec09-4f57-8ee4-859adbe02eca"
+          },
+          "length": 134906,
+          "id": "b8bd68d2-f73b-35b2-994c-7d325e62f5ae",
+          "artist-credit": [
+            {
+              "artist": {
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "sort-name": "System of a Down",
+                "name": "System of a Down",
+                "country": "US",
+                "type": "Group",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": ""
+              },
+              "joinphrase": "",
+              "name": "System of a Down"
+            }
+          ]
+        },
+        {
+          "number": "5",
+          "title": "Nüguns",
+          "position": 5,
+          "length": 150360,
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "artist": {
+                "country": "US",
+                "name": "System of a Down",
+                "sort-name": "System of a Down",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "type": "Group",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": ""
+              },
+              "name": "System of a Down"
+            }
+          ],
+          "id": "3d7599b3-2a65-32db-a158-27f69124ed91",
+          "recording": {
+            "id": "59fd9ca4-6b79-4531-9307-e19ca4bbf983",
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "name": "System of a Down",
+                  "sort-name": "System of a Down",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "country": "US",
+                  "type": "Group",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": ""
+                },
+                "name": "System of a Down"
+              }
+            ],
+            "length": 150360,
+            "relations": [
+              {
+                "target-credit": "",
+                "attribute-ids": {},
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "type": "Person",
+                  "disambiguation": "engineer",
+                  "country": "US",
+                  "name": "Andy Wallace",
+                  "sort-name": "Wallace, Andy",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5"
+                },
+                "target-type": "artist",
+                "direction": "backward",
+                "source-credit": "",
+                "attributes": [],
+                "ended": false,
+                "end": null,
+                "attribute-values": {},
+                "type": "mix",
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "begin": null
+              },
+              {
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "name": "American Recordings, LLC",
+                  "sort-name": "American Recordings, LLC",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "company and copyrightholder for American Recordings"
+                },
+                "end": "2002",
+                "attributes": [],
+                "begin": "2002",
+                "direction": "backward",
+                "attribute-ids": {},
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "ended": true,
+                "target-credit": "",
+                "source-credit": "",
+                "target-type": "label"
+              },
+              {
+                "begin": "2002",
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "label-code": null,
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "sort-name": "Sony Music Entertainment",
+                  "name": "Sony Music Entertainment"
+                },
+                "attribute-ids": {},
+                "direction": "backward",
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": "Sony Music Entertainment"
+              },
+              {
+                "target-type": "url",
+                "url": {
+                  "resource": "https://open.spotify.com/track/0ognkBvJqaov2gWDgaMzvz",
+                  "id": "91fadf49-4b44-4aff-98b7-feca484bd1b1"
+                },
+                "source-credit": "",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "free streaming",
+                "ended": false,
+                "direction": "forward",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attributes": [],
+                "end": null
+              }
+            ],
+            "first-release-date": "2002-10-26",
+            "disambiguation": "",
+            "video": false,
+            "title": "Nüguns"
+          }
+        },
+        {
+          "title": "A.D.D. (American Dream Denial)",
+          "number": "6",
+          "position": 6,
+          "length": 197306,
+          "id": "3a3587fb-3078-3bf1-9615-4ad46e40bc09",
+          "artist-credit": [
+            {
+              "name": "System of a Down",
+              "artist": {
+                "disambiguation": "",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "type": "Group",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "name": "System of a Down",
+                "sort-name": "System of a Down",
+                "country": "US"
+              },
+              "joinphrase": ""
+            }
+          ],
+          "recording": {
+            "video": false,
+            "title": "A.D.D. (American Dream Denial)",
+            "disambiguation": "",
+            "first-release-date": "2002-10-26",
+            "length": 197306,
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "country": "US",
+                  "type": "Group",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": ""
+                },
+                "name": "System of a Down"
+              }
+            ],
+            "id": "391f0b31-0235-40d0-83e1-42e14fdc7e9c",
+            "relations": [
+              {
+                "attribute-values": {},
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "type": "mix",
+                "attributes": [],
+                "ended": false,
+                "end": null,
+                "begin": null,
+                "target-credit": "",
+                "direction": "backward",
+                "target-type": "artist",
+                "source-credit": "",
+                "attribute-ids": {},
+                "artist": {
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "engineer",
+                  "name": "Andy Wallace",
+                  "sort-name": "Wallace, Andy",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "country": "US"
+                }
+              },
+              {
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "target-credit": "",
+                "source-credit": "",
+                "target-type": "label",
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "name": "American Recordings, LLC",
+                  "sort-name": "American Recordings, LLC",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "type": "Holding"
+                },
+                "begin": "2002",
+                "attribute-ids": {},
+                "direction": "backward"
+              },
+              {
+                "attribute-ids": {},
+                "direction": "backward",
+                "begin": "2002",
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "label-code": null,
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "sort-name": "Sony Music Entertainment",
+                  "name": "Sony Music Entertainment"
+                },
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": "Sony Music Entertainment",
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {}
+              },
+              {
+                "target-credit": "",
+                "source-credit": "",
+                "url": {
+                  "id": "38f0c41f-33f7-4e79-8d23-620e8f9cbf1a",
+                  "resource": "https://open.spotify.com/track/7gZX4vZqjJJWsdosIB0h6P"
+                },
+                "target-type": "url",
+                "type": "free streaming",
+                "attribute-values": {},
+                "ended": false,
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "end": null,
+                "attributes": [],
+                "begin": null
+              }
+            ]
+          }
+        },
+        {
+          "recording": {
+            "id": "51de9aee-39d2-4c36-a66e-85dbcce0f865",
+            "artist-credit": [
+              {
+                "artist": {
+                  "type": "Group",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "country": "US",
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6"
+                },
+                "joinphrase": "",
+                "name": "System of a Down"
+              }
+            ],
+            "length": 249626,
+            "relations": [
+              {
+                "target-credit": "",
+                "direction": "backward",
+                "target-type": "artist",
+                "source-credit": "",
+                "attribute-ids": {},
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "type": "Person",
+                  "disambiguation": "engineer",
+                  "country": "US",
+                  "name": "Andy Wallace",
+                  "sort-name": "Wallace, Andy",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5"
+                },
+                "attribute-values": {},
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "type": "mix",
+                "ended": false,
+                "attributes": [],
+                "end": null,
+                "begin": null
+              },
+              {
+                "begin": "2002",
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "sort-name": "American Recordings, LLC",
+                  "name": "American Recordings, LLC",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "type": "Holding",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "label-code": null
+                },
+                "attribute-ids": {},
+                "direction": "backward",
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": ""
+              },
+              {
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "name": "Sony Music Entertainment",
+                  "sort-name": "Sony Music Entertainment",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "type": "Holding"
+                },
+                "begin": "2002",
+                "attribute-ids": {},
+                "direction": "backward",
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "target-credit": "Sony Music Entertainment",
+                "source-credit": "",
+                "target-type": "label"
+              },
+              {
+                "ended": false,
+                "attribute-values": {},
+                "type": "free streaming",
+                "target-credit": "",
+                "target-type": "url",
+                "url": {
+                  "resource": "https://open.spotify.com/track/4TYI2YExAWaIOpGP4y7AbI",
+                  "id": "0ccef25b-f681-4e9b-a2be-b95ccd637e7b"
+                },
+                "source-credit": "",
+                "attributes": [],
+                "end": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "attribute-ids": {},
+                "direction": "forward"
+              }
+            ],
+            "video": false,
+            "title": "Mr. Jack",
+            "first-release-date": "2002-10-26",
+            "disambiguation": ""
+          },
+          "length": 249626,
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "artist": {
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "type": "Group",
+                "disambiguation": "",
+                "country": "US",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "name": "System of a Down",
+                "sort-name": "System of a Down"
+              },
+              "name": "System of a Down"
+            }
+          ],
+          "id": "59ce60e2-da46-3966-b746-3fd812ad7919",
+          "position": 7,
+          "title": "Mr. Jack",
+          "number": "7"
+        },
+        {
+          "title": "I‐E‐A‐I‐A‐I‐O",
+          "number": "8",
+          "position": 8,
+          "id": "95feca37-3c89-3fcd-9661-5ad107e6d443",
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "artist": {
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": "",
+                "type": "Group",
+                "country": "US",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "name": "System of a Down",
+                "sort-name": "System of a Down"
+              },
+              "name": "System of a Down"
+            }
+          ],
+          "length": 188600,
+          "recording": {
+            "title": "I‐E‐A‐I‐A‐I‐O",
+            "video": false,
+            "disambiguation": "",
+            "first-release-date": "2002-10-26",
+            "length": 188600,
+            "id": "2f410dcf-19ba-4858-9ea1-8b8ccd9dd749",
+            "artist-credit": [
+              {
+                "artist": {
+                  "country": "US",
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "type": "Group"
+                },
+                "joinphrase": "",
+                "name": "System of a Down"
+              }
+            ],
+            "relations": [
+              {
+                "type": "mix",
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "attribute-values": {},
+                "end": null,
+                "attributes": [],
+                "ended": false,
+                "begin": null,
+                "target-credit": "",
+                "source-credit": "",
+                "direction": "backward",
+                "target-type": "artist",
+                "artist": {
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "engineer",
+                  "country": "US",
+                  "name": "Andy Wallace",
+                  "sort-name": "Wallace, Andy",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5"
+                },
+                "attribute-ids": {}
+              },
+              {
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": "",
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "ended": true,
+                "direction": "backward",
+                "attribute-ids": {},
+                "begin": "2002",
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "sort-name": "American Recordings, LLC",
+                  "name": "American Recordings, LLC",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "label-code": null
+                },
+                "end": "2002",
+                "attributes": []
+              },
+              {
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "ended": true,
+                "target-credit": "Sony Music Entertainment",
+                "target-type": "label",
+                "source-credit": "",
+                "label": {
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "sort-name": "Sony Music Entertainment",
+                  "name": "Sony Music Entertainment",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "type": "Holding",
+                  "label-code": null
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "attributes": [],
+                "end": "2002",
+                "begin": "2002",
+                "direction": "backward",
+                "attribute-ids": {}
+              },
+              {
+                "target-credit": "",
+                "target-type": "url",
+                "url": {
+                  "id": "7ae9e933-1aec-483d-ad6f-0ef234d17e2a",
+                  "resource": "https://open.spotify.com/track/3RgDvs9Jpvn3kUuaTek1R5"
+                },
+                "source-credit": "",
+                "attribute-values": {},
+                "type": "free streaming",
+                "ended": false,
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attributes": [],
+                "end": null,
+                "begin": null
+              }
+            ]
+          }
+        },
+        {
+          "title": "36",
+          "number": "9",
+          "position": 9,
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "artist": {
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "name": "System of a Down",
+                "sort-name": "System of a Down",
+                "country": "US",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "type": "Group",
+                "disambiguation": ""
+              },
+              "name": "System of a Down"
+            }
+          ],
+          "id": "96e1dc08-59d3-3f58-81a6-a48abe0f43f1",
+          "length": 46333,
+          "recording": {
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "type": "Group",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "name": "System of a Down",
+                  "sort-name": "System of a Down",
+                  "country": "US"
+                },
+                "name": "System of a Down"
+              }
+            ],
+            "id": "3e52e34b-e1b2-46c8-82c2-11c89ff2b9f0",
+            "length": 46333,
+            "relations": [
+              {
+                "source-credit": "",
+                "target-type": "artist",
+                "direction": "backward",
+                "artist": {
+                  "country": "US",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "name": "Andy Wallace",
+                  "sort-name": "Wallace, Andy",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "type": "Person",
+                  "disambiguation": "engineer"
+                },
+                "attribute-ids": {},
+                "target-credit": "",
+                "begin": null,
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "type": "mix",
+                "attribute-values": {},
+                "end": null,
+                "attributes": [],
+                "ended": false
+              },
+              {
+                "direction": "backward",
+                "attribute-ids": {},
+                "begin": "2002",
+                "label": {
+                  "name": "American Recordings, LLC",
+                  "sort-name": "American Recordings, LLC",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "company and copyrightholder for American Recordings"
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "attributes": [],
+                "end": "2002",
+                "target-type": "label",
+                "source-credit": "",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "ended": true
+              },
+              {
+                "attribute-ids": {},
+                "direction": "backward",
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "name": "Sony Music Entertainment",
+                  "sort-name": "Sony Music Entertainment",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "type": "Holding"
+                },
+                "begin": "2002",
+                "target-credit": "Sony Music Entertainment",
+                "source-credit": "",
+                "target-type": "label",
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {}
+              },
+              {
+                "attribute-ids": {},
+                "direction": "forward",
+                "attributes": [],
+                "end": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "target-credit": "",
+                "target-type": "url",
+                "source-credit": "",
+                "url": {
+                  "resource": "https://open.spotify.com/track/2TyFfQ1OuubEwfxFvapfzC",
+                  "id": "1651a1f8-1c35-419f-b330-60e6de529e6c"
+                },
+                "ended": false,
+                "attribute-values": {},
+                "type": "free streaming"
+              }
+            ],
+            "first-release-date": "2002-10-26",
+            "disambiguation": "",
+            "video": false,
+            "title": "36"
+          }
+        },
+        {
+          "recording": {
+            "relations": [
+              {
+                "target-credit": "",
+                "artist": {
+                  "country": "US",
+                  "sort-name": "Wallace, Andy",
+                  "name": "Andy Wallace",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "engineer",
+                  "type": "Person"
+                },
+                "attribute-ids": {},
+                "source-credit": "",
+                "target-type": "artist",
+                "direction": "backward",
+                "end": null,
+                "ended": false,
+                "attributes": [],
+                "type": "mix",
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "attribute-values": {},
+                "begin": null
+              },
+              {
+                "attribute-ids": {},
+                "direction": "backward",
+                "attributes": [],
+                "end": "2002",
+                "label": {
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "name": "American Recordings, LLC",
+                  "sort-name": "American Recordings, LLC",
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "type": "Holding"
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "begin": "2002",
+                "target-credit": "",
+                "target-type": "label",
+                "source-credit": "",
+                "ended": true,
+                "attribute-values": {},
+                "type": "phonographic copyright"
+              },
+              {
+                "direction": "backward",
+                "attribute-ids": {},
+                "label": {
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "sort-name": "Sony Music Entertainment",
+                  "name": "Sony Music Entertainment",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "type": "Holding",
+                  "label-code": null
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "attributes": [],
+                "end": "2002",
+                "begin": "2002",
+                "target-credit": "Sony Music Entertainment",
+                "target-type": "label",
+                "source-credit": "",
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "ended": true
+              },
+              {
+                "type": "free streaming",
+                "attribute-values": {},
+                "ended": false,
+                "url": {
+                  "id": "0d1e7275-c1cc-4f35-a22a-c3532fd8dd7a",
+                  "resource": "https://open.spotify.com/track/3A5E8GUX5bdPGxxJP1IrYx"
+                },
+                "source-credit": "",
+                "target-type": "url",
+                "target-credit": "",
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "end": null,
+                "attributes": [],
+                "direction": "forward",
+                "attribute-ids": {}
+              }
+            ],
+            "id": "e9e28ade-ebfb-43b4-968c-fcce3fd64080",
+            "artist-credit": [
+              {
+                "artist": {
+                  "country": "US",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "type": "Group",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": ""
+                },
+                "joinphrase": "",
+                "name": "System of a Down"
+              }
+            ],
+            "length": 126306,
+            "video": false,
+            "title": "Pictures",
+            "first-release-date": "2002-10-26",
+            "disambiguation": ""
+          },
+          "artist-credit": [
+            {
+              "name": "System of a Down",
+              "joinphrase": "",
+              "artist": {
+                "country": "US",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "name": "System of a Down",
+                "sort-name": "System of a Down",
+                "type": "Group",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": ""
+              }
+            }
+          ],
+          "id": "6ca6e394-a835-3ae1-aa31-338099d6364e",
+          "length": 126306,
+          "position": 10,
+          "title": "Pictures",
+          "number": "10"
+        },
+        {
+          "length": 193626,
+          "artist-credit": [
+            {
+              "name": "System of a Down",
+              "joinphrase": "",
+              "artist": {
+                "type": "Group",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": "",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "sort-name": "System of a Down",
+                "name": "System of a Down",
+                "country": "US"
+              }
+            }
+          ],
+          "id": "98e934ee-800c-37a1-8c4a-cfce3eba20a6",
+          "recording": {
+            "relations": [
+              {
+                "attribute-values": {},
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "type": "mix",
+                "attributes": [],
+                "ended": false,
+                "end": null,
+                "begin": null,
+                "target-credit": "",
+                "direction": "backward",
+                "target-type": "artist",
+                "source-credit": "",
+                "attribute-ids": {},
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "engineer",
+                  "type": "Person",
+                  "name": "Andy Wallace",
+                  "sort-name": "Wallace, Andy",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "country": "US"
+                }
+              },
+              {
+                "begin": "2002",
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "label-code": null,
+                  "sort-name": "American Recordings, LLC",
+                  "name": "American Recordings, LLC",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75"
+                },
+                "end": "2002",
+                "attributes": [],
+                "direction": "backward",
+                "attribute-ids": {},
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "ended": true,
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": ""
+              },
+              {
+                "begin": "2002",
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "label-code": null,
+                  "sort-name": "Sony Music Entertainment",
+                  "name": "Sony Music Entertainment",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c"
+                },
+                "end": "2002",
+                "attributes": [],
+                "direction": "backward",
+                "attribute-ids": {},
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "ended": true,
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": "Sony Music Entertainment"
+              },
+              {
+                "target-credit": "",
+                "source-credit": "",
+                "url": {
+                  "id": "a6e8d80e-eab7-481d-8e2d-59821409ccaa",
+                  "resource": "https://open.spotify.com/track/4TRPgtjVmqg7EAWZe1T94E"
+                },
+                "target-type": "url",
+                "type": "free streaming",
+                "attribute-values": {},
+                "ended": false,
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "end": null,
+                "attributes": [],
+                "begin": null
+              }
+            ],
+            "length": 193626,
+            "id": "fdd307f7-d3cd-4815-ae93-5c9132a4a509",
+            "artist-credit": [
+              {
+                "artist": {
+                  "country": "US",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "type": "Group",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": ""
+                },
+                "joinphrase": "",
+                "name": "System of a Down"
+              }
+            ],
+            "title": "Highway Song",
+            "video": false,
+            "disambiguation": "",
+            "first-release-date": "2002-10-26"
+          },
+          "number": "11",
+          "title": "Highway Song",
+          "position": 11
+        },
+        {
+          "artist-credit": [
+            {
+              "name": "System of a Down",
+              "artist": {
+                "type": "Group",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": "",
+                "sort-name": "System of a Down",
+                "name": "System of a Down",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "country": "US"
+              },
+              "joinphrase": ""
+            }
+          ],
+          "id": "688cb179-3756-3890-bedb-af0fe851045e",
+          "length": 132733,
+          "recording": {
+            "first-release-date": "2002-10-26",
+            "disambiguation": "",
+            "video": false,
+            "title": "Fuck the System",
+            "relations": [
+              {
+                "type": "mix",
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "attribute-values": {},
+                "end": null,
+                "ended": false,
+                "attributes": [],
+                "begin": null,
+                "target-credit": "",
+                "source-credit": "",
+                "target-type": "artist",
+                "direction": "backward",
+                "artist": {
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "engineer",
+                  "country": "US",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "sort-name": "Wallace, Andy",
+                  "name": "Andy Wallace"
+                },
+                "attribute-ids": {}
+              },
+              {
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "ended": true,
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": "",
+                "begin": "2002",
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "label-code": null,
+                  "type": "Holding",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "name": "American Recordings, LLC",
+                  "sort-name": "American Recordings, LLC",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75"
+                },
+                "end": "2002",
+                "attributes": [],
+                "direction": "backward",
+                "attribute-ids": {}
+              },
+              {
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "ended": true,
+                "target-credit": "Sony Music Entertainment",
+                "source-credit": "",
+                "target-type": "label",
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "name": "Sony Music Entertainment",
+                  "sort-name": "Sony Music Entertainment"
+                },
+                "end": "2002",
+                "attributes": [],
+                "begin": "2002",
+                "direction": "backward",
+                "attribute-ids": {}
+              },
+              {
+                "target-type": "url",
+                "url": {
+                  "id": "8de23021-7d9f-4291-bb16-5ababf516ea5",
+                  "resource": "https://open.spotify.com/track/5hjKYe3NOmWx2NVzVAeIGF"
+                },
+                "source-credit": "",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "free streaming",
+                "ended": false,
+                "direction": "forward",
+                "attribute-ids": {},
+                "begin": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attributes": [],
+                "end": null
+              }
+            ],
+            "id": "af66cae3-fa8d-41a0-b266-6a03a7732b79",
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "country": "US",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "type": "Group",
+                  "disambiguation": ""
+                },
+                "name": "System of a Down"
+              }
+            ],
+            "length": 132733
+          },
+          "title": "Fuck the System",
+          "number": "12",
+          "position": 12
+        },
+        {
+          "position": 13,
+          "number": "13",
+          "title": "Ego Brain",
+          "recording": {
+            "video": false,
+            "title": "Ego Brain",
+            "first-release-date": "2002-10-26",
+            "disambiguation": "",
+            "id": "ba608f66-8139-46ba-a4e1-7b15d437be4e",
+            "artist-credit": [
+              {
+                "joinphrase": "",
+                "artist": {
+                  "type": "Group",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "name": "System of a Down",
+                  "sort-name": "System of a Down",
+                  "country": "US"
+                },
+                "name": "System of a Down"
+              }
+            ],
+            "length": 201906,
+            "relations": [
+              {
+                "begin": null,
+                "attributes": [],
+                "ended": false,
+                "end": null,
+                "attribute-values": {},
+                "type": "mix",
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "attribute-ids": {},
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "type": "Person",
+                  "disambiguation": "engineer",
+                  "country": "US",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "name": "Andy Wallace",
+                  "sort-name": "Wallace, Andy"
+                },
+                "direction": "backward",
+                "target-type": "artist",
+                "source-credit": "",
+                "target-credit": ""
+              },
+              {
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": "",
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "attribute-ids": {},
+                "direction": "backward",
+                "begin": "2002",
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "sort-name": "American Recordings, LLC",
+                  "name": "American Recordings, LLC",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "type": "Holding",
+                  "label-code": null
+                }
+              },
+              {
+                "direction": "backward",
+                "attribute-ids": {},
+                "label": {
+                  "label-code": null,
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "name": "Sony Music Entertainment",
+                  "sort-name": "Sony Music Entertainment",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c"
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "attributes": [],
+                "end": "2002",
+                "begin": "2002",
+                "target-credit": "Sony Music Entertainment",
+                "target-type": "label",
+                "source-credit": "",
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "ended": true
+              },
+              {
+                "end": null,
+                "attributes": [],
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "attribute-ids": {},
+                "direction": "forward",
+                "ended": false,
+                "type": "free streaming",
+                "attribute-values": {},
+                "target-credit": "",
+                "url": {
+                  "id": "11a45cb6-553e-4aa4-b5c7-5181c33874fb",
+                  "resource": "https://open.spotify.com/track/2HVCLZ6dMDelXhloO5sAjV"
+                },
+                "source-credit": "",
+                "target-type": "url"
+              }
+            ]
+          },
+          "length": 201906,
+          "artist-credit": [
+            {
+              "artist": {
+                "sort-name": "System of a Down",
+                "name": "System of a Down",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "country": "US",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": "",
+                "type": "Group"
+              },
+              "joinphrase": "",
+              "name": "System of a Down"
+            }
+          ],
+          "id": "86b84903-d775-3a52-89d2-5bec94fa0f55"
+        },
+        {
+          "position": 14,
+          "title": "Thetawaves",
+          "number": "14",
+          "recording": {
+            "video": false,
+            "title": "Thetawaves",
+            "first-release-date": "2002-10-26",
+            "disambiguation": "",
+            "artist-credit": [
+              {
+                "name": "System of a Down",
+                "artist": {
+                  "country": "US",
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "disambiguation": "",
+                  "type": "Group"
+                },
+                "joinphrase": ""
+              }
+            ],
+            "id": "ac737987-dcf6-482a-9ebb-28600a4165f1",
+            "length": 156600,
+            "relations": [
+              {
+                "artist": {
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "type": "Person",
+                  "disambiguation": "engineer",
+                  "country": "US",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "name": "Andy Wallace",
+                  "sort-name": "Wallace, Andy"
+                },
+                "attribute-ids": {},
+                "source-credit": "",
+                "direction": "backward",
+                "target-type": "artist",
+                "target-credit": "",
+                "begin": null,
+                "end": null,
+                "attributes": [],
+                "ended": false,
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "type": "mix",
+                "attribute-values": {}
+              },
+              {
+                "attribute-ids": {},
+                "direction": "backward",
+                "begin": "2002",
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "type": "Holding",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "label-code": null,
+                  "sort-name": "American Recordings, LLC",
+                  "name": "American Recordings, LLC",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75"
+                },
+                "source-credit": "",
+                "target-type": "label",
+                "target-credit": "",
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {}
+              },
+              {
+                "attributes": [],
+                "end": "2002",
+                "label": {
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "name": "Sony Music Entertainment",
+                  "sort-name": "Sony Music Entertainment",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c"
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "begin": "2002",
+                "attribute-ids": {},
+                "direction": "backward",
+                "ended": true,
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "target-credit": "Sony Music Entertainment",
+                "target-type": "label",
+                "source-credit": ""
+              },
+              {
+                "direction": "forward",
+                "attribute-ids": {},
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "end": null,
+                "attributes": [],
+                "begin": null,
+                "target-credit": "",
+                "url": {
+                  "resource": "https://open.spotify.com/track/6l17lK6a9LFqhOfh770wWg",
+                  "id": "c96ee7cb-92f5-4532-bccd-cbf43443e053"
+                },
+                "source-credit": "",
+                "target-type": "url",
+                "type": "free streaming",
+                "attribute-values": {},
+                "ended": false
+              }
+            ]
+          },
+          "length": 156600,
+          "id": "8d324a95-6e4b-349c-a7dc-a70efe873b3d",
+          "artist-credit": [
+            {
+              "artist": {
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": "",
+                "type": "Group",
+                "country": "US",
+                "name": "System of a Down",
+                "sort-name": "System of a Down",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6"
+              },
+              "joinphrase": "",
+              "name": "System of a Down"
+            }
+          ]
+        },
+        {
+          "number": "15",
+          "title": "Roulette",
+          "position": 15,
+          "artist-credit": [
+            {
+              "name": "System of a Down",
+              "artist": {
+                "type": "Group",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "disambiguation": "",
+                "country": "US",
+                "name": "System of a Down",
+                "sort-name": "System of a Down",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6"
+              },
+              "joinphrase": ""
+            }
+          ],
+          "id": "dad252a8-17a3-3ff8-a8bb-b1582fef9ea2",
+          "length": 201200,
+          "recording": {
+            "length": 201200,
+            "id": "99d13135-476d-45d8-911c-40b0a1f6b37a",
+            "artist-credit": [
+              {
+                "name": "System of a Down",
+                "joinphrase": "",
+                "artist": {
+                  "country": "US",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "disambiguation": "",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "type": "Group"
+                }
+              }
+            ],
+            "relations": [
+              {
+                "target-credit": "",
+                "direction": "backward",
+                "target-type": "artist",
+                "source-credit": "",
+                "attribute-ids": {},
+                "artist": {
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "engineer",
+                  "name": "Andy Wallace",
+                  "sort-name": "Wallace, Andy",
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "country": "US"
+                },
+                "attribute-values": {},
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "type": "mix",
+                "ended": false,
+                "attributes": [],
+                "end": null,
+                "begin": null
+              },
+              {
+                "target-credit": "",
+                "source-credit": "",
+                "target-type": "label",
+                "ended": true,
+                "type": "phonographic copyright",
+                "attribute-values": {},
+                "attribute-ids": {},
+                "direction": "backward",
+                "end": "2002",
+                "attributes": [],
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "label": {
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "label-code": null,
+                  "sort-name": "American Recordings, LLC",
+                  "name": "American Recordings, LLC",
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75"
+                },
+                "begin": "2002"
+              },
+              {
+                "target-type": "label",
+                "source-credit": "",
+                "target-credit": "Sony Music Entertainment",
+                "ended": true,
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "attribute-ids": {},
+                "direction": "backward",
+                "begin": "2002",
+                "attributes": [],
+                "end": "2002",
+                "label": {
+                  "label-code": null,
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "name": "Sony Music Entertainment",
+                  "sort-name": "Sony Music Entertainment"
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff"
+              },
+              {
+                "ended": false,
+                "attribute-values": {},
+                "type": "free streaming",
+                "target-credit": "",
+                "target-type": "url",
+                "source-credit": "",
+                "url": {
+                  "resource": "https://open.spotify.com/track/4sM7v7wyRAuV6ZTO2dvnCA",
+                  "id": "e0fc0820-e234-4100-89f6-982a0e015bad"
+                },
+                "attributes": [],
+                "end": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "begin": null,
+                "attribute-ids": {},
+                "direction": "forward"
+              }
+            ],
+            "disambiguation": "",
+            "first-release-date": "2002-10-26",
+            "video": false,
+            "title": "Roulette"
+          }
+        },
+        {
+          "recording": {
+            "first-release-date": "1998",
+            "disambiguation": "",
+            "video": false,
+            "title": "Streamline",
+            "relations": [
+              {
+                "source-credit": "",
+                "direction": "backward",
+                "target-type": "artist",
+                "artist": {
+                  "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+                  "sort-name": "Wallace, Andy",
+                  "name": "Andy Wallace",
+                  "country": "US",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "engineer",
+                  "type": "Person"
+                },
+                "attribute-ids": {},
+                "target-credit": "",
+                "begin": null,
+                "type": "mix",
+                "type-id": "3e3102e1-1896-4f50-b5b2-dd9824e46efe",
+                "attribute-values": {},
+                "end": null,
+                "attributes": [],
+                "ended": false
+              },
+              {
+                "end": null,
+                "ended": false,
+                "attributes": [],
+                "type": "producer",
+                "type-id": "5c0ceac3-feb4-41f0-868d-dc06f6e27fc0",
+                "attribute-values": {},
+                "begin": null,
+                "target-credit": "",
+                "artist": {
+                  "type": "Person",
+                  "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+                  "disambiguation": "US record producer, former co‐president of Columbia Records",
+                  "country": "US",
+                  "id": "07aebfa0-55d6-47e0-a284-12330e3eae0d",
+                  "sort-name": "Rubin, Rick",
+                  "name": "Rick Rubin"
+                },
+                "attribute-ids": {},
+                "source-credit": "",
+                "target-type": "artist",
+                "direction": "backward"
+              },
+              {
+                "direction": "backward",
+                "attribute-ids": {},
+                "begin": "2002",
+                "label": {
+                  "type": "Holding",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "disambiguation": "company and copyrightholder for American Recordings",
+                  "label-code": null,
+                  "id": "60721c38-6a49-47d9-9087-408e95f95f75",
+                  "sort-name": "American Recordings, LLC",
+                  "name": "American Recordings, LLC"
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "attributes": [],
+                "end": "2002",
+                "target-type": "label",
+                "source-credit": "",
+                "target-credit": "",
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "ended": true
+              },
+              {
+                "target-type": "label",
+                "source-credit": "",
+                "target-credit": "Sony Music Entertainment",
+                "attribute-values": {},
+                "type": "phonographic copyright",
+                "ended": true,
+                "direction": "backward",
+                "attribute-ids": {},
+                "begin": "2002",
+                "label": {
+                  "id": "b54769e4-b75e-4f60-884a-c4714687bb4c",
+                  "sort-name": "Sony Music Entertainment",
+                  "name": "Sony Music Entertainment",
+                  "type-id": "43f31a62-97e4-36f6-9752-453c131b71ed",
+                  "type": "Holding",
+                  "disambiguation": "NOT FOR RELEASE LABEL USE! company owned by Sony Corporation of America since Oct 1, 2008; operates worldwide except in JP",
+                  "label-code": null
+                },
+                "type-id": "fd841726-ba3c-47f7-af8e-6734ab6243ff",
+                "attributes": [],
+                "end": "2002"
+              },
+              {
+                "begin": null,
+                "attributes": [],
+                "end": null,
+                "type-id": "7e41ef12-a124-4324-afdb-fdbae687a89c",
+                "attribute-ids": {},
+                "direction": "forward",
+                "ended": false,
+                "attribute-values": {},
+                "type": "free streaming",
+                "target-type": "url",
+                "url": {
+                  "id": "3c902d32-a6bf-46d0-94e1-c98e72dd9841",
+                  "resource": "https://open.spotify.com/track/4YtuhhgpKwckVZNGzjpxBh"
+                },
+                "source-credit": "",
+                "target-credit": ""
+              }
+            ],
+            "id": "9a21f281-e36d-4a49-ac58-07e04d36a12b",
+            "artist-credit": [
+              {
+                "name": "System of a Down",
+                "artist": {
+                  "country": "US",
+                  "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                  "sort-name": "System of a Down",
+                  "name": "System of a Down",
+                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                  "type": "Group",
+                  "disambiguation": ""
+                },
+                "joinphrase": ""
+              }
+            ],
+            "length": 217600
+          },
+          "length": 217600,
+          "id": "17a39865-2b6f-3c4a-b14f-747dea5f29b3",
+          "artist-credit": [
+            {
+              "joinphrase": "",
+              "artist": {
+                "country": "US",
+                "name": "System of a Down",
+                "sort-name": "System of a Down",
+                "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+                "type": "Group",
+                "disambiguation": ""
+              },
+              "name": "System of a Down"
+            }
+          ],
+          "position": 16,
+          "title": "Streamline",
+          "number": "16"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "target-credit": "",
+      "attribute-ids": {},
+      "artist": {
+        "type": "Person",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "disambiguation": "engineer",
+        "id": "05f87a3d-df77-42a0-b004-f1990b609dd5",
+        "sort-name": "Wallace, Andy",
+        "name": "Andy Wallace",
+        "country": "US"
+      },
+      "target-type": "artist",
+      "direction": "backward",
+      "source-credit": "",
+      "ended": false,
+      "attributes": [],
+      "end": null,
+      "attribute-values": {},
+      "type": "mix",
+      "type-id": "6cc958c0-533b-4540-a281-058fbb941890",
+      "begin": null
+    },
+    {
+      "end": null,
+      "attributes": [],
+      "ended": false,
+      "type-id": "8bf377ba-8d71-4ecc-97f2-7bb2d8a2a75f",
+      "type": "producer",
+      "attribute-values": {},
+      "begin": null,
+      "target-credit": "",
+      "artist": {
+        "country": "US",
+        "id": "42ba45d2-4938-4bf5-9121-5caffc719c4d",
+        "name": "Daron Malakian",
+        "sort-name": "Malakian, Daron",
+        "type": "Person",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "disambiguation": ""
+      },
+      "attribute-ids": {},
+      "source-credit": "",
+      "target-type": "artist",
+      "direction": "backward"
+    },
+    {
+      "source-credit": "",
+      "direction": "backward",
+      "target-type": "artist",
+      "artist": {
+        "type": "Person",
+        "type-id": "b6e035f4-3ce9-331c-97df-83397230b0df",
+        "disambiguation": "US record producer, former co‐president of Columbia Records",
+        "id": "07aebfa0-55d6-47e0-a284-12330e3eae0d",
+        "sort-name": "Rubin, Rick",
+        "name": "Rick Rubin",
+        "country": "US"
+      },
+      "attribute-ids": {},
+      "target-credit": "",
+      "begin": null,
+      "type": "producer",
+      "type-id": "8bf377ba-8d71-4ecc-97f2-7bb2d8a2a75f",
+      "attribute-values": {},
+      "end": null,
+      "ended": false,
+      "attributes": []
+    },
+    {
+      "direction": "forward",
+      "attribute-ids": {},
+      "begin": null,
+      "type-id": "4f2e710d-166c-480c-a293-2e2c8d658d87",
+      "attributes": [],
+      "end": null,
+      "target-type": "url",
+      "source-credit": "",
+      "url": {
+        "resource": "https://www.amazon.de/gp/product/B00007B5VM",
+        "id": "27bbf1ec-9592-4554-86cd-9a541fc8fc9b"
+      },
+      "target-credit": "",
+      "attribute-values": {},
+      "type": "amazon asin",
+      "ended": false
+    },
+    {
+      "direction": "forward",
+      "attribute-ids": {},
+      "begin": null,
+      "type-id": "4a78823c-1c53-4176-a5f3-58026c76f2bc",
+      "end": null,
+      "attributes": [],
+      "source-credit": "",
+      "url": {
+        "resource": "https://www.discogs.com/release/370456",
+        "id": "b36efdfc-817d-4d32-a124-110b96334ea9"
+      },
+      "target-type": "url",
+      "target-credit": "",
+      "type": "discogs",
+      "attribute-values": {},
+      "ended": false
+    }
+  ],
+  "date": "2004-06-07",
+  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe",
+  "country": "DE",
+  "status": "Official",
+  "artist-credit": [
+    {
+      "joinphrase": "",
+      "artist": {
+        "id": "cc0b7089-c08d-4c10-b6b0-873582c17fd6",
+        "sort-name": "System of a Down",
+        "name": "System of a Down",
+        "country": "US",
+        "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
+        "type": "Group",
+        "disambiguation": ""
+      },
+      "name": "System of a Down"
+    }
+  ],
+  "id": "2e9eec60-ee5d-3a26-a650-73287e0f349f"
+}
