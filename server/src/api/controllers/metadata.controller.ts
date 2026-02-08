@@ -1,4 +1,7 @@
 import { Request, Response } from 'express'
+import axios from 'axios'
+import fs from 'fs'
+import path from 'path'
 import { musicBrainzService } from '../../services/musicbrainz'
 import { acoustidService } from '../../services/acoustid'
 import { getDatabase } from '../../database/index'
@@ -92,15 +95,61 @@ export const applyCandidate = async (req: Request, res: Response) => {
     const candidate = req.body
     try {
         const { updateTrackWithMBID } = await import('../../database/musicbrainz')
-        // Force string cast to fix TS error
-        const success = updateTrackWithMBID(
+        const { writeMusicBrainzDataToFile } = await import('../../services/metadataWriter')
+        const db = getDatabase()
+
+        // Ensure values are strings to satisfy TypeScript
+        const recordingMbid = String(candidate.recordingMbid || '')
+        const releaseMbid = String(candidate.releaseMbid || '')
+        const artistMbid = String(candidate.artistMbid || '')
+
+        // Only proceed if we have at least a recording MBID
+        if (!recordingMbid) {
+            throw new Error('Missing recording MBID')
+        }
+
+        // 1. Update Database
+        updateTrackWithMBID(
             trackId as string,
-            candidate.recordingMbid as string,
-            candidate.releaseMbid as string,
-            candidate.artistMbid as string
+            recordingMbid,
+            releaseMbid,
+            artistMbid
         )
+
+        // 2. Handle Cover Art
+        let coverPath: string | undefined
+        if (releaseMbid) {
+            try {
+                // Get track path to find directory
+                const track = db.prepare('SELECT file_path FROM tracks WHERE id = ?').get(trackId) as { file_path: string } | undefined
+                if (track?.file_path) {
+                    const dir = path.dirname(track.file_path)
+                    const coverDest = path.join(dir, 'cover.jpg')
+
+                    // Check if cover already exists
+                    if (!fs.existsSync(coverDest)) {
+                        const coverUrl = `https://coverartarchive.org/release/${releaseMbid}/front`
+                        console.log(`Downloading cover from ${coverUrl}...`)
+                        const response = await axios.get(coverUrl, { responseType: 'arraybuffer' })
+                        fs.writeFileSync(coverDest, response.data)
+                        console.log(`Saved cover to ${coverDest}`)
+                        coverPath = coverDest
+                    } else {
+                        coverPath = coverDest
+                    }
+                }
+            } catch (err) {
+                console.warn('Failed to download cover art:', err)
+                // Continue without cover
+            }
+        }
+
+        // 3. Write Tags to File
+        const success = await writeMusicBrainzDataToFile(db, trackId as string, coverPath)
+
         res.json({ success })
     } catch (error: any) {
+        console.error('Failed to apply candidate:', error)
         res.status(500).json({ error: error.message })
     }
 }

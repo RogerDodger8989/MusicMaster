@@ -102,6 +102,14 @@ declare global {
           }) => void
         ) => () => void
       }
+      metadata: {
+        search: (artist: string, title: string, album?: string) => Promise<any[]>
+        searchAlbums: (artist: string, album: string) => Promise<any[]>
+        getArtistDetails: (artistId: string) => Promise<any>
+        getAlbumDetails: (albumId: string) => Promise<any>
+        exportMissingCSV: (tracks: any[]) => Promise<string | null>
+        updateArtistFacts: (id: string, facts: any) => Promise<boolean>
+      }
       musicbrainz: {
         getCoverage: () => Promise<{
           totalTracks: number

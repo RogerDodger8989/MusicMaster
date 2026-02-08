@@ -4,6 +4,7 @@ import NodeID3 from 'node-id3'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import path from 'path'
+import fs from 'fs'
 
 const execAsync = promisify(exec)
 
@@ -52,6 +53,9 @@ export interface MusicBrainzWriteData {
     movement?: string          // MOVEMENTNAME
     movementNumber?: number    // MOVEMENT
     movementTotal?: number     // MOVEMENTTOTAL
+
+    // Cover Art
+    coverPath?: string         // Path to cover image to embed
 }
 
 export async function writeMetadata(
@@ -175,6 +179,19 @@ async function writeFLACMetadata(
                 await execAsync(`metaflac --set-tag=GENRE="${genre}" "${filePath}"`)
             }
         }
+
+        // Embed Cover Art
+        if (musicBrainzData.coverPath) {
+            try {
+                // Remove existing picture
+                await execAsync(`metaflac --remove --block-type=PICTURE "${filePath}"`)
+                // Import new picture
+                // 3 = Cover (front)
+                await execAsync(`metaflac --import-picture-from="3:image/jpeg:${musicBrainzData.coverPath}" "${filePath}"`)
+            } catch (error) {
+                console.error(`Failed to embed cover art for ${filePath}:`, error)
+            }
+        }
     }
 }
 
@@ -271,6 +288,23 @@ async function writeMP3Metadata(
                 t => t.description !== 'MUSICBRAINZ_ALBUMARTISTID'
             )
             updatedTags.userDefinedText.push({ description: 'MUSICBRAINZ_ALBUMARTISTID', value: mbids })
+        }
+
+        if (musicBrainzData.coverPath) {
+            try {
+                const imageBuffer = fs.readFileSync(musicBrainzData.coverPath)
+                updatedTags.image = {
+                    mime: 'image/jpeg',
+                    type: {
+                        id: 3,
+                        name: 'front cover'
+                    },
+                    description: 'Cover',
+                    imageBuffer: imageBuffer
+                }
+            } catch (error) {
+                console.error('Failed to read cover image for embedding:', error)
+            }
         }
     }
 
@@ -442,7 +476,8 @@ export function buildMusicBrainzDataFromDb(
 
 export async function writeMusicBrainzDataToFile(
     db: any,
-    trackId: string | number
+    trackId: string | number,
+    coverPath?: string
 ): Promise<boolean> {
     try {
         const track = db.prepare('SELECT file_path FROM tracks WHERE id = ?').get(trackId)
@@ -455,6 +490,10 @@ export async function writeMusicBrainzDataToFile(
         if (!mbData) {
             console.error(`No MusicBrainz data found for track ${trackId}`)
             return false
+        }
+
+        if (coverPath) {
+            mbData.coverPath = coverPath
         }
 
         const trackMeta = db.prepare('SELECT rating, loved, play_count FROM tracks WHERE id = ?').get(trackId)

@@ -4,6 +4,7 @@ import NodeID3 from 'node-id3'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import path from 'path'
+import fs from 'fs'
 
 const execAsync = promisify(exec)
 
@@ -52,6 +53,9 @@ export interface MusicBrainzWriteData {
   movement?: string // MOVEMENTNAME
   movementNumber?: number // MOVEMENT
   movementTotal?: number // MOVEMENTTOTAL
+
+  // Cover Art
+  coverPath?: string // Path to cover image to embed
 }
 
 /**
@@ -215,6 +219,19 @@ async function writeFLACMetadata(
         await execAsync(`metaflac --set-tag=GENRE="${genre}" "${filePath}"`)
       }
     }
+
+    // Embed Cover Art
+    if (musicBrainzData.coverPath) {
+      try {
+        // Remove existing picture
+        await execAsync(`metaflac --remove --block-type=PICTURE "${filePath}"`)
+        // Import new picture
+        // 3 = Cover (front)
+        await execAsync(`metaflac --import-picture-from="3:image/jpeg:${musicBrainzData.coverPath}" "${filePath}"`)
+      } catch (error) {
+        console.error(`Failed to embed cover art for ${filePath}:`, error)
+      }
+    }
   }
 }
 
@@ -260,7 +277,10 @@ async function writeMP3Metadata(
   if (musicBrainzData) {
     // Map standard ID3 frames
     if (musicBrainzData.releaseDate) updatedTags.date = musicBrainzData.releaseDate
-    if (musicBrainzData.originalDate) updatedTags.originalDate = musicBrainzData.originalDate
+    if (musicBrainzData.originalDate) {
+      // node-id3 types are missing originalDate but it is supported as 'originalReleaseTime' or 'originalDate'
+      ; (updatedTags as any).originalDate = musicBrainzData.originalDate
+    }
     if (musicBrainzData.label) updatedTags.publisher = musicBrainzData.label // TPUB
     if (musicBrainzData.genres) updatedTags.genre = musicBrainzData.genres.join(';')
     if (musicBrainzData.bpm) updatedTags.bpm = musicBrainzData.bpm.toString()
@@ -340,6 +360,23 @@ async function writeMP3Metadata(
         (t) => t.description !== 'MUSICBRAINZ_ALBUMARTISTID'
       )
       updatedTags.userDefinedText.push({ description: 'MUSICBRAINZ_ALBUMARTISTID', value: mbids })
+    }
+
+    if (musicBrainzData.coverPath) {
+      try {
+        const imageBuffer = fs.readFileSync(musicBrainzData.coverPath)
+        updatedTags.image = {
+          mime: 'image/jpeg',
+          type: {
+            id: 3,
+            name: 'front cover'
+          },
+          description: 'Cover',
+          imageBuffer: imageBuffer
+        }
+      } catch (error) {
+        console.error('Failed to read cover image for embedding:', error)
+      }
     }
   }
 
