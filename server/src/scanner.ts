@@ -283,6 +283,14 @@ export class MusicScanner extends EventEmitter {
             // Extract MusicBrainz IDs
             const musicbrainzTrackId = metadata.common.musicbrainz_trackid
             const musicbrainzAlbumId = metadata.common.musicbrainz_albumid
+            const musicbrainzArtistId = (metadata.common as any).musicbrainz_artistid || (metadata.common as any).musicbrainz_artist_id
+            const musicbrainzRecordingId = (metadata.common as any).musicbrainz_recordingid
+            const musicbrainzReleaseGroupId = (metadata.common as any).musicbrainz_releasegroupid
+            const musicbrainzWorkId = (metadata.common as any).musicbrainz_workid
+
+            if (musicbrainzTrackId || musicbrainzAlbumId) {
+                console.log(`[Scanner] ${path.basename(filePath)} MBIDs: Track=${musicbrainzTrackId}, Album=${musicbrainzAlbumId}`)
+            }
 
             // Extract ReplayGain metadata (values in dB)
             let replayGainTrack: number | undefined
@@ -341,6 +349,10 @@ export class MusicScanner extends EventEmitter {
                 releaseDate,
                 musicbrainzTrackId,
                 musicbrainzAlbumId,
+                musicbrainzArtistId,
+                musicbrainzRecordingId,
+                musicbrainzReleaseGroupId,
+                musicbrainzWorkId,
                 replayGainTrack,
                 replayGainAlbum,
                 replayGainTrackPeak,

@@ -79,10 +79,11 @@ export interface DbTrack {
     movement_num: number | null
     movement_name: string | null
     mbid: string | null
-    mbid_track_id: string | null
-    mbid_album_id: string | null
-    mbid_artist_id: string | null
-    mbid_work_id: string | null
+    musicbrainz_track_id: string | null
+    musicbrainz_album_id: string | null
+    musicbrainz_artist_id: string | null
+    musicbrainz_work_id: string | null
+    musicbrainz_release_group_id: string | null
     acoustid_fingerprint: string | null
     acoustid_id: string | null
     isrc: string | null
@@ -343,7 +344,8 @@ export interface TrackFull {
     loved: number
     play_count: number
     mbid: string | null
-    mbid_album_id: string | null
+    musicbrainz_track_id: string | null
+    musicbrainz_album_id: string | null
 
     // Artists
     all_artists: string | null  // Semicolon-separated

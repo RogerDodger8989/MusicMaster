@@ -60,6 +60,34 @@ The playlist and queue system has been fully refined based on your feedback. It 
     - Prevents losing your current queue by accident.
 - **Stats Bar**: Each artist card features a sleek blue bar at the bottom displaying Album and Track counts.
 
+## Key Improvements
+
+### 1. Robust Album Tagging & Schema Standardization
+- **Comprehensive Schema Fix**: Added ALL missing columns including `key_signature` (AcousticBrainz), `movement`, `movement_num`, and `movement_total` (classical tracks).
+- **Exhaustive Migrations**: Implemented a "one-fell-swoop" migration to ensure no more "no such column" errors occur during tagging.
+- **Full Metadata Persistence**: Ensures that all enrichment data (label, catalog number, original release date) is correctly saved and accessible.
+
+### 2. Refined Tagging UI & MBID Visibility
+- **Fixed MBID Display**: Resolved the "Missing MusicBrainz ID" issue in confirmation modals by correctly populating the `virtualTrack` object used for album tagging comparisons.
+- **Visual Confidence**: The UI now correctly reflects existing Picard tags (T-ID/A-ID) in the library.
+- **Layout Improvements**: Search results now display covers on the left and include the release country.
+
+### 3. Preserving Picard Tags
+- Added detailed **Scanner Logging** to confirm that MusicBrainz IDs from Picard are being detected and preserved.
+- Verified that `upsertTrack` correctly handles all standard and extended MBIDs.
+
+## Verification Results
+
+### Server Build
+- **Status**: Passed
+- **Result**: `npm run build` (tsc) completed successfully after resolving syntax and missing column errors.
+
+### Manual Verification Steps
+1. Open the **Tagging Modal** for an album.
+2. Search for the album and select a MusicBrainz result.
+3. Observe the **Track Match Preview** pane on the right showing the alignment of local tracks to the MusicBrainz release.
+4. Confirm tagging and verify that tags are saved to both the database and the files.
+
 ### ⚡ Enhanced Visibility
 - **Persistent Ratings**: Stars and hearts in the queue are now **always visible**, not just on hover.
 - **Intelligent Covers**: Every track in the queue now shows a cover with fallback support from the album.

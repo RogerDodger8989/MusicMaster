@@ -1,13 +1,20 @@
-# MusicMaster Development Tasks
-
-- [x] Refinements
-    - [x] Adjust back button to match Album View
-    - [x] Remove "Verified Artist" badge
-    - [x] Reduce Artist title size
-    - [x] Fix image positioning (object-top)
-    - [x] Move all content to top overlay (Name, Stats, Bio)
-    - [x] Remove Library Overview sidebar
-    - [x] Refine Album Card (small play icon in corner)
+- [x] MusicBrainz Tagging System Stabilization
+    - [x] Ensure `client.ts` works in both Electron and Web
+    - [x] Standardize server response structures
+    - [x] Implement album tagging logic on server
+    - [x] Fix server crash and redeclaration issues
+    - [x] Standardize database columns (musicbrainz_* prefix)
+    - [x] Fix MusicBrainz Tagging Persistence
+    - [x] Fix `SqliteError` for all missing columns (`key_signature`, `movement`, etc.)
+    - [x] Add detailed migrations for exhaustive schema standardization
+    - [x] Update `metadata.controller.ts` to save and retrieve full metadata
+- [x] Refine Tagging UI
+    - [x] Show existing MusicBrainz IDs in "Current Metadata" (Fixed virtualTrack MBIDs)
+    - [x] Move cover art to the left in result cards
+    - [x] Display Country in result cards
+- [x] Preserve Existing Picard Tags
+    - [x] Update scanner to extract `artist_id`, `recording_id`, `release_group_id`, and `work_id`
+    - [x] Update database schema and `upsertTrack` to preserve these IDs during scan
     - [x] Implement Top Tracks section
     - [x] Functional Discography sorting (Year/Popularity)
 - [x] Layout & Interactivity Refinements

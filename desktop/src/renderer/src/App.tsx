@@ -18,6 +18,7 @@ import TagConfirmationModal from './components/TagConfirmationModal'
 import QueuePanel from './components/QueuePanel'
 import TrackContextMenu from './components/TrackContextMenu'
 import { TrackPlayOptionModal } from './components/modals/TrackPlayOptionModal'
+import { client } from './api/client'
 import { useLibrary } from './store/library'
 import { useNavigation } from './store/navigation'
 import { usePlayer } from './store/player'
@@ -50,6 +51,7 @@ function App(): React.JSX.Element {
   const [tagConfirmationData, setTagConfirmationData] = useState<{
     track: Track
     candidate: any
+    type: 'track' | 'album'
   } | null>(null)
 
   const [trackContextMenu, setTrackContextMenu] = useState<{
@@ -238,28 +240,33 @@ function App(): React.JSX.Element {
 
     if (type === 'track') {
       const track = selectedItemForTagging as Track
-      // Open Confirmation Modal instead of direct save
       setTagConfirmationData({
         track,
-        candidate: metadata
+        candidate: metadata,
+        type: 'track'
       })
       setTagConfirmationOpen(true)
-      // TaggingModal will be closed by its own onClose? No, TaggingModal calls onSave then onClose.
-      // We should probably ensure TaggingModal is closed.
       setTaggingModalOpen(false)
     } else {
-      // Album tagging (keep existing logic for now, or TODO: implement album confirmation)
-      try {
-        if (window.api) {
-          const updatedCount = await window.api.library.tagAlbumMetadata(id, metadata.id)
-          console.log(`✅ [UI] Album tagged successfully. ${updatedCount} tracks updated.`)
-          initialize()
-        } else {
-          console.warn('Album tagging not supported in web mode yet')
-        }
-      } catch (error) {
-        console.error('❌ Failed to tag album:', error)
+      const album = selectedItemForTagging as Album
+      // Create a virtual track structure for the confirmation modal comparison
+      const virtualTrack: any = {
+        id: album.id,
+        title: '', // Not used for album comparison header
+        artist: album.artist,
+        album: album.name,
+        year: album.year,
+        trackNum: 0,
+        musicbrainzAlbumId: album.musicbrainzAlbumId,
+        musicbrainzTrackId: (album as any).tracks?.[0]?.musicbrainzTrackId // Fallback to first track ID if available
       }
+      setTagConfirmationData({
+        track: virtualTrack as Track,
+        candidate: metadata,
+        type: 'album'
+      })
+      setTagConfirmationOpen(true)
+      setTaggingModalOpen(false)
     }
   }
 
@@ -271,25 +278,23 @@ function App(): React.JSX.Element {
     if (!tagConfirmationData) return
 
     console.log('✅ [UI] Confirmed tagging with fields:', selectedFields)
-    const { track, candidate } = tagConfirmationData
+    const { track, candidate, type } = tagConfirmationData
 
     try {
-      if (window.api) {
+      if (type === 'track') {
         // Use applyCandidate with granular fields
-        const result = await window.api.musicbrainz.applyCandidate(Number(track.id), candidate, {
+        await client.applyCandidate(track.id, candidate, {
           writeToFile: true,
           selectedFields
         })
-
-        if (result.success) {
-          console.log('✅ [UI] Track updated successfully')
-          initialize() // Refresh library
-        } else {
-          console.error('❌ [UI] Failed to update track:', result)
-        }
+        console.log('✅ [UI] Track updated successfully')
       } else {
-        console.warn('Tagging not supported in web mode')
+        // Album tagging
+        const updatedCount = await client.tagAlbumMetadata(track.id, candidate.id)
+        console.log(`✅ [UI] Album tagged successfully. ${updatedCount} tracks updated.`)
       }
+
+      initialize() // Refresh library
     } catch (error) {
       console.error('❌ [UI] Error applying tags:', error)
     } finally {
@@ -432,6 +437,7 @@ function App(): React.JSX.Element {
           onClose={() => setTagConfirmationOpen(false)}
           track={tagConfirmationData.track}
           candidate={tagConfirmationData.candidate}
+          type={tagConfirmationData.type}
           onConfirm={handleConfirmTagging}
         />
       )}

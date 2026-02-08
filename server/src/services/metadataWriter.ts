@@ -370,14 +370,15 @@ export function buildMusicBrainzDataFromDb(
     const track = db.prepare(`
         SELECT 
             t.musicbrainz_track_id as recording_mbid,
+            t.musicbrainz_album_id as album_mbid,
+            t.musicbrainz_artist_id as artist_mbid,
             t.isrc,
             t.movement,
             t.movement_num as movement_number,
             t.movement_total,
             t.musicbrainz_work_id as work_mbid,
-            a.mbid as album_mbid,
             a.album_type,
-            a.release_status,
+            a.status as release_status,
             a.release_date,
             a.original_release_date,
             a.label,
@@ -407,9 +408,10 @@ export function buildMusicBrainzDataFromDb(
         SELECT art.mbid, aa.credited_as, aa.sort_position
         FROM album_artists aa
         JOIN artists art ON aa.artist_id = art.id
-        WHERE aa.album_id = (SELECT album_id FROM tracks WHERE id = ?)
+        JOIN albums a ON aa.album_id = a.id
+        WHERE a.mbid = ?
         ORDER BY aa.sort_position
-    `).all(trackId)
+    `).all(track.album_mbid)
 
     const genres = db.prepare(`
         SELECT g.name
@@ -440,8 +442,8 @@ export function buildMusicBrainzDataFromDb(
         isrc: track.isrc,
         albumId: track.album_mbid,
         releaseGroupMBID: track.release_group_mbid,
-        artistMBIDs: trackArtists.map((a: any) => a.mbid).filter(Boolean),
-        artistId: trackArtists[0]?.mbid,
+        artistMBIDs: trackArtists.length > 0 ? trackArtists.map((a: any) => a.mbid).filter(Boolean) : [track.artist_mbid].filter(Boolean),
+        artistId: trackArtists[0]?.mbid || track.artist_mbid,
         albumArtistMBIDs: albumArtists.map((a: any) => a.mbid).filter(Boolean),
         albumArtistMBID: albumArtists[0]?.mbid,
         releaseDate: track.release_date,
@@ -506,7 +508,7 @@ export async function writeMusicBrainzDataToFile(
             mbData
         )
 
-        console.log(`✅ Wrote MusicBrainz data to file: ${track.path}`)
+        console.log(`✅ Wrote MusicBrainz data to file: ${track.file_path}`)
         return true
     } catch (error) {
         console.error(`❌ Failed to write MusicBrainz data for track ${trackId}:`, error)
@@ -523,10 +525,10 @@ export async function bulkWriteMusicBrainzData(
 
     for (let i = 0; i < trackIds.length; i++) {
         const trackId = trackIds[i]
-        const track = db.prepare('SELECT path FROM tracks WHERE id = ?').get(trackId)
+        const track = db.prepare('SELECT file_path FROM tracks WHERE id = ?').get(trackId)
 
         if (onProgress) {
-            onProgress(i + 1, trackIds.length, track?.path || 'unknown')
+            onProgress(i + 1, trackIds.length, track?.file_path || 'unknown')
         }
 
         try {
@@ -553,7 +555,7 @@ export async function syncAllMusicBrainzData(
     const tracks = db.prepare(`
         SELECT id
         FROM tracks
-        WHERE mbid IS NOT NULL
+        WHERE musicbrainz_track_id IS NOT NULL
         ORDER BY id
     `).all()
 

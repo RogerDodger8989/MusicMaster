@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Check, Save, Disc, User, Calendar, Music, Building2, Barcode, Flag } from 'lucide-react'
+import { X, Check, Save, Disc, User, Calendar, Music, Building2, Barcode, Flag, Info, Hash } from 'lucide-react'
 import { Track } from '../types'
 import { cn } from '../lib/utils'
 import { useDraggable } from '../hooks/useDraggable'
@@ -9,6 +9,7 @@ interface TagConfirmationModalProps {
     onClose: () => void
     track: Track
     candidate: any // ScoredCandidate from IPC
+    type?: 'track' | 'album'
     onConfirm: (trackId: string, candidate: any, selectedFields: string[]) => Promise<void>
 }
 
@@ -25,6 +26,7 @@ export default function TagConfirmationModal({
     onClose,
     track,
     candidate,
+    type = 'track',
     onConfirm
 }: TagConfirmationModalProps) {
     const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set())
@@ -155,10 +157,6 @@ export default function TagConfirmationModal({
         { key: 'mbids', label: 'MusicBrainz IDs', icon: Barcode, currentValue: track.musicbrainzTrackId ? 'Present' : 'Missing', newValue: 'Update ID' },
     ]
 
-    // Custom Hash icon since it's not in lucide imports above (I forgot it)
-    function Hash(props: any) {
-        return <span className="text-xs font-bold leading-none select-none">#</span>
-    }
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 animate-in fade-in duration-200">
@@ -176,8 +174,14 @@ export default function TagConfirmationModal({
                             <Save className="w-4 h-4" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-white">Review Metadata Changes</h2>
-                            <p className="text-xs text-zinc-400">Select which tags to apply to your file</p>
+                            <h2 className="text-lg font-semibold text-white">
+                                {type === 'track' ? 'Review Metadata Changes' : 'Confirm Album Metadata'}
+                            </h2>
+                            <p className="text-xs text-zinc-400">
+                                {type === 'track'
+                                    ? 'Select which tags to apply to your file'
+                                    : `Apply MusicBrainz IDs to all matching tracks in "${track.album}"`}
+                            </p>
                         </div>
                     </div>
                     <button
@@ -237,7 +241,7 @@ export default function TagConfirmationModal({
                         ) : (
                             <>
                                 <Check className="w-4 h-4" />
-                                Apply Changes
+                                {type === 'track' ? 'Apply Changes' : 'Apply to Album'}
                             </>
                         )}
                     </button>
@@ -247,23 +251,3 @@ export default function TagConfirmationModal({
     )
 }
 
-function Info(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 16v-4" />
-            <path d="M12 8h.01" />
-        </svg>
-    )
-}

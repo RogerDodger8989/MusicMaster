@@ -68,6 +68,8 @@ router.get('/metadata/search', metadata.searchMusicBrainz)
 router.get('/metadata/details/:type/:id', metadata.getMusicBrainzDetails)
 router.get('/metadata/candidates/:trackId', metadata.getCandidates)
 router.post('/metadata/candidates/:trackId/apply', metadata.applyCandidate)
+router.post('/metadata/album/:id/match', metadata.previewMatchAlbum)
+router.post('/metadata/album/:id/apply', metadata.tagAlbumMetadata)
 
 // Library Enhancement & Sync
 router.post('/metadata/enhance', metadata.enhanceLibrary)

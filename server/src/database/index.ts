@@ -256,6 +256,7 @@ CREATE TABLE IF NOT EXISTS acousticbrainz_data (
     mood_sad REAL,
     mood_relaxed REAL,
     mood_party REAL,
+    key_signature TEXT,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
@@ -355,6 +356,16 @@ CREATE TABLE IF NOT EXISTS tracks (
     musicbrainz_artist_id TEXT,
     publisher TEXT,
     isrc TEXT,
+    musicbrainz_recording_id TEXT,
+    musicbrainz_release_group_id TEXT,
+    musicbrainz_work_id TEXT,
+    replaygain_track_gain REAL,
+    replaygain_album_gain REAL,
+    replaygain_track_peak REAL,
+    replaygain_album_peak REAL,
+    movement TEXT,
+    movement_num INTEGER,
+    movement_total INTEGER,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (folder_id) REFERENCES music_folders(id) ON DELETE CASCADE
@@ -372,6 +383,15 @@ CREATE TABLE IF NOT EXISTS albums_cache (
     total_duration INTEGER DEFAULT 0,
     cover_art_path TEXT,
     musicbrainz_album_id TEXT,
+    album_type TEXT,
+    status TEXT,
+    original_release_date TEXT,
+    label TEXT,
+    catalog_number TEXT,
+    barcode TEXT,
+    country TEXT,
+    media TEXT,
+    release_group_mbid TEXT,
     lastfm_url TEXT,
     rating REAL DEFAULT 0,
     loved INTEGER DEFAULT 0,
@@ -555,18 +575,36 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE tracks ADD COLUMN movement_num INTEGER",
             "ALTER TABLE tracks ADD COLUMN movement TEXT",
             "ALTER TABLE tracks ADD COLUMN movement_total INTEGER",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_track_id TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_album_id TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_artist_id TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_work_id TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_release_group_id TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_recording_id TEXT",
             "ALTER TABLE tracks ADD COLUMN mbid TEXT",
-            "ALTER TABLE tracks ADD COLUMN mbid_track_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN mbid_work_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN acoustid_fingerprint TEXT",
-            "ALTER TABLE tracks ADD COLUMN acoustid_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN isrc TEXT",
-            "ALTER TABLE tracks ADD COLUMN channels INTEGER",
             "ALTER TABLE tracks ADD COLUMN recording_date TEXT",
 
             // Albums cache columns
             "ALTER TABLE albums_cache ADD COLUMN loved INTEGER DEFAULT 0",
             "ALTER TABLE albums_cache ADD COLUMN bio TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN album_type TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN status TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN original_release_date TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN label TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN catalog_number TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN barcode TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN country TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN media TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN release_group_mbid TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN release_title TEXT",
+
+            // Missing tracks columns for MusicBrainz
+            "ALTER TABLE tracks ADD COLUMN movement TEXT",
+            "ALTER TABLE tracks ADD COLUMN movement_num INTEGER",
+            "ALTER TABLE tracks ADD COLUMN movement_total INTEGER",
+
+            // Missing acousticbrainz columns
+            "ALTER TABLE acousticbrainz_data ADD COLUMN key_signature TEXT",
 
             // Extended albums columns (if using non-MB schema)
             "ALTER TABLE albums ADD COLUMN loved INTEGER DEFAULT 0",
@@ -692,6 +730,16 @@ export interface DbTrack {
     musicbrainz_artist_id: string | null
     publisher: string | null
     isrc: string | null
+    musicbrainz_recording_id: string | null
+    musicbrainz_release_group_id: string | null
+    musicbrainz_work_id: string | null
+    replaygain_track_gain: number | null
+    replaygain_album_gain: number | null
+    replaygain_track_peak: number | null
+    replaygain_album_peak: number | null
+    movement: string | null
+    movement_num: number | null
+    movement_total: number | null
     created_at: string
     updated_at: string
 }

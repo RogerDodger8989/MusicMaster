@@ -31,13 +31,13 @@ export function updateTrackWithMBID(
         const db = getDatabase()
         const stmt = db.prepare(`
             UPDATE tracks
-            SET mbid = ?,
-                mbid_album_id = ?,
-                mbid_artist_id = ?,
+            SET musicbrainz_track_id = ?,
+                musicbrainz_album_id = ?,
+                musicbrainz_artist_id = ?,
                 isrc = COALESCE(?, isrc),
                 recording_date = ?,
                 movement_num = ?,
-                movement_name = ?,
+                movement = ?,
                 publisher = COALESCE(?, publisher),
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?

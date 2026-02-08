@@ -87,7 +87,9 @@ export interface MusicClient {
   searchAlbums(artist: string, album: string): Promise<any[]>
   getArtistDetails(id: string): Promise<any>
   getCandidates(trackId: string): Promise<{ candidates: any[] }>
-  applyCandidate(trackId: string, candidate: any, writeToFile: boolean): Promise<void>
+  applyCandidate(trackId: string, candidate: any, options: { writeToFile: boolean; selectedFields?: string[] }): Promise<void>
+  tagAlbumMetadata(albumId: string, mbAlbumId: string): Promise<number>
+  previewMatchAlbum(albumId: string, mbAlbumId: string): Promise<any[]>
   getSimilarArtists(artist: string): Promise<any[]>
   openExternal(url: string): Promise<void>
 
@@ -215,27 +217,27 @@ export class DomClient implements MusicClient {
   async getPlaylists(): Promise<any[]> {
     return []
   }
-  async createPlaylist(name: string, trackIds: string[]): Promise<any> {
+  async createPlaylist(_name: string, _trackIds: string[]): Promise<any> {
     return null
   }
-  async deletePlaylist(id: string): Promise<void> {}
-  async addToPlaylist(id: string, trackId: string): Promise<void> {}
-  async removeFromPlaylist(id: string, trackId: string, position: number): Promise<void> {}
-  async renamePlaylist(id: string, name: string): Promise<void> {}
+  async deletePlaylist(_id: string): Promise<void> { }
+  async addToPlaylist(_id: string, _trackId: string): Promise<void> { }
+  async removeFromPlaylist(_id: string, _trackId: string, _position: number): Promise<void> { }
+  async renamePlaylist(_id: string, _name: string): Promise<void> { }
 
   async getSettings(): Promise<any> {
     return {}
   }
-  async saveSetting(key: string, value: any): Promise<void> {}
+  async saveSetting(_key: string, _value: any): Promise<void> { }
 
   async getSession(): Promise<any> {
     return {}
   }
-  async saveSession(session: any): Promise<void> {}
+  async saveSession(_session: any): Promise<void> { }
 
-  async scrobble(): Promise<void> {}
-  async updateNowPlaying(): Promise<void> {}
-  async syncScrobble(): Promise<void> {}
+  async scrobble(): Promise<void> { }
+  async updateNowPlaying(): Promise<void> { }
+  async syncScrobble(): Promise<void> { }
   async getSyncStatus(): Promise<any> {
     return {}
   }
@@ -246,29 +248,32 @@ export class DomClient implements MusicClient {
     return {}
   }
 
-  async syncMetadata(): Promise<void> {}
+  async syncMetadata(): Promise<void> { }
   async getFileSyncStatus(): Promise<any> {
     return {}
   }
-  async enhanceLibrary(): Promise<void> {}
+  async enhanceLibrary(): Promise<void> { }
   async getEnhanceStatus(): Promise<any> {
     return {}
   }
   async getCoverage(): Promise<any> {
     return {}
   }
-  async writeTrackMetadata(id: string): Promise<boolean> {
+  async writeTrackMetadata(_id: string): Promise<boolean> {
     return false
   }
 
   async searchMetadata(artist: string, title?: string, album?: string): Promise<any[]> {
     // Fallback to legacy if available, otherwise empty
     if (this.api.metadata && this.api.metadata.search) {
-      return this.api.metadata.search(artist, title || '')
+      return this.api.metadata.search(artist, title || '', album)
     }
     return []
   }
   async searchAlbums(artist: string, album: string): Promise<any[]> {
+    if (this.api.metadata && this.api.metadata.searchAlbums) {
+      return this.api.metadata.searchAlbums(artist, album)
+    }
     return []
   }
   async getArtistDetails(id: string): Promise<any> {
@@ -283,10 +288,26 @@ export class DomClient implements MusicClient {
     }
     return { candidates: [] }
   }
-  async applyCandidate(trackId: string, candidate: any, writeToFile: boolean): Promise<void> {
+  async applyCandidate(
+    trackId: string,
+    candidate: any,
+    options: { writeToFile: boolean; selectedFields?: string[] }
+  ): Promise<void> {
     if (this.api.musicbrainz && this.api.musicbrainz.applyCandidate) {
-      return this.api.musicbrainz.applyCandidate(trackId, candidate, writeToFile)
+      return this.api.musicbrainz.applyCandidate(trackId, candidate, options)
     }
+  }
+  async tagAlbumMetadata(albumId: string, mbAlbumId: string): Promise<number> {
+    if (this.api.library && this.api.library.tagAlbumMetadata) {
+      return this.api.library.tagAlbumMetadata(albumId, mbAlbumId)
+    }
+    return 0
+  }
+  async previewMatchAlbum(albumId: string, mbAlbumId: string): Promise<any[]> {
+    if (this.api.library && this.api.library.previewMatchAlbum) {
+      return this.api.library.previewMatchAlbum(albumId, mbAlbumId)
+    }
+    return []
   }
   async getSimilarArtists(artist: string): Promise<any[]> {
     if (this.api.library && this.api.library.getSimilarArtists) {
@@ -304,17 +325,17 @@ export class DomClient implements MusicClient {
   async getDrives(): Promise<any[]> {
     return []
   }
-  async getDirectory(path: string): Promise<any[]> {
+  async getDirectory(_path: string): Promise<any[]> {
     return []
   }
 
-  getCoverUrl(id: string): string {
+  getCoverUrl(_id: string): string {
     return ''
   }
-  getArtistImageUrl(id: string): string {
+  getArtistImageUrl(_id: string): string {
     return ''
   }
-  getAudioUrl(id: string): string {
+  getAudioUrl(_id: string): string {
     return ''
   }
 }
@@ -579,7 +600,8 @@ export class RestClient implements MusicClient {
     const params = new URLSearchParams()
     params.append('artist', artist)
     params.append('album', album)
-    return this.req<any[]>(`/api/metadata/search/albums?${params.toString()}`)
+    params.append('type', 'release')
+    return this.req<any[]>(`/api/metadata/search?${params.toString()}`)
   }
 
   async getArtistDetails(id: string): Promise<any> {
@@ -590,11 +612,29 @@ export class RestClient implements MusicClient {
     return this.req<{ candidates: any[] }>(`/api/metadata/candidates/${trackId}`)
   }
 
-  async applyCandidate(trackId: string, candidate: any, writeToFile: boolean): Promise<void> {
+  async applyCandidate(
+    trackId: string,
+    candidate: any,
+    options: { writeToFile: boolean; selectedFields?: string[] }
+  ): Promise<void> {
     await this.req(`/api/metadata/candidates/${trackId}/apply`, {
       method: 'POST',
-      body: JSON.stringify({ candidate, writeToFile })
+      body: JSON.stringify({ candidate, ...options })
     })
+  }
+
+  async tagAlbumMetadata(albumId: string, mbAlbumId: string): Promise<number> {
+    const result = await this.req<{ updatedCount: number }>(`/api/metadata/album/${albumId}/apply`, {
+      method: 'POST',
+      body: JSON.stringify({ mbAlbumId })
+    })
+    return result.updatedCount
+  }
+  async previewMatchAlbum(albumId: string, mbAlbumId: string): Promise<any[]> {
+    return this.req<any[]>(`/api/metadata/album/${albumId}/match`, {
+      method: 'POST',
+      body: JSON.stringify({ mbAlbumId })
+    }).then((res: any) => res.matches)
   }
 
   async getSimilarArtists(artist: string): Promise<any[]> {

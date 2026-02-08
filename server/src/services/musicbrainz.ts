@@ -229,6 +229,7 @@ export class MusicBrainzService {
                     catalogNumber,
                     barcode: release?.barcode,
                     country: release?.country,
+                    coverArt: release?.id ? `https://coverartarchive.org/release/${release.id}/front-250` : undefined,
                     media: release?.['media']?.[0]?.format,
                     genres: (rec as any).tags?.map((t: any) => t.name),
                     artistCredits: rec['artist-credit']?.map((ac: any) => ({
@@ -286,7 +287,8 @@ export class MusicBrainzService {
                     country: rel.country,
                     barcode: rel.barcode,
                     status: rel.status,
-                    label
+                    label,
+                    coverArt: rel.id ? `https://coverartarchive.org/release/${rel.id}/front-250` : undefined
                 }
             })
 

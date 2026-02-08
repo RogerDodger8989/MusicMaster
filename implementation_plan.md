@@ -20,6 +20,41 @@ Bring the MusicMaster playlist system up to the standard of "MusicWest" with a f
 - **Reordering Persistence**: Update IPC handlers to support reordering tracks within a playlist in the database.
 - **Store Updates**: Sync the `usePlaylists` store with reordering actions.
 
+# Tagging Persistence and UI Fixes
+
+The goal is to resolve the `SqliteError` in `albums_cache`, ensure metadata persistence, and improve the Tagging UI based on user feedback.
+
+## Proposed Changes
+
+### Database & Persistence
+#### [MODIFY] [index.ts](file:///c:/Users/denni/Desktop/Apps/MusicMaster/server/src/database/index.ts)
+- Update `albums_cache` table definition in `SCHEMA` to include:
+  - `original_release_date`, `label`, `catalog_number`, `barcode`, `country`, `media`, `release_group_mbid`.
+- Add migrations for all these columns to ensure existing databases are updated.
+- Update `DbAlbumCache` interface to match.
+
+#### [MODIFY] [metadata.controller.ts](file:///c:/Users/denni/Desktop/Apps/MusicMaster/server/src/api/controllers/metadata.controller.ts)
+- Update `tagAlbumMetadata` to save the new metadata fields (`label`, `country`, etc.) to `albums_cache`.
+- Ensure `album_type` and `status` are correctly saved.
+
+### Frontend UI
+#### [MODIFY] [TaggingModal.tsx](file:///c:/Users/denni/Desktop/Apps/MusicMaster/desktop/src/renderer/src/components/TaggingModal.tsx)
+- Reorder result list: Move album cover to the left of the details.
+- Display "Country" (e.g., 🇺🇸 US, 🇬🇧 GB) in the search results.
+- Show existing MusicBrainz IDs in the "Current Metadata" section to prove they are detected.
+
+## Verification Plan
+### Automated Tests
+- Run `npm run build` in server to check for syntax/type errors.
+- Restart server and verify `Database initialized successfully` log.
+
+### Manual Verification
+- Tag an album and verify the server logs show success instead of `SqliteError`.
+- Verify the new UI layout in the Tagging Modal.
+- Check that the "Current Metadata" section shows existing IDs if the track was already tagged.
+- **Reordering Persistence**: Update IPC handlers to support reordering tracks within a playlist in the database.
+- **Store Updates**: Sync the `usePlaylists` store with reordering actions.
+
 ## 2. Advanced Audio Features [COMPLETED - 2026-02-06]
 
 ### ⌨️ Universal Keyboard Shortcuts

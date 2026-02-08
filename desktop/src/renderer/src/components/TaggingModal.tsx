@@ -3,6 +3,7 @@ import { Search, X, Check, Save, Info, Music2, User, Disc, Loader2 } from 'lucid
 import { Track, Album } from '../types'
 import { cn } from '../lib/utils'
 import { useDraggable } from '../hooks/useDraggable'
+import { client } from '../api/client'
 
 interface TaggingModalProps {
   isOpen: boolean
@@ -26,6 +27,8 @@ export default function TaggingModal({
   const [isSearching, setIsSearching] = useState(false)
   const [selectedResult, setSelectedResult] = useState<any | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [matches, setMatches] = useState<any[]>([])
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false)
 
   const { position, handleMouseDown } = useDraggable()
 
@@ -46,8 +49,28 @@ export default function TaggingModal({
     } else {
       setResults([])
       setSelectedResult(null)
+      setMatches([])
     }
   }, [item, isOpen, itemType])
+
+  useEffect(() => {
+    const fetchPreview = async () => {
+      if (itemType === 'album' && item && selectedResult) {
+        setIsPreviewLoading(true)
+        try {
+          const matchData = await client.previewMatchAlbum(item.id, selectedResult.id)
+          setMatches(matchData)
+        } catch (error) {
+          console.error('Failed to fetch match preview:', error)
+        } finally {
+          setIsPreviewLoading(false)
+        }
+      } else {
+        setMatches([])
+      }
+    }
+    fetchPreview()
+  }, [selectedResult, itemType, item])
 
   const handleSearch = async (
     type: 'track' | 'album',
@@ -56,12 +79,13 @@ export default function TaggingModal({
     album?: string
   ) => {
     setIsSearching(true)
+    setSelectedResult(null)
     try {
       let mbidResults: any[] = []
       if (type === 'track') {
-        mbidResults = await window.api.metadata.search(artist, title, album)
+        mbidResults = await client.searchMetadata(artist, title, album)
       } else {
-        mbidResults = await window.api.metadata.searchAlbums(artist, album || '')
+        mbidResults = await client.searchAlbums(artist, album || '')
       }
       setResults(mbidResults)
     } catch (error) {
@@ -86,11 +110,17 @@ export default function TaggingModal({
 
   if (!isOpen || !item) return null
 
+  const showPreview = itemType === 'album' && selectedResult
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 animate-in fade-in duration-200">
       <div
         style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-        className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden"
+        className={cn(
+          "bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl w-full flex flex-col overflow-hidden transition-all duration-300",
+          showPreview ? "max-w-6xl" : "max-w-4xl",
+          "max-h-[85vh]"
+        )}
       >
         {/* Header */}
         <div
@@ -118,7 +148,10 @@ export default function TaggingModal({
 
         <div className="flex-1 flex overflow-hidden">
           {/* Left: Search & Original */}
-          <div className="w-1/3 border-r border-zinc-800 p-6 flex flex-col gap-6 bg-zinc-900/50">
+          <div className={cn(
+            "border-r border-zinc-800 p-6 flex flex-col gap-6 bg-zinc-900/50 transition-all",
+            showPreview ? "w-1/4" : "w-1/3"
+          )}>
             <section>
               <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest mb-3">
                 Current Metadata
@@ -142,6 +175,18 @@ export default function TaggingModal({
                     {itemType === 'track' ? (item as Track).album : (item as Album).name}
                   </span>
                 </div>
+                {itemType === 'track' && (item as Track).musicbrainzTrackId && (
+                  <div className="flex items-center gap-2 text-blue-400/80 text-[10px] font-mono mt-1">
+                    <Info size={10} />
+                    <span className="truncate">T-ID: {(item as Track).musicbrainzTrackId}</span>
+                  </div>
+                )}
+                {item.musicbrainzAlbumId && (
+                  <div className="flex items-center gap-2 text-purple-400/80 text-[10px] font-mono">
+                    <Info size={10} />
+                    <span className="truncate">A-ID: {item.musicbrainzAlbumId}</span>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -185,8 +230,11 @@ export default function TaggingModal({
             </section>
           </div>
 
-          {/* Right: Results */}
-          <div className="flex-1 flex flex-col overflow-hidden bg-black/20">
+          {/* Middle: Results */}
+          <div className={cn(
+            "flex-col overflow-hidden bg-black/20 transition-all flex",
+            showPreview ? "w-2/5 border-r border-zinc-800" : "flex-1"
+          )}>
             <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
               <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest">
                 {results.length} Suggestions Found
@@ -211,7 +259,16 @@ export default function TaggingModal({
                         : 'bg-zinc-900/40 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/60'
                     )}
                   >
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700/50 group-hover:border-zinc-600 transition-colors">
+                        {res.coverArt ? (
+                          <img src={res.coverArt} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-zinc-600">
+                            <Disc size={24} />
+                          </div>
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-bold text-white truncate text-base">
@@ -235,16 +292,14 @@ export default function TaggingModal({
                         </div>
                         <div className="mt-2 flex items-center gap-3 text-[10px] text-zinc-500 font-mono">
                           {res.releaseDate && <span>📅 {res.releaseDate}</span>}
+                          {res.country && <span className="flex items-center gap-1">🌍 {res.country}</span>}
                           {itemType === 'track' && res.trackNum && <span># {res.trackNum}</span>}
                           {itemType === 'album' && res.trackCount && (
                             <span>🎵 {res.trackCount} Tracks</span>
                           )}
-                          {res.label && <span className="truncate">🏢 {res.label}</span>}
+                          {res.label && <span className="truncate max-w-[120px]">🏢 {res.label}</span>}
                           <span className="truncate opacity-50">ID: {res.id.split('-')[0]}...</span>
                         </div>
-                      </div>
-                      <div className="p-2 rounded-full border border-zinc-800 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Check size={16} className="text-zinc-400" />
                       </div>
                     </div>
                   </button>
@@ -257,6 +312,58 @@ export default function TaggingModal({
               )}
             </div>
           </div>
+
+          {/* Right: Preview (Only for albums) */}
+          {showPreview && (
+            <div className="w-[35%] flex flex-col overflow-hidden bg-black/40 animate-in slide-in-from-right duration-300">
+              <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/80">
+                <h3 className="text-xs font-black text-zinc-500 uppercase tracking-widest">
+                  Track Matching Preview
+                </h3>
+                {isPreviewLoading && <Loader2 size={14} className="text-blue-500 animate-spin" />}
+              </div>
+              <div className="flex-1 overflow-auto p-4">
+                {isPreviewLoading ? (
+                  <div className="h-full flex flex-col items-center justify-center text-zinc-500 gap-3">
+                    <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                    <p className="text-xs">Analyzing matches...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {matches.map((m: any, i: number) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          "flex items-center gap-3 p-2 rounded-lg text-xs transition-colors",
+                          m.localTrack ? "bg-zinc-800/40" : "bg-red-500/5 border border-red-500/10"
+                        )}
+                      >
+                        <div className="w-5 text-center font-mono text-zinc-600">
+                          {m.mbTrack.number || i + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-zinc-200 truncate font-medium">{m.mbTrack.title}</div>
+                          {m.localTrack ? (
+                            <div className="text-[10px] text-emerald-500/70 flex items-center gap-1">
+                              <Check size={10} />
+                              <span className="truncate">Matched: {m.localTrack.title}</span>
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-red-500/70">No local match found</div>
+                          )}
+                        </div>
+                        {m.matchType === 'number' && (
+                          <div className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[8px] font-bold uppercase">
+                            # Match
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

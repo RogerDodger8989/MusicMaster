@@ -5,6 +5,8 @@ import path from 'path'
 import { musicBrainzService } from '../../services/musicbrainz'
 import { acoustidService } from '../../services/acoustid'
 import { getDatabase } from '../../database/index'
+import { updateTrackWithMBID, upsertAlbumWithMBID, upsertArtistWithMBID } from '../../database/musicbrainz'
+import { writeMusicBrainzDataToFile } from '../../services/metadataWriter'
 
 export const identifyTrack = async (req: Request, res: Response) => {
     const { trackId } = req.params
@@ -33,10 +35,10 @@ export const searchMusicBrainz = async (req: Request, res: Response) => {
     try {
         if (type === 'release') {
             const results = await musicBrainzService.searchAlbum(artist, String(req.query.album || ''))
-            return res.json({ results })
+            return res.json(results)
         } else {
             const results = await musicBrainzService.searchTrack(artist, title, album)
-            return res.json({ results })
+            return res.json(results)
         }
     } catch (error: any) {
         res.status(500).json({ error: error.message })
@@ -94,8 +96,6 @@ export const applyCandidate = async (req: Request, res: Response) => {
     const { trackId } = req.params
     const candidate = req.body
     try {
-        const { updateTrackWithMBID } = await import('../../database/musicbrainz')
-        const { writeMusicBrainzDataToFile } = await import('../../services/metadataWriter')
         const db = getDatabase()
 
         // Ensure values are strings to satisfy TypeScript
@@ -115,6 +115,15 @@ export const applyCandidate = async (req: Request, res: Response) => {
             releaseMbid,
             artistMbid
         )
+
+        // 1b. Update album cache if we have a release MBID
+        if (releaseMbid) {
+            const trackInfo = db.prepare('SELECT album, artist FROM tracks WHERE id = ?').get(trackId) as any
+            if (trackInfo) {
+                db.prepare('UPDATE albums_cache SET musicbrainz_album_id = ? WHERE name = ? AND artist = ?')
+                    .run(releaseMbid, trackInfo.album, trackInfo.artist)
+            }
+        }
 
         // 2. Handle Cover Art
         let coverPath: string | undefined
@@ -150,6 +159,141 @@ export const applyCandidate = async (req: Request, res: Response) => {
         res.json({ success })
     } catch (error: any) {
         console.error('Failed to apply candidate:', error)
+        res.status(500).json({ error: error.message })
+    }
+}
+
+export const tagAlbumMetadata = async (req: Request, res: Response) => {
+    const { id: albumId } = req.params
+    const { mbAlbumId } = req.body
+
+    try {
+        const db = getDatabase()
+
+        // 1. Get MB details
+        const mbAlbum = await musicBrainzService.getReleaseDetails(mbAlbumId)
+        if (!mbAlbum) throw new Error('Failed to fetch MB album details')
+
+        // 2. Get local tracks
+        const album = db.prepare('SELECT id, name, artist FROM albums_cache WHERE id = ?').get(albumId) as any
+        if (!album) throw new Error('Album not found')
+
+        // 3. Update album cache with MBID and full metadata
+        db.prepare(`
+            UPDATE albums_cache SET 
+                musicbrainz_album_id = ?,
+                album_type = ?,
+                status = ?,
+                release_date = ?,
+                original_release_date = ?,
+                label = ?,
+                catalog_number = ?,
+                barcode = ?,
+                country = ?,
+                media = ?,
+                release_group_mbid = ?
+            WHERE id = ?
+        `).run(
+            mbAlbum.id,
+            mbAlbum['release-group']?.['primary-type'] || null,
+            mbAlbum.status || null,
+            mbAlbum.date || null,
+            (mbAlbum as any)['release-events']?.[0]?.date || mbAlbum.date || null,
+            (mbAlbum as any)['label-info']?.[0]?.label?.name || null,
+            (mbAlbum as any)['label-info']?.[0]?.['catalog-number'] || null,
+            mbAlbum.barcode || null,
+            (mbAlbum as any)['release-events']?.[0]?.area?.['iso-3166-1-codes']?.[0] || (mbAlbum as any)['release-events']?.[0]?.area?.name || null,
+            mbAlbum.media?.[0]?.format || null,
+            mbAlbum['release-group']?.id || null,
+            albumId
+        )
+
+        // 4. Upsert to extended schema (for fallback/enrichment)
+        const primaryArtist = (mbAlbum as any)['artist-credit']?.[0]?.artist
+        let dbArtistId: string | null = null
+        if (primaryArtist) {
+            dbArtistId = upsertArtistWithMBID(primaryArtist.name, primaryArtist.id)
+        }
+        upsertAlbumWithMBID(mbAlbum.title, dbArtistId, mbAlbum.id, mbAlbum['release-group']?.['primary-type'], mbAlbum.date)
+
+        const localTracks = db.prepare('SELECT id, title, track_num as trackNum FROM tracks WHERE album = ? AND artist = ?').all(album.name, album.artist) as any[]
+
+        let updatedCount = 0
+        for (const mbMedia of mbAlbum.media || []) {
+            for (const mbTrack of mbMedia.tracks || []) {
+                const mbTrackNum = mbTrack.number ? parseInt(mbTrack.number) : undefined
+                const mbTitle = mbTrack.title.toLowerCase()
+
+                const localMatch = localTracks.find((lt) => {
+                    if (mbTrackNum !== undefined && lt.trackNum === mbTrackNum) return true
+                    if (lt.title.toLowerCase() === mbTitle) return true
+                    return false
+                })
+
+                if (localMatch) {
+                    updateTrackWithMBID(
+                        localMatch.id,
+                        mbTrack.id,
+                        mbAlbum.id,
+                        (mbAlbum as any)['artist-credit']?.[0]?.artist?.id
+                    )
+                    await writeMusicBrainzDataToFile(db, localMatch.id)
+                    updatedCount++
+                }
+            }
+        }
+
+        res.json({ updatedCount })
+    } catch (error: any) {
+        res.status(500).json({ error: error.message })
+    }
+}
+
+export const previewMatchAlbum = async (req: Request, res: Response) => {
+    const { id: albumId } = req.params
+    const { mbAlbumId } = req.body
+
+    try {
+        const db = getDatabase()
+        const mbAlbum = await musicBrainzService.getReleaseDetails(mbAlbumId)
+        if (!mbAlbum) throw new Error('Failed to fetch MB album details')
+
+        const album = db.prepare('SELECT name, artist FROM albums_cache WHERE id = ?').get(albumId) as any
+        if (!album) throw new Error('Album not found')
+
+        const localTracks = db.prepare('SELECT id, title, track_num as trackNum FROM tracks WHERE album = ? AND artist = ?').all(album.name, album.artist) as any[]
+
+        const matches: any[] = []
+        for (const mbMedia of mbAlbum.media || []) {
+            for (const mbTrack of mbMedia.tracks || []) {
+                const mbTrackNum = mbTrack.number ? parseInt(mbTrack.number) : undefined
+                const mbTitle = mbTrack.title.toLowerCase()
+
+                const localMatch = localTracks.find((lt) => {
+                    if (mbTrackNum !== undefined && lt.trackNum === mbTrackNum) return true
+                    if (lt.title.toLowerCase() === mbTitle) return true
+                    return false
+                })
+
+                matches.push({
+                    mbTrack: {
+                        id: mbTrack.id,
+                        title: mbTrack.title,
+                        number: mbTrack.number,
+                        position: mbTrack.position
+                    },
+                    localTrack: localMatch ? {
+                        id: localMatch.id,
+                        title: localMatch.title,
+                        trackNum: localMatch.trackNum
+                    } : null,
+                    matchType: localMatch ? (mbTrackNum !== undefined && localMatch.trackNum === mbTrackNum ? 'number' : 'title') : 'none'
+                })
+            }
+        }
+
+        res.json({ matches })
+    } catch (error: any) {
         res.status(500).json({ error: error.message })
     }
 }
