@@ -574,7 +574,24 @@ export function initDatabase(): Database.Database {
       'CREATE TABLE IF NOT EXISTS scrobble_queue (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, artist TEXT NOT NULL, title TEXT NOT NULL, album TEXT, played_at INTEGER NOT NULL, lastfm_submitted INTEGER DEFAULT 0, listenbrainz_submitted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)',
       'CREATE TABLE IF NOT EXISTS play_history (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, played_at DATETIME DEFAULT CURRENT_TIMESTAMP, play_count INTEGER DEFAULT 0)',
       'ALTER TABLE play_history ADD COLUMN play_count INTEGER DEFAULT 0',
-      'ALTER TABLE play_history ADD COLUMN fraction_played REAL DEFAULT 1.0'
+      'ALTER TABLE play_history ADD COLUMN fraction_played REAL DEFAULT 1.0',
+
+      // MusicBrainz Tagging Enhancements
+      'ALTER TABLE track_artists ADD COLUMN join_phrase TEXT',
+      'ALTER TABLE album_artists ADD COLUMN join_phrase TEXT',
+      'ALTER TABLE albums ADD COLUMN release_group_mbid TEXT',
+      'ALTER TABLE albums ADD COLUMN release_title TEXT',
+      'ALTER TABLE albums ADD COLUMN label TEXT',
+      'ALTER TABLE albums ADD COLUMN catalog_number TEXT',
+      'ALTER TABLE tracks ADD COLUMN publisher TEXT',
+      'ALTER TABLE tracks ADD COLUMN isrc TEXT',
+      'ALTER TABLE acousticbrainz_data ADD COLUMN mood_acoustic REAL',
+      'ALTER TABLE acousticbrainz_data ADD COLUMN mood_aggressive REAL',
+      'ALTER TABLE acousticbrainz_data ADD COLUMN mood_electronic REAL',
+      'ALTER TABLE acousticbrainz_data ADD COLUMN mood_happy REAL',
+      'ALTER TABLE acousticbrainz_data ADD COLUMN mood_sad REAL',
+      'ALTER TABLE acousticbrainz_data ADD COLUMN mood_relaxed REAL',
+      'ALTER TABLE acousticbrainz_data ADD COLUMN mood_party REAL'
     ]
 
     for (const migration of migrations) {
@@ -654,6 +671,7 @@ export interface DbTrack {
   musicbrainz_track_id: string | null
   musicbrainz_album_id: string | null
   musicbrainz_artist_id: string | null
+  isrc: string | null
   created_at: string
   updated_at: string
 }

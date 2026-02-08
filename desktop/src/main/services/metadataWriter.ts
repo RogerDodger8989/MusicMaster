@@ -428,31 +428,28 @@ export async function checkMetaflacAvailable(): Promise<boolean> {
  * @param trackId - Internal track ID
  * @returns MusicBrainzWriteData object ready for writing
  */
-export function buildMusicBrainzDataFromDb(db: any, trackId: number): MusicBrainzWriteData | null {
+export function buildMusicBrainzDataFromDb(db: any, trackId: string): MusicBrainzWriteData | null {
   // Get track with MusicBrainz data
   const track = db
     .prepare(
       `
         SELECT 
-            t.mbid as recording_mbid,
+            t.musicbrainz_track_id as recording_mbid,
             t.isrc,
-            t.movement,
-            t.movement_number,
-            t.movement_total,
-            t.work_mbid,
+            t.movement_name as movement,
+            t.movement_num as movement_number,
             a.mbid as album_mbid,
             a.album_type,
-            a.release_status,
+            a.status as release_status,
             a.release_date,
             a.original_release_date,
             a.label,
             a.catalog_number,
             a.barcode,
-            a.country,
-            a.media,
+            a.release_country as country,
             a.release_group_mbid
         FROM tracks t
-        LEFT JOIN albums a ON t.album_id = a.id
+        LEFT JOIN albums a ON t.musicbrainz_album_id = a.mbid
         WHERE t.id = ?
     `
     )
@@ -582,12 +579,12 @@ export function buildMusicBrainzDataFromDb(db: any, trackId: number): MusicBrain
  * @param trackId - Internal track ID
  * @returns true if successful, false otherwise
  */
-export async function writeMusicBrainzDataToFile(db: any, trackId: number): Promise<boolean> {
+export async function writeMusicBrainzDataToFile(db: any, trackId: string): Promise<boolean> {
   try {
     // Get track path
-    const track = db.prepare('SELECT path FROM tracks WHERE id = ?').get(trackId)
-    if (!track?.path) {
-      console.error(`Track ${trackId} not found or has no path`)
+    const track = db.prepare('SELECT file_path FROM tracks WHERE id = ?').get(trackId)
+    if (!track?.file_path) {
+      console.error(`Track ${trackId} not found or has no file_path`)
       return false
     }
 
@@ -605,14 +602,14 @@ export async function writeMusicBrainzDataToFile(db: any, trackId: number): Prom
 
     // Write all metadata including MusicBrainz data
     await writeMetadata(
-      track.path,
+      track.file_path,
       trackMeta.rating || 0,
       trackMeta.loved === 1,
       trackMeta.play_count,
       mbData
     )
 
-    console.log(`✅ Wrote MusicBrainz data to file: ${track.path}`)
+    console.log(`✅ Wrote MusicBrainz data to file: ${track.file_path}`)
     return true
   } catch (error) {
     console.error(`❌ Failed to write MusicBrainz data for track ${trackId}:`, error)
@@ -630,7 +627,7 @@ export async function writeMusicBrainzDataToFile(db: any, trackId: number): Prom
  */
 export async function bulkWriteMusicBrainzData(
   db: any,
-  trackIds: number[],
+  trackIds: string[],
   onProgress?: (current: number, total: number, trackPath: string) => void
 ): Promise<{ success: number; failed: number; skipped: number }> {
   const results = { success: 0, failed: 0, skipped: 0 }
@@ -639,10 +636,10 @@ export async function bulkWriteMusicBrainzData(
     const trackId = trackIds[i]
 
     // Get track path for progress callback
-    const track = db.prepare('SELECT path FROM tracks WHERE id = ?').get(trackId)
+    const track = db.prepare('SELECT file_path FROM tracks WHERE id = ?').get(trackId)
 
     if (onProgress) {
-      onProgress(i + 1, trackIds.length, track?.path || 'unknown')
+      onProgress(i + 1, trackIds.length, track?.file_path || 'unknown')
     }
 
     try {

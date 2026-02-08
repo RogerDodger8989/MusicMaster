@@ -51,6 +51,7 @@ export interface MBTrackResult {
     country?: string
     media?: string
     genres?: string[]
+    artistCredits?: MBArtistCredit[]
 }
 
 export interface MBArtistCredit {
@@ -229,7 +230,12 @@ export class MusicBrainzService {
                     barcode: release?.barcode,
                     country: release?.country,
                     media: release?.['media']?.[0]?.format,
-                    genres: (rec as any).tags?.map((t: any) => t.name)
+                    genres: (rec as any).tags?.map((t: any) => t.name),
+                    artistCredits: rec['artist-credit']?.map((ac: any) => ({
+                        name: ac.name,
+                        mbid: ac.artist?.id,
+                        joinPhrase: ac.joinPhrase
+                    }))
                 }
             })
 
@@ -342,7 +348,10 @@ export class MusicBrainzService {
                 'recordings',
                 'url-rels',
                 'tags',
-                'genres'
+                'genres',
+                'artist-rels',
+                'work-rels',
+                'instrument-rels'
             ])) as MBRecordingFull
 
             cacheResult(cacheKey, recording)
@@ -369,7 +378,10 @@ export class MusicBrainzService {
                 'release-groups',
                 'url-rels',
                 'tags',
-                'genres'
+                'genres',
+                'artist-rels',
+                'recording-level-rels',
+                'work-level-rels'
             ])) as unknown as MBReleaseFull
 
             cacheResult(cacheKey, release)
@@ -609,6 +621,21 @@ export class MusicBrainzService {
             console.error('Failed to get release candidates:', error)
             return []
         }
+    }
+
+    extractRoles(item: MBRecordingFull | MBReleaseFull): Record<string, string[]> {
+        const roles: Record<string, string[]> = {}
+        const relations = item.relations || []
+
+        for (const rel of relations) {
+            if (rel['target-type'] === 'artist' && rel.artist) {
+                const roleName = rel.type // e.g., "producer", "conductor"
+                if (!roles[roleName]) roles[roleName] = []
+                roles[roleName].push(rel.artist.name)
+            }
+        }
+
+        return roles
     }
 
     clearCache(): void {

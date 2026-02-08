@@ -35,16 +35,16 @@ export interface DbAlbum {
   album_artist_id: string | null
   mbid: string | null
   album_type:
-    | 'Album'
-    | 'EP'
-    | 'Single'
-    | 'Broadcast'
-    | 'Other'
-    | 'Compilation'
-    | 'Soundtrack'
-    | 'Remix Album'
-    | 'Live Album'
-    | null
+  | 'Album'
+  | 'EP'
+  | 'Single'
+  | 'Broadcast'
+  | 'Other'
+  | 'Compilation'
+  | 'Soundtrack'
+  | 'Remix Album'
+  | 'Live Album'
+  | null
   status: 'Official' | 'Promotion' | 'Bootleg' | 'Pseudorelease' | null
   year: number | null
   release_date: string | null
@@ -56,6 +56,10 @@ export interface DbAlbum {
   language: string | null
   release_text_language: string | null
   packaging: string | null
+  release_group_mbid: string | null
+  release_title: string | null
+  label: string | null
+  catalog_number: string | null
   disc_count: number
   track_count: number
   total_duration: number | null
@@ -89,6 +93,8 @@ export interface DbTrack {
   mbid_album_id: string | null
   mbid_artist_id: string | null
   mbid_work_id: string | null
+  publisher: string | null
+  isrc: string | null
   acoustid_fingerprint: string | null
   acoustid_id: string | null
   isrc: string | null
@@ -122,17 +128,17 @@ export interface DbTrackArtist {
   track_id: string
   artist_id: string
   role:
-    | 'Main'
-    | 'Featured'
-    | 'Guest'
-    | 'Remixer'
-    | 'Arranger'
-    | 'Producer'
-    | 'Conductor'
-    | 'Performer'
-    | 'Composer'
-    | 'Lyricist'
-    | 'Other'
+  | 'Main'
+  | 'Featured'
+  | 'Guest'
+  | 'Remixer'
+  | 'Arranger'
+  | 'Producer'
+  | 'Conductor'
+  | 'Performer'
+  | 'Composer'
+  | 'Lyricist'
+  | 'Other'
   instrument: string | null
   credited_as: string | null
   sort_position: number | null
@@ -145,6 +151,7 @@ export interface DbAlbumArtist {
   artist_id: string
   role: 'Main' | 'Featured' | 'Guest' | 'Compilation' | 'Various Artists'
   credited_as: string | null
+  join_phrase: string | null
   sort_position: number | null
   created_at: string
 }
@@ -165,17 +172,17 @@ export interface DbAlbumCredit {
   album_id: string
   artist_id: string
   role:
-    | 'Producer'
-    | 'Editor'
-    | 'Engineer'
-    | 'Conductor'
-    | 'Arranger'
-    | 'Composer'
-    | 'Lyricist'
-    | 'Orchestrator'
-    | 'Sound Designer'
-    | 'Mixer'
-    | 'Mastering Engineer'
+  | 'Producer'
+  | 'Editor'
+  | 'Engineer'
+  | 'Conductor'
+  | 'Arranger'
+  | 'Composer'
+  | 'Lyricist'
+  | 'Orchestrator'
+  | 'Sound Designer'
+  | 'Mixer'
+  | 'Mastering Engineer'
   credited_as: string | null
   sort_position: number | null
   created_at: string
@@ -231,17 +238,17 @@ export interface DbExternalLink {
   entity_type: 'artist' | 'album' | 'track' | 'release' | 'label'
   entity_id: string
   link_type:
-    | 'wikipedia'
-    | 'wikidata'
-    | 'discogs'
-    | 'lastfm'
-    | 'imdb'
-    | 'musicbrainz'
-    | 'bandcamp'
-    | 'soundcloud'
-    | 'youtube'
-    | 'official'
-    | 'other'
+  | 'wikipedia'
+  | 'wikidata'
+  | 'discogs'
+  | 'lastfm'
+  | 'imdb'
+  | 'musicbrainz'
+  | 'bandcamp'
+  | 'soundcloud'
+  | 'youtube'
+  | 'official'
+  | 'other'
   url: string
   description: string | null
   created_at: string
@@ -252,24 +259,24 @@ export interface DbExternalIdentifier {
   entity_type: 'artist' | 'album' | 'track'
   entity_id: string
   identifier_type:
-    | 'isrc'
-    | 'ean'
-    | 'upc'
-    | 'asin'
-    | 'isil'
-    | 'iswc'
-    | 'ipi'
-    | 'grid'
-    | 'spotify'
-    | 'apple_music'
-    | 'deezer'
-    | 'tidal'
-    | 'youtube_music'
-    | 'bandcamp'
-    | 'soundcloud'
-    | 'musicbrainz'
-    | 'acoustid'
-    | 'other'
+  | 'isrc'
+  | 'ean'
+  | 'upc'
+  | 'asin'
+  | 'isil'
+  | 'iswc'
+  | 'ipi'
+  | 'grid'
+  | 'spotify'
+  | 'apple_music'
+  | 'deezer'
+  | 'tidal'
+  | 'youtube_music'
+  | 'bandcamp'
+  | 'soundcloud'
+  | 'musicbrainz'
+  | 'acoustid'
+  | 'other'
   value: string
   created_at: string
 }
@@ -329,6 +336,13 @@ export interface DbAcousticBrainzData {
   loudness_integrated: number | null
   loudness_short_term: number | null
   tempo_confidence: number | null
+  mood_acoustic: number | null
+  mood_aggressive: number | null
+  mood_electronic: number | null
+  mood_happy: number | null
+  mood_sad: number | null
+  mood_relaxed: number | null
+  mood_party: number | null
   updated_at: string
   created_at: string
 }

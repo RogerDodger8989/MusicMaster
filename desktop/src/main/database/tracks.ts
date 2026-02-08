@@ -277,6 +277,7 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
     musicbrainzTrackId: dbTrack.musicbrainz_track_id || undefined,
     musicbrainzAlbumId: dbTrack.musicbrainz_album_id || undefined,
     musicbrainzArtistId: dbTrack.musicbrainz_artist_id || undefined,
+    isrc: dbTrack.isrc || undefined,
     replayGainTrack: (dbTrack as any).replaygain_track_gain || undefined,
     replayGainAlbum: (dbTrack as any).replaygain_album_gain || undefined,
     replayGainTrackPeak: (dbTrack as any).replaygain_track_peak || undefined,

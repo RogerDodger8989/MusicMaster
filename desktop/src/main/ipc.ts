@@ -1,5 +1,5 @@
-import { ipcMain, dialog } from 'electron'
-import { randomUUID } from 'crypto'
+import { BrowserWindow, ipcMain, dialog, shell } from 'electron'
+import { v4 as uuidv4 } from 'uuid'
 import { musicScanner } from './scanner'
 import { initDatabase, getDatabase, DbPlaybackState } from './database'
 import {
@@ -20,7 +20,9 @@ import {
   getPendingScrobbles,
   markScrobbleSubmitted,
   recordPlayHistory,
-  getTrackPlayCount
+  getTrackPlayCount,
+  getTracksByFolder,
+  deleteTrackByPath
 } from './database/tracks'
 import {
   aggregateAlbums,
@@ -44,11 +46,10 @@ import {
   syncAllMusicBrainzData
 } from './services/metadataWriter'
 import { updateTrackWithMBID, getMBIDCoverageStats } from './database/musicbrainz'
-import { advancedMatch } from './services/matcher'
+import { advancedMatch, scoreReleaseCandidates, MatchConfidence } from './services/matcher'
 import { acousticBrainzService } from './services/acousticbrainz'
 import { searchLibrary } from './database/search'
 import path from 'path'
-
 import fs from 'fs'
 
 export function registerIpcHandlers(): void {
@@ -190,35 +191,35 @@ export function registerIpcHandlers(): void {
 
     musicScanner.on('progress', (progress) => {
       // Send to all windows
-      const windows = require('electron').BrowserWindow.getAllWindows()
+      const windows = BrowserWindow.getAllWindows()
       windows.forEach((win) => {
         win.webContents.send('scanner:progress', progress)
       })
     })
 
     musicScanner.on('complete', (progress) => {
-      const windows = require('electron').BrowserWindow.getAllWindows()
+      const windows = BrowserWindow.getAllWindows()
       windows.forEach((win) => {
         win.webContents.send('scanner:complete', progress)
       })
     })
 
     musicScanner.on('fileAdded', (filePath) => {
-      const windows = require('electron').BrowserWindow.getAllWindows()
+      const windows = BrowserWindow.getAllWindows()
       windows.forEach((win) => {
         win.webContents.send('scanner:fileAdded', filePath)
       })
     })
 
     musicScanner.on('fileChanged', (filePath) => {
-      const windows = require('electron').BrowserWindow.getAllWindows()
+      const windows = BrowserWindow.getAllWindows()
       windows.forEach((win) => {
         win.webContents.send('scanner:fileChanged', filePath)
       })
     })
 
     musicScanner.on('fileRemoved', (filePath) => {
-      const windows = require('electron').BrowserWindow.getAllWindows()
+      const windows = BrowserWindow.getAllWindows()
       windows.forEach((win) => {
         win.webContents.send('scanner:fileRemoved', filePath)
       })
@@ -272,7 +273,7 @@ export function registerIpcHandlers(): void {
     })
 
     ipcMain.handle('albums:rate', async (_, id: string, rating: number) => {
-      console.log(`⭐ Rating album ${id}: ${rating}`)
+      console.log(`⭐ Rating album ${id}: ${rating} `)
       try {
         // 1. Update album cache
         updateAlbumRating(id, rating)
@@ -314,9 +315,9 @@ export function registerIpcHandlers(): void {
           .prepare(
             `
                     SELECT file_path FROM tracks 
-                    WHERE COALESCE(NULLIF(album, ''), 'Unknown Album') = ? 
-                    AND COALESCE(album_artist, artist, 'Unknown Artist') = ?
-                    LIMIT 1
+                    WHERE COALESCE(NULLIF(album, ''), 'Unknown Album') = ?
+  AND COALESCE(album_artist, artist, 'Unknown Artist') = ?
+    LIMIT 1
                 `
           )
           .get(album.name, album.artist) as { file_path: string } | undefined
@@ -345,7 +346,7 @@ export function registerIpcHandlers(): void {
     console.log('⭐ Registering metadata handlers...')
 
     ipcMain.handle('tracks:rate', async (_, trackId: string, filePath: string, rating: number) => {
-      console.log(`⭐ Rating track ${trackId} (${path.basename(filePath)}): ${rating}`)
+      console.log(`⭐ Rating track ${trackId} (${path.basename(filePath)}): ${rating} `)
       try {
         // 1. Get current track to retrieve 'loved' status
         const track = getTrackById(trackId)
@@ -376,7 +377,7 @@ export function registerIpcHandlers(): void {
         mbData?: { trackId?: string; albumId?: string; artistId?: string }
       ) => {
         console.log(
-          `📝 Updating metadata for ${path.basename(filePath)}: Rating=${rating}, Loved=${loved}`
+          `📝 Updating metadata for ${path.basename(filePath)}: Rating = ${rating}, Loved = ${loved} `
         )
         try {
           // 1. Update Database
@@ -404,7 +405,7 @@ export function registerIpcHandlers(): void {
     console.log('✅ Metadata handlers registered')
 
     ipcMain.handle('library:search', async (_, query: string) => {
-      console.log(`🔍 Searching library for: ${query}`)
+      console.log(`🔍 Searching library for: ${query} `)
       return searchLibrary(query)
     })
 
@@ -418,7 +419,7 @@ export function registerIpcHandlers(): void {
       }
 
       for (const folder of folders) {
-        console.log(`🚀 Starting re-scan of: ${folder.path}`)
+        console.log(`🚀 Starting re - scan of: ${folder.path} `)
         // Start scan (async)
         await musicScanner.scanFolder(folder.id, folder.path)
       }
@@ -434,7 +435,7 @@ export function registerIpcHandlers(): void {
     })
 
     ipcMain.handle('library:toggleAlbumLoved', async (_, albumId: string) => {
-      console.log(`❤️ Toggling loved for album: ${albumId}`)
+      console.log(`❤️ Toggling loved for album: ${albumId} `)
       try {
         const album = getAlbumById(albumId)
         if (album) {
@@ -443,7 +444,7 @@ export function registerIpcHandlers(): void {
 
           // Propagate to all tracks
           const albumTracks = getTracksByAlbum(album.name, album.artist)
-          console.log(`   Propagating loved=${newLoved} to ${albumTracks.length} tracks...`)
+          console.log(`   Propagating loved = ${newLoved} to ${albumTracks.length} tracks...`)
 
           for (const track of albumTracks) {
             updateTrackLoved(track.id, newLoved)
@@ -458,7 +459,7 @@ export function registerIpcHandlers(): void {
     })
 
     ipcMain.handle('library:toggleArtistLoved', async (_, artistId: string, loved: boolean) => {
-      console.log(`❤️ Toggling loved for artist ${artistId}: ${loved}`)
+      console.log(`❤️ Toggling loved for artist ${artistId}: ${loved} `)
       try {
         updateArtistLoved(artistId, loved)
         return true
@@ -469,7 +470,7 @@ export function registerIpcHandlers(): void {
     })
 
     ipcMain.handle('library:getSimilarArtists', async (_, artist: string) => {
-      console.log(`👥 Fetching similar artists for: ${artist}`)
+      console.log(`👥 Fetching similar artists for: ${artist} `)
       try {
         return await lastFmService.getSimilarArtists(artist)
       } catch (error) {
@@ -479,12 +480,10 @@ export function registerIpcHandlers(): void {
     })
 
     ipcMain.handle('util:openExternal', async (_, url: string) => {
-      const { shell } = require('electron')
       await shell.openExternal(url)
     })
 
     ipcMain.handle('util:showItemInFolder', async (_, filePath: string) => {
-      const { shell } = require('electron')
       shell.showItemInFolder(filePath)
     })
 
@@ -508,16 +507,16 @@ export function registerIpcHandlers(): void {
     })
 
     ipcMain.handle('settings:save', async (_, key: string, value: any) => {
-      console.log(`⚙️ Saving setting: ${key}`)
+      console.log(`⚙️ Saving setting: ${key} `)
       const db = getDatabase()
       const stringValue = JSON.stringify(value)
       db.prepare(
         `
-                INSERT INTO user_settings (id, setting_key, setting_value)
-                VALUES (?, ?, ?)
+                INSERT INTO user_settings(id, setting_key, setting_value)
+VALUES(?, ?, ?)
                 ON CONFLICT(user_id, setting_key) DO UPDATE SET setting_value = excluded.setting_value, updated_at = CURRENT_TIMESTAMP
-            `
-      ).run(randomUUID(), key, stringValue)
+  `
+      ).run(uuidv4(), key, stringValue)
       return true
     })
 
@@ -538,7 +537,7 @@ export function registerIpcHandlers(): void {
           if (ids.length > 0) {
             const placeholders = ids.map(() => '?').join(',')
             const tracks = db
-              .prepare(`SELECT * FROM tracks WHERE id IN (${placeholders})`)
+              .prepare(`SELECT * FROM tracks WHERE id IN(${placeholders})`)
               .all(...ids)
             // Preserve order
             queue = ids.map((id) => tracks.find((t: any) => t.id === id)).filter(Boolean)
@@ -567,18 +566,18 @@ export function registerIpcHandlers(): void {
       const queueIds = JSON.stringify(session.queueIds || [])
       db.prepare(
         `
-                INSERT INTO playback_state (id, current_track_id, queue_ids, current_index, volume, is_shuffle, repeat_mode, current_time)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO playback_state(id, current_track_id, queue_ids, current_index, volume, is_shuffle, repeat_mode, current_time)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
-                    current_track_id = excluded.current_track_id,
-                    queue_ids = excluded.queue_ids,
-                    current_index = excluded.current_index,
-                    volume = excluded.volume,
-                    is_shuffle = excluded.is_shuffle,
-                    repeat_mode = excluded.repeat_mode,
-                    current_time = excluded.current_time,
-                    updated_at = CURRENT_TIMESTAMP
-            `
+current_track_id = excluded.current_track_id,
+  queue_ids = excluded.queue_ids,
+  current_index = excluded.current_index,
+  volume = excluded.volume,
+  is_shuffle = excluded.is_shuffle,
+  repeat_mode = excluded.repeat_mode,
+  current_time = excluded.current_time,
+  updated_at = CURRENT_TIMESTAMP
+    `
       ).run(
         'default',
         session.currentTrackId || null,
@@ -607,7 +606,7 @@ export function registerIpcHandlers(): void {
                     SELECT t.* FROM tracks t
                     JOIN playlist_tracks pt ON t.id = pt.track_id
                     WHERE pt.playlist_id = ?
-                    ORDER BY pt.position ASC
+  ORDER BY pt.position ASC
                 `
           )
           .all(pl.id) as any[]
@@ -619,9 +618,9 @@ export function registerIpcHandlers(): void {
     })
 
     ipcMain.handle('playlists:create', async (_, name: string, trackIds: string[]) => {
-      console.log(`📜 Creating playlist: ${name}`)
+      console.log(`📜 Creating playlist: ${name} `)
       const db = getDatabase()
-      const plId = randomUUID()
+      const plId = uuidv4()
 
       const transaction = db.transaction(() => {
         db.prepare('INSERT INTO playlists (id, name) VALUES (?, ?)').run(plId, name)
@@ -630,7 +629,7 @@ export function registerIpcHandlers(): void {
           'INSERT INTO playlist_tracks (id, playlist_id, track_id, position) VALUES (?, ?, ?, ?)'
         )
         trackIds.forEach((trackId, index) => {
-          insertTrack.run(randomUUID(), plId, trackId, index)
+          insertTrack.run(uuidv4(), plId, trackId, index)
         })
       })
 
@@ -639,14 +638,14 @@ export function registerIpcHandlers(): void {
     })
 
     ipcMain.handle('playlists:delete', async (_, id: string) => {
-      console.log(`📜 Deleting playlist: ${id}`)
+      console.log(`📜 Deleting playlist: ${id} `)
       const db = getDatabase()
       db.prepare('DELETE FROM playlists WHERE id = ?').run(id)
       return true
     })
 
     ipcMain.handle('playlists:addTrack', async (_, playlistId: string, trackId: string) => {
-      console.log(`📜 Adding track ${trackId} to playlist ${playlistId}`)
+      console.log(`📜 Adding track ${trackId} to playlist ${playlistId} `)
       const db = getDatabase()
       const row = db
         .prepare('SELECT MAX(position) as maxPos FROM playlist_tracks WHERE playlist_id = ?')
@@ -655,7 +654,7 @@ export function registerIpcHandlers(): void {
 
       db.prepare(
         'INSERT INTO playlist_tracks (id, playlist_id, track_id, position) VALUES (?, ?, ?, ?)'
-      ).run(randomUUID(), playlistId, trackId, nextPos)
+      ).run(uuidv4(), playlistId, trackId, nextPos)
 
       db.prepare('UPDATE playlists SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(playlistId)
       return true
@@ -664,7 +663,7 @@ export function registerIpcHandlers(): void {
     ipcMain.handle(
       'playlists:removeTrack',
       async (_, playlistId: string, trackId: string, position: number) => {
-        console.log(`📜 Removing track from playlist ${playlistId} at position ${position}`)
+        console.log(`📜 Removing track from playlist ${playlistId} at position ${position} `)
         const db = getDatabase()
 
         const transaction = db.transaction(() => {
@@ -678,7 +677,7 @@ export function registerIpcHandlers(): void {
                     UPDATE playlist_tracks 
                     SET position = position - 1 
                     WHERE playlist_id = ? AND position > ?
-                `
+  `
           ).run(playlistId, position)
 
           db.prepare('UPDATE playlists SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(
@@ -692,7 +691,7 @@ export function registerIpcHandlers(): void {
     )
 
     ipcMain.handle('playlists:rename', async (_, id: string, name: string) => {
-      console.log(`📜 Renaming playlist ${id} to ${name}`)
+      console.log(`📜 Renaming playlist ${id} to ${name} `)
       const db = getDatabase()
       db.prepare('UPDATE playlists SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(
         name,
@@ -706,7 +705,7 @@ export function registerIpcHandlers(): void {
 
     ipcMain.handle('scrobble:recordPlay', async (_, trackId: string) => {
       console.log('▶️ Recording play:', trackId)
-      fs.appendFileSync(logPath, `[${new Date().toISOString()}] ▶️ Recording play: ${trackId}\n`)
+      fs.appendFileSync(logPath, `[${new Date().toISOString()}] ▶️ Recording play: ${trackId} \n`)
       try {
         recordPlayHistory(trackId)
 
@@ -716,7 +715,7 @@ export function registerIpcHandlers(): void {
         if (track) {
           // Update file metadata with new play count (best effort)
           const newCount = getTrackPlayCount(trackId)
-          console.log(`📊 Updating PLAY_COUNT in file: ${newCount}`)
+          console.log(`📊 Updating PLAY_COUNT in file: ${newCount} `)
           try {
             await writeMetadata(track.filePath, track.rating, track.loved, newCount)
           } catch (err) {
@@ -737,7 +736,7 @@ export function registerIpcHandlers(): void {
         console.error('Failed to record play:', error)
         fs.appendFileSync(
           logPath,
-          `[${new Date().toISOString()}] ❌ Failed to record play: ${error}\n`
+          `[${new Date().toISOString()}] ❌ Failed to record play: ${error} \n`
         )
         return false
       }
@@ -907,26 +906,26 @@ export function registerIpcHandlers(): void {
 
       console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
       console.log(`🔍 SYNCING: "${track.artist}" - "${track.title}"`)
-      console.log(`   Track ID: ${trackId}`)
-      console.log(`   File: ${track.file_path}`)
+      console.log(`   Track ID: ${trackId} `)
+      console.log(`   File: ${track.file_path} `)
 
       // Get local play count
       const localPlayCount = getTrackPlayCount(trackId)
-      console.log(`📍 Local DB play count: ${localPlayCount}`)
-      console.log(`📍 Track table play_count: ${track.play_count || 0}`)
+      console.log(`📍 Local DB play count: ${localPlayCount} `)
+      console.log(`📍 Track table play_count: ${track.play_count || 0} `)
 
       const lastfmPlayCount = 0
       let listenbrainzPlayCount = 0
 
       // Get Last.fm play count (if username provided)
       if (lastfmUsername) {
-        console.log(`⚠️  Last.fm: Skipped (unreliable API)`)
+        console.log(`⚠️  Last.fm: Skipped(unreliable API)`)
       }
 
       // Get ListenBrainz play count (if username provided)
       if (listenbrainzUsername) {
         console.log(`🎧 Fetching from ListenBrainz...`)
-        console.log(`   Username: ${listenbrainzUsername}`)
+        console.log(`   Username: ${listenbrainzUsername} `)
         console.log(`   Artist: "${track.artist}"`)
         console.log(`   Title: "${track.title}"`)
         try {
@@ -935,7 +934,7 @@ export function registerIpcHandlers(): void {
             track.artist,
             track.title
           )
-          console.log(`📊 ListenBrainz returned: ${listenbrainzPlayCount}`)
+          console.log(`📊 ListenBrainz returned: ${listenbrainzPlayCount} `)
         } catch (error) {
           console.error('❌ Failed to get ListenBrainz play count:', error)
         }
@@ -953,30 +952,30 @@ export function registerIpcHandlers(): void {
         listenbrainzPlayCount
       )
 
-      console.log(`\n📊 FINAL RESULTS:`)
-      console.log(`   DB (Master):  ${dbPlayCount}`)
-      console.log(`   Local Hist:   ${localPlayCount}`)
-      console.log(`   Last.fm:      ${lastfmPlayCount}`)
-      console.log(`   ListenBrainz: ${listenbrainzPlayCount}`)
-      console.log(`   → CHOSEN:     ${maxPlayCount}`)
+      console.log(`\n📊 FINAL RESULTS: `)
+      console.log(`   DB(Master):  ${dbPlayCount} `)
+      console.log(`   Local Hist:   ${localPlayCount} `)
+      console.log(`   Last.fm:      ${lastfmPlayCount} `)
+      console.log(`   ListenBrainz: ${listenbrainzPlayCount} `)
+      console.log(`   → CHOSEN:     ${maxPlayCount} `)
 
       // Update database
-      console.log(`💾 Writing to database: play_count = ${maxPlayCount}`)
+      console.log(`💾 Writing to database: play_count = ${maxPlayCount} `)
       const result = db
         .prepare('UPDATE tracks SET play_count = ? WHERE id = ?')
         .run(maxPlayCount, trackId)
-      console.log(`   Changes made: ${result.changes}`)
+      console.log(`   Changes made: ${result.changes} `)
 
       // Verify it was saved
       const verifyTrack = db
         .prepare('SELECT play_count FROM tracks WHERE id = ?')
         .get(trackId) as any
-      console.log(`✅ Verified in DB: play_count = ${verifyTrack?.play_count}`)
+      console.log(`✅ Verified in DB: play_count = ${verifyTrack?.play_count} `)
 
       // Write to file metadata (optional, slow for large collections)
       if (writeToFile) {
         console.log(
-          `📝 Writing to file: rating=${track.rating}, loved=${track.loved === 1}, playCount=${maxPlayCount}`
+          `📝 Writing to file: rating = ${track.rating}, loved = ${track.loved === 1}, playCount = ${maxPlayCount} `
         )
         try {
           await writeMetadata(track.file_path, track.rating || 0, track.loved === 1, maxPlayCount)
@@ -985,7 +984,7 @@ export function registerIpcHandlers(): void {
           console.error('❌ Failed to write metadata to file:', error)
         }
       } else {
-        console.log(`⏭️  Skipping file write (writeToFile=false)`)
+        console.log(`⏭️  Skipping file write(writeToFile = false)`)
       }
       console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`)
 
@@ -1040,7 +1039,7 @@ export function registerIpcHandlers(): void {
             event.sender.send('scrobble:syncProgress', {
               current: i + 1,
               total: tracks.length,
-              trackName: `${track.artist} - ${track.title}`,
+              trackName: `${track.artist} - ${track.title} `,
               percentage: Math.round(((i + 1) / tracks.length) * 100)
             })
 
@@ -1049,8 +1048,8 @@ export function registerIpcHandlers(): void {
               await syncTrackPlayCount(track.id, lastfmUsername, listenbrainzUsername, writeToFile)
               syncedCount++
             } catch (error) {
-              console.error(`Failed to sync track ${track.id}:`, error)
-              errors.push(`${track.artist} - ${track.title}`)
+              console.error(`Failed to sync track ${track.id}: `, error)
+              errors.push(`${track.artist} - ${track.title} `)
             }
 
             // Rate limit: delay between requests to avoid API rate limits
@@ -1083,7 +1082,6 @@ export function registerIpcHandlers(): void {
           csv += `"${artist}","${title}","${album}",${playCount},${track.rating || 0},"${loved}"\n`
         }
 
-        const { dialog } = require('electron')
         const result = await dialog.showSaveDialog({
           title: 'Export Play Counts',
           defaultPath: `musicmaster-playcounts-${Date.now()}.csv`,
@@ -1091,7 +1089,6 @@ export function registerIpcHandlers(): void {
         })
 
         if (!result.canceled && result.filePath) {
-          const fs = require('fs')
           fs.writeFileSync(result.filePath, csv, 'utf8')
           console.log('✅ Play counts CSV exported to:', result.filePath)
           return result.filePath
@@ -1114,7 +1111,6 @@ export function registerIpcHandlers(): void {
           .join('\n')
         const csv = header + rows
 
-        const { dialog } = require('electron')
         const result = await dialog.showSaveDialog({
           title: 'Export Missing Tracks List',
           defaultPath: 'missing_tracks.csv',
@@ -1122,7 +1118,6 @@ export function registerIpcHandlers(): void {
         })
 
         if (!result.canceled && result.filePath) {
-          const fs = require('fs')
           fs.writeFileSync(result.filePath, csv, 'utf8')
           console.log('✅ Missing tracks CSV exported to:', result.filePath)
           return result.filePath
@@ -1156,7 +1151,29 @@ export function registerIpcHandlers(): void {
 
     ipcMain.handle('metadata:getAlbumDetails', async (_, albumId: string) => {
       console.log(`🔍 [IPC] Fetch MB Album: ${albumId}`)
-      return musicBrainzService.getAlbumDetails(albumId)
+      try {
+        const { musicBrainzService } = await import('./services/musicbrainz')
+        const details = await musicBrainzService.getReleaseDetails(albumId)
+
+        if (!details) {
+          throw new Error(`Album details not found for MBID: ${albumId}`)
+        }
+
+        return details
+      } catch (error) {
+        console.error('Failed to get MusicBrainz album details:', error)
+        throw error
+      }
+    })
+
+    ipcMain.handle('musicbrainz:getReleaseDetails', async (_, releaseId: string) => {
+      try {
+        const { musicBrainzService } = await import('./services/musicbrainz')
+        return await musicBrainzService.getReleaseDetails(releaseId)
+      } catch (error) {
+        console.error('Failed to get MusicBrainz release details:', error)
+        throw error
+      }
     })
 
     ipcMain.handle('metadata:updateArtistFacts', async (_, id: string, facts: any) => {
@@ -1169,7 +1186,7 @@ export function registerIpcHandlers(): void {
       console.log(`🏷️ [IPC] Tagging album ${albumId} with MBID ${mbAlbumId}`)
       try {
         // 1. Get MB details (recordings list)
-        const mbAlbum = await musicBrainzService.getAlbumDetails(mbAlbumId)
+        const mbAlbum = await musicBrainzService.getReleaseDetails(mbAlbumId)
         if (!mbAlbum) throw new Error('Failed to fetch MB album details')
 
         // 2. Get local tracks
@@ -1199,7 +1216,7 @@ export function registerIpcHandlers(): void {
               const mbData = {
                 trackId: mbTrack.recording.id,
                 albumId: mbAlbumId,
-                artistId: mbAlbum['artist-credit']?.[0]?.artist?.id || ''
+                artistId: mbAlbum['artist-credit']?.[0]?.mbid || ''
               }
 
               // Update DB
@@ -1241,14 +1258,11 @@ export function registerIpcHandlers(): void {
     ipcMain.handle('musicbrainz:getCoverage', async () => {
       console.log('📊 [IPC] Getting MusicBrainz coverage stats...')
       try {
-        const db = getDatabase()
-        const stats = getMBIDCoverageStats(db)
-        console.log(
-          `   Coverage: ${stats.tracksWithMBID}/${stats.totalTracks} tracks, ${stats.albumsWithMBID}/${stats.totalAlbums} albums`
-        )
+        const { getMBIDCoverageStats } = await import('./database/musicbrainz')
+        const stats = getMBIDCoverageStats()
         return stats
       } catch (error) {
-        console.error('❌ Failed to get MB coverage:', error)
+        console.error('Failed to get MusicBrainz coverage stats:', error)
         throw error
       }
     })
@@ -1271,17 +1285,24 @@ export function registerIpcHandlers(): void {
       ) => {
         console.log(`🔍 [IPC] Advanced MB search: "${params.artist}" - "${params.title}"`)
         try {
+          const { musicBrainzService } = await import('./services/musicbrainz')
+          // Wrap services for advancedMatch dependency injection
+          const searchFn = (a: string, t: string, al: string) =>
+            musicBrainzService.searchTrack(a, t, al)
+          const searchByISRCFn = (isrc: string) => musicBrainzService.searchByISRC(isrc)
+
           const result = await advancedMatch(
             params.artist,
             params.title,
-            params.album,
-            params.duration,
-            params.isrc
+            params.album || '',
+            params.isrc || null,
+            searchFn,
+            searchByISRCFn
           )
 
           if (result) {
             console.log(
-              `   ✅ Found match with ${result.confidence} confidence (${result.matchScore.toFixed(1)}% score)`
+              `   ✅ Found match with ${result.confidence} confidence (${result.score.toFixed(1)}% score)`
             )
           } else {
             console.log('   ❌ No matches found')
@@ -1327,7 +1348,7 @@ export function registerIpcHandlers(): void {
      * Enhance a single track with MusicBrainz metadata
      * Searches MB, updates database, and writes metadata to file
      */
-    ipcMain.handle('musicbrainz:enhanceTrack', async (_, trackId: number, writeToFile = true) => {
+    ipcMain.handle('musicbrainz:enhanceTrack', async (_, trackId: string, writeToFile = true) => {
       console.log(`✨ [IPC] Enhancing track ${trackId}...`)
       try {
         const db = getDatabase()
@@ -1338,31 +1359,55 @@ export function registerIpcHandlers(): void {
         }
 
         // Search MusicBrainz
+        const { musicBrainzService } = await import('./services/musicbrainz')
+        const searchFn = (a: string, t: string, al: string) =>
+          musicBrainzService.searchTrack(a, t, al)
+        const searchByISRCFn = (isrc: string) => musicBrainzService.searchByISRC(isrc)
+
         const match = await advancedMatch(
           track.artist,
           track.title,
-          track.album,
-          track.duration,
-          track.isrc
+          track.album || '',
+          track.isrc || null,
+          searchFn,
+          searchByISRCFn
         )
 
-        if (!match || match.confidence === 'MISMATCH') {
+        if (!match || match.confidence === MatchConfidence.MISMATCH || !match.match) {
           console.log(`   ⚠️ No suitable match found (${match?.confidence})`)
           return { success: false, reason: 'no_match', confidence: match?.confidence }
         }
 
         // Get full recording details
-        const recording = await musicBrainzService.getRecordingDetails(match.mbid)
+        const recording = await musicBrainzService.getRecordingDetails(match.match.id)
         if (!recording) {
           throw new Error('Failed to fetch recording details')
         }
 
         // Update database with MusicBrainz data
-        await updateTrackWithMBID(db, trackId, recording)
+        const { updateTrackWithMBID } = await import('./database/musicbrainz')
+        await updateTrackWithMBID(
+          trackId,
+          recording.id,
+          recording.releases?.[0]?.id,
+          recording['artist-credit']?.[0]?.artist?.id,
+          recording.isrc?.[0],
+          null, // publisher
+          recording['first-release-date'] || recording.releases?.[0]?.date,
+          null, // movement
+          null, // movement_name
+          // Metadata strings (Auto-apply all for confident match)
+          match.match.title,
+          match.match.artist,
+          match.match.album,
+          match.match.releaseDate ? new Date(match.match.releaseDate).getFullYear() : null,
+          match.match.trackNum || null,
+          match.match.discNum || null
+        )
 
         // Get AcousticBrainz data if available
         try {
-          const acousticData = await acousticBrainzService.getRecordingAnalysis(match.mbid)
+          const acousticData = await acousticBrainzService.getRecordingAnalysis(match.match.id)
           if (acousticData) {
             console.log(`   🎵 AcousticBrainz data retrieved`)
           }
@@ -1372,7 +1417,9 @@ export function registerIpcHandlers(): void {
 
         // Write metadata to file if requested
         if (writeToFile) {
-          const fileWriteSuccess = await writeMusicBrainzDataToFile(db, trackId)
+          const { writeMusicBrainzDataToFile, buildMusicBrainzDataFromDb } = await import('./services/metadataWriter')
+          const db = getDatabase()
+          const fileWriteSuccess = await writeMusicBrainzDataToFile(db as any, trackId)
           if (!fileWriteSuccess) {
             console.log('   ⚠️ Failed to write metadata to file')
           }
@@ -1382,8 +1429,8 @@ export function registerIpcHandlers(): void {
         return {
           success: true,
           confidence: match.confidence,
-          matchScore: match.matchScore,
-          mbid: match.mbid
+          matchScore: match.score,
+          mbid: match.match.id
         }
       } catch (error) {
         console.error('❌ Failed to enhance track:', error)
@@ -1397,7 +1444,7 @@ export function registerIpcHandlers(): void {
      */
     ipcMain.handle(
       'musicbrainz:enhanceTracks',
-      async (event, trackIds: number[], writeToFiles = true) => {
+      async (event, trackIds: string[], writeToFiles = true) => {
         console.log(`✨ [IPC] Bulk enhancing ${trackIds.length} tracks...`)
 
         const results = {
@@ -1429,7 +1476,7 @@ export function registerIpcHandlers(): void {
             })
 
             // Skip if already has MBID
-            if (track.mbid) {
+            if (track.musicbrainzTrackId) {
               console.log(`   ⏭️ Track ${trackId} already has MBID, skipping...`)
               results.alreadyHasMBID++
               continue
@@ -1437,33 +1484,57 @@ export function registerIpcHandlers(): void {
 
             try {
               // Search MusicBrainz
+              const { musicBrainzService } = await import('./services/musicbrainz')
+              const searchFn = (a: string, t: string, al: string) =>
+                musicBrainzService.searchTrack(a, t, al)
+              const searchByISRCFn = (isrc: string) => musicBrainzService.searchByISRC(isrc)
+
               const match = await advancedMatch(
                 track.artist,
                 track.title,
-                track.album,
-                track.duration,
-                track.isrc
+                track.album || '',
+                track.isrc || null,
+                searchFn,
+                searchByISRCFn
               )
 
-              if (!match || match.confidence === 'MISMATCH' || match.confidence === 'LOW') {
+              if (!match || match.confidence === MatchConfidence.MISMATCH || match.confidence === MatchConfidence.LOW || !match.match) {
                 console.log(`   ⚠️ No suitable match for track ${trackId}`)
                 results.noMatch++
                 continue
               }
 
               // Get full recording details
-              const recording = await musicBrainzService.getRecordingDetails(match.mbid)
+              const recording = await musicBrainzService.getRecordingDetails(match.match.id)
               if (!recording) {
                 results.failed++
                 continue
               }
 
               // Update database
-              await updateTrackWithMBID(db, trackId, recording)
+              const { updateTrackWithMBID } = await import('./database/musicbrainz')
+              await updateTrackWithMBID(
+                trackId,
+                recording.id,
+                recording.releases?.[0]?.id,
+                recording['artist-credit']?.[0]?.artist?.id,
+                recording.isrc?.[0],
+                null,
+                recording['first-release-date'] || recording.releases?.[0]?.date,
+                null,
+                null,
+                // Metadata strings (Auto-apply)
+                match.match.title,
+                match.match.artist,
+                match.match.album,
+                match.match.releaseDate ? new Date(match.match.releaseDate).getFullYear() : null,
+                match.match.trackNum || null,
+                match.match.discNum || null
+              )
 
               // Try to get AcousticBrainz data
               try {
-                await acousticBrainzService.getRecordingAnalysis(match.mbid)
+                await acousticBrainzService.getRecordingAnalysis(match.match.id)
               } catch (err) {
                 // AcousticBrainz is optional, continue even if it fails
               }
@@ -1501,7 +1572,7 @@ export function registerIpcHandlers(): void {
      * Get release candidates for manual match selection
      * Returns multiple MusicBrainz release options with track listings
      */
-    ipcMain.handle('musicbrainz:getCandidates', async (_, trackId: number) => {
+    ipcMain.handle('musicbrainz:getCandidates', async (_, trackId: string) => {
       console.log(`🔍 [IPC] Getting match candidates for track ${trackId}...`)
 
       try {
@@ -1509,10 +1580,6 @@ export function registerIpcHandlers(): void {
         if (!track) {
           throw new Error(`Track ${trackId} not found`)
         }
-
-        // Import services
-        const { musicBrainzService } = await import('./services/musicbrainz')
-        const { scoreReleaseCandidates } = await import('./services/matcher')
 
         // Get release candidates from MusicBrainz
         const candidates = await musicBrainzService.getReleaseCandidates(
@@ -1571,7 +1638,13 @@ export function registerIpcHandlers(): void {
      */
     ipcMain.handle(
       'musicbrainz:applyCandidate',
-      async (_, trackId: number, candidate: any, writeToFile = true) => {
+      async (
+        _,
+        trackId: string,
+        candidate: any,
+        options: { writeToFile?: boolean; selectedFields?: string[] } = {}
+      ) => {
+        const { writeToFile = true, selectedFields } = options
         console.log(`✅ [IPC] Applying selected candidate for track ${trackId}...`)
 
         try {
@@ -1581,104 +1654,147 @@ export function registerIpcHandlers(): void {
           }
 
           const db = getDatabase()
-          const { musicBrainzService } = await import('./services/musicbrainz')
-          const { getAcousticBrainzData } = await import('./services/acousticbrainz')
-          const { writeMusicBrainzMetadata } = await import('./services/metadataWriter')
+          const {
+            updateTrackWithMBID,
+            upsertAlbumWithMBID,
+            upsertArtistWithMBID,
+            addTrackArtist
+          } = await import('./database/musicbrainz')
 
-          // Fetch audio analysis from AcousticBrainz
+          // 1. Fetch full details from MusicBrainz (if needed, or assume candidate has enough?
+          // Candidate might not have full credits details like ISRC if it came from search output.
+          // Best to fetch full recording.
+          console.log(`   📋 Fetching recording details for ${candidate.recordingMbid}...`)
+          const recording = await musicBrainzService.getRecordingDetails(candidate.recordingMbid)
+
+          // 2. Fetch full details for the release
+          console.log(`   💿 Fetching release details for ${candidate.releaseMbid}...`)
+          const release = await musicBrainzService.getReleaseDetails(candidate.releaseMbid)
+
+          // 3. Fetch audio analysis
           console.log(`   🎵 Fetching audio analysis for ${candidate.recordingMbid}...`)
-          const audioAnalysis = await getAcousticBrainzData(candidate.recordingMbid)
+          const abResult = await acousticBrainzService.getRecordingAnalysis(candidate.recordingMbid)
+          const audioAnalysis = abResult
+            ? acousticBrainzService.formatAnalysisForDb(
+              candidate.recordingMbid,
+              abResult.lowLevel,
+              abResult.highlevel
+            )
+            : null
 
-          // Update database with MusicBrainz metadata
-          db.prepare(
-            `
-                    INSERT INTO musicbrainz_recordings (track_id, recording_mbid, bpm, key, mood, last_updated)
-                    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                    ON CONFLICT(track_id) DO UPDATE SET
-                        recording_mbid = excluded.recording_mbid,
-                        bpm = excluded.bpm,
-                        key = excluded.key,
-                        mood = excluded.mood,
-                        last_updated = CURRENT_TIMESTAMP
-                `
-          ).run(
+          // 4. Update Database
+
+          // 4a. Update Artist(s) - Only if 'artist' is selected or not specified
+          let primaryArtistId: string | null = null
+          if ((!selectedFields || selectedFields.includes('artist')) && recording && recording['artist-credit']) {
+            for (let i = 0; i < recording['artist-credit'].length; i++) {
+              const ac = recording['artist-credit'][i]
+              const artistMbid = ac.artist.id
+              const artistName = ac.name || ac.artist.name
+              const mbid = upsertArtistWithMBID(artistName, artistMbid)
+              if (i === 0) primaryArtistId = mbid
+
+              addTrackArtist(
+                track.id,
+                mbid,
+                'Main',
+                null,
+                ac.name,
+                ac.joinPhrase || null,
+                i
+              )
+            }
+          }
+
+          // 4b. Update Album - Only if 'album' is selected
+          let albumId: string | null = null
+          if ((!selectedFields || selectedFields.includes('album')) && release) {
+            albumId = upsertAlbumWithMBID(
+              release.title,
+              null,
+              release.id,
+              release['release-group']?.['primary-type'] || 'Album',
+              release['release-group']?.id,
+              release.title,
+              release['label-info']?.[0]?.label?.name,
+              release['label-info']?.[0]?.['catalog-number'],
+              release.date,
+              release.barcode,
+              release.status,
+              release.packaging,
+              release.media?.length || 1
+            )
+          }
+
+          // 4c. Update Track Matches (and metadata strings if selected)
+          const shouldUpdate = (field: string) => !selectedFields || selectedFields.includes(field)
+
+          const candidateTrack = candidate.tracks?.find((t: any) =>
+            t.title.toLowerCase() === track.title.toLowerCase()
+          ) || candidate.tracks?.[0]
+
+          updateTrackWithMBID(
             track.id,
             candidate.recordingMbid,
-            audioAnalysis?.bpm || null,
-            audioAnalysis?.key || null,
-            audioAnalysis?.mood || null
+            candidate.releaseMbid, // mbidAlbumId
+            candidate.artistMbid, // mbidArtistId
+            recording?.isrc?.[0],
+            null, // publisher (could be extracted from labels)
+            recording?.['release-date'] || release?.date,
+            null, // movement
+            null, // movement name
+            // Metadata strings - Pass ONLY if shouldUpdate
+            shouldUpdate('title') ? (candidateTrack?.title || candidate.title) : null,
+            shouldUpdate('artist') ? candidate.artistName : null,
+            shouldUpdate('album') ? candidate.albumName : null,
+            shouldUpdate('year') ? candidate.year : null,
+            shouldUpdate('trackNum') ? candidateTrack?.position : null,
+            null // discNum (implied from candidate?)
           )
 
-          // Update release and artist tables
-          if (candidate.releaseMbid) {
-            db.prepare(
-              `
-                        INSERT INTO musicbrainz_releases (album_id, release_mbid, release_group_mbid, last_updated)
-                        VALUES ((SELECT album_id FROM tracks WHERE id = ?), ?, ?, CURRENT_TIMESTAMP)
-                        ON CONFLICT(album_id) DO UPDATE SET
-                            release_mbid = excluded.release_mbid,
-                            release_group_mbid = excluded.release_group_mbid,
-                            last_updated = CURRENT_TIMESTAMP
-                    `
-            ).run(track.id, candidate.releaseMbid, candidate.releaseGroupMbid || null)
+          // 4d. Update AcousticBrainz data
+          if (audioAnalysis) {
+            const { storeAcousticBrainzData } = await import('./database/musicbrainz')
+            storeAcousticBrainzData(track.id, audioAnalysis)
           }
 
-          if (candidate.artistMbid) {
-            db.prepare(
-              `
-                        INSERT INTO musicbrainz_artists (artist_id, artist_mbid, last_updated)
-                        VALUES ((SELECT artist_id FROM tracks WHERE id = ?), ?, CURRENT_TIMESTAMP)
-                        ON CONFLICT(artist_id) DO UPDATE SET
-                            artist_mbid = excluded.artist_mbid,
-                            last_updated = CURRENT_TIMESTAMP
-                    `
-            ).run(track.id, candidate.artistMbid)
-          }
-
-          // Write to file tags if requested
+          // 5. Write to file tags if requested
           if (writeToFile && track.filePath) {
             console.log(`   💾 Writing tags to file: ${track.filePath}`)
-            await writeMusicBrainzMetadata(track.filePath, {
-              recordingMbid: candidate.recordingMbid,
-              releaseMbid: candidate.releaseMbid,
-              artistMbid: candidate.artistMbid,
-              bpm: audioAnalysis?.bpm,
-              key: audioAnalysis?.key
-            })
+            const { writeMusicBrainzDataToFile, buildMusicBrainzDataFromDb } = await import('./services/metadataWriter')
+            // Verify db is available here - it was declared in handle function top level?
+            // Yes, const db = getDatabase() at start of handle.
+            // But Typescript might complain about db type if I don't cast it.
+            const mbData = buildMusicBrainzDataFromDb(db as any, track.id)
+            if (mbData) {
+              await writeMetadata(
+                track.filePath,
+                track.rating || 0,
+                track.loved, // loved is boolean in Track? check types.
+                track.playCount,
+                mbData
+              )
+            }
           }
 
           // Log success
           db.prepare(
             `
-                    INSERT INTO enhancement_log (id, track_id, status, message, created_at)
-                    VALUES (?, ?, 'success', ?, CURRENT_TIMESTAMP)
+                    INSERT INTO scan_history (id, started_at, completed_at, files_updated, errors)
+                    VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, ?)
                 `
-          ).run(
-            `${track.id}-${Date.now()}`,
-            track.id,
-            `Manually matched: ${candidate.albumName} (${candidate.year || 'unknown year'})`
-          )
+          ).run(uuidv4(), `Manually matched: ${candidate.artistName} - ${candidate.title}`)
 
           console.log(`   ✅ Successfully applied candidate to track ${trackId}`)
 
           return {
             success: true,
-            mbid: candidate.recordingMbid,
-            bpm: audioAnalysis?.bpm,
-            key: audioAnalysis?.key
+            recordingMbid: candidate.recordingMbid,
+            releaseMbid: candidate.releaseMbid,
+            audioAnalysis: audioAnalysis
           }
         } catch (error) {
           console.error(`❌ Failed to apply candidate to track ${trackId}:`, error)
-
-          // Log error
-          const db = getDatabase()
-          db.prepare(
-            `
-                    INSERT INTO enhancement_log (id, track_id, status, message, created_at)
-                    VALUES (?, ?, 'error', ?, CURRENT_TIMESTAMP)
-                `
-          ).run(`${trackId}-${Date.now()}`, trackId, `Failed to apply candidate: ${error.message}`)
-
           throw error
         }
       }
@@ -1700,7 +1816,7 @@ export function registerIpcHandlers(): void {
             `
                     SELECT id
                     FROM tracks
-                    WHERE mbid IS NULL OR mbid = ''
+                    WHERE musicbrainz_track_id IS NULL OR musicbrainz_track_id = ''
                     ORDER BY id
                 `
           )
@@ -1722,14 +1838,14 @@ export function registerIpcHandlers(): void {
      * Write MusicBrainz metadata from database to audio files
      * For tracks that already have MBIDs in database but not in files
      */
-    ipcMain.handle('musicbrainz:syncToFiles', async (event, trackIds?: number[]) => {
+    ipcMain.handle('musicbrainz:syncToFiles', async (event, trackIds?: string[]) => {
       console.log(`📝 [IPC] Syncing MusicBrainz data to files...`)
 
       try {
         const db = getDatabase()
 
         // If no track IDs provided, sync all tracks with MBIDs
-        let idsToSync: number[]
+        let idsToSync: string[]
 
         if (trackIds && trackIds.length > 0) {
           idsToSync = trackIds
@@ -1739,9 +1855,9 @@ export function registerIpcHandlers(): void {
               `
                         SELECT id
                         FROM tracks
-                        WHERE mbid IS NOT NULL AND mbid != ''
+                        WHERE musicbrainz_track_id IS NOT NULL AND musicbrainz_track_id != ''
                         ORDER BY id
-                    `
+            `
             )
             .all()
           idsToSync = tracksWithMBID.map((t: any) => t.id)
@@ -1750,6 +1866,8 @@ export function registerIpcHandlers(): void {
         console.log(`   Syncing ${idsToSync.length} tracks to files...`)
 
         // Use bulk writer with progress callback
+        const { bulkWriteMusicBrainzData } = await import('./services/metadataWriter')
+
         const results = await bulkWriteMusicBrainzData(
           db,
           idsToSync,
@@ -1776,7 +1894,7 @@ export function registerIpcHandlers(): void {
      * Re-fetch and update MusicBrainz data for tracks that already have MBIDs
      * Useful for updating metadata after MusicBrainz data changes
      */
-    ipcMain.handle('musicbrainz:refreshMetadata', async (event, trackIds: number[]) => {
+    ipcMain.handle('musicbrainz:refreshMetadata', async (event, trackIds: string[]) => {
       console.log(`🔄 [IPC] Refreshing MusicBrainz metadata for ${trackIds.length} tracks...`)
 
       const results = {
@@ -1807,31 +1925,43 @@ export function registerIpcHandlers(): void {
           })
 
           // Skip if no MBID
-          if (!track.mbid) {
+          if (!track.musicbrainzTrackId) {
             results.noMBID++
             continue
           }
 
           try {
             // Re-fetch recording details
-            const recording = await musicBrainzService.getRecordingDetails(track.mbid)
+            const recording = await musicBrainzService.getRecordingDetails(track.musicbrainzTrackId)
             if (!recording) {
               results.failed++
               continue
             }
 
             // Update database
-            await updateTrackWithMBID(db, trackId, recording)
+            const { updateTrackWithMBID } = await import('./database/musicbrainz')
+            await updateTrackWithMBID(
+              trackId,
+              recording.id,
+              recording.releases?.[0]?.id,
+              recording['artist-credit']?.[0]?.artist?.id,
+              recording.isrc?.[0],
+              null,
+              recording['first-release-date'] || recording.releases?.[0]?.date,
+              null,
+              null
+            )
 
             // Re-fetch AcousticBrainz data
             try {
-              await acousticBrainzService.getRecordingAnalysis(track.mbid)
+              await acousticBrainzService.getRecordingAnalysis(track.musicbrainzTrackId)
             } catch (err) {
               // Optional, continue on failure
             }
 
             // Write to file
-            await writeMusicBrainzDataToFile(db, trackId)
+            const { writeMusicBrainzDataToFile } = await import('./services/metadataWriter')
+            await writeMusicBrainzDataToFile(db as any, trackId)
 
             results.refreshed++
             console.log(`   ✅ [${i + 1}/${trackIds.length}] Refreshed track ${trackId}`)
@@ -1891,7 +2021,7 @@ export function registerIpcHandlers(): void {
             const listenCount = playCountsMap.get(key)
             if (listenCount !== undefined) {
               // Protect existing count: Choose the highest between DB and ListenBrainz
-              const currentDbCount = track.play_count || 0
+              const currentDbCount = track.playCount || 0
               const finalCount = Math.max(currentDbCount, listenCount)
               updateStmt.run(finalCount, track.id)
               updatedCount++
@@ -1924,10 +2054,12 @@ export function registerIpcHandlers(): void {
       logPath,
       `[${new Date().toISOString()}] FATAL ERROR registering IPC handlers: ${error}\n`
     )
-    fs.appendFileSync(
-      logPath,
-      `[${new Date().toISOString()}] Stack trace: ${(error as Error).stack}\n`
-    )
+    if (error instanceof Error) {
+      fs.appendFileSync(
+        logPath,
+        `[${new Date().toISOString()}] Stack trace: ${error.stack}\n`
+      )
+    }
     throw error
   }
 }

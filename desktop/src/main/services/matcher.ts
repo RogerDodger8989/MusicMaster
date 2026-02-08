@@ -299,6 +299,9 @@ export async function advancedMatch(
       title: string
       artist: string
       album: string
+      releaseDate?: string
+      trackNum?: number
+      discNum?: number
     }>
   >,
   searchByISRCFn?: (isrc: string) => Promise<
@@ -307,10 +310,21 @@ export async function advancedMatch(
       title: string
       artist: string
       album: string
+      releaseDate?: string
+      trackNum?: number
+      discNum?: number
     }>
   >
 ): Promise<{
-  match: { id: string; title: string; artist: string; album: string } | null
+  match: {
+    id: string
+    title: string
+    artist: string
+    album: string
+    releaseDate?: string
+    trackNum?: number
+    discNum?: number
+  } | null
   score: number
   method: 'artist-title-album' | 'isrc' | 'none'
   confidence: MatchConfidence

@@ -21,10 +21,11 @@ export function updateTrackWithMBID(
     mbid: string,
     mbidAlbumId: string | null = null,
     mbidArtistId: string | null = null,
-    isrc: string | null = null,
     recordingDate: string | null = null,
     movementNum: number | null = null,
-    movementName: string | null = null
+    movementName: string | null = null,
+    publisher: string | null = null,
+    isrc: string | null = null
 ): boolean {
     try {
         const db = getDatabase()
@@ -33,10 +34,11 @@ export function updateTrackWithMBID(
             SET mbid = ?,
                 mbid_album_id = ?,
                 mbid_artist_id = ?,
-                isrc = ?,
+                isrc = COALESCE(?, isrc),
                 recording_date = ?,
                 movement_num = ?,
                 movement_name = ?,
+                publisher = COALESCE(?, publisher),
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         `)
@@ -49,6 +51,7 @@ export function updateTrackWithMBID(
             recordingDate,
             movementNum,
             movementName,
+            publisher,
             trackId
         )
 
@@ -72,7 +75,9 @@ export function upsertArtistWithMBID(
     lifeSpanEnd: string | null = null,
     bio: string | null = null,
     website: string | null = null,
-    imagePath: string | null = null
+    imagePath: string | null = null,
+    nameSortOrder: string | null = null,
+    genderOther: string | null = null
 ): string {
     try {
         const db = getDatabase()
@@ -81,8 +86,9 @@ export function upsertArtistWithMBID(
         const stmt = db.prepare(`
             INSERT INTO artists (
                 id, name, mbid, country, artist_type,
-                life_span_begin, life_span_end, bio, website, image_path, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                life_span_begin, life_span_end, bio, website, image_path,
+                name_sort_order, gender_other, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             ON CONFLICT(mbid) DO UPDATE SET
                 name = excluded.name,
                 country = COALESCE(excluded.country, country),
@@ -92,6 +98,8 @@ export function upsertArtistWithMBID(
                 bio = COALESCE(excluded.bio, bio),
                 website = COALESCE(excluded.website, website),
                 image_path = COALESCE(excluded.image_path, image_path),
+                name_sort_order = COALESCE(excluded.name_sort_order, name_sort_order),
+                gender_other = COALESCE(excluded.gender_other, gender_other),
                 updated_at = CURRENT_TIMESTAMP
         `)
 
@@ -105,7 +113,9 @@ export function upsertArtistWithMBID(
             lifeSpanEnd,
             bio,
             website,
-            imagePath
+            imagePath,
+            nameSortOrder,
+            genderOther
         )
 
         // Return existing ID if artist already exists
@@ -131,7 +141,11 @@ export function upsertAlbumWithMBID(
     barcode: string | null = null,
     status: string | null = null,
     packaging: string | null = null,
-    discCount: number = 1
+    discCount: number = 1,
+    releaseGroupMBID: string | null = null,
+    releaseTitle: string | null = null,
+    label: string | null = null,
+    catalogNumber: string | null = null
 ): string {
     try {
         const db = getDatabase()
@@ -140,8 +154,9 @@ export function upsertAlbumWithMBID(
         const stmt = db.prepare(`
             INSERT INTO albums (
                 id, name, album_artist_id, mbid, album_type,
-                release_date, barcode, status, packaging, disc_count, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                release_date, barcode, status, packaging, disc_count,
+                release_group_mbid, release_title, label, catalog_number, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             ON CONFLICT(mbid) DO UPDATE SET
                 name = excluded.name,
                 album_artist_id = COALESCE(excluded.album_artist_id, album_artist_id),
@@ -151,6 +166,10 @@ export function upsertAlbumWithMBID(
                 status = COALESCE(excluded.status, status),
                 packaging = COALESCE(excluded.packaging, packaging),
                 disc_count = COALESCE(excluded.disc_count, disc_count),
+                release_group_mbid = COALESCE(excluded.release_group_mbid, release_group_mbid),
+                release_title = COALESCE(excluded.release_title, release_title),
+                label = COALESCE(excluded.label, label),
+                catalog_number = COALESCE(excluded.catalog_number, catalog_number),
                 updated_at = CURRENT_TIMESTAMP
         `)
 
@@ -164,7 +183,11 @@ export function upsertAlbumWithMBID(
             barcode,
             status,
             packaging,
-            discCount
+            discCount,
+            releaseGroupMBID,
+            releaseTitle,
+            label,
+            catalogNumber
         )
 
         // Return existing ID if album already exists
@@ -187,6 +210,7 @@ export function addTrackArtist(
     role: string,
     instrument: string | null = null,
     creditedAs: string | null = null,
+    joinPhrase: string | null = null,
     sortPosition: number | null = null
 ): boolean {
     try {
@@ -195,11 +219,12 @@ export function addTrackArtist(
         const stmt = db.prepare(`
             INSERT INTO track_artists (
                 id, track_id, artist_id, role, instrument,
-                credited_as, sort_position
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                credited_as, join_phrase, sort_position
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(track_id, artist_id, role, instrument)
             DO UPDATE SET
                 credited_as = COALESCE(excluded.credited_as, credited_as),
+                join_phrase = COALESCE(excluded.join_phrase, join_phrase),
                 sort_position = COALESCE(excluded.sort_position, sort_position)
         `)
 
@@ -210,6 +235,7 @@ export function addTrackArtist(
             role,
             instrument,
             creditedAs,
+            joinPhrase,
             sortPosition
         )
 
@@ -228,6 +254,7 @@ export function addAlbumArtist(
     artistId: string,
     role: string,
     creditedAs: string | null = null,
+    joinPhrase: string | null = null,
     sortPosition: number | null = null
 ): boolean {
     try {
@@ -236,11 +263,12 @@ export function addAlbumArtist(
         const stmt = db.prepare(`
             INSERT INTO album_artists (
                 id, album_id, artist_id, role,
-                credited_as, sort_position
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                credited_as, join_phrase, sort_position
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(album_id, artist_id, role)
             DO UPDATE SET
                 credited_as = COALESCE(excluded.credited_as, credited_as),
+                join_phrase = COALESCE(excluded.join_phrase, join_phrase),
                 sort_position = COALESCE(excluded.sort_position, sort_position)
         `)
 
@@ -250,6 +278,7 @@ export function addAlbumArtist(
             artistId,
             role,
             creditedAs,
+            joinPhrase,
             sortPosition
         )
 
@@ -349,8 +378,10 @@ export function storeAcousticBrainzData(
                 id, track_id, mbid, bpm, bpm_confidence,
                 key, key_confidence, energy, danceability,
                 acousticness, instrumentalness, liveness,
-                speechiness, valence, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                speechiness, valence, mood_acoustic, mood_aggressive,
+                mood_electronic, mood_happy, mood_sad, mood_relaxed,
+                mood_party, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             ON CONFLICT(track_id)
             DO UPDATE SET
                 mbid = COALESCE(excluded.mbid, mbid),
@@ -365,6 +396,13 @@ export function storeAcousticBrainzData(
                 liveness = COALESCE(excluded.liveness, liveness),
                 speechiness = COALESCE(excluded.speechiness, speechiness),
                 valence = COALESCE(excluded.valence, valence),
+                mood_acoustic = COALESCE(excluded.mood_acoustic, mood_acoustic),
+                mood_aggressive = COALESCE(excluded.mood_aggressive, mood_aggressive),
+                mood_electronic = COALESCE(excluded.mood_electronic, mood_electronic),
+                mood_happy = COALESCE(excluded.mood_happy, mood_happy),
+                mood_sad = COALESCE(excluded.mood_sad, mood_sad),
+                mood_relaxed = COALESCE(excluded.mood_relaxed, mood_relaxed),
+                mood_party = COALESCE(excluded.mood_party, mood_party),
                 updated_at = CURRENT_TIMESTAMP
         `)
 
@@ -382,7 +420,14 @@ export function storeAcousticBrainzData(
             data.instrumentalness || null,
             data.liveness || null,
             data.speechiness || null,
-            data.valence || null
+            data.valence || null,
+            (data as any).mood_acoustic || null,
+            (data as any).mood_aggressive || null,
+            (data as any).mood_electronic || null,
+            (data as any).mood_happy || null,
+            (data as any).mood_sad || null,
+            (data as any).mood_relaxed || null,
+            (data as any).mood_party || null
         )
 
         return true

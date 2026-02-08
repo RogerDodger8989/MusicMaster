@@ -18,6 +18,21 @@ export const listPlaylists = (req: Request, res: Response) => {
     }
 }
 
+export const getPlaylist = (req: Request, res: Response) => {
+    try {
+        const id = req.params.id
+        const playlists = getAllPlaylists()
+        const playlist = playlists.find(p => p.id === id)
+        if (!playlist) {
+            return res.status(404).json({ error: 'Playlist not found' })
+        }
+        res.json(playlist)
+    } catch (error) {
+        console.error('Error getting playlist:', error)
+        res.status(500).json({ error: 'Failed to get playlist' })
+    }
+}
+
 export const createNewPlaylist = (req: Request, res: Response) => {
     try {
         const { name, trackIds } = req.body

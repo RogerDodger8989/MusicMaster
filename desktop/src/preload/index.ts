@@ -235,8 +235,11 @@ const api = {
     enhanceLibrary: (writeToFiles = true) =>
       ipcRenderer.invoke('musicbrainz:enhanceLibrary', writeToFiles),
     getCandidates: (trackId: number) => ipcRenderer.invoke('musicbrainz:getCandidates', trackId),
-    applyCandidate: (trackId: number, candidate: any, writeToFile = true) =>
-      ipcRenderer.invoke('musicbrainz:applyCandidate', trackId, candidate, writeToFile),
+    applyCandidate: (
+      trackId: number,
+      candidate: any,
+      options: { writeToFile?: boolean; selectedFields?: string[] } = {}
+    ) => ipcRenderer.invoke('musicbrainz:applyCandidate', trackId, candidate, options),
     syncToFiles: (trackIds?: number[]) => ipcRenderer.invoke('musicbrainz:syncToFiles', trackIds),
     refreshMetadata: (trackIds: number[]) =>
       ipcRenderer.invoke('musicbrainz:refreshMetadata', trackIds),

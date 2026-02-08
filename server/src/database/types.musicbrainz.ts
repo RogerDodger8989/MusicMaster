@@ -35,13 +35,17 @@ export interface DbAlbum {
     album_artist_id: string | null
     mbid: string | null
     album_type: 'Album' | 'EP' | 'Single' | 'Broadcast' | 'Other' | 'Compilation' | 'Soundtrack' | 'Remix Album' | 'Live Album' | null
+    release_group_mbid: string | null
     status: 'Official' | 'Promotion' | 'Bootleg' | 'Pseudorelease' | null
+    release_title: string | null
     year: number | null
     release_date: string | null
     original_release_date: string | null
     release_country: string | null
     barcode: string | null
     asin: string | null
+    label: string | null
+    catalog_number: string | null
     script: string | null
     language: string | null
     release_text_language: string | null
@@ -95,6 +99,7 @@ export interface DbTrack {
     last_played: string | null
     release_date: string | null
     recording_date: string | null
+    publisher: string | null
     replaygain_track_gain: number | null
     replaygain_album_gain: number | null
     replaygain_track_peak: number | null
@@ -114,6 +119,7 @@ export interface DbTrackArtist {
     role: 'Main' | 'Featured' | 'Guest' | 'Remixer' | 'Arranger' | 'Producer' | 'Conductor' | 'Performer' | 'Composer' | 'Lyricist' | 'Other'
     instrument: string | null
     credited_as: string | null
+    join_phrase: string | null
     sort_position: number | null
     created_at: string
 }
@@ -124,6 +130,7 @@ export interface DbAlbumArtist {
     artist_id: string
     role: 'Main' | 'Featured' | 'Guest' | 'Compilation' | 'Various Artists'
     credited_as: string | null
+    join_phrase: string | null
     sort_position: number | null
     created_at: string
 }
@@ -268,6 +275,13 @@ export interface DbAcousticBrainzData {
     loudness_integrated: number | null
     loudness_short_term: number | null
     tempo_confidence: number | null
+    mood_acoustic: number | null
+    mood_aggressive: number | null
+    mood_electronic: number | null
+    mood_happy: number | null
+    mood_sad: number | null
+    mood_relaxed: number | null
+    mood_party: number | null
     updated_at: string
     created_at: string
 }

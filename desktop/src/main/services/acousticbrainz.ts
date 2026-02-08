@@ -80,6 +80,14 @@ export interface AcousticBrainzHighLevel {
     electronic: number
     not_electronic: number
   }
+  mood_party: {
+    party: number
+    not_party: number
+  }
+  mood_relaxed: {
+    relaxed: number
+    not_relaxed: number
+  }
   tonal_atonal: {
     atonal: number
     tonal: number
@@ -250,6 +258,14 @@ export class AcousticBrainzService {
           electronic: 0,
           not_electronic: 0
         },
+        mood_party: data.highlevel?.mood_party || {
+          party: 0,
+          not_party: 0
+        },
+        mood_relaxed: data.highlevel?.mood_relaxed || {
+          relaxed: 0,
+          not_relaxed: 0
+        },
         tonal_atonal: data.highlevel?.tonal_atonal || {
           atonal: 0,
           tonal: 0
@@ -330,6 +346,65 @@ export class AcousticBrainzService {
           highlevel.mood_happy.happy /
           (highlevel.mood_happy.happy + highlevel.mood_happy.not_happy || 1)
         result.valence = Math.round(valence_val * 100) / 100
+      }
+
+      // Moods
+      if (highlevel.mood_acoustic) {
+        result.mood_acoustic =
+          Math.round(
+            (highlevel.mood_acoustic.acoustic /
+              (highlevel.mood_acoustic.acoustic + highlevel.mood_acoustic.not_acoustic || 1)) *
+            100
+          ) / 100
+      }
+      if (highlevel.mood_aggressive) {
+        result.mood_aggressive =
+          Math.round(
+            (highlevel.mood_aggressive.aggressive /
+              (highlevel.mood_aggressive.aggressive + highlevel.mood_aggressive.not_aggressive ||
+                1)) *
+            100
+          ) / 100
+      }
+      if (highlevel.mood_electronic) {
+        result.mood_electronic =
+          Math.round(
+            (highlevel.mood_electronic.electronic /
+              (highlevel.mood_electronic.electronic + highlevel.mood_electronic.not_electronic ||
+                1)) *
+            100
+          ) / 100
+      }
+      if (highlevel.mood_happy) {
+        result.mood_happy =
+          Math.round(
+            (highlevel.mood_happy.happy /
+              (highlevel.mood_happy.happy + highlevel.mood_happy.not_happy || 1)) *
+            100
+          ) / 100
+      }
+      if (highlevel.mood_sad) {
+        result.mood_sad =
+          Math.round(
+            (highlevel.mood_sad.sad / (highlevel.mood_sad.sad + highlevel.mood_sad.not_sad || 1)) *
+            100
+          ) / 100
+      }
+      if (highlevel.mood_relaxed) {
+        result.mood_relaxed =
+          Math.round(
+            (highlevel.mood_relaxed.relaxed /
+              (highlevel.mood_relaxed.relaxed + highlevel.mood_relaxed.not_relaxed || 1)) *
+            100
+          ) / 100
+      }
+      if (highlevel.mood_party) {
+        result.mood_party =
+          Math.round(
+            (highlevel.mood_party.party /
+              (highlevel.mood_party.party + highlevel.mood_party.not_party || 1)) *
+            100
+          ) / 100
       }
     }
 

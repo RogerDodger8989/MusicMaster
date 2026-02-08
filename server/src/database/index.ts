@@ -41,13 +41,17 @@ CREATE TABLE IF NOT EXISTS albums (
     album_artist_id TEXT,
     mbid TEXT UNIQUE,
     album_type TEXT,
+    release_group_mbid TEXT,
     status TEXT,
+    release_title TEXT, -- e.g. "Remastered"
     year INTEGER,
     release_date TEXT,
     original_release_date TEXT,
     release_country TEXT,
     barcode TEXT,
     asin TEXT,
+    label TEXT, -- Primary label name (denormalized for convenience)
+    catalog_number TEXT,
     script TEXT,
     language TEXT,
     release_text_language TEXT,
@@ -74,6 +78,7 @@ CREATE TABLE IF NOT EXISTS track_artists (
     role TEXT,
     instrument TEXT,
     credited_as TEXT,
+    join_phrase TEXT,
     sort_position INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE,
@@ -88,6 +93,7 @@ CREATE TABLE IF NOT EXISTS album_artists (
     artist_id TEXT NOT NULL,
     role TEXT,
     credited_as TEXT,
+    join_phrase TEXT,
     sort_position INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE,
@@ -243,6 +249,13 @@ CREATE TABLE IF NOT EXISTS acousticbrainz_data (
     loudness_integrated REAL,
     loudness_short_term REAL,
     tempo_confidence REAL,
+    mood_acoustic REAL,
+    mood_aggressive REAL,
+    mood_electronic REAL,
+    mood_happy REAL,
+    mood_sad REAL,
+    mood_relaxed REAL,
+    mood_party REAL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
@@ -340,8 +353,10 @@ CREATE TABLE IF NOT EXISTS tracks (
     musicbrainz_track_id TEXT,
     musicbrainz_album_id TEXT,
     musicbrainz_artist_id TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    publisher TEXT,
+    isrc TEXT,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (folder_id) REFERENCES music_folders(id) ON DELETE CASCADE
 );
 
@@ -575,6 +590,21 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE artists ADD COLUMN artist_type TEXT",
             "ALTER TABLE artists ADD COLUMN gender_other TEXT",
 
+            "ALTER TABLE track_artists ADD COLUMN join_phrase TEXT",
+            "ALTER TABLE album_artists ADD COLUMN join_phrase TEXT",
+            "ALTER TABLE albums ADD COLUMN release_group_mbid TEXT",
+            "ALTER TABLE albums ADD COLUMN release_title TEXT",
+            "ALTER TABLE albums ADD COLUMN label TEXT",
+            "ALTER TABLE albums ADD COLUMN catalog_number TEXT",
+            "ALTER TABLE tracks ADD COLUMN publisher TEXT",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN mood_acoustic REAL",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN mood_aggressive REAL",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN mood_electronic REAL",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN mood_happy REAL",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN mood_sad REAL",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN mood_relaxed REAL",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN mood_party REAL",
+
             // Playback tables
             "CREATE TABLE IF NOT EXISTS playback_state (id TEXT PRIMARY KEY DEFAULT 'default', current_track_id TEXT, queue_ids TEXT, current_index INTEGER DEFAULT -1, volume REAL DEFAULT 1.0, is_shuffle INTEGER DEFAULT 0, repeat_mode TEXT DEFAULT 'normal', current_time REAL DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
             "CREATE TABLE IF NOT EXISTS scrobble_queue (id TEXT PRIMARY KEY, track_id TEXT NOT NULL, artist TEXT NOT NULL, title TEXT NOT NULL, album TEXT, played_at INTEGER NOT NULL, lastfm_submitted INTEGER DEFAULT 0, listenbrainz_submitted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)",
@@ -660,6 +690,8 @@ export interface DbTrack {
     musicbrainz_track_id: string | null
     musicbrainz_album_id: string | null
     musicbrainz_artist_id: string | null
+    publisher: string | null
+    isrc: string | null
     created_at: string
     updated_at: string
 }
@@ -676,6 +708,10 @@ export interface DbAlbumCache {
     total_duration: number
     cover_art_path: string | null
     musicbrainz_album_id: string | null
+    release_group_mbid: string | null
+    release_title: string | null
+    label: string | null
+    catalog_number: string | null
     lastfm_url: string | null
     rating: number
     loved: number

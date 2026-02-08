@@ -23,6 +23,7 @@ export interface Track {
   musicbrainzTrackId?: string
   musicbrainzAlbumId?: string
   musicbrainzArtistId?: string
+  isrc?: string
   // ReplayGain metadata (in dB)
   replayGainTrack?: number
   replayGainAlbum?: number

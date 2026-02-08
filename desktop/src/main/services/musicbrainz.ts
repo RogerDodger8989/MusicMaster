@@ -60,6 +60,7 @@ export interface MBTrackResult {
   country?: string
   media?: string
   genres?: string[]
+  artistCredits?: MBArtistCredit[]
 }
 
 export interface MBArtistCredit {
@@ -236,7 +237,12 @@ export class MusicBrainzService {
           barcode: release?.barcode,
           country: release?.country,
           media: release?.['media']?.[0]?.format,
-          genres: (rec as any).tags?.map((t: any) => t.name)
+          genres: (rec as any).tags?.map((t: any) => t.name),
+          artistCredits: rec['artist-credit']?.map((ac: any) => ({
+            name: ac.name,
+            mbid: ac.artist?.id,
+            joinPhrase: ac.joinPhrase
+          }))
         }
       })
 
@@ -360,14 +366,17 @@ export class MusicBrainzService {
 
       console.log(`📋 MB: Fetching recording: ${recordingId}`)
       await applyRateLimit()
-      const recording = (await mbApi.lookup('recording', recordingId, [
+      const recording = (await (mbApi as any).lookup('recording', recordingId, [
         'artists',
         'releases',
         'recordings',
         'url-rels',
         'tags',
-        'genres'
-      ])) as MBRecordingFull
+        'genres',
+        'artist-rels',
+        'work-rels',
+        'instrument-rels'
+      ])) as any // MBRecordingFull
 
       cacheResult(cacheKey, recording)
       return recording
@@ -391,15 +400,18 @@ export class MusicBrainzService {
 
       console.log(`📋 MB: Fetching release: ${releaseId}`)
       await applyRateLimit()
-      const release = (await mbApi.lookup('release', releaseId, [
+      const release = (await (mbApi as any).lookup('release', releaseId, [
         'artists',
         'labels',
         'recordings',
         'release-groups',
         'url-rels',
         'tags',
-        'genres'
-      ])) as MBReleaseFull
+        'genres',
+        'artist-rels',
+        'recording-level-rels',
+        'work-level-rels'
+      ])) as any // MBReleaseFull
 
       cacheResult(cacheKey, release)
       return release
@@ -472,7 +484,7 @@ export class MusicBrainzService {
 
       console.log(`🎼 MB: Fetching work: ${workId}`)
       await applyRateLimit()
-      const work = await mbApi.lookup('work', workId, ['artists', 'url-rels'])
+      const work = await (mbApi as any).lookup('work', workId, ['artists', 'url-rels'])
 
       cacheResult(cacheKey, work)
       return work
@@ -664,6 +676,24 @@ export class MusicBrainzService {
       console.error('Failed to get release candidates:', error)
       return []
     }
+  }
+
+  /**
+   * Extract roles (producer, conductor, etc.) from relations
+   */
+  extractRoles(item: MBRecordingFull | MBReleaseFull): Record<string, string[]> {
+    const roles: Record<string, string[]> = {}
+    const relations = item.relations || []
+
+    for (const rel of relations) {
+      if (rel['target-type'] === 'artist' && (rel as any).artist) {
+        const roleName = rel.type // e.g., "producer", "conductor"
+        if (!roles[roleName]) roles[roleName] = []
+        roles[roleName].push((rel as any).artist.name)
+      }
+    }
+
+    return roles
   }
 
   clearCache(): void {

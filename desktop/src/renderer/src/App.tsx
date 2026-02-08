@@ -14,6 +14,7 @@ import PlaylistsView from './views/PlaylistsView'
 import UnsortedView from './views/UnsortedView'
 import SearchModal from './components/SearchModal'
 import TaggingModal from './components/TaggingModal'
+import TagConfirmationModal from './components/TagConfirmationModal'
 import QueuePanel from './components/QueuePanel'
 import TrackContextMenu from './components/TrackContextMenu'
 import { TrackPlayOptionModal } from './components/modals/TrackPlayOptionModal'
@@ -44,6 +45,13 @@ function App(): React.JSX.Element {
   const [taggingModalOpen, setTaggingModalOpen] = useState(false)
   const [selectedItemForTagging, setSelectedItemForTagging] = useState<Track | Album | null>(null)
   const [taggingItemType, setTaggingItemType] = useState<'track' | 'album'>('track')
+
+  const [tagConfirmationOpen, setTagConfirmationOpen] = useState(false)
+  const [tagConfirmationData, setTagConfirmationData] = useState<{
+    track: Track
+    candidate: any
+  } | null>(null)
+
   const [trackContextMenu, setTrackContextMenu] = useState<{
     track: Track
     x: number
@@ -230,29 +238,17 @@ function App(): React.JSX.Element {
 
     if (type === 'track') {
       const track = selectedItemForTagging as Track
-      const mbData = {
-        trackId: metadata.id,
-        albumId: metadata.albumId,
-        artistId: metadata.artistId
-      }
-
-      if (window.api) {
-        const success = await window.api.tracks.updateMetadata(
-          id,
-          track.filePath,
-          track.rating,
-          track.loved,
-          mbData
-        )
-        if (success) {
-          console.log('✅ [UI] Track metadata saved successfully')
-          initialize()
-        }
-      } else {
-        console.warn('Metadata updates not supported in web mode yet')
-      }
+      // Open Confirmation Modal instead of direct save
+      setTagConfirmationData({
+        track,
+        candidate: metadata
+      })
+      setTagConfirmationOpen(true)
+      // TaggingModal will be closed by its own onClose? No, TaggingModal calls onSave then onClose.
+      // We should probably ensure TaggingModal is closed.
+      setTaggingModalOpen(false)
     } else {
-      // Album tagging
+      // Album tagging (keep existing logic for now, or TODO: implement album confirmation)
       try {
         if (window.api) {
           const updatedCount = await window.api.library.tagAlbumMetadata(id, metadata.id)
@@ -264,6 +260,41 @@ function App(): React.JSX.Element {
       } catch (error) {
         console.error('❌ Failed to tag album:', error)
       }
+    }
+  }
+
+  const handleConfirmTagging = async (
+    _trackId: string,
+    _candidate: any,
+    selectedFields: string[]
+  ) => {
+    if (!tagConfirmationData) return
+
+    console.log('✅ [UI] Confirmed tagging with fields:', selectedFields)
+    const { track, candidate } = tagConfirmationData
+
+    try {
+      if (window.api) {
+        // Use applyCandidate with granular fields
+        const result = await window.api.musicbrainz.applyCandidate(Number(track.id), candidate, {
+          writeToFile: true,
+          selectedFields
+        })
+
+        if (result.success) {
+          console.log('✅ [UI] Track updated successfully')
+          initialize() // Refresh library
+        } else {
+          console.error('❌ [UI] Failed to update track:', result)
+        }
+      } else {
+        console.warn('Tagging not supported in web mode')
+      }
+    } catch (error) {
+      console.error('❌ [UI] Error applying tags:', error)
+    } finally {
+      setTagConfirmationOpen(false)
+      setTagConfirmationData(null)
     }
   }
 
@@ -394,6 +425,16 @@ function App(): React.JSX.Element {
         itemType={taggingItemType}
         onSave={handleTaggingSave}
       />
+
+      {tagConfirmationData && (
+        <TagConfirmationModal
+          isOpen={tagConfirmationOpen}
+          onClose={() => setTagConfirmationOpen(false)}
+          track={tagConfirmationData.track}
+          candidate={tagConfirmationData.candidate}
+          onConfirm={handleConfirmTagging}
+        />
+      )}
 
       {/* Top Bar */}
       <TopBar />

@@ -10,33 +10,10 @@ import * as player from './controllers/player.controller'
 import * as scrobble from './controllers/scrobble.controller'
 import * as metadata from './controllers/metadata.controller'
 import * as system from './controllers/system.controller'
+import * as dashboard from './controllers/dashboard.controller'
+import * as media from './controllers/media.controller'
 
 const router = Router()
-
-// Albums
-router.get('/albums', albums.listAlbums)
-router.get('/albums/:id', albums.getAlbum)
-router.put('/albums/:id', albums.updateAlbum)
-
-// Artists
-router.get('/artists', artists.listArtists)
-router.get('/artists/similar', artists.getSimilarArtists)
-router.get('/artists/:id', artists.getArtist)
-router.put('/artists/:id', artists.updateArtistDetails)
-
-// Tracks
-router.get('/tracks', tracks.listTracks)
-router.get('/tracks/:id', tracks.getTrack)
-router.put('/tracks/:id', tracks.updateTrack)
-router.post('/tracks/:id/rate', tracks.rateTrack)
-router.post('/tracks/:id/loved', tracks.loveTrack)
-
-// Artists
-router.get('/artists', artists.listArtists)
-router.get('/artists/similar', artists.getSimilarArtists)
-router.get('/artists/:id', artists.getArtist)
-router.put('/artists/:id', artists.updateArtistDetails)
-router.post('/artists/:id/loved', artists.toggleArtistLoved)
 
 // Albums
 router.get('/albums', albums.listAlbums)
@@ -45,19 +22,23 @@ router.put('/albums/:id', albums.updateAlbum)
 router.post('/albums/:id/rate', albums.rateAlbum)
 router.post('/albums/:id/loved', albums.toggleAlbumLoved)
 
-// Search & Genres
-router.get('/search', search.search)
-router.get('/genres', albums.getGenres)
+// Artists
+router.get('/artists', artists.listArtists)
+router.get('/artists/similar', artists.getSimilarArtists)
+router.get('/artists/:id', artists.getArtist)
+router.put('/artists/:id', artists.updateArtistDetails)
+router.post('/artists/:id/loved', artists.toggleArtistLoved)
 
-// Scanning & Folders
-router.get('/scan/status', scan.getScanStatus)
-router.post('/scan/start', scan.startScan)
-router.get('/folders', scan.listFolders)
-router.post('/folders', scan.createFolder)
-router.delete('/folders/:id', scan.deleteFolder)
+// Tracks
+router.get('/tracks', tracks.listTracks)
+router.get('/tracks/:id', tracks.getTrack)
+router.put('/tracks/:id', tracks.updateTrack)
+router.post('/tracks/:id/rate', tracks.rateTrack)
+router.post('/tracks/:id/loved', tracks.loveTrack)
 
 // Playlists
 router.get('/playlists', playlists.listPlaylists)
+router.get('/playlists/:id', playlists.getPlaylist)
 router.post('/playlists', playlists.createNewPlaylist)
 router.delete('/playlists/:id', playlists.removePlaylist)
 router.post('/playlists/:id/tracks', playlists.addToPlaylist)
@@ -80,26 +61,39 @@ router.get('/scrobble/sync/status', scrobble.getSyncStatus)
 router.get('/auth/lastfm/token', scrobble.getLastFmAuthToken)
 router.post('/auth/lastfm/session', scrobble.getLastFmSession)
 
-// Metadata
+// Metadata & MusicBrainz
 router.get('/metadata/coverage', metadata.getCoverage)
-router.post('/metadata/enhance', metadata.enhanceLibrary)
-router.get('/metadata/enhance/status', metadata.getEnhanceStatus)
-// "Sync to Files"
-router.post('/metadata/sync', metadata.syncMetadata)
-router.get('/metadata/sync/status', metadata.getFileSyncStatus)
-router.post('/metadata/write/:id', metadata.writeTrackMetadata)
-router.get('/metadata/search', metadata.searchMetadata)
-router.get('/metadata/search/albums', metadata.searchAlbums)
-router.get('/metadata/artist/:id', metadata.getArtistDetails)
+router.get('/metadata/identify/:trackId', metadata.identifyTrack)
+router.get('/metadata/search', metadata.searchMusicBrainz)
+router.get('/metadata/details/:type/:id', metadata.getMusicBrainzDetails)
 router.get('/metadata/candidates/:trackId', metadata.getCandidates)
 router.post('/metadata/candidates/:trackId/apply', metadata.applyCandidate)
 
-import * as media from './controllers/media.controller'
+// Library Enhancement & Sync
+router.post('/metadata/enhance', metadata.enhanceLibrary)
+router.get('/metadata/enhance/status', metadata.getEnhanceStatus)
+router.post('/metadata/sync', metadata.syncMetadata)
+router.get('/metadata/sync/status', metadata.getFileSyncStatus)
+router.post('/metadata/write/:id', metadata.writeTrackMetadata)
+
+// Search & Genres
+router.get('/search', search.search)
+router.get('/genres', albums.getGenres)
+
+// Dashboard
+router.get('/dashboard/stats', dashboard.getStats)
 
 // Media & Streaming
 router.get('/cover/album/:id', media.getCover)
 router.get('/cover/artist/:id', media.getArtistImage)
 router.get('/stream/:id', media.streamTrack)
+
+// Scanning & Folders
+router.get('/scan/status', scan.getScanStatus)
+router.post('/scan/start', scan.startScan)
+router.get('/folders', scan.listFolders)
+router.post('/folders', scan.createFolder)
+router.delete('/folders/:id', scan.deleteFolder)
 
 // System & Filesystem
 router.get('/system/drives', system.listDrives)

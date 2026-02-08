@@ -158,6 +158,21 @@
         - [x] Display play count in Albums View (list mode)
         - [x] Display play count in Album Detail View
         - [x] Backend: Query play_history table for counts
+- [x] **Block 1: Foundation & DB**
+    - [x] Extended database schema for MB metadata
+    - [x] Implemented migrations for new columns
+- [x] **Block 2: Logic & Fetching**
+    - [x] Enhanced MusicBrainz service with join phrases and relationships
+    - [x] Implemented AcoustID fingerprinting service
+    - [x] Created API endpoints for metadata lookup
+- [/] **Block 3: UI & Control**
+    - [ ] Design Tag Confirmation Modal
+    - [ ] Implement side-by-side comparison UI
+    - [ ] Add batch selection and approval logic
+- [ ] **Block 4: File Handling & Covers**
+    - [ ] Implement metadata writing to files (FLAC/MP3)
+    - [ ] Preserve ratings/loved status during write
+    - [ ] Add cover art management logic
 - [x] **Phase 6: Play Count Sync Debugging & Fixes (2026-02-06)**
     - [x] **Rating System Bugfixes**
         - [x] Fix rating normalization (FMPS_RATING 0.8 read as 0.04)
