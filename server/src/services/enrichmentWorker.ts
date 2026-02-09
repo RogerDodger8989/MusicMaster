@@ -204,11 +204,11 @@ export async function startEnrichmentWorker(progressCallback?: (progress: Enrich
     const albumGroups = await getAlbumGroups()
     progress.totalAlbums = albumGroups.size
     
-    // Count all tracks with album MBID (not just those with recording_id)
-    const allTracks = db.prepare('SELECT COUNT(*) as count FROM tracks WHERE musicbrainz_album_id IS NOT NULL').get() as any
+// Count all tracks in the current DB
+    const allTracks = db.prepare('SELECT COUNT(*) as count FROM tracks').get() as any
     progress.totalTracks = allTracks.count || 0
-    
-    console.log(`📊 Found ${progress.totalAlbums} albums with ${progress.totalTracks} tracks to enrich`)
+
+    console.log(`📊 Found ${progress.totalAlbums} albums with ${progress.totalTracks} total tracks in DB`)
     
     // Process each album
     for (const [albumMbid, trackIds] of albumGroups) {
@@ -296,14 +296,13 @@ export function getEnrichmentStatus() {
 export function getEnrichmentCoverage() {
   const db = getDatabase()
   
-  // Count all tracks with album MBID (eligible for enrichment)
-  const total = db.prepare('SELECT COUNT(*) as count FROM tracks WHERE musicbrainz_album_id IS NOT NULL').get() as any
+  // Count all tracks in DB
+  const total = db.prepare('SELECT COUNT(*) as count FROM tracks').get() as any
   
   // Count those with AcousticBrainz data
   const enriched = db.prepare(`
     SELECT COUNT(*) as count FROM tracks t
     INNER JOIN acousticbrainz_data ab ON t.id = ab.track_id
-    WHERE t.musicbrainz_album_id IS NOT NULL
   `).get() as any
   
   return {

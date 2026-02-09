@@ -1,17 +1,16 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useLibrary } from '../store/library'
 import { usePlayer } from '../store/player'
-import { Users, Search, Settings2 } from 'lucide-react'
+import { Users, Search } from 'lucide-react'
 import { ArtistCard } from '../components/ArtistCard'
 import { ArtistPlayModal } from '../components/ArtistPlayModal'
-import { cn } from '../utils'
 
 interface ArtistsViewProps {
   onArtistClick: (artistName: string) => void
 }
 
 export default function ArtistsView({ onArtistClick }: ArtistsViewProps) {
-  const { artists, loadArtists, reanalyzeLibrary, tracks } = useLibrary()
+  const { artists, loadArtists, tracks } = useLibrary()
   const { playAlbum, toggleShuffle, isShuffle } = usePlayer()
   const [searchQuery, setSearchQuery] = useState('')
   const [playModalArtist, setPlayModalArtist] = useState<string | null>(null)
@@ -110,16 +109,7 @@ export default function ArtistsView({ onArtistClick }: ArtistsViewProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Re-analyze Button - useful for artists too */}
-            <button
-              onClick={() => reanalyzeLibrary()}
-              className="px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm font-medium"
-              title="Refresh library aggregation"
-            >
-              <Settings2 size={16} /> Re-analyze
-            </button>
-          </div>
+          <div className="flex items-center gap-2"></div>
         </div>
       </div>
 

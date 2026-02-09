@@ -13,6 +13,7 @@ import TracksView from './views/TracksView'
 import PlaylistsView from './views/PlaylistsView'
 import UnsortedView from './views/UnsortedView'
 import HomeView from './views/HomeView'
+import { useTagging } from './store/tagging'
 import SearchModal from './components/SearchModal'
 import TaggingModal from './components/TaggingModal'
 import TagConfirmationModal from './components/TagConfirmationModal'
@@ -33,6 +34,7 @@ function App(): React.JSX.Element {
   const { current, navigateTo, goBack } = useNavigation()
   const { playTrack, playNext, addToQueue, loadSession, togglePlay } = usePlayer()
   const { setTrackPlayBehavior, loadSettings } = useSettings()
+  const { startTagging, updateProgress, finishTagging } = useTagging()
 
   const activeView = current.view
   const viewParams = current.params
@@ -253,13 +255,26 @@ function App(): React.JSX.Element {
       // Create a virtual track structure for the confirmation modal comparison
       const virtualTrack: any = {
         id: album.id,
-        title: '', // Not used for album comparison header
+        title: '', // Not used for album comparison
         artist: album.artist,
         album: album.name,
         year: album.year,
+        releaseDate: album.releaseDate,
         trackNum: 0,
         musicbrainzAlbumId: album.musicbrainzAlbumId,
-        musicbrainzTrackId: (album as any).tracks?.[0]?.musicbrainzTrackId // Fallback to first track ID if available
+        musicbrainzTrackId: (album as any).tracks?.[0]?.musicbrainzTrackId, // Fallback to first track ID if available
+        // Include other album-level metadata
+        label: (album as any).label,
+        catalogNumber: (album as any).catalogNumber,
+        barcode: (album as any).barcode,
+        country: (album as any).country,
+        originalReleaseDate: (album as any).originalReleaseDate,
+        media: (album as any).media,
+        script: (album as any).script,
+        totalDiscs: (album as any).totalDiscs,
+        totalTracks: (album as any).totalTracks,
+        albumType: (album as any).albumType,
+        releaseStatus: (album as any).status
       }
       setTagConfirmationData({
         track: virtualTrack as Track,
@@ -283,24 +298,47 @@ function App(): React.JSX.Element {
 
     try {
       if (type === 'track') {
-        // Use applyCandidate with granular fields
+        // Single track tagging
+        startTagging(1, track.title || 'Track')
         await client.applyCandidate(track.id, candidate, {
           writeToFile: true,
           selectedFields
         })
+        updateProgress(1, track.title || 'Track')
         console.log('✅ [UI] Track updated successfully')
       } else {
-        // Album tagging
+        // Album tagging - minimize modal and show progress
+        setTagConfirmationOpen(false)
+        setTagConfirmationData(null)
+        
+        // Get album info for progress tracking
+        const album = selectedItemForTagging as Album
+        const trackCount = (album as any).trackCount || candidate.trackCount || 12 // Fallback estimate
+        
+        startTagging(trackCount, `${album.name} by ${album.artist}`)
+        
+        // Tag album (this will update all tracks)
         const updatedCount = await client.tagAlbumMetadata(track.id, candidate.id)
+        
+        // Simulate progress updates for better UX
+        for (let i = 1; i <= updatedCount; i++) {
+          updateProgress(i, `Track ${i} of ${updatedCount}`)
+          await new Promise(resolve => setTimeout(resolve, 80)) // Small delay for visual feedback
+        }
+        
         console.log(`✅ [UI] Album tagged successfully. ${updatedCount} tracks updated.`)
       }
 
       initialize() // Refresh library
+      finishTagging()
     } catch (error) {
       console.error('❌ [UI] Error applying tags:', error)
+      finishTagging()
     } finally {
-      setTagConfirmationOpen(false)
-      setTagConfirmationData(null)
+      if (type === 'track') {
+        setTagConfirmationOpen(false)
+        setTagConfirmationData(null)
+      }
     }
   }
 

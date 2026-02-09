@@ -1,3 +1,13 @@
+## ⚠️ ABSOLUTA REGLER - BRYT ALDRIG DESSA ⚠️
+
+1. **ALLT ska vara automatiserat.** Inga manuella knappar för "Re-analyze", "Re-aggregate", "Refresh" eller liknande. Album-aggregering, artist-aggregering, genre-uppdatering etc. triggas automatiskt efter scan, tagging, och vid uppstart. Vill användaren ha en manuell knapp säger hen till.
+2. **Rör ALDRIG befintliga funktioner** när du fixar en bugg i något annat. Ändra bara det som är relevant för uppgiften.
+3. **Inga cleanup-scripts som ändrar data** utanför det specifika problemet. Skriv aldrig raw SQL som ersätter logik som redan finns i koden (t.ex. `aggregateAlbums()`).
+4. **Genre-separering** hanteras redan av `aggregateAlbums()` i `server/src/database/albums.ts` som splittar med `/[,;:|]/` och joinat med ` / `. Rör inte denna logik.
+5. **Gör inga antaganden.** Fråga om du är osäker istället för att gissa.
+
+---
+
 - [x] MusicBrainz Tagging System Stabilization
     - [x] Ensure `client.ts` works in both Electron and Web
     - [x] Standardize server response structures
@@ -208,9 +218,15 @@
     - [x] Implemented AcoustID fingerprinting service
     - [x] Created API endpoints for metadata lookup
 - [/] **Block 3: UI & Control**
-    - [ ] Design Tag Confirmation Modal
-    - [ ] Implement side-by-side comparison UI
-    - [ ] Add batch selection and approval logic
+    - [x] Design Tag Confirmation Modal
+    - [x] Implement side-by-side comparison UI
+    - [x] Add batch selection and approval logic
+    - [x] Add field labels to search inputs (Artist/Album)
+    - [x] Pre-select album with existing MusicBrainz ID
+    - [x] Add "Select All/None" buttons in confirmation modal
+    - [x] Fix "Empty" bug - show actual current values
+    - [x] Show ALL metadata tags in confirmation modal
+    - [x] Add progress indicator in TopBar during tagging
 - [ ] **Block 4: File Handling & Covers**
     - [ ] Implement metadata writing to files (FLAC/MP3)
     - [ ] Preserve ratings/loved status during write
@@ -242,16 +258,6 @@
         - [x] Verify metaflac command available
         - [x] Set up ListenBrainz API token (06bb83a7-d6fe-471c-9da9-5a6cdf5029de)
         - [x] Verify user has 113,642 total listens on ListenBrainz
-- [ ] **Phase 7: ListenBrainz JSON Import Feature**
-    - [ ] Test PowerShell download script (download_listenbrainz.ps1)
-    - [ ] Verify JSON file contains all ~113k listens
-    - [ ] Create IPC handler: scrobble:importListenBrainzJSON
-    - [ ] Implement JSON parsing and playcount aggregation
-    - [ ] Add matching logic (artist+title fuzzy match, MusicBrainz recording_mbid)
-    - [ ] Update tracks.play_count in database
-    - [ ] Add "Import ListenBrainz JSON" button in Settings UI
-    - [ ] Add file picker dialog for JSON selection
-    - [ ] Test end-to-end playcount import workflow
 - [x] **Phase 8: MusicBrainz Metadata Enhancement (2026-02-07)**
     - [x] **Database Schema (Block 1)**
         - [x] Create `musicbrainz_recordings` table (mbid, bpm, key, mood, timestamps)

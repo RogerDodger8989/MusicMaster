@@ -41,7 +41,9 @@ export interface MusicClient {
   startScan(folderId: string, path: string): Promise<void>
   getScanStatus(): Promise<ScanProgress>
   getFolders(): Promise<MusicFolder[]>
-  addFolder(path: string, name?: string): Promise<void>
+  addFolder(path: string, watchEnabled: boolean): Promise<void>
+  updateFolderWatch(folderId: string, watchEnabled: boolean): Promise<void>
+  scanFolder(folderId: string): Promise<void>
   removeFolder(id: string): Promise<void>
 
   // Playlists
@@ -210,8 +212,16 @@ export class DomClient implements MusicClient {
     return this.api.folders.getAll()
   }
 
-  async addFolder(path: string, name?: string): Promise<void> {
-    return this.api.folders.add(path, name)
+  async addFolder(path: string, watchEnabled: boolean): Promise<void> {
+    return this.api.folders.add(path, watchEnabled)
+  }
+
+  async updateFolderWatch(folderId: string, watchEnabled: boolean): Promise<void> {
+    return this.api.folders.updateWatch(folderId, watchEnabled)
+  }
+
+  async scanFolder(folderId: string): Promise<void> {
+    return this.api.folders.scan(folderId)
   }
 
   async removeFolder(id: string): Promise<void> {
@@ -393,6 +403,28 @@ export class RestClient implements MusicClient {
     return this.req<{ genre: string; count: number }[]>('/api/genres')
   }
 
+  async addFolder(path: string, watchEnabled: boolean): Promise<void> {
+    await this.req('/api/folders', {
+      method: 'POST',
+      body: JSON.stringify({ path, watchEnabled })
+    })
+  }
+
+  async updateFolderWatch(folderId: string, watchEnabled: boolean): Promise<void> {
+    await this.req(`/api/folders/${folderId}/watch`, {
+      method: 'PUT',
+      body: JSON.stringify({ watchEnabled })
+    })
+  }
+
+  async scanFolder(folderId: string): Promise<void> {
+    await this.req(`/api/folders/${folderId}/scan`, { method: 'POST' })
+  }
+
+  async removeFolder(id: string): Promise<void> {
+    await this.req(`/api/folders/${id}`, { method: 'DELETE' })
+  }
+
   async getArtists(): Promise<Artist[]> {
     return this.req<Artist[]>('/api/artists')
   }
@@ -456,14 +488,6 @@ export class RestClient implements MusicClient {
 
   async getFolders(): Promise<MusicFolder[]> {
     return this.req<MusicFolder[]>('/api/folders')
-  }
-
-  async addFolder(path: string, name?: string): Promise<void> {
-    await this.req('/api/folders', { method: 'POST', body: JSON.stringify({ path, name }) })
-  }
-
-  async removeFolder(id: string): Promise<void> {
-    await this.req(`/api/folders/${id}`, { method: 'DELETE' })
   }
 
   // Playlists

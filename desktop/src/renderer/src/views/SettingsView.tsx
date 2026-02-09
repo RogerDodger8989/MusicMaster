@@ -4,12 +4,12 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  Play,
   ExternalLink,
   Download,
   Database,
   RefreshCw,
-  Zap
+  Zap,
+  Play
 } from 'lucide-react'
 import { useFolders } from '../store/folders'
 import { useLibrary } from '../store/library'
@@ -28,7 +28,7 @@ export default function SettingsView() {
     addFolder,
     removeFolder,
     updateFolderWatch,
-    browseFolder
+    scanFolder
   } = useFolders()
   const settings = useSettings()
   const { progress, startSync, updateProgress, completeSync } = useSyncStore()
@@ -460,15 +460,8 @@ export default function SettingsView() {
     setIsBrowserOpen(false)
     try {
       if (path) {
-        await addFolder(path, false)
+        await addFolder(path, true)
         await loadFolders()
-
-        // Let's find the new folder ID to trigger scan
-        const updatedFolders = await client.getFolders()
-        const newFolder = updatedFolders.find((f) => f.path === path)
-        if (newFolder) {
-          await handleScanFolder(newFolder.id, newFolder.path)
-        }
       }
     } catch (error) {
       console.error('handleAddFolder error:', error)
@@ -476,14 +469,6 @@ export default function SettingsView() {
     }
   }
 
-  const handleScanFolder = async (folderId: string, folderPath: string) => {
-    try {
-      await client.startScan(folderId, folderPath)
-      alert('Scan started')
-    } catch (error) {
-      console.error('Scan error:', error)
-    }
-  }
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -559,12 +544,12 @@ export default function SettingsView() {
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleScanFolder(folder.id, folder.path)}
+                    onClick={() => scanFolder(folder.id)}
                     className={cn(
-                      'p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-400',
+                      'p-2 rounded-lg hover:bg-zinc-800 transition-colors text-blue-400',
                       'focus:outline-none focus:ring-2 focus:ring-blue-500'
                     )}
-                    title="Scan folder"
+                    title="Scan folder now"
                   >
                     <Play className="w-4 h-4" />
                   </button>

@@ -73,6 +73,15 @@ export default function TagConfirmationModal({
         setSelectedFields(newSelected)
     }
 
+    const selectAll = () => {
+        const allKeys = fields.map(f => f.key)
+        setSelectedFields(new Set(allKeys))
+    }
+
+    const deselectAll = () => {
+        setSelectedFields(new Set())
+    }
+
     const handleConfirm = async () => {
         setIsSaving(true)
         try {
@@ -125,7 +134,7 @@ export default function TagConfirmationModal({
 
                 <div className="col-span-7 grid grid-cols-2 gap-4">
                     {/* Current Value */}
-                    <div className="text-sm text-zinc-500 overflow-hidden text-ellipsis whitespace-nowrap">
+                    <div className="text-sm text-zinc-400 overflow-hidden text-ellipsis whitespace-nowrap">
                         {field.currentValue || <span className="text-zinc-700 italic">Empty</span>}
                     </div>
                     {/* New Value */}
@@ -141,21 +150,52 @@ export default function TagConfirmationModal({
     }
 
     // Prepare fields
+    const currentTitle = type === 'album' ? track.album : track.title
     const currentYear = track.year || (track.releaseDate ? new Date(track.releaseDate).getFullYear() : undefined)
-    const candidateTrack = candidate.tracks?.find((t: any) =>
-        t.title.toLowerCase() === track.title.toLowerCase() // Simple fuzzy match for display
-    ) || candidate.tracks?.[0] // Fallback
+    const candidateTrack = type === 'track'
+        ? (candidate.tracks?.find((t: any) =>
+            t.title?.toLowerCase() === track.title?.toLowerCase() // Simple fuzzy match for display
+        ) || candidate.tracks?.[0])
+        : undefined
+
+    const candidateArtist = candidate.artistName || candidate.artist || candidate.artistCredit?.[0]?.name
+    const candidateAlbum = candidate.albumName || candidate.album || candidate.title
+    const candidateReleaseDate = candidate.releaseDate || candidate.firstReleaseDate || candidate.date
+    const candidateOriginalDate = candidate.originalDate || candidate.firstReleaseDate || candidate.releaseDate
+    const candidateYear = candidate.year || (candidateReleaseDate ? new Date(candidateReleaseDate).getFullYear() : undefined)
+    const candidateTrackCount = candidate.totalTracks || candidate.trackCount || candidate.tracks?.length
+    const candidateReleaseType = candidate.releaseType || candidate.albumType || candidate.primaryType
+    const candidateReleaseStatus = candidate.releaseStatus || candidate.status
 
     const currentMBID = track.musicbrainzTrackId || track.musicbrainzAlbumId
     const fields: MetadataField[] = [
-        { key: 'title', label: 'Title', icon: Music, currentValue: track.title, newValue: candidateTrack?.title || candidate.title },
-        { key: 'artist', label: 'Artist', icon: User, currentValue: track.artist, newValue: candidate.artistName },
-        { key: 'album', label: 'Album', icon: Disc, currentValue: track.album, newValue: candidate.albumName },
-        { key: 'year', label: 'Year', icon: Calendar, currentValue: currentYear, newValue: candidate.year },
-        { key: 'trackNum', label: 'Track #', icon: Hash, currentValue: track.trackNum, newValue: candidateTrack?.position },
-        { key: 'label', label: 'Label', icon: Building2, currentValue: undefined, newValue: candidate.label }, // Usually missing in local
-        { key: 'country', label: 'Country', icon: Flag, currentValue: undefined, newValue: candidate.country },
-        { key: 'mbids', label: 'MusicBrainz IDs', icon: Barcode, currentValue: currentMBID ? `ID: ${currentMBID.substring(0, 8)}...` : 'Missing', newValue: 'Update ID' },
+        // Basic Info
+        { key: 'title', label: 'Title', icon: Music, currentValue: currentTitle || undefined, newValue: candidateTrack?.title || candidateAlbum },
+        { key: 'artist', label: 'Artist', icon: User, currentValue: track.artist || undefined, newValue: candidateArtist },
+        { key: 'album', label: 'Album', icon: Disc, currentValue: track.album || undefined, newValue: candidateAlbum },
+        { key: 'year', label: 'Year', icon: Calendar, currentValue: currentYear, newValue: candidateYear },
+        { key: 'trackNum', label: 'Track #', icon: Hash, currentValue: track.trackNum || undefined, newValue: candidateTrack?.position },
+        
+        // Release Info
+        { key: 'label', label: 'Label', icon: Building2, currentValue: (track as any).label || undefined, newValue: candidate.label },
+        { key: 'catalogNumber', label: 'Catalog Number', icon: Hash, currentValue: (track as any).catalogNumber || undefined, newValue: candidate.catalogNumber },
+        { key: 'barcode', label: 'Barcode', icon: Barcode, currentValue: (track as any).barcode || undefined, newValue: candidate.barcode },
+        { key: 'country', label: 'Country', icon: Flag, currentValue: (track as any).country || undefined, newValue: candidate.country },
+        { key: 'releaseDate', label: 'Release Date', icon: Calendar, currentValue: track.releaseDate || undefined, newValue: candidateReleaseDate },
+        { key: 'originalDate', label: 'Original Date', icon: Calendar, currentValue: (track as any).originalReleaseDate || undefined, newValue: candidateOriginalDate },
+        
+        // Format & Technical
+        { key: 'media', label: 'Media Format', icon: Disc, currentValue: (track as any).media || undefined, newValue: candidate.media || candidate.format },
+        { key: 'script', label: 'Script', icon: Info, currentValue: (track as any).script || undefined, newValue: candidate.script },
+        { key: 'totalDiscs', label: 'Total Discs', icon: Hash, currentValue: (track as any).totalDiscs || undefined, newValue: candidate.totalDiscs },
+        { key: 'totalTracks', label: 'Total Tracks', icon: Hash, currentValue: (track as any).totalTracks || undefined, newValue: candidateTrackCount },
+        
+        // Release Type/Status
+        { key: 'releaseType', label: 'Release Type', icon: Info, currentValue: (track as any).albumType || undefined, newValue: candidateReleaseType },
+        { key: 'releaseStatus', label: 'Release Status', icon: Info, currentValue: (track as any).releaseStatus || undefined, newValue: candidateReleaseStatus },
+        
+        // MusicBrainz IDs
+        { key: 'mbids', label: 'MusicBrainz IDs', icon: Barcode, currentValue: currentMBID ? `ID: ${currentMBID.substring(0, 8)}...` : undefined, newValue: 'Update ID' },
     ]
 
 
@@ -195,13 +235,27 @@ export default function TagConfirmationModal({
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                    {/* Headers */}
-                    <div className="grid grid-cols-12 gap-4 px-3 pb-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                    {/* Headers with Select All button */}
+                    <div className="grid grid-cols-12 gap-4 px-3 pb-2 items-center">
                         <div className="col-span-1"></div>
-                        <div className="col-span-4">Field</div>
-                        <div className="col-span-7 grid grid-cols-2 gap-4">
+                        <div className="col-span-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Field</div>
+                        <div className="col-span-5 grid grid-cols-2 gap-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                             <div>Current</div>
                             <div>New (MusicBrainz)</div>
+                        </div>
+                        <div className="col-span-2 flex gap-1 justify-end">
+                            <button
+                                onClick={selectAll}
+                                className="px-2 py-1 text-xs font-medium text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded transition-colors"
+                            >
+                                All
+                            </button>
+                            <button
+                                onClick={deselectAll}
+                                className="px-2 py-1 text-xs font-medium text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800 rounded transition-colors"
+                            >
+                                None
+                            </button>
                         </div>
                     </div>
 

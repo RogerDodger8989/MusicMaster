@@ -987,7 +987,21 @@ export default function ArtistDetailView({
                   {artistMembers.map((member, i) => (
                     <div key={`${member.mbid}-${i}`} className="group flex flex-col gap-2">
                       <button
-                        onClick={() => onArtistClick && onArtistClick(member.name)}
+                        onClick={async () => {
+                          // Auto-add member as artist if not already in library
+                          const existingArtist = artists.find(
+                            (a) => a.name === member.name || a.musicbrainzArtistId === member.mbid
+                          )
+                          if (!existingArtist && member.mbid) {
+                            try {
+                              console.log(`[UI] Adding member as artist: ${member.name} (${member.mbid})`)
+                              await client.getArtistDetails(member.mbid)
+                            } catch (err) {
+                              console.error('Failed to add member as artist:', err)
+                            }
+                          }
+                          onArtistClick && onArtistClick(member.name)
+                        }}
                         className="text-white/90 hover:text-white font-bold text-sm text-left truncate transition-colors hover:underline"
                       >
                         {member.name}

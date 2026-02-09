@@ -60,10 +60,27 @@ export function registerIpcHandlers(): void {
     // Start watchers for folders that have watch enabled
     try {
       const folders = getAllMusicFolders()
+      const anyWatching = folders.some((folder) => folder.watchEnabled)
+
+      // If no folder is marked for watching (legacy bug), enable watching for all
+      if (!anyWatching && folders.length > 0) {
+        for (const folder of folders) {
+          updateFolderWatchStatus(folder.id, true)
+          folder.watchEnabled = true
+        }
+      }
+
       folders
         .filter((folder) => folder.watchEnabled)
         .forEach((folder) => {
           musicScanner.startWatching(folder.id, folder.path)
+
+          // Auto-scan on startup to reconcile deleted files
+          setImmediate(() => {
+            musicScanner.scanFolder(folder.id, folder.path).catch((err) => {
+              console.error('Auto-scan on startup failed:', err)
+            })
+          })
         })
       fs.appendFileSync(logPath, `[${new Date().toISOString()}] Watchers restored on startup\n`)
     } catch (error) {
@@ -90,6 +107,13 @@ export function registerIpcHandlers(): void {
       if (watchEnabled) {
         musicScanner.startWatching(folder.id, folder.path)
       }
+
+      // Auto-scan immediately after adding
+      setImmediate(() => {
+        musicScanner.scanFolder(folder.id, folder.path).catch((err) => {
+          console.error('Auto-scan failed:', err)
+        })
+      })
 
       console.log('✅ Folder added:', folder.id)
       return folder
@@ -121,6 +145,11 @@ export function registerIpcHandlers(): void {
       if (folder) {
         if (watchEnabled) {
           musicScanner.startWatching(folderId, folder.path)
+          setImmediate(() => {
+            musicScanner.scanFolder(folderId, folder.path).catch((err) => {
+              console.error('Auto-scan after enabling watch failed:', err)
+            })
+          })
         } else {
           await musicScanner.stopWatching(folderId)
         }
@@ -141,6 +170,22 @@ export function registerIpcHandlers(): void {
 
       console.log('✅ Folder selected:', result.filePaths[0])
       return result.filePaths[0]
+    })
+
+    ipcMain.handle('folders:scan', async (_, folderId: string) => {
+      console.log('🔍 Manual scan requested for folder:', folderId)
+      const folders = getAllMusicFolders()
+      const folder = folders.find((f) => f.id === folderId)
+      if (!folder) {
+        throw new Error('Folder not found')
+      }
+      // Trigger scan asynchronously
+      setImmediate(() => {
+        musicScanner.scanFolder(folderId, folder.path).catch((err) => {
+          console.error('❌ Manual scan failed:', err)
+        })
+      })
+      console.log('✅ Manual scan triggered')
     })
 
     fs.appendFileSync(logPath, `[${new Date().toISOString()}] Folder handlers registered\n`)
@@ -1328,6 +1373,32 @@ current_track_id = excluded.current_track_id,
         const album = getAlbumById(albumId)
         if (!album) throw new Error('Album not found in DB')
         const localTracks = getTracksByAlbum(album.name, album.artist)
+
+        // 2b. Ensure artist exists in artists table (manual album add should create artist)
+        const { upsertArtistWithMBID } = await import('./database/musicbrainz')
+        const primaryArtist = (mbAlbum as any)['artist-credit']?.[0]
+        const artistName = primaryArtist?.name || primaryArtist?.artist?.name || album.artist
+        const artistMbid = primaryArtist?.artist?.id || primaryArtist?.artist?.mbid
+        if (artistName && artistMbid) {
+          upsertArtistWithMBID(artistName, artistMbid)
+
+          // Update artist counts from tracks
+          const db = getDatabase()
+          const counts = db
+            .prepare(
+              `
+              SELECT
+                COUNT(DISTINCT COALESCE(NULLIF(album, ''), 'Unknown Album')) as album_count,
+                COUNT(*) as track_count
+              FROM tracks
+              WHERE COALESCE(album_artist, artist, 'Unknown Artist') = ?
+              `
+            )
+            .get(artistName) as any
+
+          db.prepare('UPDATE artists SET album_count = ?, track_count = ? WHERE mbid = ?')
+            .run(counts?.album_count || 0, counts?.track_count || 0, artistMbid)
+        }
 
         console.log(
           `   Found ${localTracks.length} local tracks and ${mbAlbum.media?.[0]?.tracks?.length} MB tracks`

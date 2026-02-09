@@ -182,8 +182,8 @@ export async function startEnrichmentWorker(onProgress?: (progress: EnrichmentPr
     const albumGroups = await getAlbumGroups()
     progress.totalAlbums = albumGroups.size
     
-    // Get all tracks for counting
-    const allTracks = db.prepare('SELECT COUNT(*) as count FROM tracks WHERE musicbrainz_track_id IS NOT NULL').get() as any
+    // Get all tracks in the current DB
+    const allTracks = db.prepare('SELECT COUNT(*) as count FROM tracks').get() as any
     progress.totalTracks = allTracks.count || 0
     
     // Process each album

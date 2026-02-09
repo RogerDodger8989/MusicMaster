@@ -5,6 +5,11 @@ export interface Vibe {
   name: string
   emoji: string
   description: string
+  filters?: {
+    energy?: { min?: number; max?: number }
+    danceability?: { min?: number; max?: number }
+    moods?: string[]
+  }
 }
 
 interface VibesButtonsProps {

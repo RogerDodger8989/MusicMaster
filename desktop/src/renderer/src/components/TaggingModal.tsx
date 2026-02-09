@@ -28,6 +28,7 @@ export default function TaggingModal({
   const [selectedResult, setSelectedResult] = useState<any | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [matches, setMatches] = useState<any[]>([])
+  const [albumDetails, setAlbumDetails] = useState<any | null>(null)
   const [isPreviewLoading, setIsPreviewLoading] = useState(false)
 
   const { position, handleMouseDown } = useDraggable()
@@ -59,14 +60,22 @@ export default function TaggingModal({
         setIsPreviewLoading(true)
         try {
           const matchData = await client.previewMatchAlbum(item.id, selectedResult.id)
-          setMatches(matchData)
+          if (Array.isArray(matchData)) {
+            setMatches(matchData)
+            setAlbumDetails(null)
+          } else {
+            setMatches(matchData.matches || [])
+            setAlbumDetails(matchData.album || null)
+          }
         } catch (error) {
           console.error('Failed to fetch match preview:', error)
+          setAlbumDetails(null)
         } finally {
           setIsPreviewLoading(false)
         }
       } else {
         setMatches([])
+        setAlbumDetails(null)
       }
     }
     fetchPreview()
@@ -88,6 +97,17 @@ export default function TaggingModal({
         mbidResults = await client.searchAlbums(artist, album || '')
       }
       setResults(mbidResults)
+
+      // Pre-select if item already has MusicBrainz ID
+      if (item && mbidResults.length > 0) {
+        const existingMbid = item.musicbrainzAlbumId || (item as any).musicbrainzTrackId
+        if (existingMbid) {
+          const match = mbidResults.find(r => r.id === existingMbid)
+          if (match) {
+            setSelectedResult(match)
+          }
+        }
+      }
     } catch (error) {
       console.error('MB Search failed:', error)
     } finally {
@@ -99,7 +119,8 @@ export default function TaggingModal({
     if (!item || !selectedResult) return
     setIsSaving(true)
     try {
-      await onSave(item.id, selectedResult, itemType)
+      const metadata = itemType === 'album' ? (albumDetails || selectedResult) : selectedResult
+      await onSave(item.id, metadata, itemType)
       onClose()
     } catch (error) {
       console.error('Failed to save metadata:', error)
@@ -196,28 +217,37 @@ export default function TaggingModal({
               </h3>
               <div className="space-y-3">
                 {itemType === 'track' && (
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-400 mb-1.5 ml-1">Title</label>
+                    <input
+                      type="text"
+                      value={searchTitle}
+                      onChange={(e) => setSearchTitle(e.target.value)}
+                      placeholder="Track title"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+                <div>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1.5 ml-1">Artist</label>
                   <input
                     type="text"
-                    value={searchTitle}
-                    onChange={(e) => setSearchTitle(e.target.value)}
-                    placeholder="Title"
+                    value={searchArtist}
+                    onChange={(e) => setSearchArtist(e.target.value)}
+                    placeholder="Artist name"
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
-                )}
-                <input
-                  type="text"
-                  value={searchArtist}
-                  onChange={(e) => setSearchArtist(e.target.value)}
-                  placeholder="Artist"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-                <input
-                  type="text"
-                  value={searchAlbum}
-                  onChange={(e) => setSearchAlbum(e.target.value)}
-                  placeholder="Album"
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1.5 ml-1">Album</label>
+                  <input
+                    type="text"
+                    value={searchAlbum}
+                    onChange={(e) => setSearchAlbum(e.target.value)}
+                    placeholder="Album name"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
                 <button
                   onClick={() => handleSearch(itemType, searchArtist, searchTitle, searchAlbum)}
                   disabled={isSearching}

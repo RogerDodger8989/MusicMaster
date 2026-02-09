@@ -10,6 +10,7 @@ declare global {
         add: (folderPath: string, watchEnabled: boolean) => Promise<MusicFolder>
         remove: (folderId: string) => Promise<void>
         updateWatch: (folderId: string, watchEnabled: boolean) => Promise<void>
+        scan: (folderId: string) => Promise<void>
         browse: () => Promise<string | null>
       }
       scanner: {

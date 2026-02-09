@@ -4,7 +4,7 @@ import path from 'path'
 import { parseFile } from 'music-metadata'
 import { EventEmitter } from 'events'
 import chokidar, { FSWatcher } from 'chokidar'
-import { upsertTrack, deleteTrackByPath, getTrackByPath } from './database/tracks'
+import { upsertTrack, deleteTrackByPath, getTrackByPath, getTracksByFolder } from './database/tracks'
 import { updateFolderLastScanned, updateFolderTrackCount } from './database/folders'
 import { aggregateAlbums } from './database/albums'
 import type { ScanProgress } from './types'
@@ -58,6 +58,20 @@ export class MusicScanner extends EventEmitter {
           console.error(errorMsg)
           this.scanProgress.errors.push(errorMsg)
         }
+      }
+
+      // Remove tracks that no longer exist on disk
+      const existingTracks = getTracksByFolder(folderId)
+      const foundPaths = new Set(musicFiles)
+      let removedCount = 0
+      for (const track of existingTracks) {
+        if (!foundPaths.has(track.filePath)) {
+          deleteTrackByPath(track.filePath)
+          removedCount++
+        }
+      }
+      if (removedCount > 0) {
+        console.log(`🧹 Removed ${removedCount} missing tracks from DB for folder ${folderPath}`)
       }
 
       // Update folder metadata

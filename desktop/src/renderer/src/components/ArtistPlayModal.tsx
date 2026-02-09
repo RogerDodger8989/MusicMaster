@@ -1,7 +1,5 @@
-import { useRef } from 'react'
-import { Play, Shuffle, Heart, X } from 'lucide-react'
+import { Play, Shuffle, X } from 'lucide-react'
 import { useDraggable } from '../hooks/useDraggable'
-import { cn } from '../utils'
 
 interface ArtistPlayModalProps {
   artistName: string

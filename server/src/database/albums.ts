@@ -144,18 +144,36 @@ export async function aggregateAlbums(): Promise<void> {
             GROUP BY COALESCE(album_artist, artist, 'Unknown Artist')
         `).all() as any[]
 
+        const findArtistByNameStmt = db.prepare(`
+            SELECT id
+            FROM artists
+            WHERE name = ?
+            ORDER BY
+                CASE WHEN mbid IS NOT NULL THEN 0 ELSE 1 END,
+                CASE WHEN country IS NOT NULL THEN 0 ELSE 1 END,
+                updated_at DESC
+            LIMIT 1
+        `)
+
         const insertArtistStmt = db.prepare(`
             INSERT INTO artists (id, name, album_count, track_count, updated_at)
             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(name) DO UPDATE SET
-                album_count = excluded.album_count,
-                track_count = excluded.track_count,
-                updated_at = CURRENT_TIMESTAMP
+        `)
+
+        const updateArtistCountsStmt = db.prepare(`
+            UPDATE artists
+            SET album_count = ?, track_count = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
         `)
 
         const artistTransaction = db.transaction((artists: any[]) => {
             for (const artist of artists) {
-                insertArtistStmt.run(randomUUID(), artist.name, artist.album_count, artist.track_count)
+                const existing = findArtistByNameStmt.get(artist.name) as { id: string } | undefined
+                if (existing?.id) {
+                    updateArtistCountsStmt.run(artist.album_count, artist.track_count, existing.id)
+                } else {
+                    insertArtistStmt.run(randomUUID(), artist.name, artist.album_count, artist.track_count)
+                }
             }
         })
         artistTransaction(artistRows)

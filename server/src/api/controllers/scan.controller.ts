@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { musicScanner } from '../../scanner'
-import { getAllMusicFolders, addMusicFolder, removeMusicFolder } from '../../database/folders'
+import { getAllMusicFolders, addMusicFolder, removeMusicFolder, updateFolderWatchStatus } from '../../database/folders'
 import { startEnrichmentWorker } from '../../services/enrichmentWorker'
 import path from 'path'
 
@@ -46,8 +46,8 @@ export const listFolders = (req: Request, res: Response) => {
 
 export const createFolder = (req: Request, res: Response) => {
     try {
-        const { path: folderPath, name } = req.body
-        addMusicFolder(folderPath, undefined) // watchEnabled unknown in request, default to false/undefined
+        const { path: folderPath, name, watchEnabled } = req.body
+        addMusicFolder(folderPath, watchEnabled)
         res.json({ success: true })
     } catch (error) {
         console.error('API Error:', error)
@@ -63,5 +63,61 @@ export const deleteFolder = (req: Request, res: Response) => {
     } catch (error) {
         console.error('API Error:', error)
         res.status(500).json({ error: 'Failed to remove folder' })
+    }
+}
+
+export const scanFolderById = (req: Request, res: Response) => {
+    try {
+        const folderId = req.params.id as string
+        const folders = getAllMusicFolders()
+        const folder = folders.find(f => f.id === folderId)
+
+        if (!folder) {
+            return res.status(404).json({ error: 'Folder not found' })
+        }
+
+        // Start scan asynchronously
+        setImmediate(() => {
+            musicScanner.scanFolder(folderId, folder.path)
+                .then(() => {
+                    // ALWAYS auto-enrich after scan completes
+                    console.log('🎵 Scan completed, starting automatic enrichment...')
+                    startEnrichmentWorker((progress) => {
+                        console.log(`Enrichment progress: ${progress.enrichedTracks}/${progress.totalTracks} tracks`)
+                    }).catch(err => {
+                        console.error('Auto-enrich failed:', err)
+                    })
+                })
+                .catch(err => console.error('Scan failed:', err))
+        })
+
+        res.json({ success: true, message: 'Scan started' })
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to start scan' })
+    }
+}
+
+export const updateFolderWatch = (req: Request, res: Response) => {
+    try {
+        const folderId = req.params.id as string
+        const { watchEnabled } = req.body
+
+        if (typeof watchEnabled !== 'boolean') {
+            return res.status(400).json({ error: 'watchEnabled must be a boolean' })
+        }
+
+        const folders = getAllMusicFolders()
+        const folder = folders.find(f => f.id === folderId)
+
+        if (!folder) {
+            return res.status(404).json({ error: 'Folder not found' })
+        }
+
+        updateFolderWatchStatus(folderId, watchEnabled)
+        res.json({ success: true, watchEnabled })
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to update folder watch status' })
     }
 }

@@ -15,7 +15,7 @@ interface AlbumsViewProps {
 }
 
 export default function AlbumsView({ onAlbumClick }: AlbumsViewProps) {
-  const { albums, tracks: allTracks, loadAlbums, loadGenres, reanalyzeLibrary } = useLibrary()
+  const { albums, tracks: allTracks, loadAlbums, loadGenres } = useLibrary()
   const { viewMode, sortField, sortOrder, setViewMode, setSortField, setSortOrder } = useSettings()
   const { playAlbum, insertToQueue, queue } = usePlayer()
 
@@ -213,15 +213,6 @@ export default function AlbumsView({ onAlbumClick }: AlbumsViewProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Re-analyze Button */}
-            <button
-              onClick={() => reanalyzeLibrary()}
-              className="px-3 py-1.5 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm font-medium"
-              title="Refresh album aggregation"
-            >
-              <Settings2 size={16} /> Re-analyze
-            </button>
-
             {/* Settings Toggle */}
             <button
               onClick={() => setIsSettingsOpen(true)}

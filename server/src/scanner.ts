@@ -4,7 +4,7 @@ import path from 'path'
 import { parseFile } from 'music-metadata'
 import { EventEmitter } from 'events'
 import chokidar, { FSWatcher } from 'chokidar'
-import { upsertTrack, deleteTrackByPath, getTrackByPath } from './database/tracks'
+import { upsertTrack, deleteTrackByPath, getTrackByPath, getTracksByFolder } from './database/tracks'
 import { updateFolderLastScanned, updateFolderTrackCount } from './database/folders'
 import { aggregateAlbums } from './database/albums'
 import type { ScanProgress } from './types'
@@ -12,6 +12,7 @@ import type { ScanProgress } from './types'
 export class MusicScanner extends EventEmitter {
     private watchers: Map<string, FSWatcher> = new Map()
     private isScanning = false
+    private aggregationTimer: NodeJS.Timeout | null = null
     private scanProgress: ScanProgress = {
         isScanning: false,
         totalFiles: 0,
@@ -58,6 +59,20 @@ export class MusicScanner extends EventEmitter {
                     console.error(errorMsg)
                     this.scanProgress.errors.push(errorMsg)
                 }
+            }
+
+            // Remove tracks that no longer exist on disk
+            const existingTracks = getTracksByFolder(folderId)
+            const foundPaths = new Set(musicFiles)
+            let removedCount = 0
+            for (const track of existingTracks) {
+                if (!foundPaths.has(track.filePath)) {
+                    deleteTrackByPath(track.filePath)
+                    removedCount++
+                }
+            }
+            if (removedCount > 0) {
+                console.log(`🧹 Removed ${removedCount} missing tracks from DB for folder ${folderPath}`)
             }
 
             // Update folder metadata
@@ -111,6 +126,7 @@ export class MusicScanner extends EventEmitter {
                     try {
                         await this.processFile(folderId, filePath)
                         updateFolderTrackCount(folderId)
+                        this.scheduleAggregation()
                         this.emit('fileAdded', filePath)
                     } catch (error) {
                         console.error(`Error processing added file: ${error}`)
@@ -122,6 +138,7 @@ export class MusicScanner extends EventEmitter {
                     console.log(`File changed: ${filePath}`)
                     try {
                         await this.processFile(folderId, filePath)
+                        this.scheduleAggregation()
                         this.emit('fileChanged', filePath)
                     } catch (error) {
                         console.error(`Error processing changed file: ${error}`)
@@ -133,6 +150,7 @@ export class MusicScanner extends EventEmitter {
                     console.log(`File removed: ${filePath}`)
                     deleteTrackByPath(filePath)
                     updateFolderTrackCount(folderId)
+                    this.scheduleAggregation()
                     this.emit('fileRemoved', filePath)
                 }
             })
@@ -141,6 +159,24 @@ export class MusicScanner extends EventEmitter {
             })
 
         this.watchers.set(folderId, watcher)
+    }
+
+    /**
+     * Debounced aggregation after file changes
+     */
+    private scheduleAggregation(): void {
+        if (this.aggregationTimer) {
+            clearTimeout(this.aggregationTimer)
+        }
+
+        this.aggregationTimer = setTimeout(async () => {
+            try {
+                console.log('🔄 Auto-aggregating albums and artists after file change...')
+                await aggregateAlbums()
+            } catch (error) {
+                console.error('Error auto-aggregating after file change:', error)
+            }
+        }, 1500)
     }
 
     /**

@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
-import { Play, Shuffle, Heart, X, ListPlus } from 'lucide-react'
-import { cn } from '../utils'
+import { Play, Shuffle, X, ListPlus } from 'lucide-react'
 import { useDraggable } from '../hooks/useDraggable'
 
 interface AlbumPlayModalProps {

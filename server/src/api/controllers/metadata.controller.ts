@@ -91,7 +91,9 @@ export const getArtistDetails = async (req: Request, res: Response) => {
         // Check DB for existing bio to avoid re-fetching
         // Note: Image validation happens in downloadImage() which checks file size
         try {
-            const existing = db.prepare('SELECT bio FROM artists WHERE id = ?').get(id) as any
+            const existing = db
+                .prepare('SELECT bio FROM artists WHERE mbid = ? OR id = ? OR name = ?')
+                .get(id, id, details.name) as any
             if (existing?.bio) {
                 details.biography = existing.bio
                 details.bio = existing.bio.substring(0, 200) + '...'
@@ -171,35 +173,29 @@ export const getArtistDetails = async (req: Request, res: Response) => {
 
                         if (localPath) {
 
-                            // Persist to DB immediately so Grid View sees it
+                            // Persist to DB immediately so Grid View sees it (without creating duplicates)
+                            let imageId = id
                             try {
-                                // Check if there's already an artist with this MusicBrainz ID
-                                const existing = db.prepare('SELECT id FROM artists WHERE musicbrainz_artist_id = ?').get(id) as any
+                                const existing = db
+                                    .prepare('SELECT id FROM artists WHERE mbid = ? OR name = ?')
+                                    .get(id, details.name) as any
 
                                 if (existing) {
-                                    // Update the existing local artist
+                                    imageId = existing.id
                                     console.log(`[DEBUG] Updating artist ${existing.id} with bio length:`, details.biography ? details.biography.length : 'NULL')
-                                    if (details.biography) {
-                                        db.prepare('UPDATE artists SET image_path = ?, bio = ? WHERE id = ?').run(localPath, details.biography, existing.id)
-                                    } else {
-                                        db.prepare('UPDATE artists SET image_path = ? WHERE id = ?').run(localPath, existing.id)
-                                    }
+                                    db.prepare(
+                                        'UPDATE artists SET image_path = ?, bio = COALESCE(?, bio), mbid = COALESCE(?, mbid) WHERE id = ?'
+                                    ).run(localPath, details.biography || null, id, existing.id)
                                     console.log(`[Metadata] ✅ Updated image${details.biography ? ' + bio' : ''} for existing artist ${details.name} (${existing.id})`)
                                 } else {
-                                    // Create new remote artist with MB ID as primary key
-                                    db.prepare(`
-                                        INSERT INTO artists (id, name, image_path, bio, musicbrainz_artist_id)
-                                        VALUES (?, ?, ?, ?, ?)
-                                        ON CONFLICT(id) DO UPDATE SET image_path = excluded.image_path, bio = excluded.bio
-                                    `).run(id, details.name, localPath, details.biography || null, id)
-                                    console.log(`[Metadata] ✅ Created new remote artist ${details.name} (${id})`)
+                                    console.log(`[Metadata] Skipping artist insert for ${details.name} to avoid duplicates`)
                                 }
                             } catch (err) {
                                 console.error('[Metadata] ❌ Failed to persist artist image:', err)
                             }
 
                             // Send URL to frontend
-                            details.image = `/api/cover/artist/${id}?t=${Date.now()}`
+                            details.image = `/api/cover/artist/${imageId}?t=${Date.now()}`
                         } else {
                             // Fallback to URL if download failed
                             details.image = bestImage
@@ -434,6 +430,15 @@ export const previewMatchAlbum = async (req: Request, res: Response) => {
         const mbAlbum = await musicBrainzService.getReleaseDetails(mbAlbumId)
         if (!mbAlbum) throw new Error('Failed to fetch MB album details')
 
+        // Get release-group details for original release date
+        let firstReleaseDate = mbAlbum.date
+        if (mbAlbum['release-group']?.id) {
+            const releaseGroup = await musicBrainzService.getReleaseGroupDetails(mbAlbum['release-group'].id)
+            if (releaseGroup?.firstReleaseDate) {
+                firstReleaseDate = releaseGroup.firstReleaseDate
+            }
+        }
+
         const album = db.prepare('SELECT name, artist FROM albums_cache WHERE id = ?').get(albumId) as any
         if (!album) throw new Error('Album not found')
 
@@ -468,7 +473,29 @@ export const previewMatchAlbum = async (req: Request, res: Response) => {
             }
         }
 
-        res.json({ matches })
+        const totalTracks = (mbAlbum.media || []).reduce((sum: number, m: any) => sum + (m['track-count'] || 0), 0)
+        const albumDetails = {
+            id: mbAlbum.id,
+            title: mbAlbum.title,
+            albumName: mbAlbum.title,
+            artistName: (mbAlbum as any)['artist-credit']?.[0]?.artist?.name || (mbAlbum as any)['artist-credit']?.[0]?.name,
+            releaseDate: mbAlbum.date,
+            originalDate: firstReleaseDate,
+            country: (mbAlbum as any)['release-events']?.[0]?.area?.['iso-3166-1-codes']?.[0] || (mbAlbum as any)['release-events']?.[0]?.area?.name,
+            label: (mbAlbum as any)['label-info']?.[0]?.label?.name || null,
+            catalogNumber: (mbAlbum as any)['label-info']?.[0]?.['catalog-number'] || null,
+            barcode: mbAlbum.barcode || null,
+            format: mbAlbum.media?.[0]?.format || null,
+            media: mbAlbum.media?.[0]?.format || null,
+            script: (mbAlbum as any).script || null,
+            totalDiscs: mbAlbum.media?.length || null,
+            totalTracks: totalTracks || null,
+            trackCount: totalTracks || null,
+            releaseType: mbAlbum['release-group']?.['primary-type'] || null,
+            status: mbAlbum.status || null
+        }
+
+        res.json({ matches, album: albumDetails })
     } catch (error: any) {
         res.status(500).json({ error: error.message })
     }

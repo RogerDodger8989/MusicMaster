@@ -1,7 +1,8 @@
-import { Music2, Moon, Sun, ChevronLeft, ChevronRight, Search, Clock } from 'lucide-react'
+import { Music2, Moon, Sun, ChevronLeft, ChevronRight, Search, Clock, Loader2 } from 'lucide-react'
 import { useTheme } from '../store/theme'
 import { useNavigation, ViewState } from '../store/navigation'
 import { useSearch } from '../store/search'
+import { useTagging } from '../store/tagging'
 import { cn } from '../lib/utils'
 import { useState, useRef, useEffect } from 'react'
 
@@ -9,6 +10,7 @@ export default function TopBar() {
   const { theme, toggleTheme } = useTheme()
   const { goBack, goForward, canGoBack, canGoForward, history, future, jumpTo } = useNavigation()
   const { setIsOpen } = useSearch()
+  const { progress } = useTagging()
 
   const [historyMenu, setHistoryMenu] = useState<{
     x: number
@@ -94,17 +96,42 @@ export default function TopBar() {
         </div>
       </div>
 
-      {/* Right: Theme Toggle */}
-      <button
-        onClick={toggleTheme}
-        className={cn(
-          'p-2 rounded-lg hover:bg-zinc-800 transition-colors text-white ml-4',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500'
+      {/* Right: Theme Toggle + Tagging Progress */}
+      <div className="flex items-center gap-4">
+        {/* Tagging Progress Indicator */}
+        {progress && progress.isTagging && (
+          <div className="flex items-center gap-3 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg animate-in fade-in slide-in-from-right duration-200">
+            <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+            <div className="flex flex-col gap-1 min-w-[200px]">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-zinc-300">Tagging...</span>
+                <span className="text-xs font-mono text-zinc-500">
+                  {progress.current}/{progress.total} ({Math.round((progress.current / progress.total) * 100)}%)
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-300 ease-out"
+                  style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs text-zinc-500 truncate">{progress.currentTrack}</span>
+            </div>
+          </div>
         )}
-        aria-label="Toggle theme"
-      >
-        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-      </button>
+
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          className={cn(
+            'p-2 rounded-lg hover:bg-zinc-800 transition-colors text-white',
+            'focus:outline-none focus:ring-2 focus:ring-blue-500'
+          )}
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
+      </div>
 
       {/* History Dropdown Menu */}
       {historyMenu && (

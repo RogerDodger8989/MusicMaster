@@ -13,6 +13,7 @@ interface FoldersStore {
   addFolder: (folderPath: string, watchEnabled: boolean) => Promise<void>
   removeFolder: (folderId: string) => Promise<void>
   updateFolderWatch: (folderId: string, watchEnabled: boolean) => Promise<void>
+  scanFolder: (folderId: string) => Promise<void>
   browseFolder: () => Promise<string | null>
 }
 
@@ -31,17 +32,11 @@ export const useFolders = create<FoldersStore>((set) => ({
     }
   },
 
-  addFolder: async (folderPath: string, _watchEnabled: boolean) => {
+  addFolder: async (folderPath: string, watchEnabled: boolean) => {
     set({ isLoading: true, error: null })
     try {
-      await client.addFolder(folderPath) // Name optional, watch implied? Client doesn't have watch arg in interface above?
-      // Client interface: addFolder(path: string, name?: string)
-      // FoldersStore: addFolder(folderPath: string, watchEnabled: boolean)
-      // Server probably defaults watch to true or needs update.
-      // For now, assume addFolder handles it or we'll fix later.
-      // But we need to refresh folders.
+      await client.addFolder(folderPath, watchEnabled)
 
-      // Re-fetch folders to get the new one with ID
       const folders = await client.getFolders()
       set({
         folders,
@@ -73,18 +68,26 @@ export const useFolders = create<FoldersStore>((set) => ({
 
   updateFolderWatch: async (folderId: string, watchEnabled: boolean) => {
     try {
-      // client currently doesn't have updateFolderWatch?
-      // Checking client.ts... it does NOT have it.
-      // We might need to add it or skip it for now.
-      // Or assume addFolder defaults?
-      // Skipping implementation or faking it for now to avoid break.
-      // TODO: Add updateFolderWatch to client
-      console.warn('updateFolderWatch not implemented in client yet')
-
-      // Optimistic update
+      await client.updateFolderWatch(folderId, watchEnabled)
       set((state) => ({
         folders: state.folders.map((f) => (f.id === folderId ? { ...f, watchEnabled } : f))
       }))
+    } catch (error) {
+      set({ error: String(error) })
+    }
+  },
+
+  scanFolder: async (folderId: string) => {
+    try {
+      await client.scanFolder(folderId)
+      // Reload folders to get updated track count and lastScanned
+      const folders = await client.getFolders()
+      set({ folders })
+      // Refresh library data
+      const library = useLibrary.getState()
+      await library.loadTracks()
+      await library.loadAlbums()
+      await library.loadGenres()
     } catch (error) {
       set({ error: String(error) })
     }

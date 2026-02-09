@@ -12,6 +12,7 @@ const api = {
     remove: (folderId: string): Promise<void> => ipcRenderer.invoke('folders:remove', folderId),
     updateWatch: (folderId: string, watchEnabled: boolean): Promise<void> =>
       ipcRenderer.invoke('folders:updateWatch', folderId, watchEnabled),
+    scan: (folderId: string): Promise<void> => ipcRenderer.invoke('folders:scan', folderId),
     browse: (): Promise<string | null> => ipcRenderer.invoke('folders:browse')
   },
 

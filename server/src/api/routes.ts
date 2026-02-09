@@ -113,6 +113,8 @@ router.get('/scan/status', scan.getScanStatus)
 router.post('/scan/start', scan.startScan)
 router.get('/folders', scan.listFolders)
 router.post('/folders', scan.createFolder)
+router.post('/folders/:id/scan', scan.scanFolderById)
+router.put('/folders/:id/watch', scan.updateFolderWatch)
 router.delete('/folders/:id', scan.deleteFolder)
 
 // System & Filesystem
