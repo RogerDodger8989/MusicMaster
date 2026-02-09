@@ -80,10 +80,23 @@ export const getArtistImage = (req: Request, res: Response) => {
         const artist = db.prepare('SELECT image_path as imagePath FROM artists WHERE id = ? OR mbid = ?').get(id, id) as any
 
         if (artist && artist.imagePath && fs.existsSync(artist.imagePath)) {
-            res.sendFile(artist.imagePath)
-        } else {
-            res.status(404).send('Image not found')
+            return res.sendFile(artist.imagePath)
         }
+
+        // Fallback: Check local cache for downloaded images (e.g. for remote artists)
+        // This handles cases where we downloaded the image but haven't saved the artist to DB yet
+        const userDataPath = process.env.DATA_PATH || path.join(process.cwd(), 'data')
+        const cacheDir = path.join(userDataPath, 'external_cache')
+        const extensions = ['.jpg', '.png', '.jpeg', '.webp']
+
+        for (const ext of extensions) {
+            const cachePath = path.join(cacheDir, `artist_${id}${ext}`)
+            if (fs.existsSync(cachePath)) {
+                return res.sendFile(cachePath)
+            }
+        }
+
+        res.status(404).send('Image not found')
     } catch (error) {
         console.error('Error serving artist image:', error)
         res.status(500).send('Internal Error')

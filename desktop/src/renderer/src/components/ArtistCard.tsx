@@ -64,24 +64,36 @@ export function ArtistCard({ artist, onClick, onPlayOptions, className }: Artist
             )}
           </div>
 
-          {/* Artist Image */}
-          {artist.imagePath ? (
-            <img
-              src={client.getArtistImageUrl(artist.id)}
-              alt={artist.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 filter grayscale-[0.2] group-hover:grayscale-0"
-              loading="lazy"
-              onError={(e) => {
-                const img = e.target as HTMLImageElement
-                img.src = '/placeholder-artist.png'
-                img.onerror = null
-              }}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
+          {/* Artist Image Container */}
+          <div className="relative h-full w-full">
+            {/* Placeholder / Background (Always visible as base) */}
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-zinc-800 to-zinc-900">
               <Users size={64} className="opacity-30 text-zinc-600" />
             </div>
-          )}
+
+            {/* Actual Image (Overlays placeholder) */}
+            {artist.imagePath && (
+              <img
+                src={
+                  artist.imagePath.startsWith('http')
+                    ? artist.imagePath
+                    : client.getArtistImageUrl(artist.id)
+                }
+                alt={artist.name}
+                className={cn(
+                  "absolute inset-0 h-full w-full object-cover transition-all duration-500",
+                  "group-hover:scale-105 filter grayscale-[0.2] group-hover:grayscale-0",
+                  // Fade in when loaded. If hot-reloaded/cached it might flash, but better than layout shift.
+                  // Actually without state it's hard to animate on mount if already cached.
+                  // But standard 'img' behavior over a background is fine.
+                )}
+                loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none' // Hide image if broken, revealing placeholder
+                }}
+              />
+            )}
+          </div>
 
           {/* Play Options Button - Above Albums Count */}
           <button

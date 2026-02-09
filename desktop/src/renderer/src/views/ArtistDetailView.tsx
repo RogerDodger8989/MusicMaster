@@ -176,14 +176,32 @@ export default function ArtistDetailView({
         console.log(`🔍 [UI] Fetching detailed facts for MBID: ${mbArtistId}`)
         const details = await client.getArtistDetails(mbArtistId)
         if (details) {
-          const facts = {
+          const facts: any = {
             musicbrainzArtistId: details.id,
             country: details.country,
             lifeSpanBegin: details.lifeSpan?.begin,
             lifeSpanEnd: details.lifeSpan?.end,
             type: details.type,
             gender: details.gender,
-            website: details.website
+            website: details.website,
+            bio: details.biography || details.bio
+          }
+
+          if (facts.bio) {
+            console.log(`📝 [UI] Auto-discovered biography for ${artistName}`)
+          }
+
+          // Update image if missing OR if it's a local cache path (prefer high-res remote URL)
+          // Also check for 'lastfm_' which might be another indicator of cached files
+          const isLocal = artist?.imagePath && (
+            artist.imagePath.includes('external_cache') ||
+            artist.imagePath.includes('lastfm_') ||
+            !artist.imagePath.startsWith('http')
+          )
+
+          if ((!artist?.imagePath || isLocal) && details.image) {
+            console.log(`📸 [UI] Upgrading artist image to remote URL: ${details.image}`)
+            facts.imagePath = details.image
           }
 
           await updateArtist(artist!.id, facts)
@@ -199,9 +217,9 @@ export default function ArtistDetailView({
     }
   }, [artistName, artist, isSyncing])
 
-  // Auto-sync if missing facts
+  // Auto-sync if missing facts (MBID or Image)
   useEffect(() => {
-    if (artist && !artist.musicbrainzArtistId && !isSyncing) {
+    if (artist && (!artist.musicbrainzArtistId || !artist.imagePath) && !isSyncing) {
       syncArtistFacts()
     }
   }, [artist, isSyncing, syncArtistFacts])
@@ -283,6 +301,8 @@ export default function ArtistDetailView({
   useEffect(() => {
     const fetchArtistData = async () => {
       if (!artist?.musicbrainzArtistId) return
+
+      console.log(`[UI] Fetching members for ${artistName}. Artist has MBID: ${artist.musicbrainzArtistId}. Current Image: ${artist.imagePath}`)
 
       setIsLoadingMembers(true)
       try {
@@ -422,7 +442,11 @@ export default function ArtistDetailView({
           {artist?.imagePath ? (
             <div className="relative w-full h-full">
               <img
-                src={client.getArtistImageUrl(artist.id)}
+                src={
+                  artist.imagePath && artist.imagePath.startsWith('http')
+                    ? artist.imagePath
+                    : client.getArtistImageUrl(artist.id)
+                }
                 alt={artistName}
                 className="w-full h-full object-cover object-top grayscale-[0.1] contrast-[1.1]"
               />
@@ -1039,7 +1063,10 @@ export default function ArtistDetailView({
                             onError={(e) => {
                               // If online image fails, try local if available
                               if (localArtist) {
-                                e.currentTarget.src = client.getArtistImageUrl(localArtist.id)
+                                e.currentTarget.src =
+                                  localArtist.imagePath && localArtist.imagePath.startsWith('http')
+                                    ? localArtist.imagePath
+                                    : client.getArtistImageUrl(localArtist.id)
                               } else {
                                 e.currentTarget.style.display = 'none'
                               }
@@ -1047,7 +1074,11 @@ export default function ArtistDetailView({
                           />
                         ) : localArtist?.imagePath ? (
                           <img
-                            src={client.getArtistImageUrl(localArtist.id)}
+                            src={
+                              localArtist.imagePath.startsWith('http')
+                                ? localArtist.imagePath
+                                : client.getArtistImageUrl(localArtist.id)
+                            }
                             alt={similar.name}
                             className="w-full h-full object-cover"
                           />

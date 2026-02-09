@@ -1,7 +1,6 @@
 import axios from 'axios'
 import path from 'path'
-import fs from 'fs/promises'
-import { existsSync } from 'fs'
+import fs from 'fs'
 import { createHash } from 'crypto'
 import { spotifyService } from './spotify'
 
@@ -51,10 +50,10 @@ export class LastFmService {
         this.initCache()
     }
 
-    private async initCache() {
+    private initCache() {
         try {
-            if (!existsSync(CACHE_DIR)) {
-                await fs.mkdir(CACHE_DIR, { recursive: true })
+            if (!fs.existsSync(CACHE_DIR)) {
+                fs.mkdirSync(CACHE_DIR, { recursive: true })
             }
         } catch (error) {
             console.error('Failed to init LastFM cache:', error)
@@ -166,19 +165,60 @@ export class LastFmService {
     async downloadImage(url: string, filename: string): Promise<string | null> {
         if (!url) return null
 
+        // Ensure cache directory exists
+        if (!fs.existsSync(CACHE_DIR)) {
+            try {
+                fs.mkdirSync(CACHE_DIR, { recursive: true })
+            } catch (e) {
+                console.error('[LastFM] Failed to create cache dir:', e)
+                return null
+            }
+        }
+
         const filePath = path.join(CACHE_DIR, filename)
 
-        // Return if already cached
-        if (existsSync(filePath)) {
-            return filePath
+        // Check if already exists (and is valid size)
+        if (fs.existsSync(filePath)) {
+            try {
+                const stats = fs.statSync(filePath)
+                if (stats.size > 5120) {
+                    console.log(`[LastFM] Using cached image: ${filePath} (${stats.size} bytes)`)
+                    return filePath
+                } else {
+                    console.warn(`[LastFM] Cached file too small (${stats.size} bytes), re-downloading`)
+                    // Delete the placeholder/error file
+                    try {
+                        fs.unlinkSync(filePath)
+                    } catch (e) { }
+                }
+            } catch (e) { }
         }
 
         try {
-            const response = await axios.get(url, { responseType: 'arraybuffer' })
-            await fs.writeFile(filePath, response.data)
+            console.log(`[LastFM] Downloading image: ${url}`)
+            const response = await axios.get(url, {
+                responseType: 'arraybuffer',
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                    'Referer': 'https://open.spotify.com/'
+                },
+                timeout: 15000
+            })
+
+            if (!response.data || response.data.length === 0) {
+                console.warn(`[LastFM] Empty response data for ${url}`)
+                return null
+            }
+
+            fs.writeFileSync(filePath, response.data)
+            console.log(`[LastFM] Successfully downloaded to: ${filePath}`)
             return filePath
-        } catch (error) {
-            console.error(`Failed to download image from ${url}:`, error)
+        } catch (error: any) {
+            console.error(`[LastFM] Download failed for ${url}:`, error.message)
+            if (error.response) {
+                console.error(`[LastFM] Status: ${error.response.status}`)
+            }
             return null
         }
     }
@@ -189,12 +229,20 @@ export class LastFmService {
     getBestImage(images: { '#text': string; size: string }[]): string | null {
         if (!images || images.length === 0) return null
 
-        // LastFM sizes: small, medium, large, extralarge, mega
-        const mega = images.find(img => img.size === 'mega')
-        const xl = images.find(img => img.size === 'extralarge')
-        const lg = images.find(img => img.size === 'large')
+        // Last.fm specific placeholder hash for the "star" image
+        const PLACEHOLDER_HASH = '2a96cbd8b46e442fc41c2b86b821562f'
 
-        return mega?.['#text'] || xl?.['#text'] || lg?.['#text'] || images[0]?.['#text'] || null
+        // Filter out placeholders
+        const validImages = images.filter(img => img['#text'] && !img['#text'].includes(PLACEHOLDER_HASH))
+
+        if (validImages.length === 0) return null
+
+        // LastFM sizes: small, medium, large, extralarge, mega
+        const mega = validImages.find(img => img.size === 'mega')
+        const xl = validImages.find(img => img.size === 'extralarge')
+        const lg = validImages.find(img => img.size === 'large')
+
+        return mega?.['#text'] || xl?.['#text'] || lg?.['#text'] || validImages[0]?.['#text'] || null
     }
 
     /**

@@ -71,13 +71,146 @@ export const getMusicBrainzDetails = async (req: Request, res: Response) => {
     }
 }
 
+import { lastFmService } from '../../services/lastfm'
+import { spotifyService } from '../../services/spotify'
+
 export const getArtistDetails = async (req: Request, res: Response) => {
     const id = req.params.id as string
+    console.log(`[DEBUG] getArtistDetails called for artist ID: ${id}`)
     try {
-        const details = await musicBrainzService.getArtistDetails(id)
-        if (!details) {
+        const db = getDatabase()
+        const mbResult: any = await musicBrainzService.getArtistDetails(id)
+        console.log(`[DEBUG] MusicBrainz returned artist: ${mbResult?.name}, has image: ${!!mbResult?.image}`)
+        if (!mbResult) {
             return res.status(404).json({ error: 'Artist not found' })
         }
+
+        // Clone to prevent mutations from polluting MusicBrainz cache
+        const details = { ...mbResult }
+
+        // Check DB for existing bio to avoid re-fetching
+        // Note: Image validation happens in downloadImage() which checks file size
+        try {
+            const existing = db.prepare('SELECT bio FROM artists WHERE id = ?').get(id) as any
+            if (existing?.bio) {
+                details.biography = existing.bio
+                details.bio = existing.bio.substring(0, 200) + '...'
+            }
+        } catch (e) { /* ignore */ }
+
+        // Enrich with Last.fm data (Bio & Image)
+        try {
+            console.log(`[DEBUG] Fetching Last.fm info for: ${details.name}`)
+            const lastFmInfo = await lastFmService.getArtistInfo(details.name)
+            if (lastFmInfo) {
+                console.log(`[DEBUG] Last.fm response has bio:`, !!lastFmInfo.bio)
+                // Add Bio if missing
+                if (lastFmInfo.bio?.content) {
+                    console.log(`[DEBUG] Last.fm bio content length:`, lastFmInfo.bio.content.length)
+                    details.biography = lastFmInfo.bio.content
+                    details.bio = lastFmInfo.bio.summary
+                } else {
+                    console.log(`[DEBUG] No bio in Last.fm response. Bio object:`, JSON.stringify(lastFmInfo.bio))
+                }
+
+                // Add Image if missing (MusicBrainz service doesn't fetch artist images natively yet)
+                console.log(`[DEBUG] Checking if image needed. Current details.image: ${details.image}`)
+                if (!details.image) {
+                    console.log(`[DEBUG] No image found, searching for best image...`)
+                    let bestImage: string | null = null
+
+                    // 1. Try Spotify (High Quality)
+                    try {
+                        bestImage = await spotifyService.getArtistImage(details.name)
+                        if (bestImage) console.log(`[Metadata] Found Spotify image for ${details.name}`)
+                    } catch (e) { }
+
+                    // 2. Fallback to Last.fm
+                    if (!bestImage) {
+                        bestImage = lastFmService.getBestImage(lastFmInfo.image)
+                    }
+
+                    // 3. Fallback to Deezer
+                    if (!bestImage) {
+                        try {
+                            bestImage = await lastFmService.getDeezerArtistImage(details.name)
+                            if (bestImage) console.log(`[Metadata] Found Deezer image for ${details.name}`)
+                        } catch (e) { }
+                    }
+
+                    if (bestImage) {
+                        console.log(`[DEBUG] Best image URL found: ${bestImage}`)
+                        // Download image to cache to avoid hotlinking issues and valid local serving
+                        const urlWithoutParams = bestImage.split(/[#?]/)[0]
+                        let ext = urlWithoutParams.split('.').pop() || 'jpg'
+
+                        // Sanitize extension (Spotify URLs often don't have extensions, e.g. .../image/ab67...)
+                        // If it looks like a path or is too long, default to jpg
+                        if (ext.length > 5 || ext.includes('/') || ext.includes('\\')) {
+                            ext = 'jpg'
+                        }
+                        console.log(`[DEBUG] Sanitized extension: ${ext}`)
+
+                        const filename = `artist_${details.id}.${ext}`
+                        console.log(`[DEBUG] Calling downloadImage with filename: ${filename}`)
+                        let localPath = await lastFmService.downloadImage(bestImage, filename)
+
+                        // Validate image size (reject placeholders < 5KB)
+                        if (localPath) {
+                            try {
+                                const stats = fs.statSync(localPath)
+                                if (stats.size < 5120) {
+                                    console.warn(`[Metadata] Rejected small image for ${details.name} (${stats.size} bytes)`)
+                                    fs.unlinkSync(localPath)
+                                    localPath = null
+                                }
+                            } catch (e) {
+                                console.error('Error checking image size:', e)
+                            }
+                        }
+
+                        if (localPath) {
+
+                            // Persist to DB immediately so Grid View sees it
+                            try {
+                                // Check if there's already an artist with this MusicBrainz ID
+                                const existing = db.prepare('SELECT id FROM artists WHERE musicbrainz_artist_id = ?').get(id) as any
+
+                                if (existing) {
+                                    // Update the existing local artist
+                                    console.log(`[DEBUG] Updating artist ${existing.id} with bio length:`, details.biography ? details.biography.length : 'NULL')
+                                    if (details.biography) {
+                                        db.prepare('UPDATE artists SET image_path = ?, bio = ? WHERE id = ?').run(localPath, details.biography, existing.id)
+                                    } else {
+                                        db.prepare('UPDATE artists SET image_path = ? WHERE id = ?').run(localPath, existing.id)
+                                    }
+                                    console.log(`[Metadata] ✅ Updated image${details.biography ? ' + bio' : ''} for existing artist ${details.name} (${existing.id})`)
+                                } else {
+                                    // Create new remote artist with MB ID as primary key
+                                    db.prepare(`
+                                        INSERT INTO artists (id, name, image_path, bio, musicbrainz_artist_id)
+                                        VALUES (?, ?, ?, ?, ?)
+                                        ON CONFLICT(id) DO UPDATE SET image_path = excluded.image_path, bio = excluded.bio
+                                    `).run(id, details.name, localPath, details.biography || null, id)
+                                    console.log(`[Metadata] ✅ Created new remote artist ${details.name} (${id})`)
+                                }
+                            } catch (err) {
+                                console.error('[Metadata] ❌ Failed to persist artist image:', err)
+                            }
+
+                            // Send URL to frontend
+                            details.image = `/api/cover/artist/${id}?t=${Date.now()}`
+                        } else {
+                            // Fallback to URL if download failed
+                            details.image = bestImage
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn(`[Metadata] Failed to enrich artist ${details.name} from Last.fm:`, err)
+        }
+
         res.json(details)
     } catch (error: any) {
         res.status(500).json({ error: error.message })

@@ -28,13 +28,20 @@ export function getAllArtists(): Artist[] {
  * Convert database row to Artist object
  */
 export function dbArtistToArtist(row: any): Artist {
+    let imagePath = row.image_path || row.imagePath || undefined
+
+    // Transform local file paths to server URLs
+    if (imagePath && !imagePath.startsWith('http')) {
+        imagePath = `/api/cover/artist/${row.id}?t=${Date.now()}`
+    }
+
     return {
         id: row.id,
         name: row.name,
         albumCount: row.album_count || row.albumCount || 0,
         trackCount: row.track_count || row.trackCount || 0,
         bio: row.bio || undefined,
-        imagePath: row.image_path || row.imagePath || undefined,
+        imagePath,
         musicbrainzArtistId: row.musicbrainz_artist_id || row.musicbrainzArtistId || undefined,
         country: row.country || undefined,
         lifeSpanBegin: row.life_span_begin || row.lifeSpanBegin || undefined,
@@ -68,10 +75,7 @@ export function getArtistById(id: string): Artist | null {
 
     if (!row) return null
 
-    return {
-        ...row,
-        loved: row.loved === 1
-    }
+    return dbArtistToArtist(row)
 }
 
 export function updateArtistLoved(id: string, loved: boolean): void {
