@@ -639,6 +639,9 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE albums_cache ADD COLUMN release_group_mbid TEXT",
             "ALTER TABLE albums_cache ADD COLUMN release_title TEXT",
             "ALTER TABLE albums_cache ADD COLUMN enriched_at DATETIME",
+            "ALTER TABLE albums_cache ADD COLUMN script TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN total_discs INTEGER",
+            "ALTER TABLE albums_cache ADD COLUMN total_tracks INTEGER",
 
             // Missing tracks columns for MusicBrainz
             "ALTER TABLE tracks ADD COLUMN movement TEXT",

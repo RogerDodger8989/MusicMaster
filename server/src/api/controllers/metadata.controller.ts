@@ -323,6 +323,15 @@ export const tagAlbumMetadata = async (req: Request, res: Response) => {
         const mbAlbum = await musicBrainzService.getReleaseDetails(mbAlbumId)
         if (!mbAlbum) throw new Error('Failed to fetch MB album details')
 
+        // 1b. Get release-group details for first-release-date
+        let firstReleaseDate = mbAlbum.date
+        if (mbAlbum['release-group']?.id) {
+            const releaseGroup = await musicBrainzService.getReleaseGroupDetails(mbAlbum['release-group'].id)
+            if (releaseGroup?.firstReleaseDate) {
+                firstReleaseDate = releaseGroup.firstReleaseDate
+            }
+        }
+
         // 2. Get local tracks
         const album = db.prepare('SELECT id, name, artist FROM albums_cache WHERE id = ?').get(albumId) as any
         if (!album) throw new Error('Album not found')
@@ -340,20 +349,26 @@ export const tagAlbumMetadata = async (req: Request, res: Response) => {
                 barcode = ?,
                 country = ?,
                 media = ?,
-                release_group_mbid = ?
+                release_group_mbid = ?,
+                script = ?,
+                total_discs = ?,
+                total_tracks = ?
             WHERE id = ?
         `).run(
             mbAlbum.id,
             mbAlbum['release-group']?.['primary-type'] || null,
             mbAlbum.status || null,
-            mbAlbum.date || null,
-            (mbAlbum as any)['release-events']?.[0]?.date || mbAlbum.date || null,
+            firstReleaseDate || null,
+            firstReleaseDate || null,
             (mbAlbum as any)['label-info']?.[0]?.label?.name || null,
             (mbAlbum as any)['label-info']?.[0]?.['catalog-number'] || null,
             mbAlbum.barcode || null,
             (mbAlbum as any)['release-events']?.[0]?.area?.['iso-3166-1-codes']?.[0] || (mbAlbum as any)['release-events']?.[0]?.area?.name || null,
             mbAlbum.media?.[0]?.format || null,
             mbAlbum['release-group']?.id || null,
+                        (mbAlbum as any).script || null,
+                        mbAlbum.media?.length || null,
+                        mbAlbum.media?.reduce((sum: number, m: any) => sum + (m['track-count'] || 0), 0) || null,
             albumId
         )
 
@@ -361,7 +376,19 @@ export const tagAlbumMetadata = async (req: Request, res: Response) => {
         const primaryArtist = (mbAlbum as any)['artist-credit']?.[0]?.artist
         let dbArtistId: string | null = null
         if (primaryArtist) {
-            dbArtistId = upsertArtistWithMBID(primaryArtist.name, primaryArtist.id)
+            // Include sort-name when upserting artist
+            dbArtistId = upsertArtistWithMBID(
+                primaryArtist.name,
+                primaryArtist.id,
+                null, // country
+                null, // artistType
+                null, // lifeSpanBegin
+                null, // lifeSpanEnd
+                null, // bio
+                null, // website
+                null, // imagePath
+                primaryArtist['sort-name'] || null // nameSortOrder
+            )
         }
         upsertAlbumWithMBID(mbAlbum.title, dbArtistId, mbAlbum.id, mbAlbum['release-group']?.['primary-type'], mbAlbum.date)
 

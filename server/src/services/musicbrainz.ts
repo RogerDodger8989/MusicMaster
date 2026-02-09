@@ -487,6 +487,37 @@ export class MusicBrainzService {
         }
     }
 
+    async getReleaseGroupDetails(releaseGroupId: string) {
+        try {
+            const cacheKey = `release-group:${releaseGroupId}`
+            const cached = getFromCache(cacheKey)
+            if (cached) {
+                return cached
+            }
+
+            await applyRateLimit()
+            const releaseGroup = await mbApi.lookup('release-group', releaseGroupId, [
+                'artist-credits',
+                'releases',
+                'tags',
+                'genres'
+            ])
+
+            const result = {
+                id: (releaseGroup as any).id,
+                title: (releaseGroup as any).title,
+                firstReleaseDate: (releaseGroup as any)['first-release-date'],
+                primaryType: (releaseGroup as any)['primary-type'],
+                secondaryTypes: (releaseGroup as any)['secondary-types'] || []
+            }
+
+            cacheResult(cacheKey, result)
+            return result
+        } catch (error) {
+            console.error('MB release-group lookup failed:', error)
+            return null
+        }
+    }
     async getWorkDetails(workId: string) {
         try {
             const cacheKey = `work:${workId}`
