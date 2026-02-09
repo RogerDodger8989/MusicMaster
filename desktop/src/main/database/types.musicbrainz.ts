@@ -97,7 +97,6 @@ export interface DbTrack {
   isrc: string | null
   acoustid_fingerprint: string | null
   acoustid_id: string | null
-  isrc: string | null
   duration: number | null
   bitrate: number | null
   sample_rate: number | null

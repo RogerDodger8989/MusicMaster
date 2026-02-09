@@ -12,6 +12,9 @@ import * as metadata from './controllers/metadata.controller'
 import * as system from './controllers/system.controller'
 import * as dashboard from './controllers/dashboard.controller'
 import * as media from './controllers/media.controller'
+import * as enrichment from './controllers/enrichment.controller'
+import vibesRouter from './controllers/vibes.controller'
+import customVibesRouter from './controllers/customVibes.controller'
 
 const router = Router()
 
@@ -80,6 +83,18 @@ router.get('/metadata/enhance/status', metadata.getEnhanceStatus)
 router.post('/metadata/sync', metadata.syncMetadata)
 router.get('/metadata/sync/status', metadata.getFileSyncStatus)
 router.post('/metadata/write/:id', metadata.writeTrackMetadata)
+
+// Enrichment (Phase 9)
+router.post('/enrichment/start', enrichment.startEnrichment)
+router.get('/enrichment/status', enrichment.getStatus)
+router.get('/enrichment/history', enrichment.getHistory)
+router.get('/enrichment/coverage', enrichment.getCoverage)
+
+// Custom vibes - User-created vibes (must be before /vibes router)
+router.use('/vibes/custom', customVibesRouter)
+
+// Vibes - Mood-based playlists
+router.use('/vibes', vibesRouter)
 
 // Search & Genres
 router.get('/search', search.search)

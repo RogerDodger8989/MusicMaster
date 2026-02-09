@@ -9,13 +9,8 @@ import {
   DbArtist,
   DbAlbum,
   DbTrackArtist,
-  DbAlbumArtist,
-  DbExternalLink,
-  DbExternalIdentifier,
-  DbAcousticBrainzData,
-  DbReleaseInfo,
-  DbLabel,
-  DbAlbumLabel
+  DbAcousticBrainzData
+  // DbAlbumArtist, DbExternalLink, DbExternalIdentifier, DbReleaseInfo, DbLabel, DbAlbumLabel unused
 } from './types.musicbrainz'
 import { v4 as uuidv4 } from 'uuid'
 

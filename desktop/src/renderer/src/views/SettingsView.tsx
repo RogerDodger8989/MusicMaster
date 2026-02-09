@@ -8,7 +8,8 @@ import {
   ExternalLink,
   Download,
   Database,
-  RefreshCw
+  RefreshCw,
+  Zap
 } from 'lucide-react'
 import { useFolders } from '../store/folders'
 import { useLibrary } from '../store/library'
@@ -36,6 +37,15 @@ export default function SettingsView() {
   const [lastfmAuthInProgress, setLastfmAuthInProgress] = useState(false)
   const [writeToFiles, setWriteToFiles] = useState(false)
   const [isBrowserOpen, setIsBrowserOpen] = useState(false)
+  const [isListenBrainzImporting, setIsListenBrainzImporting] = useState(false)
+  const [listenBrainzImportResult, setListenBrainzImportResult] = useState<{
+    filePath?: string
+    totalListens?: number
+    matchedTracks?: number
+    updatedTracks?: number
+    matchedByMbid?: number
+    matchedByText?: number
+  } | null>(null)
 
   // MusicBrainz Enhancement State
   const [mbCoverage, setMbCoverage] = useState<{
@@ -59,8 +69,16 @@ export default function SettingsView() {
     operation: 'enhance'
   })
   const [mbWriteToFiles, setMbWriteToFiles] = useState(true)
-
-  // Polling Intervals
+  
+  // Enrichment coverage state
+  const [enrichmentCoverage, setEnrichmentCoverage] = useState<{
+    totalTracks: number
+    enrichedTracks: number
+    coveragePercentage: number
+  } | null>(null)
+  const [enrichmentStatus, setEnrichmentStatus] = useState<'idle' | 'running' | 'completed' | 'error'>('idle')
+  
+  const enrichmentPollRef = useRef<NodeJS.Timeout | null>(null)
   const syncPollRef = useRef<NodeJS.Timeout | null>(null)
   const enhancePollRef = useRef<NodeJS.Timeout | null>(null)
   const fileSyncPollRef = useRef<NodeJS.Timeout | null>(null)
@@ -68,6 +86,40 @@ export default function SettingsView() {
   useEffect(() => {
     loadFolders()
     settings.loadSettings()
+  }, [])
+
+  // Poll enrichment status every 3 seconds
+  useEffect(() => {
+    const fetchEnrichmentStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/enrichment/status')
+        const data = await response.json()
+        
+        if (data.coverage) {
+          setEnrichmentCoverage(data.coverage)
+        }
+        
+        if (data.status?.status) {
+          setEnrichmentStatus(data.status.status === 'in_progress' ? 'running' : 
+                              data.status.status === 'completed' ? 'completed' : 
+                              data.status.status === 'error' ? 'error' : 'idle')
+        }
+      } catch (error) {
+        console.error('Failed to fetch enrichment status:', error)
+      }
+    }
+    
+    // Initial fetch
+    fetchEnrichmentStatus()
+    
+    // Poll every 3 seconds
+    enrichmentPollRef.current = setInterval(fetchEnrichmentStatus, 3000)
+    
+    return () => {
+      if (enrichmentPollRef.current) {
+        clearInterval(enrichmentPollRef.current)
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -209,6 +261,41 @@ export default function SettingsView() {
       console.error('Failed to sync play counts:', error)
       completeSync()
       alert('❌ Failed to sync play counts: ' + error)
+    }
+  }
+
+  const handleImportListenBrainzJSON = async () => {
+    if (!window.api?.scrobble?.importListenBrainzJSON) {
+      alert('ListenBrainz JSON import is only available in the desktop app.')
+      return
+    }
+
+    if (isListenBrainzImporting) return
+
+    setIsListenBrainzImporting(true)
+    setListenBrainzImportResult(null)
+
+    try {
+      const result = await window.api.scrobble.importListenBrainzJSON()
+      if (result?.canceled) {
+        setIsListenBrainzImporting(false)
+        return
+      }
+
+      setListenBrainzImportResult({
+        filePath: result.filePath,
+        totalListens: result.totalListens,
+        matchedTracks: result.matchedTracks,
+        updatedTracks: result.updatedTracks,
+        matchedByMbid: result.matchedByMbid,
+        matchedByText: result.matchedByText
+      })
+      await useLibrary.getState().loadTracks()
+    } catch (error) {
+      console.error('ListenBrainz JSON import failed:', error)
+      alert(`❌ Failed to import ListenBrainz JSON: ${error}`)
+    } finally {
+      setIsListenBrainzImporting(false)
     }
   }
 
@@ -872,7 +959,92 @@ export default function SettingsView() {
                     CSV
                   </button>
                 </div>
+                <button
+                  onClick={handleImportListenBrainzJSON}
+                  disabled={isListenBrainzImporting}
+                  className="w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-zinc-700 disabled:text-zinc-500 text-white rounded-lg transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                >
+                  <Database className="w-4 h-4" />
+                  {isListenBrainzImporting ? 'Importing JSON...' : 'Import ListenBrainz JSON'}
+                </button>
+                {listenBrainzImportResult && (
+                  <div className="text-xs text-zinc-400 bg-zinc-900/60 border border-zinc-800 rounded-lg p-3">
+                    <div className="text-zinc-300 font-semibold mb-1">✅ Import complete</div>
+                    <div>Listens: {listenBrainzImportResult.totalListens || 0}</div>
+                    <div>Matched tracks: {listenBrainzImportResult.matchedTracks || 0}</div>
+                    <div>Updated tracks: {listenBrainzImportResult.updatedTracks || 0}</div>
+                    <div>
+                      Matches: {listenBrainzImportResult.matchedByMbid || 0} MBID /{' '}
+                      {listenBrainzImportResult.matchedByText || 0} text
+                    </div>
+                  </div>
+                )}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Phase 9: Automated Enrichment Status */}
+        <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-yellow-500" />
+            Automated Enrichment (Phase 9)
+          </h3>
+          <div className="space-y-4">
+            <p className="text-sm text-zinc-500">
+              Automatically enriches tracks with mood, energy, BPM, and key data from AcousticBrainz.
+              Runs automatically after scans and on server startup if coverage is incomplete.
+            </p>
+
+            {enrichmentCoverage && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+                  <div className="text-xs text-zinc-500 mb-1">Total Tracks</div>
+                  <div className="text-2xl font-bold text-white">{enrichmentCoverage.totalTracks}</div>
+                </div>
+                <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+                  <div className="text-xs text-zinc-500 mb-1">Enriched</div>
+                  <div className="text-2xl font-bold text-green-400">{enrichmentCoverage.enrichedTracks}</div>
+                </div>
+                <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
+                  <div className="text-xs text-zinc-500 mb-1">Coverage</div>
+                  <div className="text-2xl font-bold text-blue-400">{enrichmentCoverage.coveragePercentage}%</div>
+                </div>
+              </div>
+            )}
+
+            {enrichmentStatus === 'running' && (
+              <div className="p-4 bg-yellow-900/10 border border-yellow-900/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                  <p className="text-sm text-yellow-400 font-semibold">Enrichment in progress...</p>
+                </div>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Fetching mood, energy, and BPM data from AcousticBrainz
+                </p>
+              </div>
+            )}
+
+            {enrichmentStatus === 'completed' && enrichmentCoverage?.coveragePercentage === 100 && (
+              <div className="p-4 bg-green-900/10 border border-green-900/30 rounded-lg">
+                <p className="text-sm text-green-400 font-semibold">✅ All tracks enriched!</p>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Your library has complete mood, energy, and BPM metadata
+                </p>
+              </div>
+            )}
+
+            <div className="p-4 bg-blue-900/10 border border-blue-900/30 rounded-lg">
+              <p className="text-xs text-blue-300">
+                <strong>💡 How it works:</strong>
+              </p>
+              <ul className="text-xs text-blue-200 space-y-1 ml-4 list-disc mt-2">
+                <li>Runs automatically after folder scans</li>
+                <li>Auto-starts on server boot if coverage &lt; 100%</li>
+                <li>Groups tracks by album to reduce API requests (100k+ → ~7k)</li>
+                <li>Rate-limited: 1.1s delay between requests (API compliance)</li>
+                <li>Fetches: BPM, key, energy, danceability, mood (acoustic/aggressive/electronic/happy/sad/relaxed/party)</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -940,6 +1112,7 @@ export default function SettingsView() {
             </div>
           </div>
         </div>
+
       </div>
     </div>
   )

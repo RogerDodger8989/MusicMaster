@@ -218,7 +218,7 @@ export class MusicScanner extends EventEmitter {
       // Extract rating, loved status, and play count from metadata
       let rating = existingTrack?.rating || 0 // Default: keep existing or 0
       let loved = existingTrack?.loved || false // Default: keep existing or false
-      let playCount = existingTrack?.play_count || 0 // Default: keep existing or 0
+      let playCount = existingTrack?.playCount || 0 // Default: keep existing or 0
 
       // Try to read RATING tag directly (0-5 scale we write ourselves)
       const ratingTag = metadata.native?.vorbis?.find((t) => t.id === 'RATING')

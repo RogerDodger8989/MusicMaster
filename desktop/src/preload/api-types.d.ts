@@ -84,6 +84,16 @@ declare global {
           writeToFile?: boolean
         ) => Promise<{ total: number; synced: number; errors: string[] }>
         exportPlayCountsCSV: () => Promise<string | null>
+        importListenBrainzJSON: (filePath?: string) => Promise<{
+          canceled: boolean
+          filePath?: string
+          totalListens?: number
+          totalTracks?: number
+          matchedTracks?: number
+          updatedTracks?: number
+          matchedByMbid?: number
+          matchedByText?: number
+        }>
         onSyncProgress: (
           callback: (progress: {
             current: number
@@ -230,6 +240,29 @@ declare global {
           }) => void
         ) => () => void
       }
-    }
+      enrichment: {
+        start: () => Promise<{ started: boolean }>
+        getStatus: () => Promise<{
+          status: string
+          album_mbid?: string | null
+          performers_fetched?: number
+          acousticbrainz_fetched?: number
+          completed_at?: string | null
+        }>
+        getHistory: (limit?: number) => Promise<any[]>
+        onProgress: (
+          callback: (progress: {
+            totalAlbums: number
+            processedAlbums: number
+            totalTracks: number
+            enrichedTracks: number
+            performersAdded: number
+            acousticbrainzAdded: number
+            errors: string[]
+          }) => void
+        ) => () => void
+        onCompleted: (callback: (result: any) => void) => () => void
+        onError: (callback: (error: string) => void) => () => void
+      }    }
   }
 }

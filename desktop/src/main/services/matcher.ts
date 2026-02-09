@@ -158,27 +158,21 @@ export function findBestMatch(
             : 0
 
   const matches = mbResults
-    .map((result) => ({
-      result,
-      score: calculateMatchScore(
+    .map((result) => {
+      const score = calculateMatchScore(
         localArtist,
         localTitle,
         localAlbum,
         result.artist,
         result.title,
         result.album
-      ),
-      confidence: getConfidenceLevel(
-        calculateMatchScore(
-          localArtist,
-          localTitle,
-          localAlbum,
-          result.artist,
-          result.title,
-          result.album
-        )
       )
-    }))
+      return {
+        result,
+        score,
+        confidence: getConfidenceLevel(score)
+      }
+    })
     .sort((a, b) => b.score - a.score)
 
   const bestMatch = matches.find((m) => m.score >= minScoreRequired)
@@ -231,9 +225,8 @@ export function findPotentialDuplicates(
 
   return Array.from(groups.values())
     .filter((group) => group.length > 1)
-    .map((group) => ({
-      group: group.map((t) => ({ id: t.id, artist: t.artist, title: t.title })),
-      score: calculateMatchScore(
+    .map((group) => {
+      const score = calculateMatchScore(
         group[0].artist,
         group[0].title,
         group[0].album,
@@ -241,7 +234,11 @@ export function findPotentialDuplicates(
         group[1].title,
         group[1].album
       )
-    }))
+      return {
+        group: group.map((t) => ({ id: t.id, artist: t.artist, title: t.title })),
+        score
+      }
+    })
 }
 
 /**
@@ -416,7 +413,6 @@ export function scoreReleaseCandidates(
 
       // Find the track in the release
       let trackScore = 0
-      let matchedTrack: any = null
 
       for (const track of candidate.tracks) {
         const titleScore =
@@ -430,7 +426,6 @@ export function scoreReleaseCandidates(
 
         if (combinedScore > trackScore) {
           trackScore = combinedScore
-          matchedTrack = track
         }
       }
 

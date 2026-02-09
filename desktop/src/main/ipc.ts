@@ -46,6 +46,7 @@ import {
 import { advancedMatch, scoreReleaseCandidates, MatchConfidence } from './services/matcher'
 import { acousticBrainzService } from './services/acousticbrainz'
 import { searchLibrary } from './database/search'
+import { startEnrichmentWorker, getEnrichmentStatus, getEnrichmentHistory } from './services/enrichmentWorker'
 
 export function registerIpcHandlers(): void {
   const logPath = path.join(process.cwd(), 'debug-ipc.log')
@@ -1096,6 +1097,145 @@ current_track_id = excluded.current_track_id,
       }
     })
 
+    ipcMain.handle('scrobble:importListenBrainzJSON', async (_event, filePath?: string) => {
+      console.log('📥 Importing ListenBrainz listens from JSON...')
+      try {
+        let selectedPath = filePath
+        if (!selectedPath) {
+          const result = await dialog.showOpenDialog({
+            title: 'Import ListenBrainz JSON',
+            properties: ['openFile'],
+            filters: [{ name: 'JSON Files', extensions: ['json'] }]
+          })
+
+          if (result.canceled || result.filePaths.length === 0) {
+            console.log('❌ JSON import canceled')
+            return { canceled: true }
+          }
+
+          selectedPath = result.filePaths[0]
+        }
+
+        const raw = fs.readFileSync(selectedPath, 'utf8')
+        const parsed = JSON.parse(raw)
+        const listens = Array.isArray(parsed)
+          ? parsed
+          : parsed?.payload?.listens || parsed?.listens || []
+
+        if (!Array.isArray(listens)) {
+          throw new Error('Invalid ListenBrainz JSON format')
+        }
+
+        const normalize = (value: string) =>
+          value
+            .toLowerCase()
+            .normalize('NFKD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim()
+
+        const mbidCounts = new Map<string, number>()
+        const textCounts = new Map<string, number>()
+
+        for (const listen of listens) {
+          const metadata = listen?.track_metadata || listen?.trackMetadata || null
+          if (!metadata) continue
+
+          const artist = (metadata.artist_name || metadata.artistName || '').toString()
+          const title = (metadata.track_name || metadata.trackName || '').toString()
+          if (!artist || !title) continue
+
+          const mbid =
+            metadata.additional_info?.recording_mbid || metadata.additional_info?.recordingMbid
+
+          if (mbid) {
+            mbidCounts.set(mbid, (mbidCounts.get(mbid) || 0) + 1)
+          } else {
+            const key = `${normalize(artist)}|${normalize(title)}`
+            textCounts.set(key, (textCounts.get(key) || 0) + 1)
+          }
+        }
+
+        const tracks = getAllTracks()
+        const db = getDatabase()
+
+        const mbidMap = new Map<string, string[]>()
+        const textMap = new Map<string, string[]>()
+
+        for (const track of tracks) {
+          if (track.musicbrainzTrackId) {
+            const list = mbidMap.get(track.musicbrainzTrackId) || []
+            list.push(track.id)
+            mbidMap.set(track.musicbrainzTrackId, list)
+          }
+
+          const key = `${normalize(track.artist || '')}|${normalize(track.title || '')}`
+          const list = textMap.get(key) || []
+          list.push(track.id)
+          textMap.set(key, list)
+        }
+
+        const desiredCounts = new Map<string, number>()
+        let matchedByMbid = 0
+        let matchedByText = 0
+
+        for (const [mbid, count] of mbidCounts.entries()) {
+          const trackIds = mbidMap.get(mbid)
+          if (!trackIds) continue
+          for (const trackId of trackIds) {
+            desiredCounts.set(trackId, Math.max(desiredCounts.get(trackId) || 0, count))
+            matchedByMbid++
+          }
+        }
+
+        for (const [key, count] of textCounts.entries()) {
+          const trackIds = textMap.get(key)
+          if (!trackIds) continue
+          for (const trackId of trackIds) {
+            desiredCounts.set(trackId, Math.max(desiredCounts.get(trackId) || 0, count))
+            matchedByText++
+          }
+        }
+
+        const updateStmt = db.prepare('UPDATE tracks SET play_count = ? WHERE id = ?')
+        let updatedCount = 0
+
+        const transaction = db.transaction(() => {
+          for (const track of tracks) {
+            const desired = desiredCounts.get(track.id)
+            if (desired === undefined) continue
+
+            const current = track.playCount || 0
+            const finalCount = Math.max(current, desired)
+            if (finalCount !== current) {
+              updateStmt.run(finalCount, track.id)
+              updatedCount++
+            }
+          }
+        })
+
+        transaction()
+
+        console.log(
+          `✅ ListenBrainz import complete. Updated ${updatedCount} tracks from ${listens.length} listens.`
+        )
+
+        return {
+          canceled: false,
+          filePath: selectedPath,
+          totalListens: listens.length,
+          totalTracks: tracks.length,
+          matchedTracks: desiredCounts.size,
+          updatedTracks: updatedCount,
+          matchedByMbid,
+          matchedByText
+        }
+      } catch (error) {
+        console.error('❌ Failed to import ListenBrainz JSON:', error)
+        throw error
+      }
+    })
+
     // Export missing tracks to CSV
     ipcMain.handle('metadata:exportMissingCSV', async (_, tracks: any[]) => {
       console.log('📊 Exporting missing tracks to CSV...')
@@ -2107,6 +2247,72 @@ current_track_id = excluded.current_track_id,
         throw error
       }
     })
+
+    // ============================================================================
+    // PHASE 9: ENRICHMENT WORKER
+    // ============================================================================
+
+    /**
+     * Start background enrichment worker
+     * Fetches performers and AcousticBrainz mood data for all tracks with MBIDs
+     */
+    ipcMain.handle('enrichment:start', async (_event) => {
+      console.log('🚀 Starting enrichment worker...')
+      try {
+        // Run enrichment in background
+        startEnrichmentWorker((progress) => {
+          // Send progress updates to renderer via IPC
+          BrowserWindow.getAllWindows().forEach(window => {
+            window.webContents.send('enrichment:progress', progress)
+          })
+        }).then(result => {
+          console.log('✅ Enrichment completed:', result)
+          BrowserWindow.getAllWindows().forEach(window => {
+            window.webContents.send('enrichment:completed', result)
+          })
+        }).catch(error => {
+          console.error('❌ Enrichment failed:', error)
+          BrowserWindow.getAllWindows().forEach(window => {
+            window.webContents.send('enrichment:error', error.message)
+          })
+        })
+        
+        return { started: true }
+      } catch (error) {
+        console.error('❌ Failed to start enrichment:', error)
+        throw error
+      }
+    })
+
+    /**
+     * Get current enrichment status
+     */
+    ipcMain.handle('enrichment:getStatus', async () => {
+      try {
+        const status = getEnrichmentStatus()
+        return status || { status: 'idle' }
+      } catch (error) {
+        console.error('❌ Failed to get enrichment status:', error)
+        throw error
+      }
+    })
+
+    /**
+     * Get enrichment history
+     */
+    ipcMain.handle('enrichment:getHistory', async (_, limit: number = 50) => {
+      try {
+        const history = getEnrichmentHistory(limit)
+        return history
+      } catch (error) {
+        console.error('❌ Failed to get enrichment history:', error)
+        throw error
+      }
+    })
+
+    // ============================================================================
+    // END PHASE 9
+    // ============================================================================
 
     console.log('✅ All IPC handlers registered successfully!')
   } catch (error) {

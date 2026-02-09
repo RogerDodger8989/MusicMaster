@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3'
 import { app } from 'electron'
 import path from 'path'
-import * as fs from 'fs'
+// import * as fs from 'fs' // Unused but kept for future use
 
 let db: Database.Database | null = null
 
@@ -271,6 +271,22 @@ CREATE TABLE IF NOT EXISTS discs (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (release_id) REFERENCES release_info(id) ON DELETE SET NULL,
     FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+);
+
+-- Enrichment Logging
+CREATE TABLE IF NOT EXISTS enrichment_log (
+    id TEXT PRIMARY KEY,
+    album_mbid TEXT,
+    status TEXT DEFAULT 'pending',
+    performers_fetched INTEGER DEFAULT 0,
+    acousticbrainz_fetched INTEGER DEFAULT 0,
+    relationships_fetched INTEGER DEFAULT 0,
+    tracks_updated INTEGER DEFAULT 0,
+    error_message TEXT,
+    started_at DATETIME,
+    completed_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (album_mbid) REFERENCES albums(mbid) ON DELETE CASCADE
 );
 
 -- Indexes for MusicBrainz data
@@ -576,6 +592,11 @@ export function initDatabase(): Database.Database {
       'ALTER TABLE play_history ADD COLUMN play_count INTEGER DEFAULT 0',
       'ALTER TABLE play_history ADD COLUMN fraction_played REAL DEFAULT 1.0',
 
+      // Enrichment logging
+      'CREATE TABLE IF NOT EXISTS enrichment_log (id TEXT PRIMARY KEY, album_mbid TEXT, status TEXT DEFAULT "pending", performers_fetched INTEGER DEFAULT 0, acousticbrainz_fetched INTEGER DEFAULT 0, relationships_fetched INTEGER DEFAULT 0, tracks_updated INTEGER DEFAULT 0, error_message TEXT, started_at DATETIME, completed_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)',
+      'CREATE INDEX IF NOT EXISTS idx_enrichment_log_album_mbid ON enrichment_log(album_mbid)',
+      'CREATE INDEX IF NOT EXISTS idx_enrichment_log_status ON enrichment_log(status)',
+
       // MusicBrainz Tagging Enhancements
       'ALTER TABLE track_artists ADD COLUMN join_phrase TEXT',
       'ALTER TABLE album_artists ADD COLUMN join_phrase TEXT',
@@ -724,6 +745,19 @@ export interface DbUserSetting {
   updated_at: string
 }
 
+export interface DbEnrichmentLog {
+  id: string
+  album_mbid: string | null
+  status: 'pending' | 'completed' | 'error' | 'in_progress'
+  performers_fetched: number
+  acousticbrainz_fetched: number
+  relationships_fetched: number
+  tracks_updated: number
+  error_message: string | null
+  started_at: string | null
+  completed_at: string | null
+  created_at: string
+}
 export interface DbPlaybackHistory {
   id: string
   track_id: string

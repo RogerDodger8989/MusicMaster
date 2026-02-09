@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useState, useRef } from 'react'
 import { RatingStars } from './RatingStars'
+import { CompactAudioFeatures } from './CompactAudioFeatures'
 import { cn } from '../lib/utils'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
@@ -286,8 +287,13 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                 )}
             </div>
 
-            {/* Right: Rating, Volume, Scrobble, Queue */}
-            <div className="flex items-center gap-6 justify-end w-[30%] max-w-[400px]">
+            {/* Right: Audio Features, Rating, Volume, Scrobble, Queue */}
+            <div className="flex items-center gap-4 justify-end flex-1">
+                {/* Audio Features Display */}
+                {currentTrack && (
+                    <CompactAudioFeatures features={currentTrack} />
+                )}
+
                 {currentTrack && (
                     <div className="flex items-center gap-3 px-3 py-1 bg-zinc-900/50 rounded-full border border-white/5">
                         <RatingStars

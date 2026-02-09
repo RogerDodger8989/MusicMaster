@@ -171,6 +171,16 @@ const api = {
       ipcRenderer.invoke('scrobble:exportPlayCountsCSV'),
     syncAllListenBrainz: (username: string): Promise<{ total: number; updated: number }> =>
       ipcRenderer.invoke('scrobble:syncAllListenBrainz', username),
+    importListenBrainzJSON: (filePath?: string): Promise<{
+      canceled: boolean
+      filePath?: string
+      totalListens?: number
+      totalTracks?: number
+      matchedTracks?: number
+      updatedTracks?: number
+      matchedByMbid?: number
+      matchedByText?: number
+    }> => ipcRenderer.invoke('scrobble:importListenBrainzJSON', filePath),
     onSyncProgress: (
       callback: (progress: {
         current: number
@@ -273,6 +283,28 @@ const api = {
       const listener = (_: any, progress: any): void => callback(progress)
       ipcRenderer.on('musicbrainz:refreshProgress', listener)
       return () => ipcRenderer.removeListener('musicbrainz:refreshProgress', listener)
+    }
+  },
+
+  // Enrichment Worker (Phase 9)
+  enrichment: {
+    start: (): Promise<{ started: boolean }> => ipcRenderer.invoke('enrichment:start'),
+    getStatus: (): Promise<any> => ipcRenderer.invoke('enrichment:getStatus'),
+    getHistory: (limit?: number): Promise<any[]> => ipcRenderer.invoke('enrichment:getHistory', limit || 50),
+    onProgress: (callback: (progress: any) => void) => {
+      const listener = (_: any, progress: any): void => callback(progress)
+      ipcRenderer.on('enrichment:progress', listener)
+      return () => ipcRenderer.removeListener('enrichment:progress', listener)
+    },
+    onCompleted: (callback: (result: any) => void) => {
+      const listener = (_: any, result: any): void => callback(result)
+      ipcRenderer.on('enrichment:completed', listener)
+      return () => ipcRenderer.removeListener('enrichment:completed', listener)
+    },
+    onError: (callback: (error: string) => void) => {
+      const listener = (_: any, error: string): void => callback(error)
+      ipcRenderer.on('enrichment:error', listener)
+      return () => ipcRenderer.removeListener('enrichment:error', listener)
     }
   }
 }

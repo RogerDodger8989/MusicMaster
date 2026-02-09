@@ -15,6 +15,11 @@ export const getAllSettings = () => {
     return settings
 }
 
+export const getSetting = (key: string) => {
+    const db = getDatabase()
+    return db.prepare('SELECT setting_key, setting_value FROM user_settings WHERE setting_key = ?').get(key) as { setting_key: string, setting_value: string } | undefined
+}
+
 export const saveSetting = (key: string, value: any) => {
     const db = getDatabase()
     const stringValue = JSON.stringify(value)

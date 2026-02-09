@@ -266,6 +266,21 @@ CREATE TABLE IF NOT EXISTS acousticbrainz_data (
     FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
 );
 
+-- Custom vibes created by user
+CREATE TABLE IF NOT EXISTS custom_vibes (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    emoji TEXT NOT NULL,
+    description TEXT,
+    energy_min REAL,
+    energy_max REAL,
+    danceability_min REAL,
+    danceability_max REAL,
+    mood_filters TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Barcodes
 CREATE TABLE IF NOT EXISTS barcodes (
     id TEXT PRIMARY KEY,
@@ -499,6 +514,27 @@ CREATE INDEX IF NOT EXISTS idx_albums_cache_last_played ON albums_cache(last_pla
 CREATE INDEX IF NOT EXISTS idx_artists_name ON artists(name);
 CREATE INDEX IF NOT EXISTS idx_playback_history_track ON playback_history(track_id);
 CREATE INDEX IF NOT EXISTS idx_playback_history_played_at ON playback_history(played_at DESC);
+
+-- ============================================================================
+-- ENRICHMENT LOG - Phase 9
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS enrichment_log (
+    id TEXT PRIMARY KEY,
+    album_mbid TEXT,
+    status TEXT DEFAULT 'pending',
+    performers_fetched INTEGER DEFAULT 0,
+    acousticbrainz_fetched INTEGER DEFAULT 0,
+    relationships_fetched INTEGER DEFAULT 0,
+    tracks_updated INTEGER DEFAULT 0,
+    error_message TEXT,
+    started_at DATETIME,
+    completed_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_enrichment_log_album ON enrichment_log(album_mbid);
+CREATE INDEX IF NOT EXISTS idx_enrichment_log_status ON enrichment_log(status);
+CREATE INDEX IF NOT EXISTS idx_enrichment_log_created ON enrichment_log(created_at DESC);
 `
 
 /**

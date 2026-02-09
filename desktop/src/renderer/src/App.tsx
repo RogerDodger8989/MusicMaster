@@ -12,6 +12,7 @@ import ArtistsView from './views/ArtistsView'
 import TracksView from './views/TracksView'
 import PlaylistsView from './views/PlaylistsView'
 import UnsortedView from './views/UnsortedView'
+import HomeView from './views/HomeView'
 import SearchModal from './components/SearchModal'
 import TaggingModal from './components/TaggingModal'
 import TagConfirmationModal from './components/TagConfirmationModal'
@@ -360,52 +361,7 @@ function App(): React.JSX.Element {
         )
       case 'home':
       default:
-        return (
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6 text-white">Welcome to MusicMaster</h2>
-            <p className="text-zinc-400 mb-4">
-              Your advanced music metadata management system inspired by Roon and MusicBee.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
-                <h3 className="text-xl font-semibold mb-2 text-white">Add Music Folders</h3>
-                <p className="text-sm text-zinc-500 mb-4">
-                  Configure your music folders in Settings to start building your library.
-                </p>
-                <button
-                  onClick={() => navigateTo('settings')}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Go to Settings
-                </button>
-              </div>
-              <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
-                <h3 className="text-xl font-semibold mb-2 text-white">Browse Albums</h3>
-                <p className="text-sm text-zinc-500 mb-4">
-                  Explore your music collection by albums.
-                </p>
-                <button
-                  onClick={() => navigateTo('albums')}
-                  className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors"
-                >
-                  View Albums
-                </button>
-              </div>
-              <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
-                <h3 className="text-xl font-semibold mb-2 text-white">Real-time Monitoring</h3>
-                <p className="text-sm text-zinc-500 mb-4">
-                  Enable folder watching to automatically detect new music files.
-                </p>
-                <button
-                  onClick={() => navigateTo('settings')}
-                  className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors"
-                >
-                  Configure
-                </button>
-              </div>
-            </div>
-          </div>
-        )
+        return <HomeView />
     }
   }
 

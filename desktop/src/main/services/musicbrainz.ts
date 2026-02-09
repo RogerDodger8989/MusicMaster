@@ -1,9 +1,5 @@
 import { MusicBrainzApi } from 'musicbrainz-api'
-import {
-  MBArtistResponse,
-  MBReleaseResponse,
-  MBRecordingResponse
-} from '../database/types.musicbrainz'
+// import { MBArtistResponse, MBReleaseResponse, MBRecordingResponse } from '../database/types.musicbrainz' // Unused
 
 const mbApi = new MusicBrainzApi({
   appName: 'MusicMaster',

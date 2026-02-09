@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { musicScanner } from '../../scanner'
 import { getAllMusicFolders, addMusicFolder, removeMusicFolder } from '../../database/folders'
+import { startEnrichmentWorker } from '../../services/enrichmentWorker'
 import path from 'path'
 
 export const getScanStatus = (req: Request, res: Response) => {
@@ -14,6 +15,15 @@ export const startScan = async (req: Request, res: Response) => {
         // Use setImmediate to not block response
         setImmediate(() => {
             musicScanner.scanFolder(folderId, scanPath)
+                .then(() => {
+                    // ALWAYS auto-enrich after scan completes
+                    console.log('🎵 Scan completed, starting automatic enrichment...')
+                    startEnrichmentWorker((progress) => {
+                        console.log(`Enrichment progress: ${progress.enrichedTracks}/${progress.totalTracks} tracks`)
+                    }).catch(err => {
+                        console.error('Auto-enrich failed:', err)
+                    })
+                })
                 .catch(err => console.error('Scan failed:', err))
         })
 

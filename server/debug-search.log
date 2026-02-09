@@ -74,3 +74,7 @@ Found: 1 artists, 0 albums, 0 tracks
 --- SEARCH START: "on" (Normalized: "on") ---
 DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
 Found: 2 artists, 0 albums, 2 tracks
+
+--- SEARCH START: "me" (Normalized: "me") ---
+DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
+Found: 1 artists, 0 albums, 0 tracks
