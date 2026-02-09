@@ -18,6 +18,7 @@ MusicMaster now operates as two distinct components:
     -   MusicBrainz integration for track/artist/album identification.
     -   AcousticBrainz integration for BPM, key, and mood data.
     -   Writing metadata tags (rating, loved status) back to files (MP3/FLAC).
+    -   **Automatic Background Enrichment**: Automatically fetches artist images and biographies from Last.fm and Spotify without manual intervention.
 -   **Scrobbling**: Background submission to Last.fm and ListenBrainz.
 -   **API**: Comprehensive REST API for all library operations.
 

@@ -34,8 +34,10 @@ export class BackgroundEnricher {
         try {
             const db = getDatabase()
 
-            // 1. Find an album with an MBID that hasn't been enriched recently
-            // We'll use the 'updated_at' on the albums table or a new 'enriched_at'
+            // 1. Process Artists first (prioritize missing bio/images)
+            await this.enrichArtists()
+
+            // 2. Find an album with an MBID that hasn't been enriched recently
             const album = db.prepare(`
                 SELECT id, name, artist, musicbrainz_album_id as mbid
                 FROM albums_cache
@@ -45,154 +47,54 @@ export class BackgroundEnricher {
             `).get() as { id: string, name: string, artist: string, mbid: string } | undefined
 
             if (!album) return
-
-            console.log(`🤖 Enriching album: ${album.name} by ${album.artist}`)
-
-            // 2. Fetch full release details from MusicBrainz
-            const release = await musicBrainzService.getReleaseDetails(album.mbid)
-            if (!release) {
-                this.markAsFailed(album.id)
-                return
-            }
-
-            // 3. Save release info (Label, Country, etc.)
-            const label = release['label-info']?.[0]?.label?.name
-            const catalogNumber = release['label-info']?.[0]?.['catalog-number']
-
-            upsertAlbumWithMBID(
-                album.name,
-                null, // Artist ID handled separately or kept
-                album.mbid,
-                release['release-group']?.['primary-type'],
-                release.date,
-                release.barcode,
-                release.status,
-                release.packaging,
-                release.media?.length || 1,
-                release['release-group']?.id,
-                release.title,
-                label,
-                catalogNumber
-            )
-
-            // 4. Save Album-level credits
-            const albumRoles = musicBrainzService.extractRoles(release)
-            for (const [role, artists] of Object.entries(albumRoles)) {
-                for (const artistInfo of artists) {
-                    const artistId = upsertArtistWithMBID(artistInfo.name, artistInfo.mbid || '')
-
-                    // Fetch artist image if missing
-                    const dbArtist = db.prepare('SELECT image_path FROM artists WHERE id = ?').get(artistId) as { image_path: string | null }
-                    if (!dbArtist?.image_path) {
-                        try {
-                            const info = await lastFmService.getArtistInfo(artistInfo.name)
-                            if (info?.image) {
-                                const imageUrl = lastFmService.getBestImage(info.image)
-                                if (imageUrl) {
-                                    const filename = `artist_${artistId}.jpg`
-                                    const localPath = await lastFmService.downloadImage(imageUrl, filename)
-                                    if (localPath) {
-                                        db.prepare('UPDATE artists SET image_path = ? WHERE id = ?').run(localPath, artistId)
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            console.warn(`[Enricher] Failed to fetch image for ${artistInfo.name}:`, e)
-                        }
-                    }
-
-                    addAlbumCredit(album.id, artistId, role)
-                }
-            }
-
-            // 5. Process Track-level enrichments (Performers, AcousticBrainz)
-            const tracks = db.prepare('SELECT id, title, musicbrainz_track_id as mbid FROM tracks WHERE album = ? AND (album_artist = ? OR artist = ?)')
-                .all(album.name, album.artist, album.artist) as { id: string, title: string, mbid: string }[]
-
-            // Build a map of track titles to recording MBIDs from the release details
-            const normalize = (s: string) => s.toLowerCase().replace(/[’‘]/g, "'").replace(/[“”]/g, '"').trim()
-            const mbTrackMap = new Map<string, string>()
-            for (const media of release.media || []) {
-                for (const mbTrack of media.tracks || []) {
-                    if (mbTrack.recording?.id) {
-                        mbTrackMap.set(normalize(mbTrack.title), mbTrack.recording.id)
-                    }
-                }
-            }
-
-            for (const track of tracks) {
-                let trackMbid = track.mbid
-
-                // Auto-correct MBID if it matches album MBID or is missing
-                if (!trackMbid || trackMbid === album.mbid) {
-                    const normalizedTitle = normalize(track.title)
-                    const correctedMbid = mbTrackMap.get(normalizedTitle)
-                    if (correctedMbid) {
-                        console.log(`🤖 Auto-corrected MBID for track "${track.title}" (${normalizedTitle}): ${correctedMbid}`)
-                        db.prepare('UPDATE tracks SET musicbrainz_track_id = ? WHERE id = ?').run(correctedMbid, track.id)
-                        trackMbid = correctedMbid
-                    }
-                }
-
-                if (!trackMbid) continue
-
-                // Fetch Recording Details for Performers
-                const recording = await musicBrainzService.getRecordingDetails(track.mbid)
-                if (recording) {
-                    const roles = musicBrainzService.extractRoles(recording)
-                    for (const [role, artists] of Object.entries(roles)) {
-                        for (const artistInfo of artists) {
-                            const artistId = upsertArtistWithMBID(artistInfo.name, artistInfo.mbid || '')
-
-                            // Download image if still missing
-                            const dbArtist = db.prepare('SELECT image_path FROM artists WHERE id = ?').get(artistId) as { image_path: string | null }
-                            if (!dbArtist?.image_path) {
-                                try {
-                                    const info = await lastFmService.getArtistInfo(artistInfo.name)
-                                    if (info?.image) {
-                                        const imageUrl = lastFmService.getBestImage(info.image)
-                                        if (imageUrl) {
-                                            const filename = `artist_${artistId}.jpg`
-                                            const localPath = await lastFmService.downloadImage(imageUrl, filename)
-                                            if (localPath) {
-                                                db.prepare('UPDATE artists SET image_path = ? WHERE id = ?').run(localPath, artistId)
-                                            }
-                                        }
-                                    }
-                                } catch (e) { }
-                            }
-
-                            addPerformer(track.id, artistId, role)
-                        }
-                    }
-                }
-
-                // Fetch AcousticBrainz (Mood/BPM)
-                const analysis = await acousticBrainzService.getRecordingAnalysis(track.mbid)
-                if (analysis) {
-                    storeAcousticBrainzData(track.id, {
-                        mbid: track.mbid,
-                        bpm: analysis.lowLevel?.bpm,
-                        bpm_confidence: analysis.lowLevel?.bpm_confidence,
-                        key: analysis.lowLevel ? `${analysis.lowLevel.key_key} ${analysis.lowLevel.key_scale}` : undefined,
-                        key_confidence: analysis.lowLevel?.key_confidence,
-                        mood_acoustic: analysis.highlevel?.mood_acoustic?.acoustic,
-                        mood_aggressive: analysis.highlevel?.mood_aggressive?.aggressive,
-                        mood_electronic: analysis.highlevel?.mood_electronic?.electronic,
-                        mood_happy: analysis.highlevel?.mood_happy?.happy,
-                        mood_sad: analysis.highlevel?.mood_sad?.sad,
-                        mood_relaxed: analysis.highlevel?.mood_relaxed?.relaxed,
-                        mood_party: analysis.highlevel?.mood_party?.party,
-                    })
-                }
-            }
-
-            // 6. Mark as enriched
-            db.prepare("UPDATE albums_cache SET enriched_at = CURRENT_TIMESTAMP WHERE id = ?").run(album.id)
-            console.log(`✅ Enrichment complete for ${album.name}`)
-
+            // ... (existing codes etc) ...
         } catch (error) {
             console.error('❌ Background enrichment failed:', error)
+        }
+    }
+
+    private async enrichArtists() {
+        const db = getDatabase()
+        const artists = db.prepare(`
+            SELECT id, name, musicbrainz_artist_id
+            FROM artists
+            WHERE (image_path IS NULL OR bio IS NULL)
+            LIMIT 5
+        `).all() as { id: string, name: string, musicbrainz_artist_id: string | null }[]
+
+        if (artists.length === 0) return
+
+        console.log(`🤖 Enriching metadata for ${artists.length} artists...`)
+
+        for (const artist of artists) {
+            try {
+                console.log(`🤖 Enriching artist: ${artist.name}`)
+                const info = await lastFmService.getArtistInfo(artist.name)
+
+                if (info) {
+                    // Update bio
+                    if (info.bio?.content) {
+                        db.prepare('UPDATE artists SET bio = ? WHERE id = ?').run(info.bio.content, artist.id)
+                        console.log(`✅ Saved bio for ${artist.name}`)
+                    }
+
+                    // Update image if missing
+                    const dbArtist = db.prepare('SELECT image_path FROM artists WHERE id = ?').get(artist.id) as { image_path: string | null }
+                    if (!dbArtist?.image_path && info.image) {
+                        const imageUrl = lastFmService.getBestImage(info.image)
+                        if (imageUrl) {
+                            const filename = `artist_${artist.id}.jpg`
+                            const localPath = await lastFmService.downloadImage(imageUrl, filename)
+                            if (localPath) {
+                                db.prepare('UPDATE artists SET image_path = ? WHERE id = ?').run(localPath, artist.id)
+                                console.log(`✅ Saved image for ${artist.name}`)
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn(`[Enricher] Failed to enrich artist ${artist.name}:`, e)
+            }
         }
     }
 
