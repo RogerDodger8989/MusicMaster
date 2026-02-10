@@ -29,6 +29,7 @@ router.post('/albums/:id/loved', albums.toggleAlbumLoved)
 // Artists
 router.get('/artists', artists.listArtists)
 router.get('/artists/similar', artists.getSimilarArtists)
+router.get('/artists/topTracks', artists.getArtistTopTracks)
 router.get('/artists/:id', artists.getArtist)
 router.get('/artists/:id/members', artists.getArtistMembers)
 router.put('/artists/:id', artists.updateArtistDetails)
@@ -107,6 +108,7 @@ router.get('/dashboard/stats', dashboard.getStats)
 router.get('/cover/album/:id', media.getCover)
 router.get('/cover/artist/:id', media.getArtistImage)
 router.get('/stream/:id', media.streamTrack)
+router.get('/waveform/:id', media.getWaveform)
 
 // Scanning & Folders
 router.get('/scan/status', scan.getScanStatus)

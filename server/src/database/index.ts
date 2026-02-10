@@ -697,7 +697,13 @@ export function initDatabase(): Database.Database {
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_performers_unique ON performers(track_id, artist_id, role)",
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_album_credits_unique ON album_credits(album_id, artist_id, role)",
             "ALTER TABLE performers ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP",
-            "ALTER TABLE album_credits ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
+            "ALTER TABLE album_credits ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP",
+
+            // Mood system enhancements (Phase: Arousal-Valence)
+            "ALTER TABLE acousticbrainz_data ADD COLUMN arousal REAL",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN mood_category TEXT",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN confidence_score REAL",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN instrumentalness REAL"
         ]
 
         for (const migration of migrations) {
@@ -789,6 +795,20 @@ export interface DbTrack {
     movement: string | null
     movement_num: number | null
     movement_total: number | null
+    // AcousticBrainz enrichment data (from LEFT JOIN)
+    bpm?: number | null
+    key?: string | null
+    energy?: number | null
+    danceability?: number | null
+    instrumentalness?: number | null
+    acousticness?: number | null
+    mood_acoustic?: number | null
+    mood_aggressive?: number | null
+    mood_electronic?: number | null
+    mood_happy?: number | null
+    mood_sad?: number | null
+    mood_relaxed?: number | null
+    mood_party?: number | null
     created_at: string
     updated_at: string
 }

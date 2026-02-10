@@ -4,6 +4,16 @@
  */
 
 import { getDatabase } from '../database'
+import * as fs from 'fs'
+import * as path from 'path'
+
+const LOG_FILE = path.join(process.cwd(), 'vibe_logic_debug.txt')
+
+function logDebug(msg: string) {
+  try {
+    fs.appendFileSync(LOG_FILE, new Date().toISOString() + ': ' + msg + '\n')
+  } catch (e) { }
+}
 
 export interface VibeDefinition {
   id: string
@@ -13,6 +23,10 @@ export interface VibeDefinition {
   filters: {
     energy?: { min?: number; max?: number }
     danceability?: { min?: number; max?: number }
+    bpm?: { min?: number; max?: number }
+    arousal?: { min?: number; max?: number }
+    valence?: { min?: number; max?: number }
+    instrumentalness?: { min?: number; max?: number }
     moods?: string[]
   }
 }
@@ -24,9 +38,11 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
     emoji: '🎉',
     description: 'High energy, dance-worthy hits',
     filters: {
-      energy: { min: 0.75 },
-      danceability: { min: 0.8 },
-      moods: ['mood_happy', 'mood_party']
+      arousal: { min: 0.7 },
+      valence: { min: 0.3 },
+      bpm: { min: 110 },
+      danceability: { min: 0.7 },
+      instrumentalness: { max: 0.4 }
     }
   },
   chill: {
@@ -35,9 +51,10 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
     emoji: '😴',
     description: 'Relaxed and laid-back vibes',
     filters: {
-      energy: { max: 0.4 },
-      danceability: { max: 0.5 },
-      moods: ['mood_relaxed']
+      arousal: { max: 0.35 },
+      valence: { min: 0.6 },
+      bpm: { max: 95 },
+      energy: { max: 0.4 }
     }
   },
   workout: {
@@ -46,9 +63,9 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
     emoji: '💪',
     description: 'Peak performance energy',
     filters: {
-      energy: { min: 0.8 },
-      danceability: { min: 0.75 },
-      moods: ['mood_happy']
+      energy: { min: 0.75 },
+      arousal: { min: 0.75 },
+      moods: ['mood_happy', 'mood_aggressive', 'mood_party']
     }
   },
   sad: {
@@ -118,6 +135,10 @@ interface TrackWithFeatures {
   mood_acoustic: number | null
   bpm: number | null
   key: string | null
+  instrumentalness: number | null
+  arousal: number | null
+  valence: number | null
+  mood_category: string | null
 }
 
 /**
@@ -137,7 +158,7 @@ export function getVibeDefinition(vibeId: string): VibeDefinition | null {
   if (VIBE_DEFINITIONS[vibeId]) {
     return VIBE_DEFINITIONS[vibeId]
   }
-  
+
   // Check custom vibes
   const customVibe = getCustomVibeById(vibeId)
   return customVibe
@@ -164,14 +185,24 @@ export function getCustomVibes(): VibeDefinition[] {
       emoji: row.emoji,
       description: row.description || '',
       filters: {
-        energy: row.energy_min !== null || row.energy_max !== null 
+        energy: row.energy_min !== null || row.energy_max !== null
           ? { min: row.energy_min, max: row.energy_max }
           : undefined,
         danceability: row.danceability_min !== null || row.danceability_max !== null
           ? { min: row.danceability_min, max: row.danceability_max }
           : undefined,
+        arousal: row.arousal_min !== null || row.arousal_max !== null
+          ? { min: row.arousal_min, max: row.arousal_max }
+          : undefined,
+        valence: row.valence_min !== null || row.valence_max !== null
+          ? { min: row.valence_min, max: row.valence_max }
+          : undefined,
+        instrumentalness: row.instrumentalness_min !== null || row.instrumentalness_max !== null
+          ? { min: row.instrumentalness_min, max: row.instrumentalness_max }
+          : undefined,
         moods: row.mood_filters ? JSON.parse(row.mood_filters) : undefined
       }
+
     }))
   } catch (error) {
     console.error('Error fetching custom vibes:', error)
@@ -202,14 +233,24 @@ export function getCustomVibeById(vibeId: string): VibeDefinition | null {
       emoji: row.emoji,
       description: row.description || '',
       filters: {
-        energy: row.energy_min !== null || row.energy_max !== null 
+        energy: row.energy_min !== null || row.energy_max !== null
           ? { min: row.energy_min, max: row.energy_max }
           : undefined,
         danceability: row.danceability_min !== null || row.danceability_max !== null
           ? { min: row.danceability_min, max: row.danceability_max }
           : undefined,
+        arousal: row.arousal_min !== null || row.arousal_max !== null
+          ? { min: row.arousal_min, max: row.arousal_max }
+          : undefined,
+        valence: row.valence_min !== null || row.valence_max !== null
+          ? { min: row.valence_min, max: row.valence_max }
+          : undefined,
+        instrumentalness: row.instrumentalness_min !== null || row.instrumentalness_max !== null
+          ? { min: row.instrumentalness_min, max: row.instrumentalness_max }
+          : undefined,
         moods: row.mood_filters ? JSON.parse(row.mood_filters) : undefined
       }
+
     }
   } catch (error) {
     console.error('Error fetching custom vibe:', error)
@@ -229,19 +270,19 @@ export function getVibePlaylist(vibeId: string, limit: number = 50): TrackWithFe
   }
 
   try {
-    // Build WHERE clause for mood filters
+    // Build WHERE clause for mood filters (stricter threshold)
     let moodClause = ''
     if (vibe.filters.moods && vibe.filters.moods.length > 0) {
       const moodConditions = vibe.filters.moods
-        .map(mood => `ab.${mood} > 0.6`)
+        .map(mood => `ab.${mood} > 0.75`)
         .join(' OR ')
       moodClause = `AND (${moodConditions})`
     }
 
-    // Build energy filter
+    // Build energy filter (ensure not null if filter is defined)
     let energyClause = ''
     if (vibe.filters.energy) {
-      const conditions = []
+      const conditions = ['ab.energy IS NOT NULL']
       if (vibe.filters.energy.min !== undefined) {
         conditions.push(`ab.energy >= ${vibe.filters.energy.min}`)
       }
@@ -253,10 +294,10 @@ export function getVibePlaylist(vibeId: string, limit: number = 50): TrackWithFe
       }
     }
 
-    // Build danceability filter
+    // Build danceability filter (ensure not null if filter is defined)
     let danceClause = ''
     if (vibe.filters.danceability) {
-      const conditions = []
+      const conditions = ['ab.danceability IS NOT NULL']
       if (vibe.filters.danceability.min !== undefined) {
         conditions.push(`ab.danceability >= ${vibe.filters.danceability.min}`)
       }
@@ -268,37 +309,210 @@ export function getVibePlaylist(vibeId: string, limit: number = 50): TrackWithFe
       }
     }
 
+    // Build BPM filter
+    let bpmClause = ''
+    if (vibe.filters.bpm) {
+      const conditions = ['ab.bpm IS NOT NULL']
+      if (vibe.filters.bpm.min !== undefined) {
+        conditions.push(`ab.bpm >= ${vibe.filters.bpm.min}`)
+      }
+      if (vibe.filters.bpm.max !== undefined) {
+        conditions.push(`ab.bpm <= ${vibe.filters.bpm.max}`)
+      }
+      if (conditions.length > 0) {
+        bpmClause = 'AND ' + conditions.join(' AND ')
+      }
+    }
+
+    // Build arousal filter
+    let arousalClause = ''
+    if (vibe.filters.arousal) {
+      const conditions = ['ab.arousal IS NOT NULL']
+      if (vibe.filters.arousal.min !== undefined) {
+        conditions.push(`ab.arousal >= ${vibe.filters.arousal.min}`)
+      }
+      if (vibe.filters.arousal.max !== undefined) {
+        conditions.push(`ab.arousal <= ${vibe.filters.arousal.max}`)
+      }
+      if (conditions.length > 0) {
+        arousalClause = 'AND ' + conditions.join(' AND ')
+      }
+    }
+
+    // Build valence filter
+    let valenceClause = ''
+    if (vibe.filters.valence) {
+      const conditions = ['ab.valence IS NOT NULL']
+      if (vibe.filters.valence.min !== undefined) {
+        conditions.push(`ab.valence >= ${vibe.filters.valence.min}`)
+      }
+      if (vibe.filters.valence.max !== undefined) {
+        conditions.push(`ab.valence <= ${vibe.filters.valence.max}`)
+      }
+      if (conditions.length > 0) {
+        valenceClause = 'AND ' + conditions.join(' AND ')
+      }
+    }
+
+    // Build instrumentalness filter
+    let instrumentalnessClause = ''
+    if (vibe.filters.instrumentalness) {
+      const conditions = ['ab.instrumentalness IS NOT NULL']
+      if (vibe.filters.instrumentalness.min !== undefined) {
+        conditions.push(`ab.instrumentalness >= ${vibe.filters.instrumentalness.min}`)
+      }
+      if (vibe.filters.instrumentalness.max !== undefined) {
+        conditions.push(`ab.instrumentalness <= ${vibe.filters.instrumentalness.max}`)
+      }
+      if (conditions.length > 0) {
+        instrumentalnessClause = 'AND ' + conditions.join(' AND ')
+      }
+    }
+
     // Query all matching tracks with their audio features
+    // STRICT: Only include tracks with complete mood classification
     const query = `
       SELECT 
-        t.id, t.title, t.artist,
+        t.id, t.title, t.artist, t.album, t.album_artist, ac.id as album_id,
         ab.energy, ab.danceability,
         ab.mood_happy, ab.mood_sad, ab.mood_aggressive,
         ab.mood_party, ab.mood_relaxed, ab.mood_acoustic,
-        ab.bpm, ab.key
+        ab.bpm, ab.key, ab.arousal, ab.valence, ab.mood_category,
+        ab.instrumentalness
       FROM tracks t
+      LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
       LEFT JOIN acousticbrainz_data ab ON t.id = ab.track_id
       WHERE ab.id IS NOT NULL
+      AND ab.arousal IS NOT NULL
+      AND ab.valence IS NOT NULL
       ${energyClause}
       ${danceClause}
+      ${bpmClause}
+      ${arousalClause}
+      ${valenceClause}
+      ${instrumentalnessClause}
       ${moodClause}
       ORDER BY RANDOM()
     `
 
     const allTracks = db.prepare(query).all() as TrackWithFeatures[]
 
-    // Filter out duplicate artists (keep first occurrence)
-    const artistsSeen = new Set<string>()
+    // --- PHASE 1: STRICT FILTERING (AB Data) ---
+    // Filter out duplicate artists (keep up to 10 per artist for small libraries)
+    const artistCounts = new Map<string, number>()
     const uniqueTracks: TrackWithFeatures[] = []
 
     for (const track of allTracks) {
-      if (!artistsSeen.has(track.artist.toLowerCase())) {
-        artistsSeen.add(track.artist.toLowerCase())
+      logDebug(`Checking ${track.title} [${vibeId}] En:${track.energy} Ar:${track.arousal} Va:${track.valence} Inst:${track.instrumentalness}`)
+
+      // 🛡️ Safety Net: Explicitly check filters in JS to prevent SQL leaks
+      if (vibe.filters.energy) {
+        if (vibe.filters.energy.max !== undefined && (track.energy === null || track.energy > vibe.filters.energy.max)) {
+          logDebug(`  ❌ REJECTED Energy: ${track.energy} > ${vibe.filters.energy.max}`)
+          continue
+        }
+        if (vibe.filters.energy.min !== undefined && (track.energy === null || track.energy < vibe.filters.energy.min)) {
+          logDebug(`  ❌ REJECTED Energy: ${track.energy} < ${vibe.filters.energy.min}`)
+          continue
+        }
+      }
+      if (vibe.filters.arousal) {
+        if (vibe.filters.arousal.max !== undefined && (track.arousal === null || track.arousal > vibe.filters.arousal.max)) {
+          logDebug(`  ❌ REJECTED Arousal: ${track.arousal} > ${vibe.filters.arousal.max}`)
+          continue
+        }
+        if (vibe.filters.arousal.min !== undefined && (track.arousal === null || track.arousal < vibe.filters.arousal.min)) {
+          logDebug(`  ❌ REJECTED Arousal: ${track.arousal} < ${vibe.filters.arousal.min}`)
+          continue
+        }
+      }
+      if (vibe.filters.valence) {
+        if (vibe.filters.valence.max !== undefined && (track.valence === null || track.valence > vibe.filters.valence.max)) continue
+        if (vibe.filters.valence.min !== undefined && (track.valence === null || track.valence < vibe.filters.valence.min)) continue
+      }
+      if (vibe.filters.instrumentalness) {
+        if (vibe.filters.instrumentalness.max !== undefined && (track.instrumentalness === null || track.instrumentalness > vibe.filters.instrumentalness.max)) {
+          logDebug(`  ❌ REJECTED Instrumental: ${track.instrumentalness} > ${vibe.filters.instrumentalness.max}`)
+          continue
+        }
+        if (vibe.filters.instrumentalness.min !== undefined && (track.instrumentalness === null || track.instrumentalness < vibe.filters.instrumentalness.min)) {
+          logDebug(`  ❌ REJECTED Instrumental: ${track.instrumentalness} < ${vibe.filters.instrumentalness.min}`)
+          continue
+        }
+      }
+
+      logDebug(`  ✅ ACCEPTED (Strict mode)`)
+
+      const artistKey = track.artist.toLowerCase()
+      const count = artistCounts.get(artistKey) || 0
+      if (count < 10) {
+        artistCounts.set(artistKey, count + 1)
         uniqueTracks.push(track)
 
         if (uniqueTracks.length >= limit) {
           break
         }
+      }
+    }
+
+    // --- PHASE 2: FALLBACK (Not Enriched Tracks / Genre based) ---
+    // If we have very few tracks, fill the pool with tracks that aren't blacklisted
+    if (uniqueTracks.length < Math.min(limit, 10)) {
+      logDebug(`⚠️ Playlist too small (${uniqueTracks.length}). Running fallback fallback for ${vibeId}...`)
+
+      const fallbackQuery = `
+         SELECT 
+           t.id, t.title, t.artist, t.album, t.album_artist, ac.id as album_id, t.genre,
+           ab.energy, ab.danceability,
+           ab.mood_happy, ab.mood_sad, ab.mood_aggressive,
+           ab.mood_party, ab.mood_relaxed, ab.mood_acoustic,
+           ab.bpm, ab.key, ab.arousal, ab.valence, ab.mood_category,
+           ab.instrumentalness
+         FROM tracks t
+         LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
+         LEFT JOIN acousticbrainz_data ab ON t.id = ab.track_id
+         ORDER BY RANDOM()
+       `
+      const potentialTracks = db.prepare(fallbackQuery).all() as any[]
+
+      for (const track of potentialTracks) {
+        // Skip if already added
+        if (uniqueTracks.some(ut => ut.id === track.id)) continue
+
+        const g = (track.genre || '').toLowerCase()
+        let isBlacklisted = false
+
+        // 🛡️ Safety check: If it has AB data and failed "Drive" or "Metal" tests earlier, 
+        // we should be careful. But for now, we rely on the Genre Blacklist which is very safe.
+
+        // Hard blacklists for vibes
+        if (vibeId === 'party') {
+          // Party never has "Score", "Soundtrack", "Classical", "Ambient"
+          if (g.includes('score') || g.includes('soundtrack') || g.includes('ambient') || g.includes('orchestral') || g.includes('film')) {
+            isBlacklisted = true
+          }
+          // Also block high instrumentalness if we have the data
+          if (track.instrumentalness !== null && track.instrumentalness > 0.6) isBlacklisted = true
+        }
+
+        if (vibeId === 'chill') {
+          // Chill never has "Metal", "Hardcore", "Aggressive"
+          if (g.includes('metal') || g.includes('hardcore') || g.includes('aggressive') || g.includes('thrash') || g.includes('punk')) {
+            isBlacklisted = true
+          }
+          // Also block high energy/arousal if we have the data
+          if ((track.energy !== null && track.energy > 0.7) || (track.arousal !== null && track.arousal > 0.7)) isBlacklisted = true
+        }
+
+        const artistKey = track.artist.toLowerCase()
+        const count = artistCounts.get(artistKey) || 0
+        if (!isBlacklisted && count < 10) {
+          logDebug(`  ✅ ACCEPTED (Fallback mode): ${track.title} [${track.genre}]`)
+          artistCounts.set(artistKey, count + 1)
+          uniqueTracks.push(track as TrackWithFeatures)
+        }
+
+        if (uniqueTracks.length >= limit) break
       }
     }
 

@@ -57,7 +57,7 @@ export default function ArtistsView({ onArtistClick }: ArtistsViewProps) {
       const shuffled = [...artistTracks]
       for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1))
-        ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+          ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
       }
       playAlbum(shuffled)
       if (!isShuffle) toggleShuffle()
@@ -86,7 +86,7 @@ export default function ArtistsView({ onArtistClick }: ArtistsViewProps) {
     <div className="flex flex-col h-full bg-background/95 relative">
       {/* Toolbar */}
       <div className="flex-shrink-0 bg-background border-b z-20 p-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
+        <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold">Artists</h1>
             <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-md">
@@ -115,7 +115,7 @@ export default function ArtistsView({ onArtistClick }: ArtistsViewProps) {
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-6 md:px-8 custom-scrollbar">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full">
           {filteredArtists.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-zinc-500 space-y-4">
               <Users className="w-16 h-16 opacity-20" />

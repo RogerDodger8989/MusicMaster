@@ -21,6 +21,7 @@ interface SettingsStore {
   listenbrainzUsername: string
   lastfmEnabled: boolean
   listenbrainzEnabled: boolean
+  showWaveform: boolean
 
   // Actions
   setViewMode: (mode: ViewMode) => void
@@ -38,6 +39,7 @@ interface SettingsStore {
   setListenbrainzUsername: (username: string) => void
   setLastfmEnabled: (enabled: boolean) => void
   setListenbrainzEnabled: (enabled: boolean) => void
+  setShowWaveform: (enabled: boolean) => void
 
   // Persistence
   loadSettings: () => Promise<void>
@@ -59,6 +61,7 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   listenbrainzUsername: '',
   lastfmEnabled: false,
   listenbrainzEnabled: false,
+  showWaveform: false,
 
   setViewMode: (viewMode) => {
     set({ viewMode })
@@ -127,6 +130,10 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   setListenbrainzEnabled: (enabled) => {
     set({ listenbrainzEnabled: enabled })
     client.saveSetting('listenbrainzEnabled', enabled)
+  },
+  setShowWaveform: (enabled) => {
+    set({ showWaveform: enabled })
+    client.saveSetting('showWaveform', enabled)
   },
 
   loadSettings: async () => {

@@ -69,7 +69,7 @@ export default function SettingsView() {
     operation: 'enhance'
   })
   const [mbWriteToFiles, setMbWriteToFiles] = useState(true)
-  
+
   // Enrichment coverage state
   const [enrichmentCoverage, setEnrichmentCoverage] = useState<{
     totalTracks: number
@@ -77,7 +77,7 @@ export default function SettingsView() {
     coveragePercentage: number
   } | null>(null)
   const [enrichmentStatus, setEnrichmentStatus] = useState<'idle' | 'running' | 'completed' | 'error'>('idle')
-  
+
   const enrichmentPollRef = useRef<NodeJS.Timeout | null>(null)
   const syncPollRef = useRef<NodeJS.Timeout | null>(null)
   const enhancePollRef = useRef<NodeJS.Timeout | null>(null)
@@ -94,27 +94,27 @@ export default function SettingsView() {
       try {
         const response = await fetch('http://localhost:3000/api/enrichment/status')
         const data = await response.json()
-        
+
         if (data.coverage) {
           setEnrichmentCoverage(data.coverage)
         }
-        
+
         if (data.status?.status) {
-          setEnrichmentStatus(data.status.status === 'in_progress' ? 'running' : 
-                              data.status.status === 'completed' ? 'completed' : 
-                              data.status.status === 'error' ? 'error' : 'idle')
+          setEnrichmentStatus(data.status.status === 'in_progress' ? 'running' :
+            data.status.status === 'completed' ? 'completed' :
+              data.status.status === 'error' ? 'error' : 'idle')
         }
       } catch (error) {
         console.error('Failed to fetch enrichment status:', error)
       }
     }
-    
+
     // Initial fetch
     fetchEnrichmentStatus()
-    
+
     // Poll every 3 seconds
     enrichmentPollRef.current = setInterval(fetchEnrichmentStatus, 3000)
-    
+
     return () => {
       if (enrichmentPollRef.current) {
         clearInterval(enrichmentPollRef.current)
@@ -185,7 +185,7 @@ export default function SettingsView() {
               trackName: status.trackName
             }))
           }
-        } catch (e) {}
+        } catch (e) { }
       }, 1000)
     }
     return () => {
@@ -211,7 +211,7 @@ export default function SettingsView() {
               trackName: status.trackPath
             }))
           }
-        } catch (e) {}
+        } catch (e) { }
       }, 1000)
     }
     return () => {
@@ -591,7 +591,25 @@ export default function SettingsView() {
       <div className="space-y-6">
         <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
           <h3 className="text-lg font-semibold text-white mb-4">Appearance</h3>
-          <p className="text-sm text-zinc-500">Theme and color scheme settings coming soon...</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="text-sm font-medium text-zinc-400">Show Waveforms in Player</label>
+              <p className="text-[11px] text-zinc-600 mt-1">
+                Displays a visual waveform of the current track behind the progress bar.
+              </p>
+            </div>
+            <button
+              onClick={() => settings.setShowWaveform(!settings.showWaveform)}
+              className={cn(
+                'px-3 py-2 text-xs font-semibold rounded-lg border transition-all',
+                settings.showWaveform
+                  ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-500/20'
+                  : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200'
+              )}
+            >
+              {settings.showWaveform ? 'On' : 'Off'}
+            </button>
+          </div>
         </div>
 
         <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">

@@ -283,6 +283,9 @@ export interface DbAcousticBrainzData {
     mood_sad: number | null
     mood_relaxed: number | null
     mood_party: number | null
+    arousal: number | null
+    mood_category: string | null
+    confidence_score: number | null
     updated_at: string
     created_at: string
 }

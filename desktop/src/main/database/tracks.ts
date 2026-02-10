@@ -136,7 +136,25 @@ export function upsertTrack(
  */
 export function getAllTracks(): Track[] {
   const db = getDatabase()
-  const stmt = db.prepare('SELECT * FROM tracks ORDER BY artist, album, disc_num, track_num')
+  const stmt = db.prepare(`
+    SELECT 
+      t.*,
+      COALESCE(a.bpm, null) as bpm,
+      COALESCE(a.key, null) as key,
+      COALESCE(a.energy, null) as energy,
+      COALESCE(a.danceability, null) as danceability,
+      COALESCE(a.acousticness, null) as acousticness,
+      COALESCE(a.mood_acoustic, null) as mood_acoustic,
+      COALESCE(a.mood_aggressive, null) as mood_aggressive,
+      COALESCE(a.mood_electronic, null) as mood_electronic,
+      COALESCE(a.mood_happy, null) as mood_happy,
+      COALESCE(a.mood_sad, null) as mood_sad,
+      COALESCE(a.mood_relaxed, null) as mood_relaxed,
+      COALESCE(a.mood_party, null) as mood_party
+    FROM tracks t
+    LEFT JOIN acousticbrainz_data a ON t.id = a.track_id
+    ORDER BY t.artist, t.album, t.disc_num, t.track_num
+  `)
   const rows = stmt.all() as DbTrack[]
   return rows.map(dbTrackToTrack)
 }
@@ -146,9 +164,26 @@ export function getAllTracks(): Track[] {
  */
 export function getTracksByFolder(folderId: string): Track[] {
   const db = getDatabase()
-  const stmt = db.prepare(
-    'SELECT * FROM tracks WHERE folder_id = ? ORDER BY artist, album, disc_num, track_num'
-  )
+  const stmt = db.prepare(`
+    SELECT 
+      t.*,
+      COALESCE(a.bpm, null) as bpm,
+      COALESCE(a.key, null) as key,
+      COALESCE(a.energy, null) as energy,
+      COALESCE(a.danceability, null) as danceability,
+      COALESCE(a.acousticness, null) as acousticness,
+      COALESCE(a.mood_acoustic, null) as mood_acoustic,
+      COALESCE(a.mood_aggressive, null) as mood_aggressive,
+      COALESCE(a.mood_electronic, null) as mood_electronic,
+      COALESCE(a.mood_happy, null) as mood_happy,
+      COALESCE(a.mood_sad, null) as mood_sad,
+      COALESCE(a.mood_relaxed, null) as mood_relaxed,
+      COALESCE(a.mood_party, null) as mood_party
+    FROM tracks t
+    LEFT JOIN acousticbrainz_data a ON t.id = a.track_id
+    WHERE t.folder_id = ?
+    ORDER BY t.artist, t.album, t.disc_num, t.track_num
+  `)
   const rows = stmt.all(folderId) as DbTrack[]
   return rows.map(dbTrackToTrack)
 }
@@ -168,11 +203,26 @@ export function deleteTrackByPath(filePath: string): void {
 export function getTracksByAlbum(name: string, artist: string): Track[] {
   const db = getDatabase()
   const stmt = db.prepare(`
-        SELECT * FROM tracks 
-        WHERE COALESCE(NULLIF(album, ''), 'Unknown Album') = ? 
-        AND COALESCE(album_artist, artist, 'Unknown Artist') = ?
-        ORDER BY disc_num, track_num
-    `)
+    SELECT 
+      t.*,
+      COALESCE(a.bpm, null) as bpm,
+      COALESCE(a.key, null) as key,
+      COALESCE(a.energy, null) as energy,
+      COALESCE(a.danceability, null) as danceability,
+      COALESCE(a.acousticness, null) as acousticness,
+      COALESCE(a.mood_acoustic, null) as mood_acoustic,
+      COALESCE(a.mood_aggressive, null) as mood_aggressive,
+      COALESCE(a.mood_electronic, null) as mood_electronic,
+      COALESCE(a.mood_happy, null) as mood_happy,
+      COALESCE(a.mood_sad, null) as mood_sad,
+      COALESCE(a.mood_relaxed, null) as mood_relaxed,
+      COALESCE(a.mood_party, null) as mood_party
+    FROM tracks t
+    LEFT JOIN acousticbrainz_data a ON t.id = a.track_id
+    WHERE COALESCE(NULLIF(t.album, ''), 'Unknown Album') = ? 
+    AND COALESCE(t.album_artist, t.artist, 'Unknown Artist') = ?
+    ORDER BY t.disc_num, t.track_num
+  `)
   const rows = stmt.all(name, artist) as DbTrack[]
   return rows.map(dbTrackToTrack)
 }
@@ -182,7 +232,25 @@ export function getTracksByAlbum(name: string, artist: string): Track[] {
  */
 export function getTrackById(id: string): Track | null {
   const db = getDatabase()
-  const stmt = db.prepare('SELECT * FROM tracks WHERE id = ?')
+  const stmt = db.prepare(`
+    SELECT 
+      t.*,
+      COALESCE(a.bpm, null) as bpm,
+      COALESCE(a.key, null) as key,
+      COALESCE(a.energy, null) as energy,
+      COALESCE(a.danceability, null) as danceability,
+      COALESCE(a.acousticness, null) as acousticness,
+      COALESCE(a.mood_acoustic, null) as mood_acoustic,
+      COALESCE(a.mood_aggressive, null) as mood_aggressive,
+      COALESCE(a.mood_electronic, null) as mood_electronic,
+      COALESCE(a.mood_happy, null) as mood_happy,
+      COALESCE(a.mood_sad, null) as mood_sad,
+      COALESCE(a.mood_relaxed, null) as mood_relaxed,
+      COALESCE(a.mood_party, null) as mood_party
+    FROM tracks t
+    LEFT JOIN acousticbrainz_data a ON t.id = a.track_id
+    WHERE t.id = ?
+  `)
   const row = stmt.get(id) as DbTrack | undefined
   return row ? dbTrackToTrack(row) : null
 }
@@ -192,7 +260,25 @@ export function getTrackById(id: string): Track | null {
  */
 export function getTrackByPath(filePath: string): Track | null {
   const db = getDatabase()
-  const stmt = db.prepare('SELECT * FROM tracks WHERE file_path = ?')
+  const stmt = db.prepare(`
+    SELECT 
+      t.*,
+      COALESCE(a.bpm, null) as bpm,
+      COALESCE(a.key, null) as key,
+      COALESCE(a.energy, null) as energy,
+      COALESCE(a.danceability, null) as danceability,
+      COALESCE(a.acousticness, null) as acousticness,
+      COALESCE(a.mood_acoustic, null) as mood_acoustic,
+      COALESCE(a.mood_aggressive, null) as mood_aggressive,
+      COALESCE(a.mood_electronic, null) as mood_electronic,
+      COALESCE(a.mood_happy, null) as mood_happy,
+      COALESCE(a.mood_sad, null) as mood_sad,
+      COALESCE(a.mood_relaxed, null) as mood_relaxed,
+      COALESCE(a.mood_party, null) as mood_party
+    FROM tracks t
+    LEFT JOIN acousticbrainz_data a ON t.id = a.track_id
+    WHERE t.file_path = ?
+  `)
   const row = stmt.get(filePath) as DbTrack | undefined
   return row ? dbTrackToTrack(row) : null
 }
@@ -282,6 +368,17 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
     replayGainAlbum: (dbTrack as any).replaygain_album_gain || undefined,
     replayGainTrackPeak: (dbTrack as any).replaygain_track_peak || undefined,
     replayGainAlbumPeak: (dbTrack as any).replaygain_album_peak || undefined,
+    bpm: dbTrack.bpm || undefined,
+    key: dbTrack.key || undefined,
+    energy: dbTrack.energy || undefined,
+    danceability: dbTrack.danceability || undefined,
+    moodAcoustic: dbTrack.mood_acoustic || undefined,
+    moodAggressive: dbTrack.mood_aggressive || undefined,
+    moodElectronic: dbTrack.mood_electronic || undefined,
+    moodHappy: dbTrack.mood_happy || undefined,
+    moodSad: dbTrack.mood_sad || undefined,
+    moodRelaxed: dbTrack.mood_relaxed || undefined,
+    moodParty: dbTrack.mood_party || undefined,
     createdAt: new Date(dbTrack.created_at),
     updatedAt: new Date(dbTrack.updated_at)
   }

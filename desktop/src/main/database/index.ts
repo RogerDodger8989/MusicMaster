@@ -695,6 +695,19 @@ export interface DbTrack {
   isrc: string | null
   created_at: string
   updated_at: string
+  // AcousticBrainz enrichment data
+  bpm?: number | null
+  key?: string | null
+  energy?: number | null
+  danceability?: number | null
+  acousticness?: number | null
+  mood_acoustic?: number | null
+  mood_aggressive?: number | null
+  mood_electronic?: number | null
+  mood_happy?: number | null
+  mood_sad?: number | null
+  mood_relaxed?: number | null
+  mood_party?: number | null
 }
 
 export interface DbAlbumCache {

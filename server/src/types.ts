@@ -44,6 +44,7 @@ export interface Track {
     moodParty?: number
     energy?: number
     danceability?: number
+    instrumentalness?: number
 
     createdAt: Date
     updatedAt: Date

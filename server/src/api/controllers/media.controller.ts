@@ -145,3 +145,20 @@ export const streamTrack = (req: Request, res: Response) => {
         res.status(500).send('Internal Server Error')
     }
 }
+
+export const getWaveform = (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+        const waveformDir = path.join(__dirname, '../../../data/waveforms')
+        const waveformPath = path.join(waveformDir, `${id}.png`)
+
+        if (fs.existsSync(waveformPath)) {
+            res.sendFile(waveformPath)
+        } else {
+            res.status(404).send('Waveform not found')
+        }
+    } catch (error) {
+        console.error('Error serving waveform:', error)
+        res.status(500).send('Internal Server Error')
+    }
+}

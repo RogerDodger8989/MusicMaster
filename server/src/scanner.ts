@@ -7,6 +7,8 @@ import chokidar, { FSWatcher } from 'chokidar'
 import { upsertTrack, deleteTrackByPath, getTrackByPath, getTracksByFolder } from './database/tracks'
 import { updateFolderLastScanned, updateFolderTrackCount } from './database/folders'
 import { aggregateAlbums } from './database/albums'
+import { analyzeAndStoreTrack } from './services/audioAnalysisFfmpeg'
+import { getDatabase } from './database'
 import type { ScanProgress } from './types'
 
 export class MusicScanner extends EventEmitter {
@@ -361,7 +363,7 @@ export class MusicScanner extends EventEmitter {
             const artistName = (metadata.common.artists?.join(', ') || metadata.common.artist || 'Unknown Artist').trim()
             const albumArtistName = metadata.common.albumartist?.trim()
 
-            upsertTrack({
+            const trackId = upsertTrack({
                 folderId,
                 filePath,
                 fileHash: undefined,
@@ -394,6 +396,18 @@ export class MusicScanner extends EventEmitter {
                 replayGainTrackPeak,
                 replayGainAlbumPeak
             })
+
+            // Trigger audio analysis if not already present
+            const db = getDatabase()
+            const existingAnalysis = db.prepare('SELECT id FROM acousticbrainz_data WHERE track_id = ?').get(trackId)
+
+            if (!existingAnalysis) {
+                console.log(`[Scanner] 🎵 Triggering audio analysis for: ${path.basename(filePath)}`)
+                // Run analysis asynchronously so it doesn't block the UI scan report, 
+                // but we await it here for simplicity since processFile is async.
+                // If we want faster scanning, we could remove 'await' but that might hit race conditions.
+                await analyzeAndStoreTrack(trackId, filePath, metadata.common.genre?.join('; '))
+            }
         } catch (error) {
             console.error(`Failed to process file ${filePath}:`, error)
             // Don't throw, just log error so scan generates report

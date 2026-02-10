@@ -32,17 +32,16 @@ export interface EnrichmentProgress {
 async function getAlbumGroups(): Promise<Map<string, string[]>> {
   const db = getDatabase()
   
-  // Query: Albums with MBID and their tracks with MBID
+  // Query: Tracks with both track and album MBIDs, grouped by album
   const query = `
-    SELECT DISTINCT 
-      a.mbid as album_mbid,
+    SELECT 
+      t.musicbrainz_album_id as album_mbid,
       t.id as track_id,
       t.musicbrainz_track_id
     FROM tracks t
-    LEFT JOIN albums a ON t.album_id = a.id
     WHERE t.musicbrainz_track_id IS NOT NULL
-      AND a.mbid IS NOT NULL
-    ORDER BY a.mbid
+      AND t.musicbrainz_album_id IS NOT NULL
+    ORDER BY t.musicbrainz_album_id
   `
   
   const rows = db.prepare(query).all() as any[]

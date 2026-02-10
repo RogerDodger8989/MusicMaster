@@ -243,6 +243,28 @@ export function registerIpcHandlers(): void {
       windows.forEach((win) => {
         win.webContents.send('scanner:complete', progress)
       })
+
+      // Auto-trigger enrichment after scan completes
+      console.log('🔄 Scan complete, starting automatic enrichment...')
+      setImmediate(() => {
+        startEnrichmentWorker((enrichProgress) => {
+          windows.forEach((win) => {
+            win.webContents.send('enrichment:progress', enrichProgress)
+          })
+        })
+          .then((result) => {
+            console.log('✅ Auto-enrichment completed:', result)
+            windows.forEach((win) => {
+              win.webContents.send('enrichment:completed', result)
+            })
+          })
+          .catch((error) => {
+            console.error('❌ Auto-enrichment failed:', error)
+            windows.forEach((win) => {
+              win.webContents.send('enrichment:error', error.message)
+            })
+          })
+      })
     })
 
     musicScanner.on('fileAdded', (filePath) => {

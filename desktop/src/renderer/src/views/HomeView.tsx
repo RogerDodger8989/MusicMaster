@@ -3,16 +3,16 @@ import { Music2, Play, Plus, Edit2, Trash2 } from 'lucide-react'
 import { VibesButtons, Vibe } from '../components/VibesButtons'
 import CustomVibeBuilder, { CustomVibeInput } from '../components/modals/CustomVibeBuilder'
 import { usePlayer } from '../store/player'
-import { useLibrary } from '../store/library'
+import { client } from '../api/client'
 
-interface HomeViewProps {}
+interface HomeViewProps { }
 
 /**
  * HOME VIEW - Mood-based vibe selection
  */
-export default function HomeView({}: HomeViewProps) {
+export default function HomeView({ }: HomeViewProps) {
   const { playAlbum, currentTrack } = usePlayer()
-  const { tracks } = useLibrary()
+  // const { tracks } = useLibrary() - No longer needed, we fetch from API
   const [selectedVibe, setSelectedVibe] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [vibes, setVibes] = useState<Vibe[]>([])
@@ -55,9 +55,9 @@ export default function HomeView({}: HomeViewProps) {
       const url = editingVibe
         ? `http://localhost:3000/api/vibes/custom/${vibe.id}`
         : 'http://localhost:3000/api/vibes/custom'
-      
+
       const method = editingVibe ? 'PUT' : 'POST'
-      
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -126,91 +126,11 @@ export default function HomeView({}: HomeViewProps) {
     }
   }
 
-  const shuffleTracks = (list: any[]) => {
-    return [...list].sort(() => Math.random() - 0.5)
-  }
-
-  const trackMatchesVibe = (track: any, vibe: Vibe) => {
-    const filters = vibe.filters || {}
-
-    const energy = track.energy
-    const danceability = track.danceability
-
-    const energyOk = filters.energy
-      ? (filters.energy.min === undefined || energy === undefined || energy >= filters.energy.min) &&
-        (filters.energy.max === undefined || energy === undefined || energy <= filters.energy.max)
-      : true
-
-    const danceOk = filters.danceability
-      ? (filters.danceability.min === undefined || danceability === undefined || danceability >= filters.danceability.min) &&
-        (filters.danceability.max === undefined || danceability === undefined || danceability <= filters.danceability.max)
-      : true
-
-    const moodMap: Record<string, keyof typeof track> = {
-      mood_happy: 'moodHappy',
-      mood_sad: 'moodSad',
-      mood_aggressive: 'moodAggressive',
-      mood_party: 'moodParty',
-      mood_relaxed: 'moodRelaxed',
-      mood_acoustic: 'moodAcoustic'
-    }
-
-    let moodOk = true
-    if (filters.moods && filters.moods.length > 0) {
-      const moodValues = filters.moods
-        .map((m) => track[moodMap[m]])
-        .filter((v) => v !== undefined && v !== null) as number[]
-
-      // If we have mood data, require at least one high match
-      if (moodValues.length > 0) {
-        moodOk = moodValues.some((v) => v > 0.6)
-      }
-    }
-
-    return energyOk && danceOk && moodOk
-  }
-
-  const buildVibePlaylist = (vibe: Vibe, limit = 100) => {
-    const filtered = tracks.filter((t) => trackMatchesVibe(t, vibe))
-    const fallback = tracks.filter((t) => !filtered.includes(t))
-
-    let pool = filtered
-    if (pool.length < 20) {
-      pool = [...pool, ...fallback]
-    }
-
-    const shuffled = shuffleTracks(pool)
-    const uniqueByArtist: any[] = []
-    const usedArtists = new Set<string>()
-
-    for (const t of shuffled) {
-      if (!usedArtists.has(t.artist)) {
-        uniqueByArtist.push(t)
-        usedArtists.add(t.artist)
-      }
-      if (uniqueByArtist.length >= limit) break
-    }
-
-    if (uniqueByArtist.length < limit) {
-      for (const t of shuffled) {
-        if (!uniqueByArtist.includes(t)) {
-          uniqueByArtist.push(t)
-        }
-        if (uniqueByArtist.length >= limit) break
-      }
-    }
-
-    return uniqueByArtist.slice(0, Math.max(1, Math.min(limit, uniqueByArtist.length)))
-  }
-
   /**
-   * Handle vibe selection - fetch tracks and start playback
+   * Handle vibe selection - fetch tracks from server and start playback
    */
   const handleVibeSelect = async (vibeId: string) => {
-    if (selectedVibe === vibeId) {
-      // Already playing this vibe
-      return
-    }
+    if (selectedVibe === vibeId) return
 
     setSelectedVibe(vibeId)
     setIsLoading(true)
@@ -222,7 +142,10 @@ export default function HomeView({}: HomeViewProps) {
         return
       }
 
-      const vibeTracks = buildVibePlaylist(vibe, 100)
+      // Fetch directly from server - SOURCE OF TRUTH
+      // This ensures we use the robust backend logic (including "belt and suspenders" safety checks)
+      const vibeTracks = await client.getVibePlaylist(vibeId, 100)
+
       if (vibeTracks.length === 0) {
         console.error('No tracks available for this vibe')
         setIsLoading(false)
@@ -250,6 +173,7 @@ export default function HomeView({}: HomeViewProps) {
         <div className="flex items-center gap-3 mb-4">
           <Music2 className="w-10 h-10 text-cyan-400" />
           <h1 className="text-5xl font-bold text-white">MusicMaster</h1>
+
         </div>
         <p className="text-xl text-slate-400">
           Choose your vibe and let the music take you
@@ -272,7 +196,7 @@ export default function HomeView({}: HomeViewProps) {
               Create Custom Vibe
             </button>
           </div>
-          
+
           <VibesButtons
             vibes={allVibes}
             selectedVibe={selectedVibe}
@@ -306,7 +230,7 @@ export default function HomeView({}: HomeViewProps) {
                         <div className="mt-2 text-xs text-purple-300">Playing</div>
                       )}
                     </button>
-                    
+
                     {/* Edit/Delete buttons */}
                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button

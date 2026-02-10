@@ -11,7 +11,7 @@ import {
     Heart,
     ListMusic
 } from 'lucide-react'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { RatingStars } from './RatingStars'
 import { CompactAudioFeatures } from './CompactAudioFeatures'
 import { cn } from '../lib/utils'
@@ -106,6 +106,14 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
         if (!currentTrack || !onArtistClick) return
         onArtistClick(currentTrack.artist)
     }
+
+    const [waveformError, setWaveformError] = useState(false)
+    const showWaveform = useSettings((state) => state.showWaveform)
+
+    // Reset waveform error when track changes
+    useEffect(() => {
+        setWaveformError(false)
+    }, [currentTrack?.id])
 
     return (
         <div className="h-24 border-t border-zinc-900 bg-zinc-950/80 backdrop-blur-xl flex items-center justify-between px-6 z-50 relative">
@@ -254,31 +262,70 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                             {formatDuration(currentTime)}
                         </span>
                         <div
-                            className="flex-1 h-1.5 bg-zinc-800/50 rounded-full cursor-pointer relative group/bar overflow-hidden"
+                            className={cn(
+                                'flex-1 cursor-pointer relative group/bar overflow-hidden',
+                                showWaveform && !waveformError ? 'h-11' : 'h-1.5 bg-zinc-800/50 rounded-full'
+                            )}
                             onClick={handleProgressClick}
                         >
                             {/* Hit Area (invisible) */}
                             <div className="absolute -inset-y-3 left-0 right-0 z-10" />
 
-                            {/* Background track */}
-                            <div className="absolute inset-0 bg-zinc-800/50 rounded-full" />
+                            {!showWaveform || waveformError ? (
+                                <>
+                                    {/* Background track */}
+                                    <div className="absolute inset-0 bg-zinc-800/50 rounded-full" />
 
-                            {/* Played portion */}
-                            <div
-                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)] group-hover/bar:from-white group-hover/bar:to-white transition-all duration-300"
-                                style={{
-                                    width: `${Math.min(100, Math.max(0, (currentTime / (duration || 1) || 0) * 100))}%`
-                                }}
-                            />
+                                    {/* Played portion */}
+                                    <div
+                                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)] group-hover/bar:from-white group-hover/bar:to-white transition-all duration-300"
+                                        style={{
+                                            width: `${Math.min(100, Math.max(0, (currentTime / (duration || 1) || 0) * 100))}%`
+                                        }}
+                                    />
 
-                            {/* Thumb */}
-                            <div
-                                className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover/bar:scale-125 transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20"
-                                style={{
-                                    left: `${Math.min(100, Math.max(0, (currentTime / (duration || 1) || 0) * 100))}%`,
-                                    transform: 'translate(-50%, -50%)'
-                                }}
-                            />
+                                    {/* Thumb */}
+                                    <div
+                                        className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover/bar:scale-125 transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20"
+                                        style={{
+                                            left: `${Math.min(100, Math.max(0, (currentTime / (duration || 1) || 0) * 100))}%`,
+                                            transform: 'translate(-50%, -50%)'
+                                        }}
+                                    />
+                                </>
+                            ) : (
+                                <div className="absolute inset-0 flex items-center">
+                                    {/* Unplayed Waveform (Darker) */}
+                                    <div
+                                        className="absolute inset-0 opacity-20 pointer-events-none grayscale"
+                                        style={{
+                                            backgroundImage: `url(${client.getWaveformUrl(currentTrack.id)})`,
+                                            backgroundSize: '100% 100%',
+                                            backgroundPosition: 'center'
+                                        }}
+                                    />
+
+                                    {/* Played portion (Blue) - Perfectly aligned via identical scaling + clip-path */}
+                                    <div
+                                        className="absolute inset-0 bg-blue-500 pointer-events-none transition-[clip-path] duration-100"
+                                        style={{
+                                            clipPath: `inset(0 ${100 - Math.min(100, Math.max(0, (currentTime / (duration || 1) || 0) * 100))}% 0 0)`,
+                                            WebkitMaskImage: `url(${client.getWaveformUrl(currentTrack.id)})`,
+                                            WebkitMaskSize: '100% 100%',
+                                            WebkitMaskPosition: 'center',
+                                            maskImage: `url(${client.getWaveformUrl(currentTrack.id)})`,
+                                            maskSize: '100% 100%',
+                                            maskPosition: 'center'
+                                        }}
+                                    />
+
+                                    {/* Progress line */}
+                                    <div
+                                        className="absolute inset-y-0 bg-white w-[1px] shadow-[0_0_8px_rgba(255,255,255,0.8)] z-20"
+                                        style={{ left: `${Math.min(100, Math.max(0, (currentTime / (duration || 1) || 0) * 100))}%` }}
+                                    />
+                                </div>
+                            )}
                         </div>
                         <span className="text-xs font-bold text-zinc-400 tabular-nums w-12 opacity-80 group-hover:opacity-100 transition-opacity">
                             {formatDuration(duration)}
@@ -288,7 +335,7 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
             </div>
 
             {/* Right: Audio Features, Rating, Volume, Scrobble, Queue */}
-            <div className="flex items-center gap-4 justify-end flex-1">
+            <div className="flex items-center gap-4 justify-end w-[30%] max-w-[400px]">
                 {/* Audio Features Display */}
                 {currentTrack && (
                     <CompactAudioFeatures features={currentTrack} />

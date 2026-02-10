@@ -90,6 +90,7 @@ export interface MusicClient {
   searchAlbums(artist: string, album: string): Promise<any[]>
   getArtistDetails(id: string): Promise<any>
   getArtistMembers(id: string): Promise<any[]>
+  getArtistTopTracks(artist: string, limit?: number): Promise<{ name: string; playcount: string }[]>
   updateArtist(id: string, updates: any): Promise<void>
   getCandidates(trackId: string): Promise<{ candidates: any[] }>
   applyCandidate(trackId: string, candidate: any, options: { writeToFile: boolean; selectedFields?: string[] }): Promise<void>
@@ -106,6 +107,9 @@ export interface MusicClient {
   getCoverUrl(id: string): string
   getArtistImageUrl(id: string): string
   getAudioUrl(id: string): string
+  getAudioUrl(id: string): string
+  getWaveformUrl(id: string): string
+  getVibePlaylist(vibeId: string, limit?: number): Promise<Track[]>
 }
 
 // Implementation using window.api (Electron IPC) - Legacy/Fallback
@@ -338,6 +342,14 @@ export class DomClient implements MusicClient {
     }
     return []
   }
+
+  async getArtistTopTracks(artist: string, limit: number = 50): Promise<{ name: string; playcount: string }[]> {
+    if (this.api.library && this.api.library.getArtistTopTracks) {
+      return this.api.library.getArtistTopTracks(artist, limit)
+    }
+    return []
+  }
+
   async openExternal(url: string): Promise<void> {
     if (this.api.util && this.api.util.openExternal) {
       return this.api.util.openExternal(url)
@@ -360,6 +372,12 @@ export class DomClient implements MusicClient {
   }
   getAudioUrl(_id: string): string {
     return ''
+  }
+  getWaveformUrl(_id: string): string {
+    return ''
+  }
+  async getVibePlaylist(_vibeId: string, _limit?: number): Promise<Track[]> {
+    return []
   }
 }
 
@@ -693,6 +711,13 @@ export class RestClient implements MusicClient {
     return this.req<any[]>(`/api/artists/similar?${params.toString()}`)
   }
 
+  async getArtistTopTracks(artist: string, limit: number = 50): Promise<{ name: string; playcount: string }[]> {
+    const params = new URLSearchParams()
+    params.append('name', artist)
+    params.append('limit', limit.toString())
+    return this.req<any[]>(`/api/artists/topTracks?${params.toString()}`)
+  }
+
   async openExternal(url: string): Promise<void> {
     window.open(url, '_blank')
   }
@@ -715,6 +740,15 @@ export class RestClient implements MusicClient {
 
   getAudioUrl(id: string): string {
     return `${this.baseUrl}/api/stream/${id}`
+  }
+
+  getWaveformUrl(id: string): string {
+    return `${this.baseUrl}/api/waveform/${id}`
+  }
+
+  async getVibePlaylist(vibeId: string, limit: number = 50): Promise<Track[]> {
+    const res = await this.req<{ tracks: Track[] }>(`/api/vibes/${vibeId}?limit=${limit}`)
+    return res.tracks
   }
 }
 

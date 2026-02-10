@@ -58,6 +58,7 @@ export default function ArtistDetailView({
   const [artistMembers, setArtistMembers] = useState<any[]>([])
   const [appearances, setAppearances] = useState<any[]>([])
   const [isLoadingMembers, setIsLoadingMembers] = useState(false)
+  const [lastfmTopTracks, setLastfmTopTracks] = useState<{ name: string; playcount: string }[]>([])
   const [artistContextMenu, setArtistContextMenu] = useState<{
     artist: Artist
     x: number
@@ -142,6 +143,28 @@ export default function ArtistDetailView({
       }
     }
     fetchSimilar()
+    return () => {
+      mounted = false
+    }
+  }, [artistName])
+
+  // Fetch Last.fm top tracks when artistName changes
+  useEffect(() => {
+    let mounted = true
+    const fetchTopTracks = async () => {
+      try {
+        const topTracks = await client.getArtistTopTracks(artistName, 50)
+        if (mounted && Array.isArray(topTracks)) {
+          setLastfmTopTracks(topTracks)
+          console.log(`[UI] Loaded ${topTracks.length} top tracks from Last.fm for "${artistName}"`)
+        } else if (mounted) {
+          setLastfmTopTracks([])
+        }
+      } catch (error) {
+        console.error('Failed to load Last.fm top tracks:', error)
+      }
+    }
+    fetchTopTracks()
     return () => {
       mounted = false
     }
@@ -370,18 +393,37 @@ export default function ArtistDetailView({
       })
   }, [albums, artistName, sortBy, sortOrder])
 
-  // Get top tracks for the artist
+  // Get top tracks for the artist - sorted by Last.fm global ranking
   const topTracks = useMemo(() => {
-    return tracks
-      .filter((t) => t.artist === artistName || t.albumArtist === artistName)
+    const artistTracks = tracks.filter((t) => t.artist === artistName || t.albumArtist === artistName)
+
+    if (lastfmTopTracks.length === 0) {
+      // Fallback: sort by playcount if Last.fm data not available
+      return artistTracks
+        .sort((a, b) => {
+          if (b.playCount !== a.playCount) return b.playCount - a.playCount
+          return a.title.localeCompare(b.title)
+        })
+        .slice(0, 5)
+    }
+
+    // Sort by Last.fm global ranking
+    return artistTracks
       .sort((a, b) => {
-        // 1. Rating
-        if (b.rating !== a.rating) return b.rating - a.rating
-        // 2. Fallback to title
-        return a.title.localeCompare(b.title)
+        const aIndex = (lastfmTopTracks || []).findIndex(t => t.name.toLowerCase() === a.title.toLowerCase())
+        const bIndex = (lastfmTopTracks || []).findIndex(t => t.name.toLowerCase() === b.title.toLowerCase())
+
+        // Both found in Last.fm list - sort by Last.fm ranking
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
+        // Only a found - a comes first
+        if (aIndex !== -1) return -1
+        // Only b found - b comes first
+        if (bIndex !== -1) return 1
+        // Neither found - sort by playcount
+        return b.playCount - a.playCount
       })
       .slice(0, 5)
-  }, [tracks, artistName])
+  }, [tracks, artistName, lastfmTopTracks])
 
   const totalTracks = useMemo(
     () => artistAlbums.reduce((acc, alb) => acc + (alb.trackCount || 0), 0),

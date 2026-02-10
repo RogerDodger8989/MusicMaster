@@ -29,6 +29,18 @@ export interface Track {
   replayGainAlbum?: number
   replayGainTrackPeak?: number
   replayGainAlbumPeak?: number
+  // AcousticBrainz enrichment data
+  bpm?: number
+  key?: string
+  energy?: number
+  danceability?: number
+  moodAcoustic?: number
+  moodAggressive?: number
+  moodElectronic?: number
+  moodHappy?: number
+  moodSad?: number
+  moodRelaxed?: number
+  moodParty?: number
   createdAt: Date
   updatedAt: Date
 }

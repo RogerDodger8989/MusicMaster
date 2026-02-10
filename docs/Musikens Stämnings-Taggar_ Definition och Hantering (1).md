@@ -1,0 +1,102 @@
+# **Technical Specification: Mood-Based Playlist Generation Engine**
+
+This document provides the logic and taxonomy required for an AI to parse music metadata and generate playlists based on emotional "mood" states.
+
+## **1\. Metadata Schema & Extraction Logic**
+
+The engine must prioritize metadata extraction based on the audio container format.
+
+| Format | Primary Field | Legacy/Custom Field | Multi-value Separator |
+| :---- | :---- | :---- | :---- |
+| **MP3 (ID3v2.4)** | TMOO | TXXX:MOOD | ; (Semicolon) |
+| **FLAC (Vorbis)** | MOOD | GENRE | Repeat Field / ; |
+| **Spotify API** | valence | energy | N/A (0.0 \- 1.0 float) |
+
+**Processing Rule:** If multiple values exist (e.g., Sad; Melancholic), the string must be split and each token processed individually .
+
+## **2\. Emotional Vector Space (Russell's Circumplex Model)**
+
+All mood keywords must be mapped to a 2D coordinate system: **Valence (![][image1])** and **Arousal (![][image2])**.1
+
+### **Quadrant Mappings:**
+
+* **Quadrant I: High Valence, High Arousal (Positive/Energetic)**  
+  * *Keywords:* Happy, Upbeat, Energetic, Euphoric, Party .  
+  * *Target Vector:* ![][image3], ![][image4].  
+* **Quadrant II: Low Valence, High Arousal (Negative/Energetic)**  
+  * *Keywords:* Angry, Tense, Anxious, Aggressive, Frantic .  
+  * *Target Vector:* ![][image5], ![][image4].  
+* **Quadrant III: Low Valence, Low Arousal (Negative/Calm)**  
+  * *Keywords:* Sad, Melancholic, Depressed, Gloomy .  
+  * *Target Vector:* ![][image5], ![][image6].  
+* **Quadrant IV: High Valence, Low Arousal (Positive/Calm)**  
+  * *Keywords:* Calm, Relaxed, Content, Peaceful, Chill .  
+  * *Target Vector:* ![][image3], ![][image6].
+
+## **3\. Algorithmic Playlist Logic**
+
+To determine song similarity or match a requested mood, use the Euclidean Distance formula between the target point (![][image7]) and the candidate track (![][image8]) 4:
+
+![][image9]
+
+### **Selection Strategies:**
+
+1. **Seed-Based:** Select ![][image10] tracks with the smallest ![][image11] to a reference song.  
+2. **Trajectory-Based:** Define a path from Mood A to Mood B (e.g., from "Stressed" to "Calm"). Generate a vector path and select songs that fall within a threshold (![][image12]) of the path segments.7  
+3. **Weighted Averaging:** If a track has multiple mood tags, its final coordinate is the centroid (mean) of all associated tag vectors.8
+
+## **4\. Normalization & Synonym Atlas**
+
+AI should map non-standard user input to the nearest "Core Mood":
+
+* **"Chill"** ![][image13] Quadrant IV (Relaxed)  
+* **"Gym"** ![][image13] Quadrant I (Energetic)  
+* **"Focus"** ![][image13] Quadrant IV (Contentment/Low Arousal)  
+* **"Aggressive"** ![][image13] Quadrant II (Angry/High Arousal).9
+
+## **5\. Metadata Integration Rules**
+
+* **Acoustic Features:** If text tags are missing, infer Arousal from BPM and Loudness, and Valence from Key (Major \= High Valence, Minor \= Low Valence) .  
+* **Social Tags:** When using Last.fm or social metadata, apply a lower weight to "contextual" tags (e.g., "seen live") compared to "emotional" tags (e.g., "bittersweet").12
+
+#### **Citerade verk**
+
+1. Automatic Valence and Arousal Recognition in Music \- LIACS, Leiden University, hämtad februari 10, 2026, [https://liacs.leidenuniv.nl/\~bakkerem2/api/Valence\_and\_Arousal\_Recognition.pdf](https://liacs.leidenuniv.nl/~bakkerem2/api/Valence_and_Arousal_Recognition.pdf)  
+2. The Circumplex Model of Emotion in Music \- Private Kitchen, hämtad februari 10, 2026, [https://www.privatekitchen.nl/articles/the-circumplex-model-of-emotion-in-music](https://www.privatekitchen.nl/articles/the-circumplex-model-of-emotion-in-music)  
+3. Decoding Musical Valence and Arousal: Exploring the Neural Correlates of Music-Evoked Emotions and the Role of Express, hämtad februari 10, 2026, [https://www.cesarflima.com/files/pub/SayalEtAl\_2024.pdf](https://www.cesarflima.com/files/pub/SayalEtAl_2024.pdf)  
+4. Build Your First Mood-Based Music Recommendation System in Python \- Medium, hämtad februari 10, 2026, [https://medium.com/data-science/build-your-first-mood-based-music-recommendation-system-in-python-26a427308d96](https://medium.com/data-science/build-your-first-mood-based-music-recommendation-system-in-python-26a427308d96)  
+5. Tagging | MusicBee Wiki \- Fandom, hämtad februari 10, 2026, [https://musicbee.fandom.com/wiki/Tagging](https://musicbee.fandom.com/wiki/Tagging)  
+6. Frame Base Classes \- Mutagen \- Read the Docs, hämtad februari 10, 2026, [https://mutagen.readthedocs.io/en/latest/api/id3\_frames.html](https://mutagen.readthedocs.io/en/latest/api/id3_frames.html)  
+7. Mood-Based Music Discovery: A System for Generating Personalized Thai Music Playlists Using Emotion Analysis \- MDPI, hämtad februari 10, 2026, [https://www.mdpi.com/2571-5577/8/2/37](https://www.mdpi.com/2571-5577/8/2/37)  
+8. Multi-task Learning with Metadata for Music Mood Classification \- arXiv, hämtad februari 10, 2026, [https://arxiv.org/pdf/2110.04765](https://arxiv.org/pdf/2110.04765)  
+9. Are there any classification systems that categorize music by mood?, hämtad februari 10, 2026, [https://music.stackexchange.com/questions/2927/are-there-any-classification-systems-that-categorize-music-by-mood](https://music.stackexchange.com/questions/2927/are-there-any-classification-systems-that-categorize-music-by-mood)  
+10. Music Mood Classification – Electrical and Computer Engineering Design Handbook, hämtad februari 10, 2026, [https://sites.tufts.edu/eeseniordesignhandbook/2015/music-mood-classification/](https://sites.tufts.edu/eeseniordesignhandbook/2015/music-mood-classification/)  
+11. MusicBrainz Picard / Documentation / Plugins / Lastfmplus ..., hämtad februari 10, 2026, [https://musicbrainz.org/doc/MusicBrainz\_Picard/Documentation/Plugins/Lastfmplus](https://musicbrainz.org/doc/MusicBrainz_Picard/Documentation/Plugins/Lastfmplus)  
+12. Automatic Tagging of Audio: The State-of-the-Art, hämtad februari 10, 2026, [https://dory-heptagon-jjh3.squarespace.com/s/machineaudition10.pdf](https://dory-heptagon-jjh3.squarespace.com/s/machineaudition10.pdf)  
+13. Music and Mood: Where Theory and Reality Meet \- IDEALS, hämtad februari 10, 2026, [https://www.ideals.illinois.edu/items/14929/bitstreams/53049/object](https://www.ideals.illinois.edu/items/14929/bitstreams/53049/object)
+
+[image1]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAYCAYAAADDLGwtAAAAu0lEQVR4XmNgGAXUBMxAbAzEdkDMChVjBGJ9IJaHKQJJ9AJxKRCfgLJBAKToExDvAWJukIArENcAsSBU4UKoQk4gXgDEB4CYBySQCsSaQGwJxN+AOAKqEARsgHgyEh8MGoD4CRArIokFAXE6Eh9s7WkgXgPELFAxkGcaGCC2wYEkED8E4nIkMZDJPQwIjWAgDsR3gbgKygeFRCcQG8JVQAHImiwgfgnEi4B4BxAHoKhAAxwMEGeA6FHAAABxGxeL5AUuPwAAAABJRU5ErkJggg==>
+
+[image2]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAZCAYAAAAIcL+IAAAAx0lEQVR4Xu3RMQtBURjG8VeYKIsYZVHKdidllDJQrMpqsbDJB7iTxcw38AXEcEerMimbbEaTgf/r3HM7mSwmnvp1nee87j1ckX++kTjKaCD1thelhB189BHggrEzIwUcMUEs7Hp4oG2HEljgjKItxdzpKuYor3w8qB+0WIn5kkavug6QDjtpiTnLwBYkjxPmThcNNp2uhju6qGKkZUXMo+2vy2CLGzxMUdcN/TuG2GOJDTo4YI0Zkjpoo4fOiXk7Gt3MOusfzBNijSGBwLzOUwAAAABJRU5ErkJggg==>
+
+[image3]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGcAAAAYCAYAAADnNePtAAAEaklEQVR4Xu2YXchNWRjHnwk1YsbHK2LIoTdyoSEkhQuZiZlIGAnlQsw0F1yhJL2FC5qZC/KRlJeSaZqLKc0koxlyM1LKBUqJESZT5kJGuMDz69mrs/Y6e+2z9zm9n51f/Tv7rL32x1r/tZ717CXSokWLvs8A1WjVWNXw4Fx/hXbS3jbVB8G5XgUveU11SrUpONdfoZ209yfV0OBcrwJzTkvtSw5WrVOdUB1UTU2fjjJd9ZXYbGRUct8FqvV+pZLMVH0eFubAc+eqDqmOqr4UixA+vNe+5LfXkmXOMNXvqr1J+QzVbdUqr06Mtap3gR6K3aMMdO4O1XWxe+xMn46CMVx3RTVJLHSdFRtkg7x63WqOi6O+PkzVyCbLHDqCThnhlTHy76jGeGVZLFPdS/SXapvq41SNYmAO9/pC9b8UN2eW6qlqvlc2WfW3aolX1uXmMEoWiXXkL2Kjg2lMTF2t+qRaNUpoDoZwP8p85qheqJYH5SF0aNGOLAKdXcac/WJG0C7HR6qrYuuMSwByzSEG8uCFUp1uXPipaqKrlAPX7FEdkcZGpiM0Z5rqWVLm4zqJxufRk+YQKX6VWnNo22VJR4OoOXTs96rtYlOfY8CY56pLqiFJWYyVYsb4cbQRQnNcZ8TMCctDMIc6F8RC233VZqldkItSxhxnQswcvzxqzmeq3WIuYo5rMBlSp9iNai7yoN5JsQWvWUJz6FwW4NCEMub8oRqZ/G9XPRJbpF1IKUMZc2gLBjRlDiOJ8DFP9VIsw3GwkB32/mfBA46rJiTHWWLhLjKrQnOWSnPmEFr8RARDyJYwqJHBVMYc2sxsbcocR4fUvjTh6mvvfxY8gNFJApCnIulraE7MhFh5EbgGwzG+LGXMyTIhVp5rjsuKflYNTMoYZR1isyqPUapjErlxSUJzSDv/Scp8XCftCsp9pqgeq86LhV6HM4eQV5Yy5tCP9GfMHDI2MjdXFjWHi7mJ/1Bm0HdSNSsGJh4QW7uaJTTHNYSsxw9Pi1Vvkl8HH6vjpLqWuI70zeEcYY1yzjv4Liuyl5dnDklGRdLvST2yTX+AM5hvie0YOHLNcfHRjUTWBzqcrYoikG7TgfVmWT1Cc2CD2Fc9gwXoYHYLSF4wBNpUN1WvxdZO4BxGVJL/wDHt9L/Q2QriQzEM6VnkzVi+55iR56Q6oNvF7uuv42wf/SvV94Rcc2jwt2IveUYs9VyRqlGfiuqi2PeOP4LLkGUOnUjY/FPsnTCGkeevYdT/TXVX0t9ls1U3xDpzq+qB6kepmgrjxYx9K/FQ943qiaS3gf4TC03s2wHXvpLaTJB1mxR+i2qj2NYTfe3XyTXHwZSkg4pstWTB1CbUdIqNUEY84pgRU48sc4CGsIaw0+B/KBeBbzQ2KjG2IvFBQ9baSJJQBGY25iGOQwqZ09PEzOlqCEOsr/XCWlfRMicHNiFZY2OzqqtpmROBWbNG0utQd9MnzGFxZZFlnfohONdfoZ20l0Sl3h5mixYt6vIeY3rtLmitmfkAAAAASUVORK5CYII=>
+
+[image4]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGcAAAAYCAYAAADnNePtAAAEYklEQVR4Xu2YXchlUxzGn8moEWLMZBLymUGKadQ0wpUmH5GvJPJRGjPJBcpoxoWRJIYLRBKJEolcuRDxojS4QKHJRyIRxZ0L5OP5+Z/VrLPO2mfvfd7ecbydXz2ds9deZ5+11rPWf/33kmbMmPH/Z4m1wjpk8Mn1Ymc/RX8PtvYq7k0VNPQV61nrVmvZ8O1FyTnW49YbCpOmFsx5WqONZAWtsx6yHrXOU7dZdqR1hXWYoj5mn2xdP/g+CWusDWVhC6ut+xQm0J59hm//y10a7fdUUTMHY7ZYb1lHKcIdK4uO7p3Vq3Ga9Zv1d6ZfFeb2gYlBGz5QPOO24dtjucT6zDpF0T9MeM06IK80KN8j5qQ4mouyNmrmrLV+tE7Pyo62vrHOzspq8FsGZpf1kXWnJhsAzDnfOldhbldzDre+sK7MypYrTL4xK4MFN+dE603rdcXMRjdYl1onZPWaqJlzt8KIvGx/6x3rKY1PGjDn4bJwHvC8PuZgCvX5XYL2svLnNDxhW80hLjOIxNR9i3vj4A+vtV5QxPdJKc1hXyBBKM2h3pxiBjITm/ivzWGPLM0B+viDIgIkxppznLXTuse6WtH5761bsjpN8OcvaTSO9qU0J5nQZE5ZXkK7Xraesb60vrXuUH1D7kJfc+hLkzlleaM5R1ifW1u1O0ywJNn8LkiVGqA+mcj68sYElObwiQGlCX3Mec86dnC9wnpf3ZKJGn3MSW0sTYDO5iy1nrC+U2RDCVbMz2rfK2jEI9bxioc3qUvqWpqzyvpKoyZ0NQcDyvC8TZHBrS/Ku9DHHP6Xvbc0ATqbw+BjwosKo4BPrufUnmVxn72GzTklATXxstVGaU6TCU3lXWBgiQhdwnVJH3OgZkJTedUcUkQauykrSzOWDa0NVgQr59DyxgSU5qRJUpqQzCFjI3OrQQgjYfhEcTSSSOZ0HeCcvuaQaZYmAH0kUuXJ01hz8pnNO8Uf1sWK5X9zdq8GxubmTkppDjAQZXhdaX2q4clDCGPvTHsJz8DU0hzCWrmXHjhQG23mMKmZFAn+40/rrKwsZaAoD/VVc05SdD41lowrj5W3a/jhNfgNoa2tXhs1c9jMmWWXZ2VnWD9peN94QDHo2wfXrLrHFC+QCdr5tqJ/KbPkaIWX3HLPrZHMweCS2nMwigRk++Aaav2BqjlLFG+rH1tPKo4WLlLMuFcVne6S2RxkPacIcceo29lXSc0cYAV/rTgTu0bx1s/LLW1P3GT9rjguSbCSCH07rOusD613NRxO+E7f/1JEkRqbFa8VmJ/0i+LZaVWm5+TGw6mKtnP8w8s4ofZejY5p1ZwEA5MfW/NjwkefQWawmF0PKo5MeK9Iuiqr10STOcAsZPBQHjraoB9navcpRVN/Nqpb0jIJZG4brAsVRzo1xpozDYwzZyEhBN6v9rC2kMzMaYADVEJNHib3NDNzKrBqLtP8j57my9SbQ2x+XrFH8Vm+3S9GSDbob55czJgxY2L+Aaag9AruAyKZAAAAAElFTkSuQmCC>
+
+[image5]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGcAAAAYCAYAAADnNePtAAAEVElEQVR4Xu2ZW4hOURiGP6HIOTI5ZbggpZCQQhLFBQkhxIVQbpRyDE3hgoYLckgyw41Do7ggp5jiglwph1IKkVxMSsghh/e19rK/vf699t6zf+ZkP/X2/7P22utf63v3+tZae0QKCgpaP+2hvlA/qKdzra3CcXK8vaF2zrUWBTt5D6qBVjrX2iocJ8d7DurqXGtR0JyTUtrJztAS6Bi0FxoevZxId2idmHu3i/mNPORppxO0HBoZfGdmGAithirDar/Huyv4bLHEmdMDug7tDMpHQ4+h+aqOj8HQA2iVmODMgp5C43WlDORthymLmeCno2qoo6rXpObYPKrFQaURZ84m6D7US5UthZ5AFarMpQN0HKoLvlt2Q1fEzMYslNMOx3EJegg9g2qhCVK6tvxzc/iD08QE8oKY6X9YTE5dAA0Iq3pxzaEhbI9lmnHQB2iOU64ZCr0RY65mHvQRGuuU+yinHY6DfU9LgYnmMBfyR6ZION0Y7FFipnQavGcHdEhMbs6La84IqCEo07CvDAyfXh/ToR9SGtTZYlILZ18WymmnbHMY2H3QBuhu8J3QmPfQDahLUOaDTxGN0Xk0D6451gSfOW65xgbPF1S33Ievvq9cw3GchfaLSW2voYsS3QwQrzkzoG1iUgjNsQNmLq2F6iXmJgXrMScPcS/kwDXHBsA1IYs5DFpc8LIEVVNOOxzHVWiRmExEcWPDzYTOSF5zuANh+pgIfYIWq2uToIPq7zgY0KPQoOB7nCok26xyzeGuKK856yU+eFmCqimnHZrRLfi0cL1knKtUmdccSxX0SqIzgOlqjfo7Dgb0ppgNQJK4BU7DNcdngq9c4wuer9yHr76vPA3bd71cJJpjd0V1Em4X6XaVmFmVRB/oiHgabiSuOXan5JpgB7jVKddw1n+T0uDZoPLBy0I57ewRcy+XDovte72E40w0h0F5IdEOcAZVS3RvHwdNZCd0B/LimsPPejFnBX1O4g7qa/Bp4WG1v4QphFv359ABWyGAmaBBog8dz2W+d3lZ2+GOt1Ki/eRYvks0Njat1UjY10RzuCbwkGSfRK4PDPiYPzWS4eLGAKbNsjRcc8gy6KWE6ZYD4qLKzQsNIXxpyBP8FzFrp68ex8V3WKclfOj4KuitlKZ0S9Z2eJ7jTNJlXL83S2gCP7dA7yT6diHRHN60VkwnT4k5+c6N1EinErom5ryjn+DGEGcOA8G0eUtMnxioRxJdw1j/spTughhMlnM7y83FCeiOmPdbFn6nsTzLMFXFkaUd3vsZ2ijh2Nl3HjHOQyvExJazjW1oEs2xcEoyQFletcTBqc1UUytmJvKJp/h9cljNS5w5hIMdJuZNgz4oZ8EesHkvP/l3HNy1ukHTZG3HRfd9qsTHNpM5zY3PnH8N0xDX17i01hQU5iQwU8wamycV/w0Kczxw1iyUcLFvDlqFOfwX9W0x6xTfR/0PcJwc7xlJf4dZUFCQyi//dvuKTBI0vAAAAABJRU5ErkJggg==>
+
+[image6]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGcAAAAYCAYAAADnNePtAAAEqUlEQVR4Xu2Ya8hmUxTH/xOKxn0mEpNe5DL5MBLTaPikiUTu5DqSISmXCQ2pqUmimeRecskHuX8kIl7NFKWmlDFScmkameITJQrr13p21tln73PO85p5vTM9//p33mef/e6z9/qvtfbaW5pgggl2f8wzLjAeMXrye0/H/vL1HmbcK3s3p8BE3za+bLzbuG/z9R6Jc43PGj+UizRngTgvqT1JImip8XHj08bzNNzL9jNeJTfAI8YTmq8H40Dj7fJxHlB7jjVcZjxDvjbWQYRcY1wSOxnWafiY/wtK4rCge4wfG6fk6Y7Iwkj7hH4lHGR8X75wxsYgXxoviZ0G4Gjj58ab5NGMt39tPD12KmBv4+vGvzO+IZ9bxKyJk/JoJG19KIlzqvEn4/LQdozxe+M5oa2Ee42fGQ8JbVcbtxoPD21dwMDPGd8c/Z3woPFdeWR2gf/9wviDfIxa1O9ycRYbPzJ+IPdseKvxUuNJoV8NJXEwAkLEtgOMG40vql40IAjCMF7EacZfjRdk7TXgCD/KhY642Pib3Hm68IT6+4BecVAUI64wzs/edQEDrZSH8FHNV2MhF4cUQoGQi0O/abWjIoJ1/Ky2OBgKoyL6EJxt/Ettcc6XpygisQs7RZzjjZ8aHzJeJ1/8duNdoU8NfPwttfPouMjFSSLUxMnbI5IINXHy9hqSCDVx8vYcTxofNW42bjN+Yjyl0cNRFYcNjw1ujf5NE3gEH+8Lf/pTBS3LX8wAuTg8ESAXYYg4yXi5COOKg/FLIgwVh9SLXdM+Q6X2i9rFRFGctOGh6lRoJ2JIC317BYZ6yniifPAah5xZcnHYtL9RW4Qh4lBR7QxxsENJhKHisD/GAoC0j61fUbPAKIqTcnOsRnjye1r9VRbv2WvwkFQElIix+pCLUxOh1h5RE6HWXkNNhFp7H5gv88bpYsVYFCd95ObQljyWQ18fiAgi58j8xQyQi5OcJBchiUPFhmeWkKqsXIQkzn1Zew2U8H+qLUKyG1VbDTfIi4lbQlsSJ19TpzjRs9OE+PAy453hXQkIG8WdKXJxAEbJ0+tC4xY1nYcDKXtnOpgmAan2Ykql+vpj9Ew4eMQScLrv1HZU1pvPC6deEH6n/SqKk9LatJpZqSjOyfKPpI2fiotzSqrh71dzISXwP6S2vn59KIlznHwxV4a2M4071CxCNsgNsTa0sfly+Jsa/Z4nNwJVaaosuc7hkJvvuQml/8EBWG/cN0rjMD+qtXiTcYXxd7VvKYri8PHb5NcTz8uvOy6Sn2rfky+675oEHCqfLCnuWJVPwX0oiQOI4G+Nq4zXy69gONwy94Q75BERF828n5EfjC+UG4CIi/daeDJrJ/2QRUpAlHeMr8kzzAvGTWqe6dI4OHYSkfmtln//Rnn0EQj53EFRnAQME6+tWRjpYxwj80Gi7THjV3KvTbw29KuhJg4gXWA8GFNHH5gTZzhuKc5S3dG4N+sqWrADa2McnuPYZZHcOVaofhbsFGcuoEucXQlS03qV09psYSJOBVygPqx2qplNTMQpgKi5XPV0M1uY8+Jw2fqqfI/iOc7l6+4KymzWu1G+508wwQT/Cf8A4rsCeah2GjkAAAAASUVORK5CYII=>
+
+[image7]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAYCAYAAAD6S912AAABEUlEQVR4Xu3TMUvCQRjH8QdscLDEKaKgOWiQaBFsCFwa7E30DoIWX4U0RiAGbW3hYg2CQ4GvIciloKiWGkSwvsffg7unOzrEocEffED+v78Px8P9RRaZd/bxjG/HO16mvz/RxIr9Q2rOMUZVPd+RbHgXBdVFs4w+HrCqOjOkhwlqfhXPFt5whSXVlTCQ8OmjOZRsX8e6IBWMcI+i6qI5lfAJzIBbvGJXddHYHZlTXOJsqo0ntLBhX06J3d8NNrHmyDvvmeRwgLJ67sXur6ELFdNfY4i66ryY/aVeCbue6EB7/x6x7lfB/DlwGx/oyO99hRIduCfZLvT3e+S+FEh04Kz53wPN/bvAF+5wIml7XyQhPzm0PMgFBb5oAAAAAElFTkSuQmCC>
+
+[image8]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAXCAYAAAAP6L+eAAABR0lEQVR4Xu3TzStFQRjH8UdeQl6yIVFWlFLyslHuQt3u6matLBV7dhb+BkmRlCzsJCUpLG6xUP4GxYYibGyk8H2aM8wZtzPOUVb3V5865z7PmTtnZo5IJf+dCdzhw/GE++j6BctosQ+kzSbeMO79PizmT47R5NWCacYZrtDh1XSwEt6Rj5fC6ccjdlHj1dpwKeXfJphJMes57xfIGF5xgVavFsyKlJ+RDnSKB4x6tWDsGuqsdrAR2cYtttBtm9PEru8JetDpqHf6UkeXIdOOJ8Ues2t0xUux6EmZxTp6sYgjFNwmNwN4xqEkv/YQimL2YA0NGMG+eB9NDjfy8zOecZuctKMP52IG1OgRPZDkCf0qOqBusH4wVVjFXKwjY6bFHD0dVPdD90aXckH+OGs921PRtZ7rPSxh8KsjYxpR7dzXos65r+Q7nwYAPPerXzLdAAAAAElFTkSuQmCC>
+
+[image9]: <data:image/png;base64,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>
+
+[image10]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAYCAYAAAD3Va0xAAABGUlEQVR4Xu2TsWoCQRCGR7BRQRECYmkpCBZiIdgkWATsbJPeRhDyBNfaaKGVVlY2Yi15Ap/AvICdiI1NLEz+310ve3vkvKu9Dz5YdpbZmbk9kZioPMM9/NGuYcqIZ+GnEacrmDHOuCTgFJ7hN2x4w1c6cCneS3zk4Rz2Rd04EZXc5AO+WXs+qnAEi/AL7mDJiCfhTJ8LhDd19doRVVXPjYo8iaqYlQcyhDW9rsAj3MCc3mvCsV7/y20+vJWwjQW8wFe9x2pDz8ccLhMwERPyK0Wezw22xNbY4ouEmA+rYO91OwDeRQ19CwdWzIc9H5OCqKfAZHfnw7L53NN2QOPAAyxb+y4teJK/f4e/RdtzQsGnwH8vcD4xD8kvcTMzNIxbkGYAAAAASUVORK5CYII=>
+
+[image11]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAAAYCAYAAABZY7uwAAAD30lEQVR4Xu2XW6hVVRSG/6igqxVGGRndQAhFH6zA6GKgVg9dH7LQQhD1RYSKqAzh9BBR0EsEpRTRg10gKIgoLWhDDwmKFRREGSSIQdJDgUKF1f+dMcdZ86y99ukcCOLg+uFnrT1vY8xxXVvq0aPH/4yzzAvMk9sTJzpuNn83/zY/Mc+s5uaZj5TnCY355iHz6db4K+Zf5orW+HRwlbnXvKE9MRtxvSKK7miNX2peZ57UGp8ONpm/KAw16/GY/tvLYNCdigg6rzU3K0Ahxhi3mxea75gDRaEGp5o3mks0OnrOMVcpzphbxtjHeQvNb83XzIvUnJtI+eyva15ijnmbeUn5zblXq9F3FHLdXWr21vi3+XGg2JfmM+bG8v6H+UKZ5+J4/3HzR3N9Ga9xjyI6HjTXmXsURllsvmzuVhR9njs0OXUXKNYjn/0D87D5cJnHmNvNpxR18QHzfYWuT5q/argm4sTV5gHFObx/bt5b5jHMo+b35hbzPvNTc2WZnwA15TvzCTWRsU5xmbwEtWONebHCQGNlPIEH9ynqFkDYcU1WelT96ZKPrFr+rYr9S82jis6K0wDReFBREhKcQ6c9Yl5bxtCJM3H6KeaLCuNcVubBZjVOGQcL31R45fJqvK4/rNmmUAQhx8xlzdJxpOKvmlcqDLZc4SUwqv5wNl2xLR8la2NuKO9E6Z+Kz5AE46ytL5b6jFVjVyjuwecJUYIDcx49bzF3KRw2gTyceoOygGe7/uQ4xiQV0nsJPia/VngI4rm6lZ9vfqMmZRMzkQ/Yzzmcl8BpdNuMXsA6DFmP1cAp6Pmz+YP5tqJsUOcmgQLHQsI3kWk06jKEYRc4fK35roY/MK9RRB6pU6NLPtGH0m35Z5ufadiYbadh1IHijK7ifZr5gSItyYopkQrSHRJYHesTzqTSQ2Ucw2TYL1cUSED4E67UiQQflyiBMgAD/KbogOB+807NTH5XKpGWpOeYebqiyNOJcM5AwxFIp8RppPtA3fNn1AOLFEKzGOIFDid/yWM6xArFJvIT7/H+nKJDAcKV9k0nAgj9SBFNCaIh6w85/pJC1nTlg6w/ddpgYCKTCKWubC3j1ND9aj41AIahE9IBSUu6JHUpkQZmfgIUTyLjK0WB/di8W1FPMMjzagotXeGA+Z5C2QTfEOx/XdG+CXfaZ+4DXOonRa5j5PllfCbyx8q6+tJcEJ0+NN9Qk2Y831KsRyfSkLP5jkMmZz5rflHm0Qu9b2JzF/B6/a+dAyiE7X/x52o4LAHr2D/VP3/SbdT8dOSzv0t219oE+lJnuvYBxqea79GjR48ePWYp/gGBE9XOw1OY5AAAAABJRU5ErkJggg==>
+
+[image12]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAAAYCAYAAABHqosDAAADaElEQVR4Xu2XW8hMURiGX6GIHCIS8pNDSihJJEUKiRxvcKEUN0q4kENJknK4cMgpCjcU5UpyKH+UHC5QTskFUkK4QaHwvvPNZ9ZeM3tmz/z/78Z+62lm1t577W+961vfWgPkypXrH6kr6UPaxxf+V00l38lvco10SV5uc3UmS8gxsouMSF5OVTsygewnh8hilMfeBOt7AGzCO5ExZGXxe03pwTdkR3yhjdWdXCXbYRk7ljwhC8ObKqgD2QeLV7EPIzfIIzIouG8SSpPufCWzg3uqajKsg7nxhQbVEeWzV0kbyD3SM2hbSp6SvkFbrJHkI7kCM1TScxq4Msg1Dmb0M/KAbCP9gus1pQD1Ir2wJepGtpDbsNmqJpkhU05F7ePJF1SfJC23d+Qh6VVsWwAz5rjfBDPmQPC7prTeZMIc2MycJ80ouV+vNAsHyXWYIVkKuM96bIwGo3Svtax7oBSv6o3e/wtmkKsuYxSQ0monrAjp+w8kUzCrBpMT5BIZDQswq9yANGPi9jTpnTPIJ7IHtoxd6usCOU1ekNdkK6zgJ6TC9JxsRGkQy2EpWC11YymVzxXJuovEUrbqvbEB9RgzHTbY9+Qo6Z28XOjrDhla/K1ldxe2A/41UJX8DGz30Uy7stYXGamsUHYoS8I+GtEstNwYl5auVsBnmFmuSpvAJthGM9EbfE2rnsgkSZ9Z64sOf6ohJ1FnZU9RmgFp7bWkov0NtmUr1jQpETQh67zBU3eVN1D9yUtkry9h1ijwRpeRNIS8RbkBboxmNk2KQTHr06XJegV7Vn1o2WjXi41yY/RZkBujFHbp/PITVsmVWmuDa7UkU5RtjRReSRnaTC4ieQrVUtBmEC4J7ZwaqEtmxsvQDfWy4EbFxsjwRE0dBXvIG3Tq1F8Ad3gzksFkVbhV64hej0HLYMXT65We1SlY5yDFJ/mZJayNmu0PZGbxt6S+NODDsBIhjsBicqlPnZA1bu+/8NLVsEORiqeO4vNhjl4me5Hc6uqVZnQ3uUmmIdtZRu/TQGTqPJgpj2F/DVw68ivmcDD61EaithVkPexQeDa4R9IurHgUl+67T27B+ixT/C9awWmbyzKQLNIusAbJg1Y1acKGk0VkCrJPjp5rghkqBiaulqT+1K/61xJrrXHmypUrV65craw/pfqwk7OP8toAAAAASUVORK5CYII=>
+
+[image13]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAAXCAYAAADpwXTaAAAAiElEQVR4XmNgGAWjgGqAA4jTgJgHXYIcwAjErUBsjC5BLgAZ1AvELOgS5ACQ6wqAOA7KRgECQCxJIpYD4vlAPBmI+RiggBuIq4F4Fhl4BxB/BeJmIGZnoACYAPFqIJZBlyAVCAPxYiCWR5cgB2QBcQS6IDkAlGinArE0ugQ5AJQUeKH0KBhMAABVixNKp22j3QAAAABJRU5ErkJggg==>

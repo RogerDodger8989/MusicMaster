@@ -84,12 +84,12 @@ export class LastFmService {
     }
 
     async getAlbumInfo(artist: string, album: string): Promise<LastFmAlbumInfo | null> {
-        const data = await this.fetch('album.getInfo', { artist, album })
+        const data = await this.fetch('album.getInfo', { artist, album, lang: 'en' })
         return data?.album || null
     }
 
     async getArtistInfo(artist: string): Promise<LastFmArtistInfo | null> {
-        const data = await this.fetch('artist.getInfo', { artist })
+        const data = await this.fetch('artist.getInfo', { artist, lang: 'en' })
         return data?.artist || null
     }
 

@@ -32,6 +32,8 @@
 - [x] Layout & Interactivity Refinements
     - [x] Make album names in Popular Tracks clickable
     - [x] Tighten vertical spacing between sections
+## Completed Tasks
+- [x] Fix missing covers in vibe playlists (missing albumId in API response)
 - [x] Artist View Visual Polish
     - [x] Redesign header with Play/Shuffle buttons
     - [x] Add metadata pills (Albums, Tracks, Genres)

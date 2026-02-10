@@ -73,6 +73,26 @@ export const toggleArtistLoved = (req: Request, res: Response) => {
     }
 }
 
+export const getArtistTopTracks = async (req: Request, res: Response) => {
+    try {
+        const { lastFmService } = await import('../../services/lastfm')
+        const artistName = req.query.name as string
+        const limit = parseInt(req.query.limit as string) || 50
+
+        if (!artistName) {
+            res.status(400).json({ error: 'Artist name is required' })
+            return
+        }
+
+        // TODO: Implement getArtistTopTracks in lastFmService
+        // const topTracks = await lastFmService.getArtistTopTracks(artistName, limit)
+        res.json({ error: 'Not implemented yet', tracks: [] })
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to fetch artist top tracks' })
+    }
+}
+
 export const getArtistMembers = async (req: Request, res: Response) => {
     try {
         const { musicBrainzService } = await import('../../services/lastfm')

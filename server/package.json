@@ -13,17 +13,26 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@types/node-fetch": "^2.6.13",
         "@types/uuid": "^10.0.0",
+        "audiobuffer-to-wav": "^1.0.0",
         "axios": "^1.13.4",
         "better-sqlite3": "^12.6.2",
+        "canvas": "^3.2.1",
         "chokidar": "^4.0.3",
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",
         "express": "^4.21.2",
+        "ffmpeg-static": "^5.3.0",
+        "ffprobe-static": "^3.1.0",
         "music-metadata": "^7.14.0",
+        "music-tempo": "^1.0.3",
         "musicbrainz-api": "^1.0.0",
+        "node-fetch": "^2.7.0",
         "node-id3": "^0.2.6",
-        "uuid": "^13.0.0"
+        "node-wav": "^0.0.2",
+        "uuid": "^13.0.0",
+        "web-audio-api": "^0.2.2"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.12",

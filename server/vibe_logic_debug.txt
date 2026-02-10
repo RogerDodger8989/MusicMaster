@@ -1,0 +1,377 @@
+2026-02-10T12:28:15.659Z: Checking Roulette [party] En:0.7707066314516913 Ar:0.7794946420161838 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.661Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.662Z: Checking Cigaro [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.663Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.663Z: Checking Innervision [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.664Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.664Z: Checking Mr. Jack [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.664Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.665Z: Checking The God That Failed [party] En:0.7610403892317277 Ar:0.7727282724622093 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.673Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.674Z: Checking Lost in Hollywood [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.674Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.675Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.675Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.675Z: Checking Don’t Tread on Me [party] En:0.722885465651276 Ar:0.7460198259558931 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.676Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.676Z: Checking 36 [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.676Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.676Z: Checking Holier Than Thou [party] En:0.7444971553642541 Ar:0.7611480087549778 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.677Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.677Z: Checking Radio/Video [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.677Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.678Z: Checking A.D.D. [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.678Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.678Z: Checking Thetawaves [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.679Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.679Z: Checking Chic ’n’ Stu [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.679Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.679Z: Checking B.Y.O.B. [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.680Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.680Z: Checking Nüguns [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.680Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.681Z: Checking Enter Sandman [party] En:0.7049980057222082 Ar:0.7334986040055457 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.681Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.681Z: Checking Revenga [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.682Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.682Z: Checking I‐E‐A‐I‐A‐I‐O [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.682Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.682Z: Checking Highway Song [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.683Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.683Z: Checking Wherever I May Roam [party] En:0.6960743895038293 Ar:0.7272520726526804 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.683Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.683Z: Checking This Cocaine Makes Me Feel Like I’m on This Song [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.684Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.684Z: Checking Question! [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.684Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.685Z: Checking Streamline [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.685Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.685Z: Checking The Struggle Within [party] En:0.723639917024927 Ar:0.7465479419174489 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.685Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.685Z: Checking Fuck the System [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.686Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.686Z: Checking Boom! [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.686Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.687Z: Checking Old School Hollywood [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.687Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.687Z: Checking Through the Never [party] En:0.834633466975894 Ar:0.8242434268831258 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.687Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.688Z: Checking Sad Statue [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.688Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.688Z: Checking Bubbles [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.688Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.689Z: Checking Violent Pornography [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.689Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.689Z: Checking Pictures [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.689Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.690Z: Checking Sad but True [party] En:0.697758560581606 Ar:0.7284309924071242 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.690Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.690Z: Checking Ego Brain [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.690Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:15.691Z: Checking Of Wolf and Man [party] En:0.7106411422080446 Ar:0.7374487995456311 Va:0.35 Inst:0.05
+2026-02-10T12:28:15.691Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:24.697Z: Checking Screens & Shades [chill] En:0.25567953601379884 Ar:0.3289756752096592 Va:0.85 Inst:0.8500000000000001
+2026-02-10T12:28:24.698Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:24.699Z: Checking The Killer [chill] En:0.1738433096888721 Ar:0.27169031678221045 Va:0.85 Inst:1
+2026-02-10T12:28:24.699Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:24.700Z: Checking The House [chill] En:0.26659570985581604 Ar:0.3366169968990712 Va:0.85 Inst:0.8500000000000001
+2026-02-10T12:28:24.700Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:24.700Z: Checking Child's Spirit [chill] En:0.24133310754478524 Ar:0.3189331752813497 Va:0.85 Inst:1
+2026-02-10T12:28:24.701Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:24.701Z: Checking Talley's Theme [chill] En:0.26063288964273906 Ar:0.3324430227499173 Va:0.85 Inst:1
+2026-02-10T12:28:24.701Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:24.702Z: Checking The Choice [chill] En:0.19278039301120578 Ar:0.28494627510784404 Va:0.85 Inst:1
+2026-02-10T12:28:24.702Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:24.702Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
+2026-02-10T12:28:24.702Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:24.703Z: ⚠️ Playlist too small (7). Running fallback fallback for chill...
+2026-02-10T12:28:24.704Z:   ✅ ACCEPTED (Fallback mode): House On Fire [Orchestral]
+2026-02-10T12:28:24.704Z:   ✅ ACCEPTED (Fallback mode): Talley's Family [Orchestral]
+2026-02-10T12:28:24.704Z:   ✅ ACCEPTED (Fallback mode): Breaking In [Orchestral]
+2026-02-10T12:28:31.528Z: Checking Nüguns [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.530Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.530Z: Checking Boom! [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.531Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.531Z: Checking Revenga [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.531Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.532Z: Checking Bubbles [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.532Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.532Z: Checking Mr. Jack [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.533Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.533Z: Checking Streamline [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.533Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.533Z: Checking Highway Song [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.534Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.534Z: Checking Innervision [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.534Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.535Z: Checking B.Y.O.B. [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.535Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.535Z: Checking The God That Failed [workout] En:0.7610403892317277 Ar:0.7727282724622093 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.536Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.536Z: Checking 36 [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.536Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.536Z: Checking Old School Hollywood [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.537Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.537Z: Checking Lost in Hollywood [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.537Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.537Z: Checking Thetawaves [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.538Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.538Z: Checking Pictures [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.538Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.538Z: Checking Fuck the System [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.539Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.539Z: Checking Roulette [workout] En:0.7707066314516913 Ar:0.7794946420161838 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.539Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.539Z: Checking This Cocaine Makes Me Feel Like I’m on This Song [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.540Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.540Z: Checking Ego Brain [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.540Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.541Z: Checking Through the Never [workout] En:0.834633466975894 Ar:0.8242434268831258 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.541Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.541Z: Checking I‐E‐A‐I‐A‐I‐O [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.542Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.542Z: Checking Question! [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.542Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.542Z: Checking A.D.D. [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.542Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.543Z: Checking Sad Statue [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.543Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.543Z: Checking Cigaro [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.543Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.544Z: Checking Chic ’n’ Stu [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.544Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.544Z: Checking Radio/Video [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.545Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:31.545Z: Checking Violent Pornography [workout] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:28:31.545Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:32.870Z: ⚠️ Playlist too small (0). Running fallback fallback for sad...
+2026-02-10T12:28:32.871Z:   ✅ ACCEPTED (Fallback mode): Question! [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:32.872Z:   ✅ ACCEPTED (Fallback mode): The Negotiation [Orchestral]
+2026-02-10T12:28:32.872Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:32.872Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:32.872Z:   ✅ ACCEPTED (Fallback mode): Roulette [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:32.873Z:   ✅ ACCEPTED (Fallback mode): The House [Orchestral]
+2026-02-10T12:28:32.873Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:32.873Z:   ✅ ACCEPTED (Fallback mode): Mars's Theme [Orchestral]
+2026-02-10T12:28:32.873Z:   ✅ ACCEPTED (Fallback mode): The Trade [Orchestral]
+2026-02-10T12:28:32.874Z:   ✅ ACCEPTED (Fallback mode): A.D.D. [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:32.874Z:   ✅ ACCEPTED (Fallback mode): Highway Song [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:32.874Z:   ✅ ACCEPTED (Fallback mode): The Watchman [Orchestral]
+2026-02-10T12:28:32.874Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:32.875Z:   ✅ ACCEPTED (Fallback mode): Revenga [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:32.875Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:32.875Z:   ✅ ACCEPTED (Fallback mode): Hostage [Orchestral]
+2026-02-10T12:28:32.875Z:   ✅ ACCEPTED (Fallback mode): Pictures [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:32.876Z:   ✅ ACCEPTED (Fallback mode): Innervision [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:32.876Z:   ✅ ACCEPTED (Fallback mode): Captain Wooba [Orchestral]
+2026-02-10T12:28:32.876Z:   ✅ ACCEPTED (Fallback mode): Boom! [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:32.877Z:   ✅ ACCEPTED (Fallback mode): The Choice [Orchestral]
+2026-02-10T12:28:32.877Z:   ✅ ACCEPTED (Fallback mode): Child's Spirit (extended) [Orchestral]
+2026-02-10T12:28:32.877Z:   ✅ ACCEPTED (Fallback mode): Crawl Space [Orchestral]
+2026-02-10T12:28:32.877Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:32.878Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:32.878Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:32.878Z:   ✅ ACCEPTED (Fallback mode): My Friend of Misery [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:32.879Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:32.879Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:32.879Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:36.098Z: ⚠️ Playlist too small (0). Running fallback fallback for late_night...
+2026-02-10T12:28:36.099Z:   ✅ ACCEPTED (Fallback mode): House On Fire [Orchestral]
+2026-02-10T12:28:36.100Z:   ✅ ACCEPTED (Fallback mode): Question! [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:36.100Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:36.100Z:   ✅ ACCEPTED (Fallback mode): Mr. Jack [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:36.100Z:   ✅ ACCEPTED (Fallback mode): Talley's Family [Orchestral]
+2026-02-10T12:28:36.101Z:   ✅ ACCEPTED (Fallback mode): Streamline [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:36.101Z:   ✅ ACCEPTED (Fallback mode): Soldier Side (intro) [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:36.101Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:36.101Z:   ✅ ACCEPTED (Fallback mode): Thetawaves [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:36.102Z:   ✅ ACCEPTED (Fallback mode): The Killer [Orchestral]
+2026-02-10T12:28:36.102Z:   ✅ ACCEPTED (Fallback mode): Lost in Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:36.102Z:   ✅ ACCEPTED (Fallback mode): Crawl Space [Orchestral]
+2026-02-10T12:28:36.103Z:   ✅ ACCEPTED (Fallback mode): The Trade [Orchestral]
+2026-02-10T12:28:36.103Z:   ✅ ACCEPTED (Fallback mode): Radio/Video [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:36.103Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:36.103Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:36.104Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:36.104Z:   ✅ ACCEPTED (Fallback mode): Captain Wooba [Orchestral]
+2026-02-10T12:28:36.104Z:   ✅ ACCEPTED (Fallback mode): 36 [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:36.105Z:   ✅ ACCEPTED (Fallback mode): Hostage [Orchestral]
+2026-02-10T12:28:36.105Z:   ✅ ACCEPTED (Fallback mode): Talley's Plan [Orchestral]
+2026-02-10T12:28:36.105Z:   ✅ ACCEPTED (Fallback mode): The Secret Place [Orchestral]
+2026-02-10T12:28:36.105Z:   ✅ ACCEPTED (Fallback mode): The Waterfall [Orchestral]
+2026-02-10T12:28:36.106Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:36.106Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:36.106Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:36.106Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:36.107Z:   ✅ ACCEPTED (Fallback mode): My Friend of Misery [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:36.107Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:36.107Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:37.883Z: ⚠️ Playlist too small (0). Running fallback fallback for aggressive...
+2026-02-10T12:28:37.885Z:   ✅ ACCEPTED (Fallback mode): This Cocaine Makes Me Feel Like I’m on This Song [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:37.885Z:   ✅ ACCEPTED (Fallback mode): The Killer [Orchestral]
+2026-02-10T12:28:37.886Z:   ✅ ACCEPTED (Fallback mode): Drive [Orchestral]
+2026-02-10T12:28:37.886Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:37.887Z:   ✅ ACCEPTED (Fallback mode): Streamline [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:37.887Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:37.887Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:37.887Z:   ✅ ACCEPTED (Fallback mode): Child's Spirit [Orchestral]
+2026-02-10T12:28:37.888Z:   ✅ ACCEPTED (Fallback mode): The Secret Place [Orchestral]
+2026-02-10T12:28:37.888Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:37.888Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:37.888Z:   ✅ ACCEPTED (Fallback mode): A.D.D. [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:37.889Z:   ✅ ACCEPTED (Fallback mode): Tommy's Theme [Orchestral]
+2026-02-10T12:28:37.889Z:   ✅ ACCEPTED (Fallback mode): The House [Orchestral]
+2026-02-10T12:28:37.889Z:   ✅ ACCEPTED (Fallback mode): Soldier Side (intro) [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:37.890Z:   ✅ ACCEPTED (Fallback mode): Bubbles [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:37.890Z:   ✅ ACCEPTED (Fallback mode): FBI [Orchestral]
+2026-02-10T12:28:37.890Z:   ✅ ACCEPTED (Fallback mode): Hostage [Orchestral]
+2026-02-10T12:28:37.890Z:   ✅ ACCEPTED (Fallback mode): Talley's Theme [Orchestral]
+2026-02-10T12:28:37.891Z:   ✅ ACCEPTED (Fallback mode): Lost in Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:37.891Z:   ✅ ACCEPTED (Fallback mode): Mars's Theme [Orchestral]
+2026-02-10T12:28:37.891Z:   ✅ ACCEPTED (Fallback mode): Thetawaves [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:37.891Z:   ✅ ACCEPTED (Fallback mode): Ego Brain [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:37.892Z:   ✅ ACCEPTED (Fallback mode): Highway Song [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:37.892Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:37.892Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:37.892Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:37.893Z:   ✅ ACCEPTED (Fallback mode): My Friend of Misery [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:37.893Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:37.893Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:40.575Z: Checking Nothing Else Matters [acoustic] En:0.5730997351057394 Ar:0.5886698145740176 Va:0.35 Inst:0.05
+2026-02-10T12:28:40.576Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:40.576Z: ⚠️ Playlist too small (1). Running fallback fallback for acoustic...
+2026-02-10T12:28:40.578Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:40.578Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:40.578Z:   ✅ ACCEPTED (Fallback mode): Innervision [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:40.579Z:   ✅ ACCEPTED (Fallback mode): Radio/Video [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:40.579Z:   ✅ ACCEPTED (Fallback mode): FBI [Orchestral]
+2026-02-10T12:28:40.579Z:   ✅ ACCEPTED (Fallback mode): Boom! [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:40.579Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:40.580Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:40.580Z:   ✅ ACCEPTED (Fallback mode): Lost in Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:40.580Z:   ✅ ACCEPTED (Fallback mode): 36 [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:40.581Z:   ✅ ACCEPTED (Fallback mode): Nüguns [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:40.581Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:40.581Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:40.581Z:   ✅ ACCEPTED (Fallback mode): The Secret Place [Orchestral]
+2026-02-10T12:28:40.582Z:   ✅ ACCEPTED (Fallback mode): Question! [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:40.582Z:   ✅ ACCEPTED (Fallback mode): The Trade [Orchestral]
+2026-02-10T12:28:40.582Z:   ✅ ACCEPTED (Fallback mode): Roulette [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:40.582Z:   ✅ ACCEPTED (Fallback mode): Revenga [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:40.583Z:   ✅ ACCEPTED (Fallback mode): Tommy's Theme [Orchestral]
+2026-02-10T12:28:40.583Z:   ✅ ACCEPTED (Fallback mode): Breaking In [Orchestral]
+2026-02-10T12:28:40.583Z:   ✅ ACCEPTED (Fallback mode): Hostage [Orchestral]
+2026-02-10T12:28:40.583Z:   ✅ ACCEPTED (Fallback mode): Drive [Orchestral]
+2026-02-10T12:28:40.584Z:   ✅ ACCEPTED (Fallback mode): The Negotiation [Orchestral]
+2026-02-10T12:28:40.584Z:   ✅ ACCEPTED (Fallback mode): Talley's Theme [Orchestral]
+2026-02-10T12:28:40.584Z:   ✅ ACCEPTED (Fallback mode): My Friend of Misery [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:40.584Z:   ✅ ACCEPTED (Fallback mode): Screens & Shades [Orchestral]
+2026-02-10T12:28:40.585Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:40.585Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:40.585Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:48.205Z: Checking Drive [pure_joy] En:0.660196080451365 Ar:0.7021372563159555 Va:0.85 Inst:0.8500000000000001
+2026-02-10T12:28:48.205Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:28:48.206Z: ⚠️ Playlist too small (1). Running fallback fallback for pure_joy...
+2026-02-10T12:28:48.207Z:   ✅ ACCEPTED (Fallback mode): The Killer [Orchestral]
+2026-02-10T12:28:48.207Z:   ✅ ACCEPTED (Fallback mode): The House [Orchestral]
+2026-02-10T12:28:48.207Z:   ✅ ACCEPTED (Fallback mode): Child's Spirit (extended) [Orchestral]
+2026-02-10T12:28:48.207Z:   ✅ ACCEPTED (Fallback mode): Crawl Space [Orchestral]
+2026-02-10T12:28:48.208Z:   ✅ ACCEPTED (Fallback mode): Cigaro [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:48.208Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:48.208Z:   ✅ ACCEPTED (Fallback mode): Soldier Side (intro) [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:48.208Z:   ✅ ACCEPTED (Fallback mode): House On Fire [Orchestral]
+2026-02-10T12:28:48.209Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:48.209Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:48.209Z:   ✅ ACCEPTED (Fallback mode): Breaking In [Orchestral]
+2026-02-10T12:28:48.210Z:   ✅ ACCEPTED (Fallback mode): The Waterfall [Orchestral]
+2026-02-10T12:28:48.210Z:   ✅ ACCEPTED (Fallback mode): Canyon Inn [Orchestral]
+2026-02-10T12:28:48.210Z:   ✅ ACCEPTED (Fallback mode): The Secret Place [Orchestral]
+2026-02-10T12:28:48.210Z:   ✅ ACCEPTED (Fallback mode): Innervision [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:48.211Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:48.211Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:48.211Z:   ✅ ACCEPTED (Fallback mode): Revenga [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:48.211Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T12:28:48.212Z:   ✅ ACCEPTED (Fallback mode): Mr. Jack [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:48.212Z:   ✅ ACCEPTED (Fallback mode): Thetawaves [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:48.212Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:48.213Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:48.213Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:48.213Z:   ✅ ACCEPTED (Fallback mode): 36 [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T12:28:48.214Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:48.214Z:   ✅ ACCEPTED (Fallback mode): My Friend of Misery [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:48.214Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:28:48.214Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T12:33:39.723Z: Checking This Cocaine Makes Me Feel Like I’m on This Song [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:33:39.724Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.119Z: Checking Ego Brain [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.120Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.121Z: Checking Pictures [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.121Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.121Z: Checking Boom! [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.122Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.122Z: Checking Highway Song [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.123Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.123Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.125Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.126Z: Checking Chic ’n’ Stu [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.126Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.126Z: Checking Innervision [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.127Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.128Z: Checking Radio/Video [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.128Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.128Z: Checking Holier Than Thou [party] En:0.7444971553642541 Ar:0.7611480087549778 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.128Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.129Z: Checking Old School Hollywood [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.129Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.129Z: Checking The Struggle Within [party] En:0.723639917024927 Ar:0.7465479419174489 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.130Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.130Z: Checking I‐E‐A‐I‐A‐I‐O [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.131Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.132Z: Checking Roulette [party] En:0.7707066314516913 Ar:0.7794946420161838 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.132Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.132Z: Checking Of Wolf and Man [party] En:0.7106411422080446 Ar:0.7374487995456311 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.133Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.133Z: Checking Wherever I May Roam [party] En:0.6960743895038293 Ar:0.7272520726526804 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.133Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.134Z: Checking A.D.D. [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.134Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.134Z: Checking Sad Statue [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.135Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.135Z: Checking Lost in Hollywood [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.136Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.136Z: Checking Bubbles [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.137Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.138Z: Checking Through the Never [party] En:0.834633466975894 Ar:0.8242434268831258 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.138Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.138Z: Checking Don’t Tread on Me [party] En:0.722885465651276 Ar:0.7460198259558931 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.139Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.139Z: Checking Revenga [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.139Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.139Z: Checking The God That Failed [party] En:0.7610403892317277 Ar:0.7727282724622093 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.140Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.140Z: Checking Streamline [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.140Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.140Z: Checking Question! [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.141Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.141Z: Checking Violent Pornography [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.141Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.141Z: Checking Nüguns [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.142Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.142Z: Checking Sad but True [party] En:0.697758560581606 Ar:0.7284309924071242 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.142Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.142Z: Checking Mr. Jack [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.143Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.143Z: Checking Thetawaves [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.143Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.144Z: Checking B.Y.O.B. [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.144Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.144Z: Checking This Cocaine Makes Me Feel Like I’m on This Song [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.144Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.145Z: Checking Fuck the System [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.145Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.145Z: Checking 36 [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.146Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.146Z: Checking Cigaro [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.146Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T12:36:01.147Z: Checking Enter Sandman [party] En:0.7049980057222082 Ar:0.7334986040055457 Va:0.35 Inst:0.05
+2026-02-10T12:36:01.147Z:   ✅ ACCEPTED (Strict mode)
