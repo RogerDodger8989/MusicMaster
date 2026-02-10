@@ -95,8 +95,10 @@ export const getArtistTopTracks = async (req: Request, res: Response) => {
 
 export const getArtistMembers = async (req: Request, res: Response) => {
     try {
-        const { musicBrainzService } = await import('../../services/lastfm')
+        const { musicBrainzService } = await import('../../services/musicbrainz')
         const id = req.params.id as string
+
+        console.log(`[API] getArtistMembers called for MBID: ${id}`)
 
         // Use the service to fetch members from MusicBrainz
         const members = await musicBrainzService.getArtistMembers(id)

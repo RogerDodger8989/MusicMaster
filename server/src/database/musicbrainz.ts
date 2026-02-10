@@ -103,6 +103,7 @@ export function upsertArtistWithMBID(
                 UPDATE artists SET
                     name = ?,
                     mbid = COALESCE(?, mbid),
+                    musicbrainz_artist_id = COALESCE(?, musicbrainz_artist_id, mbid),
                     country = COALESCE(?, country),
                     artist_type = COALESCE(?, artist_type),
                     life_span_begin = COALESCE(?, life_span_begin),
@@ -115,7 +116,7 @@ export function upsertArtistWithMBID(
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `).run(
-                name, mbid, countryCode, artistType, lifeSpanBegin, lifeSpanEnd,
+                name, mbid, mbid, countryCode, artistType, lifeSpanBegin, lifeSpanEnd,
                 bio, website, imagePath, nameSortOrder, genderOther,
                 existing.id
             )
@@ -126,12 +127,12 @@ export function upsertArtistWithMBID(
         const artistId = uuidv4()
         db.prepare(`
             INSERT INTO artists (
-                id, name, mbid, country, artist_type,
+                id, name, mbid, musicbrainz_artist_id, country, artist_type,
                 life_span_begin, life_span_end, bio, website, image_path,
                 name_sort_order, gender_other, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         `).run(
-            artistId, name, mbid, countryCode, artistType,
+            artistId, name, mbid, mbid, countryCode, artistType,
             lifeSpanBegin, lifeSpanEnd, bio, website, imagePath,
             nameSortOrder, genderOther
         )

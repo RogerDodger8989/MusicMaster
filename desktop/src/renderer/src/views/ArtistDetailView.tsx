@@ -11,10 +11,8 @@ import {
   Hash,
   ChevronUp,
   ChevronDown,
-  Globe,
   MapPin,
   Calendar,
-  UserCircle2,
   RefreshCw
 } from 'lucide-react'
 import { AlbumCard } from '../components/AlbumCard'
@@ -132,6 +130,7 @@ export default function ArtistDetailView({
   // Fetch similar artists when artistName changes
   useEffect(() => {
     let mounted = true
+    setSimilarArtists([]) // Clear previous similarity data
     const fetchSimilar = async () => {
       try {
         const similar = await client.getSimilarArtists(artistName)
@@ -151,6 +150,7 @@ export default function ArtistDetailView({
   // Fetch Last.fm top tracks when artistName changes
   useEffect(() => {
     let mounted = true
+    setLastfmTopTracks([]) // Clear previous top tracks
     const fetchTopTracks = async () => {
       try {
         const topTracks = await client.getArtistTopTracks(artistName, 50)
@@ -327,6 +327,7 @@ export default function ArtistDetailView({
 
       console.log(`[UI] Fetching members for ${artistName}. Artist has MBID: ${artist.musicbrainzArtistId}. Current Image: ${artist.imagePath}`)
 
+      setArtistMembers([]) // Clear previous members to avoid stale data
       setIsLoadingMembers(true)
       try {
         const [members, details] = await Promise.all([

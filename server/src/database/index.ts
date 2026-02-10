@@ -264,6 +264,7 @@ CREATE TABLE IF NOT EXISTS acousticbrainz_data (
     key_signature TEXT,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(track_id),
     FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
 );
 
@@ -706,7 +707,8 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE acousticbrainz_data ADD COLUMN mood_category TEXT",
             "ALTER TABLE acousticbrainz_data ADD COLUMN confidence_score REAL",
             "ALTER TABLE acousticbrainz_data ADD COLUMN instrumentalness REAL",
-            "ALTER TABLE artists ADD COLUMN last_enrich_attempt DATETIME"
+            "ALTER TABLE artists ADD COLUMN last_enrich_attempt DATETIME",
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_acousticbrainz_track_unique ON acousticbrainz_data(track_id)"
         ]
 
         for (const migration of migrations) {

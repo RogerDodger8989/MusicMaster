@@ -362,9 +362,9 @@ export const tagAlbumMetadata = async (req: Request, res: Response) => {
             (mbAlbum as any)['release-events']?.[0]?.area?.['iso-3166-1-codes']?.[0] || (mbAlbum as any)['release-events']?.[0]?.area?.name || null,
             mbAlbum.media?.[0]?.format || null,
             mbAlbum['release-group']?.id || null,
-                        (mbAlbum as any).script || null,
-                        mbAlbum.media?.length || null,
-                        mbAlbum.media?.reduce((sum: number, m: any) => sum + (m['track-count'] || 0), 0) || null,
+            (mbAlbum as any).script || null,
+            mbAlbum.media?.length || null,
+            mbAlbum.media?.reduce((sum: number, m: any) => sum + (m['track-count'] || 0), 0) || null,
             albumId
         )
 
@@ -503,6 +503,43 @@ export const previewMatchAlbum = async (req: Request, res: Response) => {
 
 export const enhanceLibrary = async (_req: Request, res: Response) => res.json({ status: 'started' })
 export const getEnhanceStatus = async (_req: Request, res: Response) => res.json({ progress: 0 })
-export const syncMetadata = async (_req: Request, res: Response) => res.json({ status: 'started' })
+export const syncMetadata = async (_req: Request, res: Response) => {
+    try {
+        const { syncAllMusicBrainzData } = await import('../../services/metadataWriter')
+        const db = getDatabase()
+
+        // Start sync in background
+        syncAllMusicBrainzData(db, (current, total, trackPath) => {
+            console.log(`[Metadata Sync] ${current}/${total}: ${trackPath}`)
+        }).then(results => {
+            console.log(`[Metadata Sync] Complete: ${results.success} successful, ${results.failed} failed, ${results.skipped} skipped`)
+        }).catch(error => {
+            console.error('[Metadata Sync] Error:', error)
+        })
+
+        res.json({ status: 'started', message: 'Metadata sync started in background' })
+    } catch (error: any) {
+        res.status(500).json({ error: error.message })
+    }
+}
+
 export const getFileSyncStatus = async (_req: Request, res: Response) => res.json({ progress: 0 })
-export const writeTrackMetadata = async (_req: Request, res: Response) => res.json({ success: true })
+
+export const writeTrackMetadata = async (req: Request, res: Response) => {
+    const { id } = req.params
+    const trackId = String(id)
+
+    try {
+        const db = getDatabase()
+        const success = await writeMusicBrainzDataToFile(db, trackId)
+
+        if (success) {
+            res.json({ success: true, message: 'Metadata written to file' })
+        } else {
+            res.status(400).json({ success: false, error: 'Failed to write metadata' })
+        }
+    } catch (error: any) {
+        console.error(`[Write Metadata] Error for track ${trackId}:`, error)
+        res.status(500).json({ success: false, error: error.message })
+    }
+}

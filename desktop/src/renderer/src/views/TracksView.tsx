@@ -56,13 +56,14 @@ export default function TracksView() {
         className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="grid grid-cols-[3rem_2fr_1.5fr_1.5fr_3rem_1fr_4rem] gap-4 px-6 py-3 border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-900/50">
+        <div className="grid grid-cols-[3rem_2fr_1.5fr_1.5fr_4rem_3rem_1fr_4rem] gap-4 px-6 py-3 border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-900/50">
           <div className="text-center flex justify-center">
             <Hash className="w-3 h-3" />
           </div>
           <div>Title</div>
           <div>Artist</div>
           <div>Album</div>
+          <div className="text-center">Vibe</div>
           <div className="text-right">Played</div>
           <div className="text-center">Rating</div>
           <div className="text-right flex justify-end">
@@ -75,6 +76,13 @@ export default function TracksView() {
             const isCurrentTrack = currentTrack?.id === track.id
             const isCurrentPlaying = isCurrentTrack && isPlaying
             const isSelected = selectedTracks.includes(track.id)
+
+            // Simple vibe string construction
+            const vibeParts: string[] = []
+            if (track.bpm) vibeParts.push(`${Math.round(track.bpm)}`)
+            if (track.key) vibeParts.push(track.key)
+            // Note: We'd ideally want the mood emoji here too, but track object might need enrichment 
+            // from the join. For now, let's show BPM/Key which are on the track object.
 
             return (
               <div
@@ -111,7 +119,7 @@ export default function TracksView() {
                   e.dataTransfer.effectAllowed = 'copy'
                 }}
                 className={cn(
-                  'group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_3rem_1fr_4rem] gap-4 px-6 py-3 items-center transition-all cursor-default select-none',
+                  'group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_4rem_3rem_1fr_4rem] gap-4 px-6 py-3 items-center transition-all cursor-default select-none',
                   isSelected
                     ? 'bg-white/10 hover:bg-white/10'
                     : isCurrentTrack
@@ -159,6 +167,16 @@ export default function TracksView() {
                 <div className="min-w-0">
                   <div className="text-sm text-zinc-400 truncate group-hover:text-zinc-300 transition-colors">
                     {track.album}
+                  </div>
+                </div>
+
+                {/* Vibe (BPM/Key) */}
+                <div className="min-w-0 flex items-center justify-center">
+                  <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-500 group-hover:text-zinc-400">
+                    {track.bpm && <span>{Math.round(track.bpm)}</span>}
+                    {track.bpm && track.key && <span className="text-zinc-700">•</span>}
+                    {track.key && <span className="text-zinc-400">{track.key}</span>}
+                    {!track.bpm && !track.key && <span className="text-zinc-800">-</span>}
                   </div>
                 </div>
 

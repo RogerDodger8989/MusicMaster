@@ -84,8 +84,19 @@
   - [x] Verify "Appears On" section for guest artists
   - [x] Verify "Discovery" mode functionality
   - [x] **Fix Missing Artist Metadata**
-    - [x] Implement `getArtistDetails` endpoint in backend
-    - [x] Ensure bidirectional "Member Of" logic in MusicBrainz service
+    - [x] Debug and fix Artist Detail View showing incorrect members (Daron Malakian case)
+    - [x] Fix incorrect service import in `artists.controller.ts`
+    - [x] Synchronize `mbid` and `musicbrainz_artist_id` columns in database
+    - [x] Update `upsertArtistWithMBID` to maintain synchronization
+    - [x] Add UI state resets to `ArtistDetailView.tsx` for clean transitions
+- [x] Fix Track Duplication in Album View
+    - [x] Create and run `cleanup_duplicates.ts` script
+    - [x] Update `index.ts` with `UNIQUE(track_id)` constraint for `acousticbrainz_data`
+    - [x] Add migration to `initDatabase` for unique index
+    - [x] Verify fix in UI
+- [ ] Database Redundancy Cleanup
+    - [ ] Evaluate if `mbid` column can be merged into `musicbrainz_artist_id` permanently
+    - [ ] Create migration script for column unification
   - [x] Hide "Discography" section if artist has no main albums (prioritize "Appears On")
 - [x] Refine UI Aesthetics
   - [x] Remove play icons from artist cards in `ArtistsView.tsx`
@@ -219,7 +230,7 @@
     - [x] Enhanced MusicBrainz service with join phrases and relationships
     - [x] Implemented AcoustID fingerprinting service
     - [x] Created API endpoints for metadata lookup
-- [/] **Block 3: UI & Control**
+- [x] **Block 3: UI & Control**
     - [x] Design Tag Confirmation Modal
     - [x] Implement side-by-side comparison UI
     - [x] Add batch selection and approval logic
@@ -229,10 +240,10 @@
     - [x] Fix "Empty" bug - show actual current values
     - [x] Show ALL metadata tags in confirmation modal
     - [x] Add progress indicator in TopBar during tagging
-- [ ] **Block 4: File Handling & Covers**
-    - [ ] Implement metadata writing to files (FLAC/MP3)
-    - [ ] Preserve ratings/loved status during write
-    - [ ] Add cover art management logic
+- [x] **Block 4: File Handling & Covers**
+    - [x] Implement metadata writing to files (FLAC/MP3)
+    - [x] Preserve ratings/loved status during write
+    - [x] Add cover art management logic
 - [x] **Phase 6: Play Count Sync Debugging & Fixes (2026-02-06)**
     - [x] **Rating System Bugfixes**
         - [x] Fix rating normalization (FMPS_RATING 0.8 read as 0.04)
@@ -304,10 +315,16 @@
         - [x] Display multiple release options with track listings
         - [x] Show confidence scores and highlight duration differences
         - [x] Allow user to select correct match before writing tags
-- [ ] **Phase 9: Full Library Automation & Deep Metadata**
-    - [ ] Implement Background Enrichment Worker
-    - [ ] Automated Performer/Relationship extraction (Smart Batching by Album)
-    - [ ] Automatic AcousticBrainz mood enrichment
-    - [ ] Rate-Limit Safety (1.1s delay enforcement)
-    - [ ] Create "Performers" UI section in Album Detail
-    - [ ] Display Mood/Energy tags in Player and Tracks view
+- [x] **Phase 9: Full Library Automation & Deep Metadata**
+    - [x] Implement Background Enrichment Worker
+    - [x] Automated Performer/Relationship extraction (Smart Batching by Album)
+    - [x] Automatic AcousticBrainz mood enrichment
+    - [x] Rate-Limit Safety (1.1s delay enforcement)
+    - [x] Create "Performers" UI section in Album Detail
+    - [x] Display Mood/Energy tags in Player and Tracks view
+
+- [ ] **Phase 10: Final Polish & Packaging**
+    - [ ] Run Lint/Cleanup (remove console.logs)
+    - [ ] Configuration Check (package.json, electron-builder)
+    - [ ] Build Windows Installer (.exe)
+    - [ ] Test Installed Application

@@ -375,3 +375,75 @@
 2026-02-10T12:36:01.146Z:   ✅ ACCEPTED (Strict mode)
 2026-02-10T12:36:01.147Z: Checking Enter Sandman [party] En:0.7049980057222082 Ar:0.7334986040055457 Va:0.35 Inst:0.05
 2026-02-10T12:36:01.147Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.395Z: Checking Sad Statue [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.396Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.397Z: Checking I‐E‐A‐I‐A‐I‐O [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.398Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.398Z: Checking Fuck the System [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.398Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.399Z: Checking Mr. Jack [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.399Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.399Z: Checking The Struggle Within [party] En:0.723639917024927 Ar:0.7465479419174489 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.400Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.400Z: Checking Thetawaves [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.400Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.401Z: Checking Enter Sandman [party] En:0.7049980057222082 Ar:0.7334986040055457 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.401Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.401Z: Checking Sad but True [party] En:0.697758560581606 Ar:0.7284309924071242 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.402Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.402Z: Checking Highway Song [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.402Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.403Z: Checking Question! [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.403Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.403Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.404Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.404Z: Checking Innervision [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.404Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.404Z: Checking Boom! [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.405Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.405Z: Checking Streamline [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.405Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.405Z: Checking Wherever I May Roam [party] En:0.6960743895038293 Ar:0.7272520726526804 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.406Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.406Z: Checking Cigaro [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.406Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.407Z: Checking Ego Brain [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.407Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.407Z: Checking Lost in Hollywood [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.408Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.408Z: Checking Violent Pornography [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.408Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.409Z: Checking Roulette [party] En:0.7707066314516913 Ar:0.7794946420161838 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.409Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.409Z: Checking Holier Than Thou [party] En:0.7444971553642541 Ar:0.7611480087549778 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.409Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.410Z: Checking Nüguns [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.410Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.410Z: Checking Chic ’n’ Stu [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.410Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.411Z: Checking Bubbles [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.411Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.412Z: Checking A.D.D. [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.412Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.412Z: Checking Through the Never [party] En:0.834633466975894 Ar:0.8242434268831258 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.413Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.414Z: Checking 36 [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.414Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.415Z: Checking Radio/Video [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.415Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.415Z: Checking Of Wolf and Man [party] En:0.7106411422080446 Ar:0.7374487995456311 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.416Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.416Z: Checking B.Y.O.B. [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.417Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.418Z: Checking Don’t Tread on Me [party] En:0.722885465651276 Ar:0.7460198259558931 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.419Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.419Z: Checking Old School Hollywood [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.420Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.420Z: Checking This Cocaine Makes Me Feel Like I’m on This Song [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.420Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.421Z: Checking Pictures [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.421Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.421Z: Checking Revenga [party] En:1 Ar:0.94 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.422Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T16:57:40.422Z: Checking The God That Failed [party] En:0.7610403892317277 Ar:0.7727282724622093 Va:0.35 Inst:0.05
+2026-02-10T16:57:40.422Z:   ✅ ACCEPTED (Strict mode)
