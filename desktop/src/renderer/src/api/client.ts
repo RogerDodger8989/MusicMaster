@@ -98,6 +98,7 @@ export interface MusicClient {
   previewMatchAlbum(albumId: string, mbAlbumId: string): Promise<any[]>
   getSimilarArtists(artist: string): Promise<any[]>
   openExternal(url: string): Promise<void>
+  enrichArtists(artistIds: string[]): Promise<void>
 
   // System
   getDrives(): Promise<any[]>
@@ -355,6 +356,11 @@ export class DomClient implements MusicClient {
       return this.api.util.openExternal(url)
     }
     window.open(url, '_blank')
+  }
+
+  async enrichArtists(_artistIds: string[]): Promise<void> {
+    // Not supported in DomClient (legacy)
+    return Promise.resolve()
   }
 
   async getDrives(): Promise<any[]> {
@@ -720,6 +726,14 @@ export class RestClient implements MusicClient {
 
   async openExternal(url: string): Promise<void> {
     window.open(url, '_blank')
+  }
+
+  async enrichArtists(artistIds: string[]): Promise<void> {
+    if (artistIds.length === 0) return
+    await this.req('/api/enrich/artists', {
+      method: 'POST',
+      body: JSON.stringify({ artistIds })
+    })
   }
 
   async getDrives(): Promise<any[]> {

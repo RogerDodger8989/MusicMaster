@@ -812,73 +812,8 @@ export default function ArtistDetailView({
               </section>
             )}
 
-            {/* Biography & Facts */}
+            {/* Biography */}
             <section className="space-y-6">
-              <div className="flex items-center gap-4 opacity-40">
-                <div className="w-12 h-[1px] bg-white" />
-                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                  About {artistName}
-                </h3>
-              </div>
-
-              {/* Facts Panel */}
-              {(artist?.country || artist?.type || artist?.gender || artist?.website) && (
-                <div className="grid grid-cols-2 gap-4 bg-white/5 rounded-2xl p-6 border border-white/5 backdrop-blur-sm">
-                  {artist.country && (
-                    <div className="space-y-1">
-                      <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">
-                        Origin
-                      </div>
-                      <div className="text-sm font-bold text-white/90 flex items-center gap-2">
-                        <MapPin size={12} className="text-primary" /> {artist.country}
-                      </div>
-                    </div>
-                  )}
-                  {artist.lifeSpanBegin && (
-                    <div className="space-y-1">
-                      <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">
-                        Activity
-                      </div>
-                      <div className="text-sm font-bold text-white/90 flex items-center gap-2">
-                        <Calendar size={12} className="text-primary" />
-                        {artist.lifeSpanBegin.split('-')[0]}
-                        {artist.lifeSpanEnd
-                          ? ` – ${artist.lifeSpanEnd.split('-')[0]}`
-                          : ' – Present'}
-                      </div>
-                    </div>
-                  )}
-                  {artist.type && (
-                    <div className="space-y-1">
-                      <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">
-                        Type
-                      </div>
-                      <div className="text-sm font-bold text-white/90 flex items-center gap-2">
-                        <UserCircle2 size={12} className="text-primary" /> {artist.type}
-                      </div>
-                    </div>
-                  )}
-                  {artist.website && (
-                    <div className="space-y-1">
-                      <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">
-                        Website
-                      </div>
-                      <a
-                        href={artist.website}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          client.openExternal(artist.website!)
-                        }}
-                        className="text-sm font-bold text-primary hover:underline flex items-center gap-2 group"
-                      >
-                        <Globe size={12} className="group-hover:scale-110 transition-transform" />
-                        Official Site
-                      </a>
-                    </div>
-                  )}
-                </div>
-              )}
-
               <div className="relative group/bio">
                 <div
                   className={cn(
@@ -1172,14 +1107,16 @@ export default function ArtistDetailView({
         message={`Your playlist is not empty. Would you like to clear it and play top tracks by "${artistName}", or just add them to the end?`}
       />
 
-      {artistContextMenu && (
-        <ArtistContextMenu
-          artist={artistContextMenu.artist}
-          x={artistContextMenu.x}
-          y={artistContextMenu.y}
-          onClose={() => setArtistContextMenu(null)}
-        />
-      )}
-    </div>
+      {
+        artistContextMenu && (
+          <ArtistContextMenu
+            artist={artistContextMenu.artist}
+            x={artistContextMenu.x}
+            y={artistContextMenu.y}
+            onClose={() => setArtistContextMenu(null)}
+          />
+        )
+      }
+    </div >
   )
 }

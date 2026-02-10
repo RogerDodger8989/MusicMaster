@@ -4546,3 +4546,471 @@
 [2026-02-10T10:45:13.946Z] Found image for System of a Down: https://i.scdn.co/image/ab6761610000e5eb60063d3451ade8f9fab397c2
 [2026-02-10T10:45:14.438Z] Found image for Alexandre Desplat: https://i.scdn.co/image/ab6772690000c46cf9a8d4c2fbbdba7962061bf9
 [2026-02-10T10:45:14.927Z] Found image for Metallica: https://i.scdn.co/image/ab6761610000e5eb69ca98dd3083f1082d740e44
+[2026-02-10T12:46:11.960Z] Requesting Spotify Token...
+[2026-02-10T12:46:11.962Z] Requesting Spotify Token...
+[2026-02-10T12:46:11.962Z] Requesting Spotify Token...
+[2026-02-10T12:46:11.963Z] Requesting Spotify Token...
+[2026-02-10T12:46:11.964Z] Requesting Spotify Token...
+[2026-02-10T12:46:11.964Z] Requesting Spotify Token...
+[2026-02-10T12:46:11.965Z] Requesting Spotify Token...
+[2026-02-10T12:46:11.965Z] Requesting Spotify Token...
+[2026-02-10T12:46:11.966Z] Requesting Spotify Token...
+[2026-02-10T12:46:11.967Z] Requesting Spotify Token...
+[2026-02-10T12:46:12.099Z] Spotify Token Acquired
+[2026-02-10T12:46:12.108Z] Spotify Token Acquired
+[2026-02-10T12:46:12.131Z] Spotify Token Acquired
+[2026-02-10T12:46:12.134Z] Spotify Token Acquired
+[2026-02-10T12:46:12.151Z] Spotify Token Acquired
+[2026-02-10T12:46:12.154Z] Spotify Token Acquired
+[2026-02-10T12:46:12.156Z] Spotify Token Acquired
+[2026-02-10T12:46:12.161Z] Spotify Token Acquired
+[2026-02-10T12:46:12.164Z] Spotify Token Acquired
+[2026-02-10T12:46:12.166Z] Spotify Token Acquired
+[2026-02-10T12:46:12.458Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T12:46:12.459Z] Found image for Pantera: https://i.scdn.co/image/ab6761610000e5ebe21999c0102c240bdf094d9b
+[2026-02-10T12:46:12.480Z] Found image for Testament: https://i.scdn.co/image/ab6761610000e5eb5663001a056558505a84d8e1
+[2026-02-10T12:46:12.497Z] Found image for Iron Maiden: https://i.scdn.co/image/ab6761610000e5ebf9978ad4808f6f2723124d19
+[2026-02-10T12:46:12.498Z] Found image for Megadeth: https://i.scdn.co/image/ab6761610000e5ebd5233fdc8cad84de5b366f1b
+[2026-02-10T12:46:12.511Z] Found image for Exodus: https://i.scdn.co/image/ab6761610000e5ebd92cda07d7c1d632ffa4e774
+[2026-02-10T12:46:12.526Z] Found image for Slayer: https://i.scdn.co/image/8c81130db7b5f933412c4906c30327817f1e1b43
+[2026-02-10T12:46:12.624Z] Found image for Ozzy Osbourne: https://i.scdn.co/image/ab6761610000e5ebb5b52f7e13f720c7a4856306
+[2026-02-10T12:46:12.627Z] Found image for Anthrax: https://i.scdn.co/image/9c13e8d805f8ba3a676dc272b0e2e237cdcf41a5
+[2026-02-10T12:46:12.628Z] Found image for Motörhead: https://i.scdn.co/image/ab6761610000e5eb7ec8cb2d3f9576c264a91c15
+[2026-02-10T12:46:13.094Z] Found image for Ozzy Osbourne: https://i.scdn.co/image/ab6761610000e5ebb5b52f7e13f720c7a4856306
+[2026-02-10T12:46:13.110Z] Found image for Slayer: https://i.scdn.co/image/8c81130db7b5f933412c4906c30327817f1e1b43
+[2026-02-10T12:46:13.116Z] Found image for Anthrax: https://i.scdn.co/image/9c13e8d805f8ba3a676dc272b0e2e237cdcf41a5
+[2026-02-10T12:46:13.119Z] Found image for Exodus: https://i.scdn.co/image/ab6761610000e5ebd92cda07d7c1d632ffa4e774
+[2026-02-10T12:46:13.129Z] Found image for Pantera: https://i.scdn.co/image/ab6761610000e5ebe21999c0102c240bdf094d9b
+[2026-02-10T12:46:13.131Z] Found image for Testament: https://i.scdn.co/image/ab6761610000e5eb5663001a056558505a84d8e1
+[2026-02-10T12:46:13.134Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T12:46:13.154Z] Found image for Iron Maiden: https://i.scdn.co/image/ab6761610000e5ebf9978ad4808f6f2723124d19
+[2026-02-10T12:46:13.192Z] Found image for Megadeth: https://i.scdn.co/image/ab6761610000e5ebd5233fdc8cad84de5b366f1b
+[2026-02-10T12:46:13.198Z] Found image for Motörhead: https://i.scdn.co/image/ab6761610000e5eb7ec8cb2d3f9576c264a91c15
+[2026-02-10T12:46:14.222Z] Found image for Zippy Kid: https://i.scdn.co/image/ab6761610000e5ebdda67f87747f472a2ff35511
+[2026-02-10T12:46:14.699Z] Found image for Zippy Kid: https://i.scdn.co/image/ab6761610000e5ebdda67f87747f472a2ff35511
+[2026-02-10T12:48:24.869Z] Requesting Spotify Token...
+[2026-02-10T12:48:24.872Z] Requesting Spotify Token...
+[2026-02-10T12:48:24.874Z] Requesting Spotify Token...
+[2026-02-10T12:48:24.875Z] Requesting Spotify Token...
+[2026-02-10T12:48:24.877Z] Requesting Spotify Token...
+[2026-02-10T12:48:24.878Z] Requesting Spotify Token...
+[2026-02-10T12:48:24.880Z] Requesting Spotify Token...
+[2026-02-10T12:48:24.881Z] Requesting Spotify Token...
+[2026-02-10T12:48:24.882Z] Requesting Spotify Token...
+[2026-02-10T12:48:24.884Z] Requesting Spotify Token...
+[2026-02-10T12:48:25.014Z] Spotify Token Acquired
+[2026-02-10T12:48:25.023Z] Spotify Token Acquired
+[2026-02-10T12:48:25.044Z] Spotify Token Acquired
+[2026-02-10T12:48:25.056Z] Spotify Token Acquired
+[2026-02-10T12:48:25.058Z] Spotify Token Acquired
+[2026-02-10T12:48:25.064Z] Spotify Token Acquired
+[2026-02-10T12:48:25.067Z] Spotify Token Acquired
+[2026-02-10T12:48:25.075Z] Spotify Token Acquired
+[2026-02-10T12:48:25.083Z] Spotify Token Acquired
+[2026-02-10T12:48:25.086Z] Spotify Token Acquired
+[2026-02-10T12:48:25.411Z] Found image for Exodus: https://i.scdn.co/image/ab6761610000e5ebd92cda07d7c1d632ffa4e774
+[2026-02-10T12:48:25.416Z] Found image for Motörhead: https://i.scdn.co/image/ab6761610000e5eb7ec8cb2d3f9576c264a91c15
+[2026-02-10T12:48:25.418Z] Found image for Iron Maiden: https://i.scdn.co/image/ab6761610000e5ebf9978ad4808f6f2723124d19
+[2026-02-10T12:48:25.444Z] Found image for Ozzy Osbourne: https://i.scdn.co/image/ab6761610000e5ebb5b52f7e13f720c7a4856306
+[2026-02-10T12:48:25.449Z] Found image for Slayer: https://i.scdn.co/image/8c81130db7b5f933412c4906c30327817f1e1b43
+[2026-02-10T12:48:25.459Z] Found image for Pantera: https://i.scdn.co/image/ab6761610000e5ebe21999c0102c240bdf094d9b
+[2026-02-10T12:48:25.470Z] Found image for Megadeth: https://i.scdn.co/image/ab6761610000e5ebd5233fdc8cad84de5b366f1b
+[2026-02-10T12:48:25.493Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T12:48:25.554Z] Found image for Testament: https://i.scdn.co/image/ab6761610000e5eb5663001a056558505a84d8e1
+[2026-02-10T12:48:25.616Z] Found image for Anthrax: https://i.scdn.co/image/9c13e8d805f8ba3a676dc272b0e2e237cdcf41a5
+[2026-02-10T12:48:26.076Z] Found image for Testament: https://i.scdn.co/image/ab6761610000e5eb5663001a056558505a84d8e1
+[2026-02-10T12:48:26.092Z] Found image for Ozzy Osbourne: https://i.scdn.co/image/ab6761610000e5ebb5b52f7e13f720c7a4856306
+[2026-02-10T12:48:26.096Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T12:48:26.097Z] Found image for Anthrax: https://i.scdn.co/image/9c13e8d805f8ba3a676dc272b0e2e237cdcf41a5
+[2026-02-10T12:48:26.099Z] Found image for Megadeth: https://i.scdn.co/image/ab6761610000e5ebd5233fdc8cad84de5b366f1b
+[2026-02-10T12:48:26.099Z] Found image for Motörhead: https://i.scdn.co/image/ab6761610000e5eb7ec8cb2d3f9576c264a91c15
+[2026-02-10T12:48:26.102Z] Found image for Exodus: https://i.scdn.co/image/ab6761610000e5ebd92cda07d7c1d632ffa4e774
+[2026-02-10T12:48:26.114Z] Found image for Pantera: https://i.scdn.co/image/ab6761610000e5ebe21999c0102c240bdf094d9b
+[2026-02-10T12:48:26.115Z] Found image for Iron Maiden: https://i.scdn.co/image/ab6761610000e5ebf9978ad4808f6f2723124d19
+[2026-02-10T12:48:26.181Z] Found image for Slayer: https://i.scdn.co/image/8c81130db7b5f933412c4906c30327817f1e1b43
+[2026-02-10T12:48:27.950Z] Found image for Zippy Kid: https://i.scdn.co/image/ab6761610000e5ebdda67f87747f472a2ff35511
+[2026-02-10T12:48:33.465Z] Found image for Zippy Kid: https://i.scdn.co/image/ab6761610000e5ebdda67f87747f472a2ff35511
+[2026-02-10T12:53:29.999Z] Requesting Spotify Token...
+[2026-02-10T12:53:30.002Z] Requesting Spotify Token...
+[2026-02-10T12:53:30.003Z] Requesting Spotify Token...
+[2026-02-10T12:53:30.003Z] Requesting Spotify Token...
+[2026-02-10T12:53:30.004Z] Requesting Spotify Token...
+[2026-02-10T12:53:30.005Z] Requesting Spotify Token...
+[2026-02-10T12:53:30.006Z] Requesting Spotify Token...
+[2026-02-10T12:53:30.006Z] Requesting Spotify Token...
+[2026-02-10T12:53:30.007Z] Requesting Spotify Token...
+[2026-02-10T12:53:30.007Z] Requesting Spotify Token...
+[2026-02-10T12:53:30.145Z] Spotify Token Acquired
+[2026-02-10T12:53:30.147Z] Spotify Token Acquired
+[2026-02-10T12:53:30.155Z] Spotify Token Acquired
+[2026-02-10T12:53:30.159Z] Spotify Token Acquired
+[2026-02-10T12:53:30.161Z] Spotify Token Acquired
+[2026-02-10T12:53:30.162Z] Spotify Token Acquired
+[2026-02-10T12:53:30.169Z] Spotify Token Acquired
+[2026-02-10T12:53:30.177Z] Spotify Token Acquired
+[2026-02-10T12:53:30.183Z] Spotify Token Acquired
+[2026-02-10T12:53:30.186Z] Spotify Token Acquired
+[2026-02-10T12:53:30.471Z] Found image for Kevin Sherwood: https://i.scdn.co/image/ab6761610000e5eb82a01d3b0a1890a78e9e527a
+[2026-02-10T12:53:30.506Z] Found image for The Beta Machine: https://i.scdn.co/image/ab6761610000e5eb78b51b76b668f654b0ca5e86
+[2026-02-10T12:53:30.539Z] Found image for CKY: https://i.scdn.co/image/ab6761610000e5eb35aa3f7965b2a8843c91f3ce
+[2026-02-10T12:53:30.558Z] Found image for Tenacious D: https://i.scdn.co/image/ab6761610000e5eb7637f18f419921b8d24bd9e5
+[2026-02-10T12:53:30.587Z] Found image for Breaking Benjamin: https://i.scdn.co/image/ab6761610000e5ebff528d242b11fdc4261d05da
+[2026-02-10T12:53:30.593Z] Found image for Anthony Vincent: https://i.scdn.co/image/ab6761610000e5ebced7415206fd937fa2ce704e
+[2026-02-10T12:53:30.596Z] Found image for Papa Roach: https://i.scdn.co/image/ab6761610000e5ebd3757f63ec317d0309a8115a
+[2026-02-10T12:53:30.610Z] Found image for First to Eleven: https://i.scdn.co/image/ab6761610000e5ebdc1805391357d3ce2ce9df64
+[2026-02-10T12:53:30.612Z] Found image for Tom Morello: https://i.scdn.co/image/ab6761610000e5eba824aca6e278acca89bc406b
+[2026-02-10T12:53:30.613Z] Found image for Three Days Grace: https://i.scdn.co/image/ab6761610000e5eb2e619cf7c1577485d14c2043
+[2026-02-10T12:53:30.990Z] Found image for Kevin Sherwood: https://i.scdn.co/image/ab6761610000e5eb82a01d3b0a1890a78e9e527a
+[2026-02-10T12:53:31.002Z] Found image for Breaking Benjamin: https://i.scdn.co/image/ab6761610000e5ebff528d242b11fdc4261d05da
+[2026-02-10T12:53:31.012Z] Found image for Papa Roach: https://i.scdn.co/image/ab6761610000e5ebd3757f63ec317d0309a8115a
+[2026-02-10T12:53:31.015Z] Found image for Three Days Grace: https://i.scdn.co/image/ab6761610000e5eb2e619cf7c1577485d14c2043
+[2026-02-10T12:53:31.017Z] Found image for Tom Morello: https://i.scdn.co/image/ab6761610000e5eba824aca6e278acca89bc406b
+[2026-02-10T12:53:31.019Z] Found image for Anthony Vincent: https://i.scdn.co/image/ab6761610000e5ebced7415206fd937fa2ce704e
+[2026-02-10T12:53:31.038Z] Found image for The Beta Machine: https://i.scdn.co/image/ab6761610000e5eb78b51b76b668f654b0ca5e86
+[2026-02-10T12:53:31.046Z] Found image for First to Eleven: https://i.scdn.co/image/ab6761610000e5ebdc1805391357d3ce2ce9df64
+[2026-02-10T12:53:31.050Z] Found image for CKY: https://i.scdn.co/image/ab6761610000e5eb35aa3f7965b2a8843c91f3ce
+[2026-02-10T12:53:31.086Z] Found image for Tenacious D: https://i.scdn.co/image/ab6761610000e5eb7637f18f419921b8d24bd9e5
+[2026-02-10T12:53:32.834Z] Found image for John Dolmayan: https://i.scdn.co/image/ab6761610000e5eb679c81e9679300f18451a229
+[2026-02-10T12:53:33.298Z] Found image for John Dolmayan: https://i.scdn.co/image/ab6761610000e5eb679c81e9679300f18451a229
+[2026-02-10T12:53:33.736Z] Found image for John Dolmayan: https://i.scdn.co/image/ab6761610000e5eb679c81e9679300f18451a229
+[2026-02-10T12:53:34.129Z] Found image for John Dolmayan: https://i.scdn.co/image/ab6761610000e5eb679c81e9679300f18451a229
+[2026-02-10T12:54:06.942Z] Found image for Megadeth: https://i.scdn.co/image/ab6761610000e5ebd5233fdc8cad84de5b366f1b
+[2026-02-10T12:54:06.956Z] Found image for Pantera: https://i.scdn.co/image/ab6761610000e5ebe21999c0102c240bdf094d9b
+[2026-02-10T12:54:06.970Z] Found image for Anthrax: https://i.scdn.co/image/9c13e8d805f8ba3a676dc272b0e2e237cdcf41a5
+[2026-02-10T12:54:06.971Z] Found image for Motörhead: https://i.scdn.co/image/ab6761610000e5eb7ec8cb2d3f9576c264a91c15
+[2026-02-10T12:54:06.977Z] Found image for Testament: https://i.scdn.co/image/ab6761610000e5eb5663001a056558505a84d8e1
+[2026-02-10T12:54:06.983Z] Found image for Iron Maiden: https://i.scdn.co/image/ab6761610000e5ebf9978ad4808f6f2723124d19
+[2026-02-10T12:54:06.984Z] Found image for Slayer: https://i.scdn.co/image/8c81130db7b5f933412c4906c30327817f1e1b43
+[2026-02-10T12:54:06.985Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T12:54:07.035Z] Found image for Exodus: https://i.scdn.co/image/ab6761610000e5ebd92cda07d7c1d632ffa4e774
+[2026-02-10T12:54:07.078Z] Found image for Ozzy Osbourne: https://i.scdn.co/image/ab6761610000e5ebb5b52f7e13f720c7a4856306
+[2026-02-10T12:54:07.457Z] Found image for Slayer: https://i.scdn.co/image/8c81130db7b5f933412c4906c30327817f1e1b43
+[2026-02-10T12:54:07.466Z] Found image for Ozzy Osbourne: https://i.scdn.co/image/ab6761610000e5ebb5b52f7e13f720c7a4856306
+[2026-02-10T12:54:07.478Z] Found image for Exodus: https://i.scdn.co/image/ab6761610000e5ebd92cda07d7c1d632ffa4e774
+[2026-02-10T12:54:07.479Z] Found image for Motörhead: https://i.scdn.co/image/ab6761610000e5eb7ec8cb2d3f9576c264a91c15
+[2026-02-10T12:54:07.510Z] Found image for Megadeth: https://i.scdn.co/image/ab6761610000e5ebd5233fdc8cad84de5b366f1b
+[2026-02-10T12:54:07.531Z] Found image for Anthrax: https://i.scdn.co/image/9c13e8d805f8ba3a676dc272b0e2e237cdcf41a5
+[2026-02-10T12:54:07.537Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T12:54:07.550Z] Found image for Iron Maiden: https://i.scdn.co/image/ab6761610000e5ebf9978ad4808f6f2723124d19
+[2026-02-10T12:54:07.552Z] Found image for Testament: https://i.scdn.co/image/ab6761610000e5eb5663001a056558505a84d8e1
+[2026-02-10T12:54:07.576Z] Found image for Pantera: https://i.scdn.co/image/ab6761610000e5ebe21999c0102c240bdf094d9b
+[2026-02-10T12:54:09.951Z] Found image for Zippy Kid: https://i.scdn.co/image/ab6761610000e5ebdda67f87747f472a2ff35511
+[2026-02-10T12:54:10.405Z] Found image for Zippy Kid: https://i.scdn.co/image/ab6761610000e5ebdda67f87747f472a2ff35511
+[2026-02-10T13:01:02.571Z] Requesting Spotify Token...
+[2026-02-10T13:01:02.573Z] Requesting Spotify Token...
+[2026-02-10T13:01:02.574Z] Requesting Spotify Token...
+[2026-02-10T13:01:02.575Z] Requesting Spotify Token...
+[2026-02-10T13:01:02.576Z] Requesting Spotify Token...
+[2026-02-10T13:01:02.577Z] Requesting Spotify Token...
+[2026-02-10T13:01:02.578Z] Requesting Spotify Token...
+[2026-02-10T13:01:02.579Z] Requesting Spotify Token...
+[2026-02-10T13:01:02.580Z] Requesting Spotify Token...
+[2026-02-10T13:01:02.581Z] Requesting Spotify Token...
+[2026-02-10T13:01:02.714Z] Spotify Token Acquired
+[2026-02-10T13:01:02.722Z] Spotify Token Acquired
+[2026-02-10T13:01:02.745Z] Spotify Token Acquired
+[2026-02-10T13:01:02.750Z] Spotify Token Acquired
+[2026-02-10T13:01:02.752Z] Spotify Token Acquired
+[2026-02-10T13:01:02.755Z] Spotify Token Acquired
+[2026-02-10T13:01:02.757Z] Spotify Token Acquired
+[2026-02-10T13:01:02.766Z] Spotify Token Acquired
+[2026-02-10T13:01:02.770Z] Spotify Token Acquired
+[2026-02-10T13:01:02.774Z] Spotify Token Acquired
+[2026-02-10T13:01:03.051Z] Found image for System of a Down: https://i.scdn.co/image/ab6761610000e5eb60063d3451ade8f9fab397c2
+[2026-02-10T13:01:03.159Z] Found image for Vampires on Tomato Juice: https://i.scdn.co/image/ab67616d0000b273bce42254ee5a2e3e9ae8f49b
+[2026-02-10T13:01:03.180Z] Found image for Shavo Odadjian: https://i.scdn.co/image/ab6761610000e5eb8e88ae842b8041d9348b310a
+[2026-02-10T13:01:03.191Z] Found image for Gryp: https://i.scdn.co/image/ab67616d0000b2735a41e7a1b9f7f09ea3034732
+[2026-02-10T13:01:03.199Z] Found image for Prefix: https://i.scdn.co/image/ab67616d0000b273f277e4bf53fd43064e395df3
+[2026-02-10T13:01:03.249Z] Found image for Escombro: https://i.scdn.co/image/ab6761610000e5ebf82d5a27208d7f8a23dbfc49
+[2026-02-10T13:01:03.305Z] Found image for Spike 1000: https://i.scdn.co/image/ab67616d0000b27371797905e853e068af7687f5
+[2026-02-10T13:01:03.307Z] Found image for Sujera: https://i.scdn.co/image/ab6761610000e5eb4b7f4f671e9a480912b02f82
+[2026-02-10T13:01:03.308Z] Found image for Statues On Fire: https://i.scdn.co/image/ab6761610000e5eb1141140c20fbee1ff1e5bd95
+[2026-02-10T13:01:03.309Z] Found image for Tonelada: https://i.scdn.co/image/ab6761610000e5ebb572b3623c2b87bf239aea76
+[2026-02-10T13:01:04.497Z] Found image for Spike 1000: https://i.scdn.co/image/ab67616d0000b27371797905e853e068af7687f5
+[2026-02-10T13:01:04.508Z] Found image for Vampires on Tomato Juice: https://i.scdn.co/image/ab67616d0000b273bce42254ee5a2e3e9ae8f49b
+[2026-02-10T13:01:04.523Z] Found image for Prefix: https://i.scdn.co/image/ab67616d0000b273f277e4bf53fd43064e395df3
+[2026-02-10T13:01:04.538Z] Found image for Shavo Odadjian: https://i.scdn.co/image/ab6761610000e5eb8e88ae842b8041d9348b310a
+[2026-02-10T13:01:04.792Z] Found image for Sujera: https://i.scdn.co/image/ab6761610000e5eb4b7f4f671e9a480912b02f82
+[2026-02-10T13:01:04.793Z] Found image for Tonelada: https://i.scdn.co/image/ab6761610000e5ebb572b3623c2b87bf239aea76
+[2026-02-10T13:01:04.794Z] Found image for Escombro: https://i.scdn.co/image/ab6761610000e5ebf82d5a27208d7f8a23dbfc49
+[2026-02-10T13:01:04.796Z] Found image for Gryp: https://i.scdn.co/image/ab67616d0000b2735a41e7a1b9f7f09ea3034732
+[2026-02-10T13:01:04.797Z] Found image for Statues On Fire: https://i.scdn.co/image/ab6761610000e5eb1141140c20fbee1ff1e5bd95
+[2026-02-10T13:01:04.876Z] Found image for System of a Down: https://i.scdn.co/image/ab6761610000e5eb60063d3451ade8f9fab397c2
+[2026-02-10T13:01:06.021Z] Found image for Metallica: https://i.scdn.co/image/ab6761610000e5eb69ca98dd3083f1082d740e44
+[2026-02-10T13:01:07.695Z] Found image for Metallica: https://i.scdn.co/image/ab6761610000e5eb69ca98dd3083f1082d740e44
+[2026-02-10T13:01:08.129Z] Found image for Metallica: https://i.scdn.co/image/ab6761610000e5eb69ca98dd3083f1082d740e44
+[2026-02-10T13:01:08.950Z] Found image for Metallica: https://i.scdn.co/image/ab6761610000e5eb69ca98dd3083f1082d740e44
+[2026-02-10T13:01:15.832Z] Found image for Nomek: https://i.scdn.co/image/ab6761610000e5eb7f3e46e94e04de7fdf84081e
+[2026-02-10T13:01:15.861Z] Found image for Deekline and Ed Solo featuring MC Flipside: https://i.scdn.co/image/ab6761610000e5eb4a5760e46e5707e216e88588
+[2026-02-10T13:01:15.878Z] Found image for Dub Heroes: https://i.scdn.co/image/ab6761610000e5eb9d05c3a84aa2519d67a7cf05
+[2026-02-10T13:01:15.880Z] Found image for TDI: https://i.scdn.co/image/ab67616d0000b273e3d4f6f7fc1fd9bb66bcbcf0
+[2026-02-10T13:01:15.888Z] Found image for Meat Katie & Chevy One: https://i.scdn.co/image/ab6761610000e5eb55049b6b2faab5da5619add6
+[2026-02-10T13:01:15.891Z] Found image for Chevy One: https://i.scdn.co/image/ab6761610000e5eb00ef5bc62bd4c2767dac4547
+[2026-02-10T13:01:15.927Z] Found image for Miss Mants: https://i.scdn.co/image/ab67616d0000b2738658a7aefb6bf124c19dc1b0
+[2026-02-10T13:01:15.939Z] Found image for Peep This: https://i.scdn.co/image/ab6761610000e5eb41aa4d0f146396cfbadecda0
+[2026-02-10T13:01:15.949Z] Found image for Josef Plante & J-Break: https://i.scdn.co/image/ab67616d0000b273c825d89e6bbea7985ba1251e
+[2026-02-10T13:01:15.988Z] Found image for Dave Gluskin: https://i.scdn.co/image/29135f6101e2b98e0ab188693c41ba48bd248c4b
+[2026-02-10T13:01:16.483Z] Found image for Josef Plante & J-Break: https://i.scdn.co/image/ab67616d0000b273c825d89e6bbea7985ba1251e
+[2026-02-10T13:01:16.497Z] Found image for Deekline and Ed Solo featuring MC Flipside: https://i.scdn.co/image/ab6761610000e5eb4a5760e46e5707e216e88588
+[2026-02-10T13:01:16.504Z] Found image for Dave Gluskin: https://i.scdn.co/image/29135f6101e2b98e0ab188693c41ba48bd248c4b
+[2026-02-10T13:01:16.511Z] Found image for Chevy One: https://i.scdn.co/image/ab6761610000e5eb00ef5bc62bd4c2767dac4547
+[2026-02-10T13:01:16.550Z] Found image for Meat Katie & Chevy One: https://i.scdn.co/image/ab6761610000e5eb55049b6b2faab5da5619add6
+[2026-02-10T13:01:16.557Z] Found image for Nomek: https://i.scdn.co/image/ab6761610000e5eb7f3e46e94e04de7fdf84081e
+[2026-02-10T13:01:16.581Z] Found image for Peep This: https://i.scdn.co/image/ab6761610000e5eb41aa4d0f146396cfbadecda0
+[2026-02-10T13:01:16.595Z] Found image for Dub Heroes: https://i.scdn.co/image/ab6761610000e5eb9d05c3a84aa2519d67a7cf05
+[2026-02-10T13:01:16.611Z] Found image for TDI: https://i.scdn.co/image/ab67616d0000b273e3d4f6f7fc1fd9bb66bcbcf0
+[2026-02-10T13:01:16.786Z] Found image for Miss Mants: https://i.scdn.co/image/ab67616d0000b2738658a7aefb6bf124c19dc1b0
+[2026-02-10T13:01:20.476Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:01:21.137Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:01:21.588Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:01:23.013Z] Found image for Rob Rock: https://i.scdn.co/image/ab6761610000e5eb857b4ec90fb620cb96a6bc4e
+[2026-02-10T13:01:23.065Z] Found image for Voices Of Rock: https://i.scdn.co/image/c55be1da107f959086ef2b9bb4d33c6b486f1f65
+[2026-02-10T13:01:23.067Z] Found image for The Dogma: https://i.scdn.co/image/ab67616d0000b273dfc97c488668936693f82dc3
+[2026-02-10T13:01:23.130Z] Found image for Urban & 4: https://i.scdn.co/image/ab6761610000e5ebfc6da6649156efb21eb3aae6
+[2026-02-10T13:01:23.137Z] Found image for Debeli Precjednik: https://i.scdn.co/image/ab67616d0000b2730b10a836e8db46a3a0f00ae3
+[2026-02-10T13:01:23.141Z] Found image for Insania Stockholm: https://i.scdn.co/image/ab6761610000e5ebf015aa7ed44afefbe9e239f8
+[2026-02-10T13:01:23.150Z] No image found for Fires Of Babylon
+[2026-02-10T13:01:23.172Z] No image found for Roland Grapow
+[2026-02-10T13:01:23.266Z] Found image for Giuntini Project: https://i.scdn.co/image/ab6761610000e5eb4c2cb97cca02648629ba5c84
+[2026-02-10T13:01:23.589Z] Found image for Scroll: https://i.scdn.co/image/ab6761610000e5ebb23ef5033949bad7e70906ac
+[2026-02-10T13:01:23.932Z] Found image for Giuntini Project: https://i.scdn.co/image/ab6761610000e5eb4c2cb97cca02648629ba5c84
+[2026-02-10T13:01:23.962Z] Found image for Insania Stockholm: https://i.scdn.co/image/ab6761610000e5ebf015aa7ed44afefbe9e239f8
+[2026-02-10T13:01:23.964Z] Found image for Urban & 4: https://i.scdn.co/image/ab6761610000e5ebfc6da6649156efb21eb3aae6
+[2026-02-10T13:01:23.980Z] No image found for Fires Of Babylon
+[2026-02-10T13:01:23.992Z] No image found for Roland Grapow
+[2026-02-10T13:01:24.023Z] Found image for Debeli Precjednik: https://i.scdn.co/image/ab67616d0000b2730b10a836e8db46a3a0f00ae3
+[2026-02-10T13:01:24.025Z] Found image for Scroll: https://i.scdn.co/image/ab6761610000e5ebb23ef5033949bad7e70906ac
+[2026-02-10T13:01:24.030Z] Found image for Rob Rock: https://i.scdn.co/image/ab6761610000e5eb857b4ec90fb620cb96a6bc4e
+[2026-02-10T13:01:24.031Z] Found image for Voices Of Rock: https://i.scdn.co/image/c55be1da107f959086ef2b9bb4d33c6b486f1f65
+[2026-02-10T13:01:24.044Z] Found image for The Dogma: https://i.scdn.co/image/ab67616d0000b273dfc97c488668936693f82dc3
+[2026-02-10T13:01:25.771Z] Found image for Gord Downie: https://i.scdn.co/image/ab6761610000e5ebae554cce8278e109f8437a4f
+[2026-02-10T13:01:26.458Z] Found image for Gord Downie: https://i.scdn.co/image/ab6761610000e5ebae554cce8278e109f8437a4f
+[2026-02-10T13:01:26.870Z] Found image for Gord Downie: https://i.scdn.co/image/ab6761610000e5ebae554cce8278e109f8437a4f
+[2026-02-10T13:01:27.294Z] Found image for Gord Downie: https://i.scdn.co/image/ab6761610000e5ebae554cce8278e109f8437a4f
+[2026-02-10T13:01:33.224Z] Found image for Dave Gluskin: https://i.scdn.co/image/29135f6101e2b98e0ab188693c41ba48bd248c4b
+[2026-02-10T13:01:33.236Z] Found image for Dub Heroes: https://i.scdn.co/image/ab6761610000e5eb9d05c3a84aa2519d67a7cf05
+[2026-02-10T13:01:33.255Z] Found image for Josef Plante & J-Break: https://i.scdn.co/image/ab67616d0000b273c825d89e6bbea7985ba1251e
+[2026-02-10T13:01:33.255Z] Found image for Chevy One: https://i.scdn.co/image/ab6761610000e5eb00ef5bc62bd4c2767dac4547
+[2026-02-10T13:01:33.256Z] Found image for TDI: https://i.scdn.co/image/ab67616d0000b273e3d4f6f7fc1fd9bb66bcbcf0
+[2026-02-10T13:01:33.259Z] Found image for Peep This: https://i.scdn.co/image/ab6761610000e5eb41aa4d0f146396cfbadecda0
+[2026-02-10T13:01:33.280Z] Found image for Meat Katie & Chevy One: https://i.scdn.co/image/ab6761610000e5eb55049b6b2faab5da5619add6
+[2026-02-10T13:01:33.290Z] Found image for Deekline and Ed Solo featuring MC Flipside: https://i.scdn.co/image/ab6761610000e5eb4a5760e46e5707e216e88588
+[2026-02-10T13:01:33.339Z] Found image for Nomek: https://i.scdn.co/image/ab6761610000e5eb7f3e46e94e04de7fdf84081e
+[2026-02-10T13:01:33.377Z] Found image for Miss Mants: https://i.scdn.co/image/ab67616d0000b2738658a7aefb6bf124c19dc1b0
+[2026-02-10T13:01:34.125Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:01:34.600Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:01:35.025Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:01:35.417Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:01:35.833Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:01:36.217Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:01:36.663Z] Found image for Meat Katie & Chevy One: https://i.scdn.co/image/ab6761610000e5eb55049b6b2faab5da5619add6
+[2026-02-10T13:01:36.667Z] Found image for Josef Plante & J-Break: https://i.scdn.co/image/ab67616d0000b273c825d89e6bbea7985ba1251e
+[2026-02-10T13:01:36.695Z] Found image for Dub Heroes: https://i.scdn.co/image/ab6761610000e5eb9d05c3a84aa2519d67a7cf05
+[2026-02-10T13:01:36.703Z] Found image for Deekline and Ed Solo featuring MC Flipside: https://i.scdn.co/image/ab6761610000e5eb4a5760e46e5707e216e88588
+[2026-02-10T13:01:36.711Z] Found image for Miss Mants: https://i.scdn.co/image/ab67616d0000b2738658a7aefb6bf124c19dc1b0
+[2026-02-10T13:01:36.715Z] Found image for Dave Gluskin: https://i.scdn.co/image/29135f6101e2b98e0ab188693c41ba48bd248c4b
+[2026-02-10T13:01:36.718Z] Found image for Nomek: https://i.scdn.co/image/ab6761610000e5eb7f3e46e94e04de7fdf84081e
+[2026-02-10T13:01:36.722Z] Found image for Chevy One: https://i.scdn.co/image/ab6761610000e5eb00ef5bc62bd4c2767dac4547
+[2026-02-10T13:01:36.866Z] Found image for TDI: https://i.scdn.co/image/ab67616d0000b273e3d4f6f7fc1fd9bb66bcbcf0
+[2026-02-10T13:01:36.903Z] Found image for Peep This: https://i.scdn.co/image/ab6761610000e5eb41aa4d0f146396cfbadecda0
+[2026-02-10T13:01:39.526Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:01:44.990Z] Found image for Sepultura: https://i.scdn.co/image/ab6761610000e5eb716f574b796045f28ce4f4f3
+[2026-02-10T13:02:12.083Z] Found image for Megadeth: https://i.scdn.co/image/ab6761610000e5ebd5233fdc8cad84de5b366f1b
+[2026-02-10T13:02:12.138Z] Found image for Metallica: https://i.scdn.co/image/ab6761610000e5eb69ca98dd3083f1082d740e44
+[2026-02-10T13:02:12.187Z] Found image for Marty Friedman: https://i.scdn.co/image/ab6761610000e5eb3603acf97a3c835105f9c60e
+[2026-02-10T13:02:12.198Z] Found image for Paul Gilbert: https://i.scdn.co/image/ab6761610000e5eb7b816259211de268d707ef4b
+[2026-02-10T13:02:12.204Z] Found image for Andy Timmons: https://i.scdn.co/image/faa94aaa713f133c3aae4a90e5bfa0f0734cde1d
+[2026-02-10T13:02:12.208Z] Found image for John Petrucci: https://i.scdn.co/image/ab6761610000e5eb4ea5b860b232ffa1372868a2
+[2026-02-10T13:02:12.222Z] Found image for Steve Vai: https://i.scdn.co/image/ab6761610000e5eb581fd4a02d81c56a957f462a
+[2026-02-10T13:02:12.247Z] Found image for Joe Satriani: https://i.scdn.co/image/ab6761610000e5eb5a808151921cc9b8819589fd
+[2026-02-10T13:02:12.261Z] Found image for Michael Angelo Batio: https://i.scdn.co/image/6ef7517b96ec2b852389c6ba182036ef199e7213
+[2026-02-10T13:02:12.412Z] Found image for Yngwie Malmsteen: https://i.scdn.co/image/ab6761610000e5eba25b72feac0cd2089fd7ea16
+[2026-02-10T13:02:12.898Z] Found image for Michael Angelo Batio: https://i.scdn.co/image/6ef7517b96ec2b852389c6ba182036ef199e7213
+[2026-02-10T13:02:12.913Z] Found image for John Petrucci: https://i.scdn.co/image/ab6761610000e5eb4ea5b860b232ffa1372868a2
+[2026-02-10T13:02:12.914Z] Found image for Yngwie Malmsteen: https://i.scdn.co/image/ab6761610000e5eba25b72feac0cd2089fd7ea16
+[2026-02-10T13:02:12.948Z] Found image for Marty Friedman: https://i.scdn.co/image/ab6761610000e5eb3603acf97a3c835105f9c60e
+[2026-02-10T13:02:12.949Z] Found image for Andy Timmons: https://i.scdn.co/image/faa94aaa713f133c3aae4a90e5bfa0f0734cde1d
+[2026-02-10T13:02:12.954Z] Found image for Metallica: https://i.scdn.co/image/ab6761610000e5eb69ca98dd3083f1082d740e44
+[2026-02-10T13:02:12.967Z] Found image for Megadeth: https://i.scdn.co/image/ab6761610000e5ebd5233fdc8cad84de5b366f1b
+[2026-02-10T13:02:12.968Z] Found image for Steve Vai: https://i.scdn.co/image/ab6761610000e5eb581fd4a02d81c56a957f462a
+[2026-02-10T13:02:12.985Z] Found image for Paul Gilbert: https://i.scdn.co/image/ab6761610000e5eb7b816259211de268d707ef4b
+[2026-02-10T13:02:12.990Z] Found image for Joe Satriani: https://i.scdn.co/image/ab6761610000e5eb5a808151921cc9b8819589fd
+[2026-02-10T13:02:14.551Z] Found image for Kirk Hammett: https://i.scdn.co/image/ab6761610000e5eb54072fffe46e5a8a48cdfc76
+[2026-02-10T13:02:18.134Z] Found image for Kirk Hammett: https://i.scdn.co/image/ab6761610000e5eb54072fffe46e5a8a48cdfc76
+[2026-02-10T13:02:20.178Z] Found image for Kirk Hammett: https://i.scdn.co/image/ab6761610000e5eb54072fffe46e5a8a48cdfc76
+[2026-02-10T13:02:21.162Z] Found image for Kirk Hammett: https://i.scdn.co/image/ab6761610000e5eb54072fffe46e5a8a48cdfc76
+[2026-02-10T13:02:28.737Z] Found image for F5: https://i.scdn.co/image/ab6761610000e5eb6d5db54014a7b4ed0138916f
+[2026-02-10T13:02:28.741Z] Found image for Shithorse: https://i.scdn.co/image/fa8d9223b4c396efdde9eaf8771ae6e11bbdd632
+[2026-02-10T13:02:28.747Z] Found image for Dave Mustaine: https://i.scdn.co/image/5e6c19f254eaa9a3357181e457b992e7d7c9ff19
+[2026-02-10T13:02:28.752Z] Found image for New Black Widow: https://i.scdn.co/image/ab6761610000e5eb7b3a90c34bfbf3b539fab10b
+[2026-02-10T13:02:28.771Z] Found image for Am I Blood: https://i.scdn.co/image/ab67616d0000b273c3a2b7a8bddd8516d4ffdcf7
+[2026-02-10T13:02:28.793Z] Found image for Sounds Like Death: https://i.scdn.co/image/ab67616d0000b273621525fcbc5742d79eaaa8d0
+[2026-02-10T13:02:28.804Z] Found image for 05 Pista 5: https://i.scdn.co/image/ab6761610000e5ebf0c46d3564966cfacea72fa9
+[2026-02-10T13:02:28.806Z] Found image for Meliah Rage: https://i.scdn.co/image/5087189e0c5fce7f246e8e5494ba4324101804ab
+[2026-02-10T13:02:28.832Z] Found image for Metallica with Ozzy Osbourne: https://i.scdn.co/image/ab6761610000e5ebb5b52f7e13f720c7a4856306
+[2026-02-10T13:02:28.952Z] Found image for The Last Act: https://i.scdn.co/image/ab6761610000e5ebe1c99a3261554464dcca35c4
+[2026-02-10T13:02:29.286Z] Found image for 05 Pista 5: https://i.scdn.co/image/ab6761610000e5ebf0c46d3564966cfacea72fa9
+[2026-02-10T13:02:29.311Z] Found image for F5: https://i.scdn.co/image/ab6761610000e5eb6d5db54014a7b4ed0138916f
+[2026-02-10T13:02:29.349Z] Found image for Dave Mustaine: https://i.scdn.co/image/5e6c19f254eaa9a3357181e457b992e7d7c9ff19
+[2026-02-10T13:02:29.355Z] Found image for Am I Blood: https://i.scdn.co/image/ab67616d0000b273c3a2b7a8bddd8516d4ffdcf7
+[2026-02-10T13:02:29.376Z] Found image for New Black Widow: https://i.scdn.co/image/ab6761610000e5eb7b3a90c34bfbf3b539fab10b
+[2026-02-10T13:02:29.377Z] Found image for Metallica with Ozzy Osbourne: https://i.scdn.co/image/ab6761610000e5ebb5b52f7e13f720c7a4856306
+[2026-02-10T13:02:29.378Z] Found image for The Last Act: https://i.scdn.co/image/ab6761610000e5ebe1c99a3261554464dcca35c4
+[2026-02-10T13:02:29.391Z] Found image for Sounds Like Death: https://i.scdn.co/image/ab67616d0000b273621525fcbc5742d79eaaa8d0
+[2026-02-10T13:02:29.392Z] Found image for Meliah Rage: https://i.scdn.co/image/5087189e0c5fce7f246e8e5494ba4324101804ab
+[2026-02-10T13:02:29.400Z] Found image for Shithorse: https://i.scdn.co/image/fa8d9223b4c396efdde9eaf8771ae6e11bbdd632
+[2026-02-10T13:02:32.344Z] Found image for James Hetfield: https://i.scdn.co/image/1fb333ee5448b006ed44beeba1ea189041f28541
+[2026-02-10T13:02:32.831Z] Found image for James Hetfield: https://i.scdn.co/image/1fb333ee5448b006ed44beeba1ea189041f28541
+[2026-02-10T13:02:33.308Z] Found image for James Hetfield: https://i.scdn.co/image/1fb333ee5448b006ed44beeba1ea189041f28541
+[2026-02-10T13:02:34.012Z] Found image for James Hetfield: https://i.scdn.co/image/1fb333ee5448b006ed44beeba1ea189041f28541
+[2026-02-10T13:08:07.053Z] Requesting Spotify Token...
+[2026-02-10T13:08:07.236Z] Spotify Token Acquired
+[2026-02-10T13:08:07.812Z] No image found for Shiro Gutzie
+[2026-02-10T13:08:08.531Z] No image found for Dominique Lemonnier
+[2026-02-10T13:08:09.345Z] No image found for Bob Rock
+[2026-02-10T13:08:10.251Z] No image found for Randy Staub
+[2026-02-10T13:08:10.933Z] Found image for Jason Lader: https://i.scdn.co/image/ab6761610000e5ebfb65e1af01cf95c25bd29ed1
+[2026-02-10T13:08:11.541Z] Found image for Mike Tacci: https://i.scdn.co/image/ab6761610000e5ebd6b5c03add311bed8f8afe5b
+[2026-02-10T13:08:12.158Z] Found image for Michael Kamen: https://i.scdn.co/image/0b70198e2e7e5a1453e2d19f5a5886801adea995
+[2026-02-10T13:08:13.033Z] Found image for Phillip Broussard: https://i.scdn.co/image/38129832f70d5798de2618faa55182407135842c
+[2026-02-10T13:08:13.565Z] Found image for Stephen McLaughlin: https://i.scdn.co/image/ab67616d0000b273a912de3f1b527f12660243f3
+[2026-02-10T13:08:14.684Z] Found image for John O’Mahony: https://i.scdn.co/image/ab6761610000e5eb16ea14ed88158a2ff47f4372
+[2026-02-10T13:08:15.210Z] Found image for Joe Peluso: https://i.scdn.co/image/ab6761610000e5eb9507c612a8eefb86a92feb9f
+[2026-02-10T13:08:16.390Z] Found image for David Schiffman: https://i.scdn.co/image/ab6761610000e5ebeb4fa9a57ca1fbd88d63e247
+[2026-02-10T13:08:16.887Z] Found image for Shavo Odadjian: https://i.scdn.co/image/ab6761610000e5eb8e88ae842b8041d9348b310a
+[2026-02-10T13:08:17.336Z] Found image for Serj Tankian: https://i.scdn.co/image/ab6761610000e5ebfda268d9e79a9a51bed597b1
+[2026-02-10T13:08:17.867Z] Found image for Jason Newsted: https://i.scdn.co/image/18dd52aaa67c339e4e72cf412ee52d3984e2cadb
+[2026-02-10T13:08:18.397Z] Found image for Gerard McCann: https://i.scdn.co/image/ab67616d0000b2731dc8c977dbc8ec9b6de0e0f0
+[2026-02-10T13:08:19.024Z] Found image for Aymeric Létoquart: https://i.scdn.co/image/ab6772690000c46c716d5f8f559b25146d633c15
+[2026-02-10T13:08:19.625Z] Found image for Stephane Reichard: https://i.scdn.co/image/ab6761610000e5eb12cc2f6dab655c870f2165d7
+[2026-02-10T13:08:20.254Z] Found image for Vartan Malakian: https://i.scdn.co/image/ab6761610000e5eb2b600b32ea93a01542cbe09a
+[2026-02-10T13:08:20.552Z] Found image for Vartan Malakian: https://i.scdn.co/image/ab6761610000e5eb2b600b32ea93a01542cbe09a
+[2026-02-10T13:08:21.155Z] Found image for Dana Nielsen: https://i.scdn.co/image/ab6761610000e5eb0df73e6fdccae517756c9ea9
+[2026-02-10T13:08:21.172Z] Found image for Dana Nielsen: https://i.scdn.co/image/ab6761610000e5eb0df73e6fdccae517756c9ea9
+[2026-02-10T13:08:22.424Z] Found image for Andy Wallace: https://i.scdn.co/image/ab67616d0000b273231df3192b2648ea82336b46
+[2026-02-10T13:08:26.303Z] Requesting Spotify Token...
+[2026-02-10T13:08:26.483Z] Spotify Token Acquired
+[2026-02-10T13:08:26.928Z] Found image for Rick Rubin: https://i.scdn.co/image/ab67616d0000b2731ab61efd415e5abaf2314b69
+[2026-02-10T13:08:27.546Z] Found image for Dana Neilsen: https://i.scdn.co/image/ab6761610000e5ebf51a0a9f612534262e4d519a
+[2026-02-10T13:08:28.152Z] Found image for Brandy Flower: https://i.scdn.co/image/ab6772690000c46c911756c63f0a92e3b27a433e
+[2026-02-10T13:08:28.818Z] Found image for Steve Sisco: https://i.scdn.co/image/ab67616d0000b273af217d428512c4d0c6b1b234
+[2026-02-10T13:08:34.291Z] Requesting Spotify Token...
+[2026-02-10T13:08:34.446Z] Spotify Token Acquired
+[2026-02-10T13:08:35.051Z] Found image for Mark Mann: https://i.scdn.co/image/ab6761610000e5eb5f744ef06ee453e72d75627f
+[2026-02-10T13:08:36.511Z] Found image for Peter Cobbin: https://i.scdn.co/image/ab6761610000e5eb23b1887bf7d505c821beee80
+[2026-02-10T13:08:37.086Z] Found image for Vlado Meller: https://i.scdn.co/image/ab67616d0000b273dad22a1585890ec5585007c7
+[2026-02-10T13:08:37.634Z] Found image for John Timperley: https://i.scdn.co/image/ab67616d0000b273ea0674b38a3bf437799082db
+[2026-02-10T13:08:39.280Z] Found image for Daron Malakian: https://i.scdn.co/image/ab6761610000e5eb13f6ccb5f761c17e2c928518
+[2026-02-10T13:08:40.474Z] No image found for Paul Golding
+[2026-02-10T13:08:41.788Z] Found image for Richard Lancaster: https://i.scdn.co/image/ab67616d0000b27370b122585417fc1174e91d98
+[2026-02-10T13:08:43.342Z] Found image for Lars Ulrich: https://i.scdn.co/image/4f241e6b30acf1ac0a54581c12a7cb67bad185fc
+[2026-02-10T13:08:44.581Z] Found image for London Symphony Orchestra: https://i.scdn.co/image/ab6761610000e5eb5a5d168879568c94e86c61aa
+[2026-02-10T13:08:44.652Z] Found image for Shiro Gutzie: https://i.scdn.co/image/ab6761610000e5ebef35a38d4beddf1911f31cdc
+[2026-02-10T13:08:45.311Z] No image found for Randy Staub
+[2026-02-10T13:08:45.320Z] No image found for Randy Staub
+[2026-02-10T13:08:47.639Z] Found image for Andy Wallace: https://i.scdn.co/image/ab67616d0000b273231df3192b2648ea82336b46
+[2026-02-10T13:08:48.453Z] Found image for Steve Sisco: https://i.scdn.co/image/ab67616d0000b273af217d428512c4d0c6b1b234
+[2026-02-10T13:08:55.417Z] No image found for Randy Staub
+[2026-02-10T13:09:05.126Z] No image found for Randy Staub
+[2026-02-10T13:09:15.555Z] No image found for Randy Staub
+[2026-02-10T13:09:23.447Z] Found image for James Hetfield: https://i.scdn.co/image/1fb333ee5448b006ed44beeba1ea189041f28541
+[2026-02-10T13:09:23.961Z] Found image for James Hetfield: https://i.scdn.co/image/1fb333ee5448b006ed44beeba1ea189041f28541
+[2026-02-10T13:09:26.030Z] No image found for Randy Staub
+[2026-02-10T13:09:40.308Z] No image found for Randy Staub
+[2026-02-10T13:09:46.891Z] No image found for Randy Staub
+[2026-02-10T13:10:00.046Z] No image found for Randy Staub
+[2026-02-10T13:10:10.622Z] No image found for Randy Staub
+[2026-02-10T13:10:24.819Z] No image found for Randy Staub
+[2026-02-10T13:10:24.977Z] Found image for James Hetfield: https://i.scdn.co/image/1fb333ee5448b006ed44beeba1ea189041f28541
+[2026-02-10T13:10:35.386Z] No image found for Randy Staub
+[2026-02-10T13:10:40.286Z] Found image for Cliff Burton: https://i.scdn.co/image/ab67616d0000b2735ea02d2574bb7d1a7c0c7b38
+[2026-02-10T13:10:40.294Z] Found image for Dave Mustaine: https://i.scdn.co/image/5e6c19f254eaa9a3357181e457b992e7d7c9ff19
+[2026-02-10T13:10:40.343Z] Found image for Metal Militia: https://i.scdn.co/image/ab6761610000e5eb098837bb03136c5b588b6e4d
+[2026-02-10T13:10:40.346Z] Found image for Jason Newsted: https://i.scdn.co/image/18dd52aaa67c339e4e72cf412ee52d3984e2cadb
+[2026-02-10T13:10:40.373Z] Found image for James Hetfield: https://i.scdn.co/image/1fb333ee5448b006ed44beeba1ea189041f28541
+[2026-02-10T13:10:40.375Z] No image found for Ryan Peake
+[2026-02-10T13:10:40.408Z] Found image for St. Martin’s Symphony Of Los Angeles: https://i.scdn.co/image/addf4464734979a85ef71a61c421f23a6bc143ae
+[2026-02-10T13:10:40.423Z] Found image for Wolf Spider: https://i.scdn.co/image/ab67616d0000b2733f7ee4d64607bb8e126ab8e0
+[2026-02-10T13:10:40.425Z] Found image for Demiricous: https://i.scdn.co/image/ab6761610000e5ebdaec78e9efb3dd607560e8ae
+[2026-02-10T13:10:40.434Z] Found image for James Scheffer: https://i.scdn.co/image/ab6761610000e5eb13c45b9920dbb1df3adb3d94
+[2026-02-10T13:10:41.035Z] Found image for James Scheffer: https://i.scdn.co/image/ab6761610000e5eb13c45b9920dbb1df3adb3d94
+[2026-02-10T13:10:41.039Z] Found image for Dave Mustaine: https://i.scdn.co/image/5e6c19f254eaa9a3357181e457b992e7d7c9ff19
+[2026-02-10T13:10:41.044Z] Found image for James Hetfield: https://i.scdn.co/image/1fb333ee5448b006ed44beeba1ea189041f28541
+[2026-02-10T13:10:41.060Z] Found image for Wolf Spider: https://i.scdn.co/image/ab67616d0000b2733f7ee4d64607bb8e126ab8e0
+[2026-02-10T13:10:41.061Z] Found image for Demiricous: https://i.scdn.co/image/ab6761610000e5ebdaec78e9efb3dd607560e8ae
+[2026-02-10T13:10:41.089Z] Found image for St. Martin’s Symphony Of Los Angeles: https://i.scdn.co/image/addf4464734979a85ef71a61c421f23a6bc143ae
+[2026-02-10T13:10:41.094Z] Found image for Metal Militia: https://i.scdn.co/image/ab6761610000e5eb098837bb03136c5b588b6e4d
+[2026-02-10T13:10:41.132Z] No image found for Ryan Peake
+[2026-02-10T13:10:41.188Z] Found image for Cliff Burton: https://i.scdn.co/image/ab67616d0000b2735ea02d2574bb7d1a7c0c7b38
+[2026-02-10T13:10:41.226Z] Found image for Jason Newsted: https://i.scdn.co/image/18dd52aaa67c339e4e72cf412ee52d3984e2cadb
+[2026-02-10T13:10:43.286Z] Found image for Volbeat: https://i.scdn.co/image/ab6761610000e5ebed061555d0d15cf7b1e66731
+[2026-02-10T13:10:43.850Z] Found image for Volbeat: https://i.scdn.co/image/ab6761610000e5ebed061555d0d15cf7b1e66731
+[2026-02-10T13:10:45.907Z] No image found for Randy Staub
+[2026-02-10T13:10:56.306Z] Found image for Volbeat: https://i.scdn.co/image/ab6761610000e5ebed061555d0d15cf7b1e66731
+[2026-02-10T13:10:56.549Z] No image found for Randy Staub
+[2026-02-10T13:10:56.723Z] Found image for Volbeat: https://i.scdn.co/image/ab6761610000e5ebed061555d0d15cf7b1e66731
+[2026-02-10T13:11:10.306Z] No image found for Randy Staub
+[2026-02-10T13:11:18.880Z] No image found for Randy Staub
+[2026-02-10T13:11:36.064Z] No image found for Randy Staub
+[2026-02-10T13:11:36.340Z] Found image for Marc Hasselbalch: https://i.scdn.co/image/ab67616d0000b273c372308dc47b4726d9c37195
+[2026-02-10T13:11:36.908Z] Found image for Marc Hasselbalch: https://i.scdn.co/image/ab67616d0000b273c372308dc47b4726d9c37195
+[2026-02-10T13:11:37.289Z] Found image for Marc Hasselbalch: https://i.scdn.co/image/ab67616d0000b273c372308dc47b4726d9c37195
+[2026-02-10T13:11:37.905Z] Found image for Marc Hasselbalch: https://i.scdn.co/image/ab67616d0000b273c372308dc47b4726d9c37195
+[2026-02-10T13:11:44.354Z] Found image for Tom Morello: https://i.scdn.co/image/ab6761610000e5eba824aca6e278acca89bc406b
+[2026-02-10T13:11:44.363Z] Found image for Breaking Benjamin: https://i.scdn.co/image/ab6761610000e5ebff528d242b11fdc4261d05da
+[2026-02-10T13:11:44.370Z] Found image for CKY: https://i.scdn.co/image/ab6761610000e5eb35aa3f7965b2a8843c91f3ce
+[2026-02-10T13:11:44.404Z] Found image for Anthony Vincent: https://i.scdn.co/image/ab6761610000e5ebced7415206fd937fa2ce704e
+[2026-02-10T13:11:44.405Z] Found image for Kevin Sherwood: https://i.scdn.co/image/ab6761610000e5eb82a01d3b0a1890a78e9e527a
+[2026-02-10T13:11:44.409Z] Found image for The Beta Machine: https://i.scdn.co/image/ab6761610000e5eb78b51b76b668f654b0ca5e86
+[2026-02-10T13:11:44.412Z] Found image for Papa Roach: https://i.scdn.co/image/ab6761610000e5ebd3757f63ec317d0309a8115a
+[2026-02-10T13:11:44.413Z] Found image for First to Eleven: https://i.scdn.co/image/ab6761610000e5ebdc1805391357d3ce2ce9df64
+[2026-02-10T13:11:44.438Z] Found image for Tenacious D: https://i.scdn.co/image/ab6761610000e5eb7637f18f419921b8d24bd9e5
+[2026-02-10T13:11:44.484Z] Found image for Three Days Grace: https://i.scdn.co/image/ab6761610000e5eb2e619cf7c1577485d14c2043
+[2026-02-10T13:11:44.966Z] Found image for Three Days Grace: https://i.scdn.co/image/ab6761610000e5eb2e619cf7c1577485d14c2043
+[2026-02-10T13:11:44.983Z] Found image for Papa Roach: https://i.scdn.co/image/ab6761610000e5ebd3757f63ec317d0309a8115a
+[2026-02-10T13:11:45.001Z] Found image for Breaking Benjamin: https://i.scdn.co/image/ab6761610000e5ebff528d242b11fdc4261d05da
+[2026-02-10T13:11:45.002Z] Found image for Anthony Vincent: https://i.scdn.co/image/ab6761610000e5ebced7415206fd937fa2ce704e
+[2026-02-10T13:11:45.002Z] Found image for First to Eleven: https://i.scdn.co/image/ab6761610000e5ebdc1805391357d3ce2ce9df64
+[2026-02-10T13:11:45.008Z] Found image for Kevin Sherwood: https://i.scdn.co/image/ab6761610000e5eb82a01d3b0a1890a78e9e527a
+[2026-02-10T13:11:45.012Z] Found image for Tenacious D: https://i.scdn.co/image/ab6761610000e5eb7637f18f419921b8d24bd9e5
+[2026-02-10T13:11:45.062Z] Found image for The Beta Machine: https://i.scdn.co/image/ab6761610000e5eb78b51b76b668f654b0ca5e86
+[2026-02-10T13:11:45.075Z] Found image for Tom Morello: https://i.scdn.co/image/ab6761610000e5eba824aca6e278acca89bc406b
+[2026-02-10T13:11:45.139Z] Found image for CKY: https://i.scdn.co/image/ab6761610000e5eb35aa3f7965b2a8843c91f3ce
+[2026-02-10T13:11:45.265Z] Found image for John Dolmayan: https://i.scdn.co/image/ab6761610000e5eb679c81e9679300f18451a229
+[2026-02-10T13:11:45.605Z] No image found for Randy Staub
+[2026-02-10T13:11:45.658Z] Found image for John Dolmayan: https://i.scdn.co/image/ab6761610000e5eb679c81e9679300f18451a229
+[2026-02-10T13:11:54.643Z] Found image for Act of Defiance: https://i.scdn.co/image/5250bb9e69d90b1ee1dd5ad1baa662418cd3ffc5
+[2026-02-10T13:11:54.645Z] Found image for Vindicator: https://i.scdn.co/image/ab6761610000e5ebc57a2b15bff1c8f6428ef4bb
+[2026-02-10T13:11:54.663Z] Found image for Cliff Burton: https://i.scdn.co/image/ab67616d0000b2735ea02d2574bb7d1a7c0c7b38
+[2026-02-10T13:11:54.665Z] Found image for Am I Blood: https://i.scdn.co/image/ab67616d0000b273c3a2b7a8bddd8516d4ffdcf7
+[2026-02-10T13:11:54.686Z] Found image for Red Lamb: https://i.scdn.co/image/ab67616d0000b273dfcd158ee717478e8e64c723
+[2026-02-10T13:11:54.714Z] Found image for Wrathchild America: https://i.scdn.co/image/ab67616d0000b27363954936a147310adbc37d21
+[2026-02-10T13:11:54.717Z] Found image for Eternal Decision: https://i.scdn.co/image/ab67616d0000b2738830ba984b5047e3f3aefc81
+[2026-02-10T13:11:54.726Z] Found image for Robert Trujillo: https://i.scdn.co/image/ab6761610000e5eb88c4ea3e867352dc49ed9990
+[2026-02-10T13:11:54.732Z] Found image for Detonator: https://i.scdn.co/image/ab6761610000e5eb1f748e99eda58b97cbfc941e
+[2026-02-10T13:11:54.766Z] Found image for Dave Mustaine: https://i.scdn.co/image/5e6c19f254eaa9a3357181e457b992e7d7c9ff19
+[2026-02-10T13:11:55.328Z] Found image for Robert Trujillo: https://i.scdn.co/image/ab6761610000e5eb88c4ea3e867352dc49ed9990
+[2026-02-10T13:11:55.341Z] Found image for Wrathchild America: https://i.scdn.co/image/ab67616d0000b27363954936a147310adbc37d21
+[2026-02-10T13:11:55.368Z] Found image for Red Lamb: https://i.scdn.co/image/ab67616d0000b273dfcd158ee717478e8e64c723
+[2026-02-10T13:11:55.401Z] Found image for Vindicator: https://i.scdn.co/image/ab6761610000e5ebc57a2b15bff1c8f6428ef4bb
+[2026-02-10T13:11:55.402Z] Found image for Act of Defiance: https://i.scdn.co/image/5250bb9e69d90b1ee1dd5ad1baa662418cd3ffc5
+[2026-02-10T13:11:55.426Z] Found image for Dave Mustaine: https://i.scdn.co/image/5e6c19f254eaa9a3357181e457b992e7d7c9ff19
+[2026-02-10T13:11:55.433Z] Found image for Cliff Burton: https://i.scdn.co/image/ab67616d0000b2735ea02d2574bb7d1a7c0c7b38
+[2026-02-10T13:11:55.463Z] Found image for Am I Blood: https://i.scdn.co/image/ab67616d0000b273c3a2b7a8bddd8516d4ffdcf7
+[2026-02-10T13:11:55.536Z] Found image for Eternal Decision: https://i.scdn.co/image/ab67616d0000b2738830ba984b5047e3f3aefc81
+[2026-02-10T13:11:55.561Z] Found image for Detonator: https://i.scdn.co/image/ab6761610000e5eb1f748e99eda58b97cbfc941e
+[2026-02-10T13:11:56.630Z] Found image for Voivod: https://i.scdn.co/image/ab6761610000e5eb8fdb4f8d5a703ab74801faee
+[2026-02-10T13:11:57.226Z] Found image for Voivod: https://i.scdn.co/image/ab6761610000e5eb8fdb4f8d5a703ab74801faee
+[2026-02-10T13:11:57.770Z] Found image for Voivod: https://i.scdn.co/image/ab6761610000e5eb8fdb4f8d5a703ab74801faee
+[2026-02-10T13:11:58.259Z] Found image for Voivod: https://i.scdn.co/image/ab6761610000e5eb8fdb4f8d5a703ab74801faee
+[2026-02-10T13:12:01.198Z] No image found for Randy Staub
+[2026-02-10T13:12:08.041Z] No image found for Randy Staub
+[2026-02-10T13:12:23.317Z] No image found for Randy Staub
+[2026-02-10T13:12:27.731Z] Found image for Sarah Jarosz: https://i.scdn.co/image/ab6761610000e5ebfd6509713be872ae507b2751
+[2026-02-10T13:12:28.419Z] Found image for Sarah Jarosz: https://i.scdn.co/image/ab6761610000e5ebfd6509713be872ae507b2751
+[2026-02-10T13:12:28.846Z] Found image for Sarah Jarosz: https://i.scdn.co/image/ab6761610000e5ebfd6509713be872ae507b2751
+[2026-02-10T13:12:29.336Z] Found image for Sarah Jarosz: https://i.scdn.co/image/ab6761610000e5ebfd6509713be872ae507b2751
+[2026-02-10T13:12:34.763Z] No image found for Randy Staub
+[2026-02-10T13:12:45.115Z] No image found for Randy Staub
+[2026-02-10T13:12:55.614Z] No image found for Randy Staub
+[2026-02-10T13:13:07.878Z] No image found for Randy Staub

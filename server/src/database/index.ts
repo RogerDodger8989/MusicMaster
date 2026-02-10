@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS artists (
     loved INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_enrich_attempt DATETIME,
     UNIQUE(name, country)
 );
 
@@ -438,7 +439,8 @@ CREATE TABLE IF NOT EXISTS artists (
     gender TEXT,
     website TEXT,
     loved INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_enrich_attempt DATETIME
 );
 
 CREATE TABLE IF NOT EXISTS user_settings (
@@ -703,7 +705,8 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE acousticbrainz_data ADD COLUMN arousal REAL",
             "ALTER TABLE acousticbrainz_data ADD COLUMN mood_category TEXT",
             "ALTER TABLE acousticbrainz_data ADD COLUMN confidence_score REAL",
-            "ALTER TABLE acousticbrainz_data ADD COLUMN instrumentalness REAL"
+            "ALTER TABLE acousticbrainz_data ADD COLUMN instrumentalness REAL",
+            "ALTER TABLE artists ADD COLUMN last_enrich_attempt DATETIME"
         ]
 
         for (const migration of migrations) {

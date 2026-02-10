@@ -11,6 +11,13 @@
 
 import { getDatabase } from '../database'
 import { acousticBrainzService } from './acousticbrainz'
+import { musicBrainzService } from './musicbrainz'
+import { backgroundEnricher } from './enricher'
+import {
+  upsertArtistWithMBID,
+  addPerformer,
+  addAlbumCredit
+} from '../database/musicbrainz'
 import { calculateArousalValence, assignMoodCategory, findClosestMoodCategory, calculateConfidenceScore } from './moodTaxonomy'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -217,6 +224,119 @@ async function enrichTrackAcousticBrainz(trackId: string, recordingMbid: string 
 }
 
 /**
+ * Fetch and store Performer/Credit data for an album
+ */
+async function enrichAlbumPerformers(albumMbid: string, progress: EnrichmentProgress): Promise<number> {
+  const db = getDatabase()
+  let performersAddedCount = 0
+
+  try {
+    console.log(`  🔍 Fetching MusicBrainz relationships for release ${albumMbid}`)
+    const release = await musicBrainzService.getReleaseDetails(albumMbid)
+
+    if (!release) {
+      console.log(`  ❌ No release details found for MBID: ${albumMbid}`)
+      return 0
+    }
+
+    // 1. Process Album-level credits (Producer, etc.)
+    const albumRoles = musicBrainzService.extractRoles(release)
+    const albumRow = db.prepare('SELECT id FROM albums_cache WHERE musicbrainz_album_id = ?').get(albumMbid) as { id: string } | undefined
+
+    if (albumRow) {
+      for (const [role, artists] of Object.entries(albumRoles)) {
+        for (const artist of artists) {
+          try {
+            // Ensure artist exists in our artists table
+            const artistId = upsertArtistWithMBID(artist.name, artist.mbid || null)
+            addAlbumCredit(albumRow.id, artistId, role)
+
+            // Proactively fetch artist bio/image
+            backgroundEnricher.enrichArtistById(artistId, artist.name).catch(e =>
+              console.warn(`[EnrichmentWorker] Proactive artist enrichment failed for ${artist.name}:`, e)
+            )
+          } catch (e) {
+            console.error(`  ❌ Failed to add album credit for ${artist.name}:`, e)
+          }
+        }
+      }
+    }
+
+    // 2. Process Track-level performers
+    // Many releases have performance relationships at the recording level (inc=recording-level-rels)
+    if (release.media) {
+      for (const media of release.media) {
+        if (!media.tracks) continue
+
+        for (const mbTrack of media.tracks) {
+          const recMbid = mbTrack.recording?.id
+          if (!recMbid) continue
+
+          // Find track in our DB by recording MBID
+          let trackRow = db.prepare('SELECT id FROM tracks WHERE musicbrainz_track_id = ?').get(recMbid) as { id: string } | undefined
+
+          // Fallback: match by album name + disc/track number
+          if (!trackRow) {
+            const discNum = media.position
+            const trackNum = parseInt(mbTrack.number) || parseInt(mbTrack.position)
+
+            const localAlbum = db.prepare('SELECT name, artist FROM albums_cache WHERE musicbrainz_album_id = ?').get(albumMbid) as { name: string, artist: string } | undefined
+
+            if (localAlbum) {
+              trackRow = db.prepare(`
+                  SELECT id FROM tracks 
+                  WHERE album = ? AND (album_artist = ? OR artist = ?) 
+                  AND track_num = ? AND (disc_num = ? OR disc_num IS NULL)
+              `).get(localAlbum.name, localAlbum.artist, localAlbum.artist, trackNum, discNum) as { id: string } | undefined
+
+              if (trackRow) {
+                console.log(`  🔗 Matched local track ${trackRow.id} via track/disc number fallback (${mbTrack.title})`)
+                db.prepare('UPDATE tracks SET musicbrainz_track_id = ? WHERE id = ?').run(recMbid, trackRow.id)
+              }
+            }
+          }
+
+          if (!trackRow) continue
+
+          // Fetch full recording details to get performers
+          const recording = await musicBrainzService.getRecordingDetails(recMbid)
+          if (!recording) continue
+
+          const trackRoles = musicBrainzService.extractRoles(recording)
+          for (const [role, artists] of Object.entries(trackRoles)) {
+            for (const artist of artists) {
+              try {
+                const artistId = upsertArtistWithMBID(artist.name, artist.mbid || null)
+                addPerformer(trackRow.id, artistId, role)
+                performersAddedCount++
+
+                // Proactively fetch artist bio/image
+                backgroundEnricher.enrichArtistById(artistId, artist.name).catch(e =>
+                  console.warn(`[EnrichmentWorker] Proactive artist enrichment failed for ${artist.name}:`, e)
+                )
+              } catch (e) {
+                console.error(`  ❌ Failed to add performer for track ${trackRow.id}:`, e)
+              }
+            }
+          }
+
+          // Rate limit recordings lookups
+          await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_MS))
+        }
+      }
+    }
+
+    progress.performersAdded += performersAddedCount
+    return performersAddedCount
+  } catch (error) {
+    const msg = `Error enriching performers for album ${albumMbid}: ${(error as Error).message}`
+    console.error(msg)
+    progress.errors.push(msg)
+    return 0
+  }
+}
+
+/**
  * Main enrichment worker function
  */
 export async function startEnrichmentWorker(progressCallback?: (progress: EnrichmentProgress) => void): Promise<EnrichmentProgress> {
@@ -255,7 +375,10 @@ export async function startEnrichmentWorker(progressCallback?: (progress: Enrich
     for (const [albumMbid, trackIds] of albumGroups) {
       console.log(`🎵 Enriching album ${albumMbid} with ${trackIds.length} tracks...`)
 
-      // Enrich each track's AcousticBrainz data
+      // 1. Enrich Album Performers and Credits (MusicBrainz)
+      await enrichAlbumPerformers(albumMbid, progress)
+
+      // 2. Enrich each track's AcousticBrainz data
       for (const trackId of trackIds) {
         const track = db.prepare('SELECT musicbrainz_track_id FROM tracks WHERE id = ?').get(trackId) as any
 
@@ -341,14 +464,27 @@ export function getEnrichmentCoverage() {
   const total = db.prepare('SELECT COUNT(*) as count FROM tracks').get() as any
 
   // Count those with AcousticBrainz data
-  const enriched = db.prepare(`
+  const enrichedMood = db.prepare(`
     SELECT COUNT(*) as count FROM tracks t
     INNER JOIN acousticbrainz_data ab ON t.id = ab.track_id
   `).get() as any
 
+  // Count those with Performer data (either track-level or album-level)
+  const enrichedPerformers = db.prepare(`
+    SELECT COUNT(DISTINCT t.id) as count FROM tracks t
+    LEFT JOIN performers p ON t.id = p.track_id
+    LEFT JOIN albums_cache ac ON t.album = ac.name AND t.artist = ac.artist
+    LEFT JOIN album_credits alc ON ac.id = alc.album_id
+    WHERE p.id IS NOT NULL OR alc.id IS NOT NULL
+  `).get() as any
+
+  const enrichedCount = Math.min(enrichedMood.count || 0, enrichedPerformers.count || 0)
+
   return {
     totalTracks: total.count || 0,
-    enrichedTracks: enriched.count || 0,
-    coveragePercentage: total.count > 0 ? Math.round((enriched.count / total.count) * 100) : 0
+    enrichedTracks: enrichedCount,
+    enrichedMood: enrichedMood.count || 0,
+    enrichedPerformers: enrichedPerformers.count || 0,
+    coveragePercentage: total.count > 0 ? Math.round((enrichedCount / total.count) * 100) : 0
   }
 }

@@ -91,6 +91,9 @@ router.get('/enrichment/status', enrichment.getStatus)
 router.get('/enrichment/history', enrichment.getHistory)
 router.get('/enrichment/coverage', enrichment.getCoverage)
 
+// Enrich - Immediate artist enrichment
+router.post('/enrich/artists', require('./controllers/enrich.controller').enrichArtists)
+
 // Custom vibes - User-created vibes (must be before /vibes router)
 router.use('/vibes/custom', customVibesRouter)
 

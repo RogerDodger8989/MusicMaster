@@ -64,6 +64,23 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
     fetchData()
   }, [albumId])
 
+  // Automatically enrich artist images when performers are loaded
+  useEffect(() => {
+    if (performers.length > 0) {
+      const artistIds = performers
+        .map(p => p.artist_id)
+        .filter(Boolean)
+        .filter((id, index, self) => self.indexOf(id) === index) // unique IDs only
+
+      if (artistIds.length > 0) {
+        console.log(`[AlbumDetail] Triggering enrichment for ${artistIds.length} performers`)
+        client.enrichArtists(artistIds).catch(err =>
+          console.warn('[AlbumDetail] Failed to trigger enrichment:', err)
+        )
+      }
+    }
+  }, [performers])
+
   // Find tracks for this album
   const albumTracks = useMemo(() => {
     if (!album) return []
@@ -337,32 +354,52 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
                       role.includes('editor') ||
                       role.includes('management') ||
                       role.includes('legal') ||
-                      role.includes('publisher')
+                      role.includes('publisher') ||
+                      role.includes('copyright') ||
+                      role.includes('phonographic copyright') ||
+                      role.includes('license')
 
                     if (showOnlyPerformers && isProduction) return acc
 
                     const artistName = p.artist_name
-                    if (!acc[artistName]) {
+                    if (artistName && !acc[artistName]) {
                       acc[artistName] = {
+                        id: p.artist_id,
                         name: artistName,
+                        image: p.artist_image,
                         roles: new Set(),
                         isProduction
                       }
                     }
-                    acc[artistName].roles.add(p.role)
+                    if (artistName) acc[artistName].roles.add(p.role)
                     return acc
                   }, {})
 
                   return Object.values(categorized).map((artist: any) => (
-                    <div key={artist.name} className="flex flex-col gap-0.5 group/credit">
-                      <button
-                        onClick={() => navigateTo('artist-detail', { artistName: artist.name })}
-                        className="text-[14px] font-semibold text-zinc-200 group-hover/credit:text-primary transition-colors text-left"
-                      >
-                        {artist.name}
-                      </button>
-                      <div className="text-[11px] text-muted-foreground/60 leading-tight">
-                        {Array.from(artist.roles).join(', ')}
+                    <div key={artist.name} className="flex items-center gap-3 group/credit">
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-white/5 border border-white/5 flex-shrink-0">
+                        {artist.image ? (
+                          <img
+                            src={client.getArtistImageUrl(artist.id)}
+                            alt={artist.name}
+                            className="w-full h-full object-cover group-hover/credit:scale-110 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary uppercase text-[10px] font-bold">
+                            {artist.name.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <button
+                          onClick={() => navigateTo('artist-detail', { artistName: artist.name })}
+                          className="text-[13px] font-semibold text-zinc-200 group-hover/credit:text-primary transition-colors text-left leading-tight"
+                        >
+                          {artist.name}
+                        </button>
+                        <div className="text-[10px] text-muted-foreground/60 leading-tight">
+                          {Array.from(artist.roles).join(', ')}
+                        </div>
                       </div>
                     </div>
                   ))
