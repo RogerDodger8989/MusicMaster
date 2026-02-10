@@ -51,7 +51,7 @@ export async function aggregateAlbums(): Promise<void> {
             COUNT(*) as track_count,
             SUM(duration) as total_duration,
             MAX(cover_art_path) as cover_art_path,
-            MAX(musicbrainz_album_id) as musicbrainz_album_id,
+            MAX(musicbrainz_albumid) as musicbrainz_albumid,
             MAX(last_played) as last_played,
             SUM(play_count) as play_count
         FROM tracks
@@ -72,11 +72,11 @@ export async function aggregateAlbums(): Promise<void> {
         INSERT INTO albums_cache (
             id, name, artist, year, release_date, genre,
             disc_count, track_count, total_duration, cover_art_path,
-            musicbrainz_album_id, rating, loved, last_played, play_count, created_at, updated_at
+            musicbrainz_albumid, rating, loved, last_played, play_count, created_at, updated_at
         ) VALUES (
             @id, @name, @artist, @year, @release_date, @genre,
             @disc_count, @track_count, @total_duration, @cover_art_path,
-            @musicbrainz_album_id, @rating, @loved, @last_played, @play_count, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            @musicbrainz_albumid, @rating, @loved, @last_played, @play_count, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
         )
     `)
 
@@ -425,7 +425,7 @@ function dbAlbumToAlbum(row: DbAlbumCache): Album {
     trackCount: row.track_count,
     totalDuration: row.total_duration,
     coverArtPath: row.cover_art_path || undefined,
-    musicbrainzAlbumId: row.musicbrainz_album_id || undefined,
+    musicbrainzAlbumId: row.musicbrainz_albumid || undefined,
     rating: row.rating,
     loved: Boolean(row.loved),
     playCount: row.play_count,

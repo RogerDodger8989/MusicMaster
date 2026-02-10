@@ -42,12 +42,12 @@ export class BackgroundEnricher {
     private async enrichArtists() {
         const db = getDatabase()
         const artists = db.prepare(`
-            SELECT id, name, musicbrainz_artist_id
+            SELECT id, name, musicbrainz_artistid
             FROM artists
             WHERE (image_path IS NULL OR bio IS NULL OR bio = '')
             ORDER BY last_enrich_attempt ASC NULLS FIRST
             LIMIT 20
-        `).all() as { id: string, name: string, musicbrainz_artist_id: string | null }[]
+        `).all() as { id: string, name: string, musicbrainz_artistid: string | null }[]
 
         if (artists.length === 0) return
 

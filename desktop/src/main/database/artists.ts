@@ -11,7 +11,7 @@ export function getAllArtists(): Artist[] {
             album_count as albumCount, 
             track_count as trackCount, 
             image_path as imagePath,
-            musicbrainz_artist_id as musicbrainzArtistId,
+            musicbrainz_artistid as musicbrainzArtistId,
             country,
             life_span_begin as lifeSpanBegin,
             life_span_end as lifeSpanEnd,
@@ -52,7 +52,7 @@ export function updateArtistFacts(
   const db = getDatabase()
   const stmt = db.prepare(`
         UPDATE artists 
-        SET musicbrainz_artist_id = COALESCE(?, musicbrainz_artist_id),
+        SET musicbrainz_artistid = COALESCE(?, musicbrainz_artistid),
             country = COALESCE(?, country),
             life_span_begin = COALESCE(?, life_span_begin),
             life_span_end = COALESCE(?, life_span_end),

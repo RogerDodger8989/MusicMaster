@@ -40,8 +40,8 @@ export function upsertTrack(
         loved = ?,
         play_count = ?,
         release_date = ?,
-        musicbrainz_track_id = ?,
-        musicbrainz_album_id = ?,
+        musicbrainz_trackid = ?,
+        musicbrainz_albumid = ?,
         sample_rate = ?,
         bit_depth = ?,
         replaygain_track_gain = ?,
@@ -87,8 +87,8 @@ export function upsertTrack(
       INSERT INTO tracks (
         id, folder_id, file_path, file_hash, title, artist, album, album_artist,
         year, genre, track_num, disc_num, duration, bitrate, format,
-        cover_art_path, rating, loved, play_count, release_date, musicbrainz_track_id,
-        musicbrainz_album_id, sample_rate, bit_depth, replaygain_track_gain,
+        cover_art_path, rating, loved, play_count, release_date, musicbrainz_trackid,
+        musicbrainz_albumid, sample_rate, bit_depth, replaygain_track_gain,
         replaygain_album_gain, replaygain_track_peak, replaygain_album_peak,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -315,9 +315,9 @@ export function updateTrackMusicBrainz(
   const db = getDatabase()
   const stmt = db.prepare(`
         UPDATE tracks 
-        SET musicbrainz_track_id = ?, 
-            musicbrainz_album_id = ?, 
-            musicbrainz_artist_id = ?,
+        SET musicbrainz_trackid = ?, 
+            musicbrainz_albumid = ?, 
+            musicbrainz_artistid = ?,
             updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?
     `)
@@ -360,9 +360,9 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
     loved: dbTrack.loved === 1,
     playCount: dbTrack.play_count || 0,
     releaseDate: dbTrack.release_date || undefined,
-    musicbrainzTrackId: dbTrack.musicbrainz_track_id || undefined,
-    musicbrainzAlbumId: dbTrack.musicbrainz_album_id || undefined,
-    musicbrainzArtistId: dbTrack.musicbrainz_artist_id || undefined,
+    musicbrainzTrackId: dbTrack.musicbrainz_trackid || undefined,
+    musicbrainzAlbumId: dbTrack.musicbrainz_albumid || undefined,
+    musicbrainzArtistId: dbTrack.musicbrainz_artistid || undefined,
     isrc: dbTrack.isrc || undefined,
     replayGainTrack: (dbTrack as any).replaygain_track_gain || undefined,
     replayGainAlbum: (dbTrack as any).replaygain_album_gain || undefined,

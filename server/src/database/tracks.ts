@@ -39,12 +39,12 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
         loved = ?,
         play_count = ?,
         release_date = ?,
-        musicbrainz_track_id = ?,
-        musicbrainz_album_id = ?,
-        musicbrainz_artist_id = ?,
-        musicbrainz_recording_id = ?,
-        musicbrainz_release_group_id = ?,
-        musicbrainz_work_id = ?,
+        musicbrainz_trackid = ?,
+        musicbrainz_albumid = ?,
+        musicbrainz_artistid = ?,
+        musicbrainz_recordingid = ?,
+        musicbrainz_releasegroupid = ?,
+        musicbrainz_workid = ?,
         sample_rate = ?,
         bit_depth = ?,
         replaygain_track_gain = ?,
@@ -94,9 +94,9 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
       INSERT INTO tracks (
         id, folder_id, file_path, file_hash, title, artist, album, album_artist,
         year, genre, track_num, disc_num, duration, bitrate, format,
-        cover_art_path, rating, loved, play_count, release_date, musicbrainz_track_id,
-        musicbrainz_album_id, musicbrainz_artist_id, musicbrainz_recording_id, 
-        musicbrainz_release_group_id, musicbrainz_work_id, sample_rate, bit_depth, 
+        cover_art_path, rating, loved, play_count, release_date, musicbrainz_trackid,
+        musicbrainz_albumid, musicbrainz_artistid, musicbrainz_recordingid, 
+        musicbrainz_releasegroupid, musicbrainz_workid, sample_rate, bit_depth, 
         replaygain_track_gain, replaygain_album_gain, replaygain_track_peak, replaygain_album_peak,
         created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -370,9 +370,9 @@ export function updateTrackMusicBrainz(id: string, data: { trackId?: string, alb
     const db = getDatabase()
     const stmt = db.prepare(`
         UPDATE tracks 
-        SET musicbrainz_track_id = ?, 
-            musicbrainz_album_id = ?, 
-            musicbrainz_artist_id = ?,
+        SET musicbrainz_trackid = ?, 
+            musicbrainz_albumid = ?, 
+            musicbrainz_artistid = ?,
             updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?
     `)
@@ -415,12 +415,12 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
         loved: dbTrack.loved === 1,
         playCount: dbTrack.play_count || 0,
         releaseDate: dbTrack.release_date || undefined,
-        musicbrainzTrackId: dbTrack.musicbrainz_track_id || undefined,
-        musicbrainzAlbumId: dbTrack.musicbrainz_album_id || undefined,
-        musicbrainzArtistId: dbTrack.musicbrainz_artist_id || undefined,
-        musicbrainzRecordingId: dbTrack.musicbrainz_recording_id || undefined,
-        musicbrainzReleaseGroupId: dbTrack.musicbrainz_release_group_id || undefined,
-        musicbrainzWorkId: dbTrack.musicbrainz_work_id || undefined,
+        musicbrainzTrackId: dbTrack.musicbrainz_trackid || undefined,
+        musicbrainzAlbumId: dbTrack.musicbrainz_albumid || undefined,
+        musicbrainzArtistId: dbTrack.musicbrainz_artistid || undefined,
+        musicbrainzRecordingId: dbTrack.musicbrainz_recordingid || undefined,
+        musicbrainzReleaseGroupId: dbTrack.musicbrainz_releasegroupid || undefined,
+        musicbrainzWorkId: dbTrack.musicbrainz_workid || undefined,
         albumId: (dbTrack as any).album_id, // Joined from albums_cache
         replayGainTrack: dbTrack.replaygain_track_gain || undefined,
         replayGainAlbum: dbTrack.replaygain_album_gain || undefined,

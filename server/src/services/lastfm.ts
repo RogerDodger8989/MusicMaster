@@ -60,6 +60,16 @@ export class LastFmService {
         }
     }
 
+    /**
+     * Check if text contains non-western characters (e.g. Cyrillic, Asian scripts, Arabic)
+     */
+    isNonEnglish(text: string): boolean {
+        if (!text) return false
+        // Detect Cyrillic, CJK (Chinese, Japanese, Korean), and Arabic
+        const nonEnglishPattern = /[\u0400-\u04FF\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF\u0600-\u06FF]/
+        return nonEnglishPattern.test(text)
+    }
+
     private async fetch(method: string, params: Record<string, string>) {
         const key = getApiKey()
         if (!key) {
@@ -88,8 +98,19 @@ export class LastFmService {
         return data?.album || null
     }
 
-    async getArtistInfo(artist: string): Promise<LastFmArtistInfo | null> {
-        const data = await this.fetch('artist.getInfo', { artist, lang: 'en' })
+    /**
+     * Get artist information from Last.fm
+     * Prioritizes MBID if provided to avoid naming collisions/hijacking
+     */
+    async getArtistInfo(artist: string, mbid?: string): Promise<LastFmArtistInfo | null> {
+        const params: Record<string, string> = { lang: 'en' }
+        if (mbid) {
+            params.mbid = mbid
+        } else {
+            params.artist = artist
+        }
+
+        const data = await this.fetch('artist.getInfo', params)
         return data?.artist || null
     }
 
@@ -254,6 +275,21 @@ export class LastFmService {
 
         const data = await this.fetch('track.getInfo', params)
         return data?.track || null
+    }
+
+    /**
+     * Get global top tracks for an artist from Last.fm
+     */
+    async getArtistTopTracks(artist: string, limit: number = 50): Promise<{ name: string; playcount: string }[]> {
+        const data = await this.fetch('artist.getTopTracks', { artist, limit: limit.toString() })
+        const tracks = data?.toptracks?.track
+
+        if (!tracks || !Array.isArray(tracks)) return []
+
+        return tracks.map((t: any) => ({
+            name: t.name,
+            playcount: t.playcount
+        }))
     }
 
     /**

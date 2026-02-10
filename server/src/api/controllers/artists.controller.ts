@@ -84,9 +84,8 @@ export const getArtistTopTracks = async (req: Request, res: Response) => {
             return
         }
 
-        // TODO: Implement getArtistTopTracks in lastFmService
-        // const topTracks = await lastFmService.getArtistTopTracks(artistName, limit)
-        res.json({ error: 'Not implemented yet', tracks: [] })
+        const topTracks = await lastFmService.getArtistTopTracks(artistName, limit)
+        res.json(topTracks)
     } catch (error) {
         console.error('API Error:', error)
         res.status(500).json({ error: 'Failed to fetch artist top tracks' })

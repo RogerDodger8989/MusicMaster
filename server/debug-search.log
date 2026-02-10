@@ -78,3 +78,19 @@ Found: 2 artists, 0 albums, 2 tracks
 --- SEARCH START: "me" (Normalized: "me") ---
 DB Sample (Albums): [{"name":"Steal This Album!","artist":"System of a Down"}]
 Found: 1 artists, 0 albums, 0 tracks
+
+--- SEARCH START: "me" (Normalized: "me") ---
+DB Sample (Albums): [{"name":"Hostage","artist":"Alexandre Desplat"},{"name":"Metallica","artist":"Metallica"},{"name":"Mezmerize","artist":"System of a Down"}]
+Found: 6 artists, 2 albums, 20 tracks
+
+--- SEARCH START: "me" (Normalized: "me") ---
+DB Sample (Albums): [{"name":"Hostage","artist":"Alexandre Desplat"},{"name":"Metallica","artist":"Metallica"},{"name":"Mezmerize","artist":"System of a Down"}]
+Found: 6 artists, 2 albums, 20 tracks
+
+--- SEARCH START: "me" (Normalized: "me") ---
+DB Sample (Albums): [{"name":"Hostage","artist":"Alexandre Desplat"},{"name":"Metallica","artist":"Metallica"},{"name":"Mezmerize","artist":"System of a Down"}]
+Found: 6 artists, 2 albums, 20 tracks
+
+--- SEARCH START: "met" (Normalized: "met") ---
+DB Sample (Albums): [{"name":"Hostage","artist":"Alexandre Desplat"},{"name":"Metallica","artist":"Metallica"},{"name":"Mezmerize","artist":"System of a Down"}]
+Found: 2 artists, 1 albums, 12 tracks

@@ -31,9 +31,9 @@ export function updateTrackWithMBID(
         const db = getDatabase()
         const stmt = db.prepare(`
             UPDATE tracks
-            SET musicbrainz_track_id = ?,
-                musicbrainz_album_id = ?,
-                musicbrainz_artist_id = ?,
+            SET musicbrainz_trackid = ?,
+                musicbrainz_albumid = ?,
+                musicbrainz_artistid = ?,
                 isrc = COALESCE(?, isrc),
                 recording_date = ?,
                 movement_num = ?,
@@ -83,17 +83,17 @@ export function upsertArtistWithMBID(
         const db = getDatabase()
 
         // 1. Try to find existing artist by MBID if provided
-        let existing: { id: string, name: string, mbid: string | null } | undefined
+        let existing: { id: string, name: string, musicbrainz_artistid: string | null } | undefined
         if (mbid) {
-            existing = db.prepare('SELECT id, name, mbid FROM artists WHERE mbid = ?').get(mbid) as any
+            existing = db.prepare('SELECT id, name, musicbrainz_artistid FROM artists WHERE musicbrainz_artistid = ?').get(mbid) as any
         }
 
         // 2. Fallback: Try to find by name (and country if provided)
         if (!existing) {
             if (countryCode) {
-                existing = db.prepare('SELECT id, name, mbid FROM artists WHERE name = ? AND country = ?').get(name, countryCode) as any
+                existing = db.prepare('SELECT id, name, musicbrainz_artistid FROM artists WHERE name = ? AND country = ?').get(name, countryCode) as any
             } else {
-                existing = db.prepare('SELECT id, name, mbid FROM artists WHERE name = ?').get(name) as any
+                existing = db.prepare('SELECT id, name, musicbrainz_artistid FROM artists WHERE name = ?').get(name) as any
             }
         }
 
@@ -102,8 +102,7 @@ export function upsertArtistWithMBID(
             db.prepare(`
                 UPDATE artists SET
                     name = ?,
-                    mbid = COALESCE(?, mbid),
-                    musicbrainz_artist_id = COALESCE(?, musicbrainz_artist_id, mbid),
+                    musicbrainz_artistid = COALESCE(?, musicbrainz_artistid),
                     country = COALESCE(?, country),
                     artist_type = COALESCE(?, artist_type),
                     life_span_begin = COALESCE(?, life_span_begin),
@@ -116,7 +115,7 @@ export function upsertArtistWithMBID(
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `).run(
-                name, mbid, mbid, countryCode, artistType, lifeSpanBegin, lifeSpanEnd,
+                name, mbid, countryCode, artistType, lifeSpanBegin, lifeSpanEnd,
                 bio, website, imagePath, nameSortOrder, genderOther,
                 existing.id
             )
@@ -127,12 +126,12 @@ export function upsertArtistWithMBID(
         const artistId = uuidv4()
         db.prepare(`
             INSERT INTO artists (
-                id, name, mbid, musicbrainz_artist_id, country, artist_type,
+                id, name, musicbrainz_artistid, country, artist_type,
                 life_span_begin, life_span_end, bio, website, image_path,
                 name_sort_order, gender_other, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         `).run(
-            artistId, name, mbid, mbid, countryCode, artistType,
+            artistId, name, mbid, countryCode, artistType,
             lifeSpanBegin, lifeSpanEnd, bio, website, imagePath,
             nameSortOrder, genderOther
         )
@@ -167,11 +166,11 @@ export function upsertAlbumWithMBID(
 
         const stmt = db.prepare(`
             INSERT INTO albums (
-                id, name, album_artist_id, mbid, album_type,
+                id, name, album_artist_id, musicbrainz_albumid, album_type,
                 release_date, barcode, status, packaging, disc_count,
-                release_group_mbid, release_title, label, catalog_number, updated_at
+                musicbrainz_releasegroupid, release_title, label, catalog_number, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(mbid) DO UPDATE SET
+            ON CONFLICT(musicbrainz_albumid) DO UPDATE SET
                 name = excluded.name,
                 album_artist_id = COALESCE(excluded.album_artist_id, album_artist_id),
                 album_type = COALESCE(excluded.album_type, album_type),
@@ -180,7 +179,7 @@ export function upsertAlbumWithMBID(
                 status = COALESCE(excluded.status, status),
                 packaging = COALESCE(excluded.packaging, packaging),
                 disc_count = COALESCE(excluded.disc_count, disc_count),
-                release_group_mbid = COALESCE(excluded.release_group_mbid, release_group_mbid),
+                musicbrainz_releasegroupid = COALESCE(excluded.musicbrainz_releasegroupid, musicbrainz_releasegroupid),
                 release_title = COALESCE(excluded.release_title, release_title),
                 label = COALESCE(excluded.label, label),
                 catalog_number = COALESCE(excluded.catalog_number, catalog_number),
@@ -206,7 +205,7 @@ export function upsertAlbumWithMBID(
 
         // Return existing ID if album already exists
         const existing = db
-            .prepare('SELECT id FROM albums WHERE mbid = ?')
+            .prepare('SELECT id FROM albums WHERE musicbrainz_albumid = ?')
             .get(mbid) as { id: string } | undefined
         return existing?.id || albumId
     } catch (error) {
@@ -389,20 +388,18 @@ export function storeAcousticBrainzData(
 
         const stmt = db.prepare(`
             INSERT INTO acousticbrainz_data (
-                id, track_id, mbid, bpm, bpm_confidence,
-                key, key_confidence, energy, danceability,
+                id, track_id, musicbrainz_recordingid, bpm, bpm_confidence,
+                energy, danceability,
                 acousticness, instrumentalness, liveness,
                 speechiness, valence, mood_acoustic, mood_aggressive,
                 mood_electronic, mood_happy, mood_sad, mood_relaxed,
                 mood_party, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             ON CONFLICT(track_id)
             DO UPDATE SET
-                mbid = COALESCE(excluded.mbid, mbid),
+                musicbrainz_recordingid = COALESCE(excluded.musicbrainz_recordingid, musicbrainz_recordingid),
                 bpm = COALESCE(excluded.bpm, bpm),
                 bpm_confidence = COALESCE(excluded.bpm_confidence, bpm_confidence),
-                key = COALESCE(excluded.key, key),
-                key_confidence = COALESCE(excluded.key_confidence, key_confidence),
                 energy = COALESCE(excluded.energy, energy),
                 danceability = COALESCE(excluded.danceability, danceability),
                 acousticness = COALESCE(excluded.acousticness, acousticness),
@@ -423,11 +420,9 @@ export function storeAcousticBrainzData(
         stmt.run(
             uuidv4(),
             trackId,
-            data.mbid || null,
+            data.musicbrainz_recordingid || null,
             data.bpm || null,
             data.bpm_confidence || null,
-            data.key || null,
-            data.key_confidence || null,
             data.energy || null,
             data.danceability || null,
             data.acousticness || null,
@@ -458,7 +453,7 @@ export function getTrackByMBID(mbid: string): DbTrack | null {
     try {
         const db = getDatabase()
         const track = db
-            .prepare('SELECT * FROM tracks WHERE mbid = ?')
+            .prepare('SELECT * FROM tracks WHERE musicbrainz_trackid = ?')
             .get(mbid) as DbTrack | undefined
         return track || null
     } catch (error) {
@@ -474,7 +469,7 @@ export function getArtistByMBID(mbid: string): DbArtist | null {
     try {
         const db = getDatabase()
         const artist = db
-            .prepare('SELECT * FROM artists WHERE mbid = ?')
+            .prepare('SELECT * FROM artists WHERE musicbrainz_artistid = ?')
             .get(mbid) as DbArtist | undefined
         return artist || null
     } catch (error) {
@@ -490,7 +485,7 @@ export function getAlbumByMBID(mbid: string): DbAlbum | null {
     try {
         const db = getDatabase()
         const album = db
-            .prepare('SELECT * FROM albums WHERE mbid = ?')
+            .prepare('SELECT * FROM albums WHERE musicbrainz_albumid = ?')
             .get(mbid) as DbAlbum | undefined
         return album || null
     } catch (error) {
@@ -566,7 +561,7 @@ export function getTracksWithoutMBID(limit: number = 100): DbTrack[] {
         const tracks = db
             .prepare(`
                 SELECT * FROM tracks
-                WHERE mbid IS NULL AND title IS NOT NULL
+                WHERE musicbrainz_trackid IS NULL AND title IS NOT NULL
                 LIMIT ?
             `)
             .all(limit) as DbTrack[]
@@ -594,7 +589,7 @@ export function getMBIDCoverageStats(): {
             db.prepare('SELECT COUNT(*) as count FROM tracks').get() as any
         ).count
         const tracksWithMBID = (
-            db.prepare('SELECT COUNT(*) as count FROM tracks WHERE mbid IS NOT NULL')
+            db.prepare('SELECT COUNT(*) as count FROM tracks WHERE musicbrainz_trackid IS NOT NULL')
                 .get() as any
         ).count
         const tracksWithISRC = (
@@ -602,7 +597,7 @@ export function getMBIDCoverageStats(): {
                 .get() as any
         ).count
         const artistsWithMBID = (
-            db.prepare('SELECT COUNT(*) as count FROM artists WHERE mbid IS NOT NULL')
+            db.prepare('SELECT COUNT(*) as count FROM artists WHERE musicbrainz_artistid IS NOT NULL')
                 .get() as any
         ).count
 

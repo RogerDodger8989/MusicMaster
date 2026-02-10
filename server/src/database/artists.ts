@@ -9,7 +9,7 @@ export function getAllArtists(): Artist[] {
             album_count as albumCount, 
             track_count as trackCount, 
             image_path as imagePath,
-            musicbrainz_artist_id as musicbrainzArtistId,
+            musicbrainz_artistid as musicbrainzArtistId,
             country,
             life_span_begin as lifeSpanBegin,
             life_span_end as lifeSpanEnd,
@@ -42,7 +42,7 @@ export function dbArtistToArtist(row: any): Artist {
         trackCount: row.track_count || row.trackCount || 0,
         bio: row.bio || undefined,
         imagePath,
-        musicbrainzArtistId: row.musicbrainz_artist_id || row.musicbrainzArtistId || undefined,
+        musicbrainzArtistId: row.musicbrainz_artistid || row.musicbrainzArtistId || undefined,
         country: row.country || undefined,
         lifeSpanBegin: row.life_span_begin || row.lifeSpanBegin || undefined,
         lifeSpanEnd: row.life_span_end || row.lifeSpanEnd || undefined,
@@ -61,7 +61,7 @@ export function getArtistById(id: string): Artist | null {
             album_count as albumCount, 
             track_count as trackCount, 
             image_path as imagePath,
-            musicbrainz_artist_id as musicbrainzArtistId,
+            musicbrainz_artistid as musicbrainzArtistId,
             country,
             life_span_begin as lifeSpanBegin,
             life_span_end as lifeSpanEnd,
@@ -97,7 +97,7 @@ export function updateArtistFacts(id: string, facts: {
     const db = getDatabase()
     const stmt = db.prepare(`
         UPDATE artists 
-        SET musicbrainz_artist_id = COALESCE(?, musicbrainz_artist_id),
+        SET musicbrainz_artistid = COALESCE(?, musicbrainz_artistid),
             country = COALESCE(?, country),
             life_span_begin = COALESCE(?, life_span_begin),
             life_span_end = COALESCE(?, life_span_end),

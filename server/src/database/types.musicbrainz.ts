@@ -11,7 +11,7 @@ export interface DbArtist {
     id: string
     name: string
     name_sort_order: string | null
-    mbid: string | null
+    musicbrainz_artistid: string | null
     country: string | null
     area: string | null
     life_span_begin: string | null
@@ -33,9 +33,9 @@ export interface DbAlbum {
     id: string
     name: string
     album_artist_id: string | null
-    mbid: string | null
+    musicbrainz_albumid: string | null
     album_type: 'Album' | 'EP' | 'Single' | 'Broadcast' | 'Other' | 'Compilation' | 'Soundtrack' | 'Remix Album' | 'Live Album' | null
-    release_group_mbid: string | null
+    musicbrainz_releasegroupid: string | null
     status: 'Official' | 'Promotion' | 'Bootleg' | 'Pseudorelease' | null
     release_title: string | null
     year: number | null
@@ -78,12 +78,12 @@ export interface DbTrack {
     disc_num: number | null
     movement_num: number | null
     movement_name: string | null
-    mbid: string | null
-    musicbrainz_track_id: string | null
-    musicbrainz_album_id: string | null
-    musicbrainz_artist_id: string | null
-    musicbrainz_work_id: string | null
-    musicbrainz_release_group_id: string | null
+    musicbrainz_trackid: string | null
+    musicbrainz_albumid: string | null
+    musicbrainz_artistid: string | null
+    musicbrainz_workid: string | null
+    musicbrainz_releasegroupid: string | null
+    musicbrainz_recordingid: string | null
     acoustid_fingerprint: string | null
     acoustid_id: string | null
     isrc: string | null
@@ -164,7 +164,7 @@ export interface DbAlbumCredit {
 export interface DbReleaseInfo {
     id: string
     album_id: string
-    mbid: string | null
+    musicbrainz_releaseid: string | null
     title: string | null
     status: 'Official' | 'Promotion' | 'Bootleg' | 'Pseudorelease' | null
     release_date: string | null
@@ -182,7 +182,7 @@ export interface DbReleaseInfo {
 export interface DbLabel {
     id: string
     name: string
-    mbid: string | null
+    musicbrainz_labelid: string | null
     label_type: string | null
     country: string | null
     website: string | null
@@ -229,7 +229,7 @@ export interface DbGenre {
     id: string
     name: string
     parent_genre_id: string | null
-    mbid: string | null
+    musicbrainz_genreid: string | null
     created_at: string
 }
 
@@ -245,7 +245,7 @@ export interface DbGenreTag {
 
 export interface DbWork {
     id: string
-    mbid: string | null
+    musicbrainz_workid: string | null
     title: string
     artist_id: string | null
     work_type: string | null
@@ -261,7 +261,7 @@ export interface DbWork {
 export interface DbAcousticBrainzData {
     id: string
     track_id: string
-    mbid: string | null
+    musicbrainz_recordingid: string | null
     bpm: number | null
     bpm_confidence: number | null
     key: string | null
@@ -346,9 +346,8 @@ export interface TrackFull {
     rating: number
     loved: number
     play_count: number
-    mbid: string | null
-    musicbrainz_track_id: string | null
-    musicbrainz_album_id: string | null
+    musicbrainz_trackid: string | null
+    musicbrainz_albumid: string | null
 
     // Artists
     all_artists: string | null  // Semicolon-separated
@@ -379,7 +378,7 @@ export interface AlbumFull {
     rating: number
     loved: number
     play_count: number
-    mbid: string | null
+    musicbrainz_albumid: string | null
 
     // Artist
     artist_name: string | null

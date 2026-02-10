@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS artists (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     name_sort_order TEXT,
-    mbid TEXT UNIQUE,
+    musicbrainz_artistid TEXT UNIQUE,
     country TEXT,
     area TEXT,
     life_span_begin TEXT,
@@ -40,9 +40,9 @@ CREATE TABLE IF NOT EXISTS albums (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     album_artist_id TEXT,
-    mbid TEXT UNIQUE,
+    musicbrainz_albumid TEXT UNIQUE,
     album_type TEXT,
-    release_group_mbid TEXT,
+    musicbrainz_releasegroupid TEXT,
     status TEXT,
     release_title TEXT, -- e.g. "Remastered"
     year INTEGER,
@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS album_credits (
 CREATE TABLE IF NOT EXISTS release_info (
     id TEXT PRIMARY KEY,
     album_id TEXT NOT NULL,
-    mbid TEXT UNIQUE,
+    musicbrainz_releaseid TEXT UNIQUE,
     title TEXT,
     status TEXT,
     release_date TEXT,
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS release_info (
 CREATE TABLE IF NOT EXISTS labels (
     id TEXT PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
-    mbid TEXT UNIQUE,
+    musicbrainz_labelid TEXT UNIQUE,
     label_type TEXT,
     country TEXT,
     website TEXT,
@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS genres (
     id TEXT PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
     parent_genre_id TEXT,
-    mbid TEXT,
+    musicbrainz_genreid TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (parent_genre_id) REFERENCES genres(id) ON DELETE SET NULL
 );
@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS genre_tags (
 -- Works (for classical music)
 CREATE TABLE IF NOT EXISTS works (
     id TEXT PRIMARY KEY,
-    mbid TEXT UNIQUE,
+    musicbrainz_workid TEXT UNIQUE,
     title TEXT NOT NULL,
     artist_id TEXT,
     work_type TEXT,
@@ -239,11 +239,9 @@ CREATE TABLE IF NOT EXISTS works (
 CREATE TABLE IF NOT EXISTS acousticbrainz_data (
     id TEXT PRIMARY KEY,
     track_id TEXT NOT NULL,
-    mbid TEXT,
+    musicbrainz_recordingid TEXT,
     bpm INTEGER,
     bpm_confidence REAL,
-    key TEXT,
-    key_confidence REAL,
     energy REAL,
     danceability REAL,
     acousticness REAL,
@@ -308,11 +306,11 @@ CREATE TABLE IF NOT EXISTS discs (
 );
 
 -- Indexes for MusicBrainz data
-CREATE INDEX IF NOT EXISTS idx_artists_mbid ON artists(mbid);
+CREATE INDEX IF NOT EXISTS idx_artists_musicbrainzid ON artists(musicbrainz_artistid);
 CREATE INDEX IF NOT EXISTS idx_artists_country ON artists(country);
 CREATE INDEX IF NOT EXISTS idx_artists_name ON artists(name);
 
-CREATE INDEX IF NOT EXISTS idx_albums_mbid ON albums(mbid);
+CREATE INDEX IF NOT EXISTS idx_albums_musicbrainzid ON albums(musicbrainz_albumid);
 CREATE INDEX IF NOT EXISTS idx_albums_artist ON albums(album_artist_id);
 CREATE INDEX IF NOT EXISTS idx_albums_year ON albums(year);
 CREATE INDEX IF NOT EXISTS idx_albums_release_date ON albums(release_date);
@@ -333,7 +331,6 @@ CREATE INDEX IF NOT EXISTS idx_external_identifiers ON external_identifiers(enti
 
 CREATE INDEX IF NOT EXISTS idx_acousticbrainz_track ON acousticbrainz_data(track_id);
 CREATE INDEX IF NOT EXISTS idx_acousticbrainz_bpm ON acousticbrainz_data(bpm);
-CREATE INDEX IF NOT EXISTS idx_acousticbrainz_key ON acousticbrainz_data(key);
 `
 
 // Legacy schema (kept for backward compatibility)
@@ -372,14 +369,14 @@ CREATE TABLE IF NOT EXISTS tracks (
     play_count INTEGER DEFAULT 0,
     last_played DATETIME,
     release_date TEXT,
-    musicbrainz_track_id TEXT,
-    musicbrainz_album_id TEXT,
-    musicbrainz_artist_id TEXT,
+    musicbrainz_trackid TEXT,
+    musicbrainz_albumid TEXT,
+    musicbrainz_artistid TEXT,
     publisher TEXT,
     isrc TEXT,
-    musicbrainz_recording_id TEXT,
-    musicbrainz_release_group_id TEXT,
-    musicbrainz_work_id TEXT,
+    musicbrainz_recordingid TEXT,
+    musicbrainz_releasegroupid TEXT,
+    musicbrainz_workid TEXT,
     replaygain_track_gain REAL,
     replaygain_album_gain REAL,
     replaygain_track_peak REAL,
@@ -403,7 +400,7 @@ CREATE TABLE IF NOT EXISTS albums_cache (
     track_count INTEGER DEFAULT 0,
     total_duration INTEGER DEFAULT 0,
     cover_art_path TEXT,
-    musicbrainz_album_id TEXT,
+    musicbrainz_albumid TEXT,
     album_type TEXT,
     status TEXT,
     original_release_date TEXT,
@@ -412,7 +409,7 @@ CREATE TABLE IF NOT EXISTS albums_cache (
     barcode TEXT,
     country TEXT,
     media TEXT,
-    release_group_mbid TEXT,
+    musicbrainz_releasegroupid TEXT,
     lastfm_url TEXT,
     rating REAL DEFAULT 0,
     loved INTEGER DEFAULT 0,
@@ -432,7 +429,7 @@ CREATE TABLE IF NOT EXISTS artists (
     track_count INTEGER DEFAULT 0,
     bio TEXT,
     image_path TEXT,
-    musicbrainz_artist_id TEXT,
+    musicbrainz_artistid TEXT,
     country TEXT,
     life_span_begin TEXT,
     life_span_end TEXT,
@@ -605,9 +602,9 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE tracks ADD COLUMN play_count INTEGER DEFAULT 0",
             "ALTER TABLE tracks ADD COLUMN last_played DATETIME",
             "ALTER TABLE tracks ADD COLUMN release_date TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_track_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_album_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_artist_id TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_trackid TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_albumid TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_artistid TEXT",
             "ALTER TABLE tracks ADD COLUMN sample_rate INTEGER",
             "ALTER TABLE tracks ADD COLUMN bit_depth INTEGER",
             "ALTER TABLE tracks ADD COLUMN replaygain_track_gain REAL",
@@ -615,17 +612,18 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE tracks ADD COLUMN replaygain_track_peak REAL",
             "ALTER TABLE tracks ADD COLUMN replaygain_album_peak REAL",
 
+            // Standardizing MusicBrainz names
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_recordingid TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_releasegroupid TEXT",
+            "ALTER TABLE tracks ADD COLUMN musicbrainz_workid TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN musicbrainz_albumid TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN musicbrainz_releasegroupid TEXT",
+            "ALTER TABLE artists ADD COLUMN musicbrainz_artistid TEXT",
+
             // Extended MusicBrainz tracks columns
             "ALTER TABLE tracks ADD COLUMN movement_num INTEGER",
             "ALTER TABLE tracks ADD COLUMN movement TEXT",
             "ALTER TABLE tracks ADD COLUMN movement_total INTEGER",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_track_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_album_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_artist_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_work_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_release_group_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN musicbrainz_recording_id TEXT",
-            "ALTER TABLE tracks ADD COLUMN mbid TEXT",
             "ALTER TABLE tracks ADD COLUMN recording_date TEXT",
 
             // Albums cache columns
@@ -639,29 +637,23 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE albums_cache ADD COLUMN barcode TEXT",
             "ALTER TABLE albums_cache ADD COLUMN country TEXT",
             "ALTER TABLE albums_cache ADD COLUMN media TEXT",
-            "ALTER TABLE albums_cache ADD COLUMN release_group_mbid TEXT",
             "ALTER TABLE albums_cache ADD COLUMN release_title TEXT",
             "ALTER TABLE albums_cache ADD COLUMN enriched_at DATETIME",
             "ALTER TABLE albums_cache ADD COLUMN script TEXT",
             "ALTER TABLE albums_cache ADD COLUMN total_discs INTEGER",
             "ALTER TABLE albums_cache ADD COLUMN total_tracks INTEGER",
 
-            // Missing tracks columns for MusicBrainz
-            "ALTER TABLE tracks ADD COLUMN movement TEXT",
-            "ALTER TABLE tracks ADD COLUMN movement_num INTEGER",
-            "ALTER TABLE tracks ADD COLUMN movement_total INTEGER",
-
             // Missing acousticbrainz columns
+            "ALTER TABLE acousticbrainz_data ADD COLUMN musicbrainz_recordingid TEXT",
             "ALTER TABLE acousticbrainz_data ADD COLUMN key_signature TEXT",
 
             // Extended albums columns (if using non-MB schema)
             "ALTER TABLE albums ADD COLUMN loved INTEGER DEFAULT 0",
             "ALTER TABLE albums ADD COLUMN bio TEXT",
-            "ALTER TABLE albums ADD COLUMN mbid TEXT",
+            "ALTER TABLE albums ADD COLUMN musicbrainz_albumid TEXT",
 
             // Artists columns
             "ALTER TABLE artists ADD COLUMN loved INTEGER DEFAULT 0",
-            "ALTER TABLE artists ADD COLUMN musicbrainz_artist_id TEXT",
             "ALTER TABLE artists ADD COLUMN country TEXT",
             "ALTER TABLE artists ADD COLUMN life_span_begin TEXT",
             "ALTER TABLE artists ADD COLUMN life_span_end TEXT",
@@ -671,14 +663,13 @@ export function initDatabase(): Database.Database {
 
             // Extended artists columns
             "ALTER TABLE artists ADD COLUMN name_sort_order TEXT",
-            "ALTER TABLE artists ADD COLUMN mbid TEXT",
             "ALTER TABLE artists ADD COLUMN area TEXT",
             "ALTER TABLE artists ADD COLUMN artist_type TEXT",
             "ALTER TABLE artists ADD COLUMN gender_other TEXT",
 
             "ALTER TABLE track_artists ADD COLUMN join_phrase TEXT",
             "ALTER TABLE album_artists ADD COLUMN join_phrase TEXT",
-            "ALTER TABLE albums ADD COLUMN release_group_mbid TEXT",
+            "ALTER TABLE albums ADD COLUMN musicbrainz_releasegroupid TEXT",
             "ALTER TABLE albums ADD COLUMN release_title TEXT",
             "ALTER TABLE albums ADD COLUMN label TEXT",
             "ALTER TABLE albums ADD COLUMN catalog_number TEXT",
@@ -785,14 +776,14 @@ export interface DbTrack {
     play_count: number
     last_played: string | null
     release_date: string | null
-    musicbrainz_track_id: string | null
-    musicbrainz_album_id: string | null
-    musicbrainz_artist_id: string | null
+    musicbrainz_trackid: string | null
+    musicbrainz_albumid: string | null
+    musicbrainz_artistid: string | null
     publisher: string | null
     isrc: string | null
-    musicbrainz_recording_id: string | null
-    musicbrainz_release_group_id: string | null
-    musicbrainz_work_id: string | null
+    musicbrainz_recordingid: string | null
+    musicbrainz_releasegroupid: string | null
+    musicbrainz_workid: string | null
     replaygain_track_gain: number | null
     replaygain_album_gain: number | null
     replaygain_track_peak: number | null
@@ -829,8 +820,8 @@ export interface DbAlbumCache {
     track_count: number
     total_duration: number
     cover_art_path: string | null
-    musicbrainz_album_id: string | null
-    release_group_mbid: string | null
+    musicbrainz_albumid: string | null
+    musicbrainz_releasegroupid: string | null
     release_title: string | null
     label: string | null
     catalog_number: string | null
@@ -851,7 +842,7 @@ export interface DbArtist {
     track_count: number
     bio: string | null
     image_path: string | null
-    musicbrainz_artist_id: string | null
+    musicbrainz_artistid: string | null
     country: string | null
     life_span_begin: string | null
     life_span_end: string | null

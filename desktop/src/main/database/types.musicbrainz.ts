@@ -11,7 +11,7 @@ export interface DbArtist {
   id: string
   name: string
   name_sort_order: string | null
-  mbid: string | null
+  musicbrainz_artistid: string | null
   country: string | null
   area: string | null
   life_span_begin: string | null
@@ -33,7 +33,7 @@ export interface DbAlbum {
   id: string
   name: string
   album_artist_id: string | null
-  mbid: string | null
+  musicbrainz_albumid: string | null
   album_type:
   | 'Album'
   | 'EP'
@@ -56,7 +56,7 @@ export interface DbAlbum {
   language: string | null
   release_text_language: string | null
   packaging: string | null
-  release_group_mbid: string | null
+  musicbrainz_releasegroupid: string | null
   release_title: string | null
   label: string | null
   catalog_number: string | null
@@ -88,11 +88,12 @@ export interface DbTrack {
   disc_num: number | null
   movement_num: number | null
   movement_name: string | null
-  mbid: string | null
-  mbid_track_id: string | null
-  mbid_album_id: string | null
-  mbid_artist_id: string | null
-  mbid_work_id: string | null
+  musicbrainz_trackid: string | null
+  musicbrainz_albumid: string | null
+  musicbrainz_artistid: string | null
+  musicbrainz_workid: string | null
+  musicbrainz_releasegroupid: string | null
+  musicbrainz_recordingid: string | null
   publisher: string | null
   isrc: string | null
   acoustid_fingerprint: string | null
@@ -174,14 +175,7 @@ export interface DbAlbumCredit {
   | 'Producer'
   | 'Editor'
   | 'Engineer'
-  | 'Conductor'
-  | 'Arranger'
-  | 'Composer'
-  | 'Lyricist'
-  | 'Orchestrator'
-  | 'Sound Designer'
-  | 'Mixer'
-  | 'Mastering Engineer'
+  | 'Conductor' | 'Arranger' | 'Composer' | 'Lyricist' | 'Orchestrator' | 'Sound Designer' | 'Mixer' | 'Mastering Engineer'
   credited_as: string | null
   sort_position: number | null
   created_at: string
@@ -194,7 +188,7 @@ export interface DbAlbumCredit {
 export interface DbReleaseInfo {
   id: string
   album_id: string
-  mbid: string | null
+  musicbrainz_releaseid: string | null
   title: string | null
   status: 'Official' | 'Promotion' | 'Bootleg' | 'Pseudorelease' | null
   release_date: string | null
@@ -212,7 +206,7 @@ export interface DbReleaseInfo {
 export interface DbLabel {
   id: string
   name: string
-  mbid: string | null
+  musicbrainz_labelid: string | null
   label_type: string | null
   country: string | null
   website: string | null
@@ -258,24 +252,7 @@ export interface DbExternalIdentifier {
   entity_type: 'artist' | 'album' | 'track'
   entity_id: string
   identifier_type:
-  | 'isrc'
-  | 'ean'
-  | 'upc'
-  | 'asin'
-  | 'isil'
-  | 'iswc'
-  | 'ipi'
-  | 'grid'
-  | 'spotify'
-  | 'apple_music'
-  | 'deezer'
-  | 'tidal'
-  | 'youtube_music'
-  | 'bandcamp'
-  | 'soundcloud'
-  | 'musicbrainz'
-  | 'acoustid'
-  | 'other'
+  | 'isrc' | 'ean' | 'upc' | 'asin' | 'isil' | 'iswc' | 'ipi' | 'grid' | 'spotify' | 'apple_music' | 'deezer' | 'tidal' | 'youtube_music' | 'bandcamp' | 'soundcloud' | 'musicbrainz' | 'acoustid' | 'other'
   value: string
   created_at: string
 }
@@ -288,7 +265,7 @@ export interface DbGenre {
   id: string
   name: string
   parent_genre_id: string | null
-  mbid: string | null
+  musicbrainz_genreid: string | null
   created_at: string
 }
 
@@ -304,7 +281,7 @@ export interface DbGenreTag {
 
 export interface DbWork {
   id: string
-  mbid: string | null
+  musicbrainz_workid: string | null
   title: string
   artist_id: string | null
   work_type: string | null
@@ -320,7 +297,7 @@ export interface DbWork {
 export interface DbAcousticBrainzData {
   id: string
   track_id: string
-  mbid: string | null
+  musicbrainz_recordingid: string | null
   bpm: number | null
   bpm_confidence: number | null
   key: string | null
@@ -402,8 +379,8 @@ export interface TrackFull {
   rating: number
   loved: number
   play_count: number
-  mbid: string | null
-  mbid_album_id: string | null
+  musicbrainz_trackid: string | null
+  musicbrainz_albumid: string | null
 
   // Artists
   all_artists: string | null // Semicolon-separated
@@ -434,11 +411,11 @@ export interface AlbumFull {
   rating: number
   loved: number
   play_count: number
-  mbid: string | null
+  musicbrainz_albumid: string | null
 
   // Artist
   artist_name: string | null
-  artist_mbid: string | null
+  artist_musicbrainz_id: string | null
   artist_country: string | null
 
   // Label

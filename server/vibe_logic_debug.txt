@@ -447,3 +447,25 @@
 2026-02-10T16:57:40.422Z:   ✅ ACCEPTED (Strict mode)
 2026-02-10T16:57:40.422Z: Checking The God That Failed [party] En:0.7610403892317277 Ar:0.7727282724622093 Va:0.35 Inst:0.05
 2026-02-10T16:57:40.422Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T20:45:40.281Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-10T20:45:40.282Z:   ✅ ACCEPTED (Strict mode)
+2026-02-10T20:45:40.282Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-10T20:45:40.283Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T20:45:40.283Z:   ✅ ACCEPTED (Fallback mode): Chic ’n’ Stu [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T20:45:40.283Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T20:45:40.284Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T20:45:40.284Z:   ✅ ACCEPTED (Fallback mode): Soldier Side (intro) [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T20:45:40.284Z:   ✅ ACCEPTED (Fallback mode): Nüguns [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T20:45:40.285Z:   ✅ ACCEPTED (Fallback mode): Highway Song [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T20:45:40.285Z:   ✅ ACCEPTED (Fallback mode): Radio/Video [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T20:45:40.285Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T20:45:40.285Z:   ✅ ACCEPTED (Fallback mode): Roulette [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T20:45:40.286Z:   ✅ ACCEPTED (Fallback mode): Revenga [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-10T20:45:40.286Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T20:45:40.286Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T20:45:40.286Z:   ✅ ACCEPTED (Fallback mode): A.D.D. [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-10T20:45:40.287Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T20:45:40.287Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T20:45:40.287Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T20:45:40.288Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-10T20:45:40.288Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]

@@ -36,9 +36,9 @@ export interface MusicBrainzWriteData {
     barcode?: string           // BARCODE
     country?: string           // RELEASECOUNTRY
     media?: string             // MEDIA
-        script?: string            // SCRIPT
-        totalDiscs?: number        // TOTALDISCS
-        totalTracks?: number       // TOTALTRACKS
+    script?: string            // SCRIPT
+    totalDiscs?: number        // TOTALDISCS
+    totalTracks?: number       // TOTALTRACKS
     albumType?: string         // MUSICBRAINZ_ALBUMTYPE
     releaseStatus?: string     // MUSICBRAINZ_ALBUMSTATUS
 
@@ -138,8 +138,8 @@ async function writeFLACMetadata(
             { key: 'MUSICBRAINZ_RELEASEGROUPID', value: musicBrainzData.releaseGroupMBID },
             { key: 'MUSICBRAINZ_ARTISTID', value: musicBrainzData.artistId },
             { key: 'MUSICBRAINZ_ALBUMARTISTID', value: musicBrainzData.albumArtistMBID },
-                        { key: 'ARTISTSORT', value: musicBrainzData.artistSortOrder },
-                        { key: 'ALBUMARTISTSORT', value: musicBrainzData.albumArtistSortOrder },
+            { key: 'ARTISTSORT', value: musicBrainzData.artistSortOrder },
+            { key: 'ALBUMARTISTSORT', value: musicBrainzData.albumArtistSortOrder },
             { key: 'DATE', value: musicBrainzData.releaseDate },
             { key: 'ORIGINALDATE', value: musicBrainzData.originalDate },
             { key: 'LABEL', value: musicBrainzData.label },
@@ -147,9 +147,9 @@ async function writeFLACMetadata(
             { key: 'BARCODE', value: musicBrainzData.barcode },
             { key: 'RELEASECOUNTRY', value: musicBrainzData.country },
             { key: 'MEDIA', value: musicBrainzData.media },
-                        { key: 'SCRIPT', value: musicBrainzData.script },
-                        { key: 'TOTALDISCS', value: musicBrainzData.totalDiscs?.toString() },
-                        { key: 'TOTALTRACKS', value: musicBrainzData.totalTracks?.toString() },
+            { key: 'SCRIPT', value: musicBrainzData.script },
+            { key: 'TOTALDISCS', value: musicBrainzData.totalDiscs?.toString() },
+            { key: 'TOTALTRACKS', value: musicBrainzData.totalTracks?.toString() },
             { key: 'RELEASETYPE', value: musicBrainzData.albumType },
             { key: 'RELEASESTATUS', value: musicBrainzData.releaseStatus },
             { key: 'BPM', value: musicBrainzData.bpm?.toString() },
@@ -192,12 +192,12 @@ async function writeFLACMetadata(
             for (const genre of musicBrainzData.genres) {
                 await execAsync(`metaflac --set-tag=GENRE="${genre}" "${filePath}"`)
 
-                    if (musicBrainzData.producers && musicBrainzData.producers.length > 0) {
-                        await execAsync(`metaflac --remove-tag=PRODUCER "${filePath}"`)
-                        for (const producer of musicBrainzData.producers) {
-                            await execAsync(`metaflac --set-tag=PRODUCER="${producer}" "${filePath}"`)
-                        }
+                if (musicBrainzData.producers && musicBrainzData.producers.length > 0) {
+                    await execAsync(`metaflac --remove-tag=PRODUCER "${filePath}"`)
+                    for (const producer of musicBrainzData.producers) {
+                        await execAsync(`metaflac --set-tag=PRODUCER="${producer}" "${filePath}"`)
                     }
+                }
             }
         }
 
@@ -257,8 +257,8 @@ async function writeMP3Metadata(
         if (musicBrainzData.genres) updatedTags.genre = musicBrainzData.genres.join(';')
         if (musicBrainzData.bpm) updatedTags.bpm = musicBrainzData.bpm.toString()
         if (musicBrainzData.key) updatedTags.initialKey = musicBrainzData.key
-    if (musicBrainzData.artistSortOrder) updatedTags.performerInfo = musicBrainzData.artistSortOrder
-    if (musicBrainzData.producers) updatedTags.involvedPeopleList = musicBrainzData.producers.map(p => `producer:${p}`).join(';')
+        if (musicBrainzData.artistSortOrder) updatedTags.performerInfo = musicBrainzData.artistSortOrder
+        if (musicBrainzData.producers) updatedTags.involvedPeopleList = musicBrainzData.producers.map(p => `producer:${p}`).join(';')
 
         const mbMap = [
             { desc: 'MusicBrainz Release Track Id', val: musicBrainzData.trackId || musicBrainzData.recordingMBID },
@@ -271,15 +271,15 @@ async function writeMP3Metadata(
             { desc: 'MusicBrainz Artist Id', val: musicBrainzData.artistId },
             { desc: 'MUSICBRAINZ_ARTISTID', val: musicBrainzData.artistId },
             { desc: 'MUSICBRAINZ_ALBUMARTISTID', val: musicBrainzData.albumArtistMBID },
-                        { desc: 'ARTISTSORT', val: musicBrainzData.artistSortOrder },
-                        { desc: 'ALBUMARTISTSORT', val: musicBrainzData.albumArtistSortOrder },
+            { desc: 'ARTISTSORT', val: musicBrainzData.artistSortOrder },
+            { desc: 'ALBUMARTISTSORT', val: musicBrainzData.albumArtistSortOrder },
             { desc: 'CATALOGNUMBER', val: musicBrainzData.catalogNumber },
             { desc: 'BARCODE', val: musicBrainzData.barcode },
             { desc: 'RELEASECOUNTRY', val: musicBrainzData.country },
             { desc: 'MEDIA', val: musicBrainzData.media },
-                        { desc: 'SCRIPT', val: musicBrainzData.script },
-                        { desc: 'TOTALDISCS', val: musicBrainzData.totalDiscs?.toString() },
-                        { desc: 'TOTALTRACKS', val: musicBrainzData.totalTracks?.toString() },
+            { desc: 'SCRIPT', val: musicBrainzData.script },
+            { desc: 'TOTALDISCS', val: musicBrainzData.totalDiscs?.toString() },
+            { desc: 'TOTALTRACKS', val: musicBrainzData.totalTracks?.toString() },
             { desc: 'RELEASETYPE', val: musicBrainzData.albumType },
             { desc: 'RELEASESTATUS', val: musicBrainzData.releaseStatus },
             { desc: 'ENERGY', val: musicBrainzData.energy?.toFixed(3) },
@@ -395,14 +395,14 @@ export function buildMusicBrainzDataFromDb(
 ): MusicBrainzWriteData | null {
     const track = db.prepare(`
         SELECT 
-            t.musicbrainz_track_id as recording_mbid,
-            t.musicbrainz_album_id as album_mbid,
-            t.musicbrainz_artist_id as artist_mbid,
+            t.musicbrainz_trackid as recording_mbid,
+            t.musicbrainz_albumid as album_mbid,
+            t.musicbrainz_artistid as artist_mbid,
             t.isrc,
             t.movement,
             t.movement_num as movement_number,
             t.movement_total,
-            t.musicbrainz_work_id as work_mbid,
+            t.musicbrainz_workid as work_mbid,
             a.album_type,
             a.status as release_status,
             a.release_date,
@@ -426,7 +426,7 @@ export function buildMusicBrainzDataFromDb(
     }
 
     const trackArtists = db.prepare(`
-        SELECT art.mbid, art.name_sort_order, ta.credited_as, ta.sort_position
+        SELECT art.musicbrainz_artistid as mbid, art.name_sort_order, ta.credited_as, ta.sort_position
         FROM track_artists ta
         JOIN artists art ON ta.artist_id = art.id
         WHERE ta.track_id = ?
@@ -434,11 +434,11 @@ export function buildMusicBrainzDataFromDb(
     `).all(trackId)
 
     const albumArtists = db.prepare(`
-        SELECT art.mbid, art.name_sort_order, aa.credited_as, aa.sort_position
+        SELECT art.musicbrainz_artistid as mbid, art.name_sort_order, aa.credited_as, aa.sort_position
         FROM album_artists aa
         JOIN artists art ON aa.artist_id = art.id
-        JOIN albums a ON aa.album_id = a.id
-        WHERE a.mbid = ?
+        JOIN albums_cache a ON aa.album_id = a.id
+        WHERE a.musicbrainz_albumid = ?
         ORDER BY aa.sort_position
     `).all(track.album_mbid)
 
@@ -462,7 +462,7 @@ export function buildMusicBrainzDataFromDb(
             valence,
             instrumentalness
         FROM acousticbrainz_data
-        WHERE mbid = ?
+        WHERE musicbrainz_recordingid = ?
     `).get(track.recording_mbid)
 
     const data: MusicBrainzWriteData = {
@@ -473,10 +473,10 @@ export function buildMusicBrainzDataFromDb(
         releaseGroupMBID: track.release_group_mbid,
         artistMBIDs: trackArtists.length > 0 ? trackArtists.map((a: any) => a.mbid).filter(Boolean) : [track.artist_mbid].filter(Boolean),
         artistId: trackArtists[0]?.mbid || track.artist_mbid,
-            artistSortOrder: trackArtists[0]?.name_sort_order,
+        artistSortOrder: trackArtists[0]?.name_sort_order,
         albumArtistMBIDs: albumArtists.map((a: any) => a.mbid).filter(Boolean),
         albumArtistMBID: albumArtists[0]?.mbid,
-            albumArtistSortOrder: albumArtists[0]?.name_sort_order,
+        albumArtistSortOrder: albumArtists[0]?.name_sort_order,
         releaseDate: track.release_date,
         originalDate: track.original_release_date,
         label: track.label,
@@ -484,9 +484,9 @@ export function buildMusicBrainzDataFromDb(
         barcode: track.barcode,
         country: track.country,
         media: track.media,
-            script: track.script,
-            totalDiscs: track.total_discs,
-            totalTracks: track.total_tracks,
+        script: track.script,
+        totalDiscs: track.total_discs,
+        totalTracks: track.total_tracks,
         albumType: track.album_type,
         releaseStatus: track.release_status,
         genres: genres.length > 0 ? genres : undefined,
@@ -589,7 +589,7 @@ export async function syncAllMusicBrainzData(
     const tracks = db.prepare(`
         SELECT id
         FROM tracks
-        WHERE musicbrainz_track_id IS NOT NULL
+        WHERE musicbrainz_trackid IS NOT NULL
         ORDER BY id
     `).all()
 

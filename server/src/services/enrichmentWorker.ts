@@ -43,23 +43,23 @@ async function getAlbumGroups(): Promise<Map<string, string[]>> {
   const query = `
     SELECT DISTINCT 
       t.id as track_id,
-      t.musicbrainz_album_id,
-      t.musicbrainz_track_id,
+      t.musicbrainz_albumid,
+      t.musicbrainz_trackid,
       t.title,
       t.artist
     FROM tracks t
-    WHERE t.musicbrainz_album_id IS NOT NULL
-    ORDER BY t.musicbrainz_album_id
+    WHERE t.musicbrainz_albumid IS NOT NULL
+    ORDER BY t.musicbrainz_albumid
   `
 
   const rows = db.prepare(query).all() as any[]
   const groups = new Map<string, string[]>()
 
   for (const row of rows) {
-    if (!groups.has(row.musicbrainz_album_id)) {
-      groups.set(row.musicbrainz_album_id, [])
+    if (!groups.has(row.musicbrainz_albumid)) {
+      groups.set(row.musicbrainz_albumid, [])
     }
-    groups.get(row.musicbrainz_album_id)!.push(row.track_id)
+    groups.get(row.musicbrainz_albumid)!.push(row.track_id)
   }
 
   return groups
@@ -75,15 +75,15 @@ async function enrichTrackAcousticBrainz(trackId: string, recordingMbid: string 
   // If no recording MBID, try to fetch from MusicBrainz API using album + track title
   if (!mbid) {
     try {
-      const track = db.prepare('SELECT musicbrainz_album_id, title, artist FROM tracks WHERE id = ?').get(trackId) as any
-      if (!track?.musicbrainz_album_id) {
+      const track = db.prepare('SELECT musicbrainz_albumid, title, artist FROM tracks WHERE id = ?').get(trackId) as any
+      if (!track?.musicbrainz_albumid) {
         return false
       }
 
-      console.log(`  📍 Fetching recording ID for ${track.title} from album ${track.musicbrainz_album_id}`)
+      console.log(`  📍 Fetching recording ID for ${track.title} from album ${track.musicbrainz_albumid}`)
 
       // Fetch release info from MB to get recording IDs
-      const releaseUrl = `https://musicbrainz.org/ws/2/release/${track.musicbrainz_album_id}?inc=recordings&client=MusicMaster/1.0`
+      const releaseUrl = `https://musicbrainz.org/ws/2/release/${track.musicbrainz_albumid}?inc=recordings&client=MusicMaster/1.0`
       const response = await fetch(releaseUrl)
       if (!response.ok) {
         console.log(`  ❌ Failed to fetch from MusicBrainz: ${response.status}`)
@@ -101,7 +101,7 @@ async function enrichTrackAcousticBrainz(trackId: string, recordingMbid: string 
           mbid = matchedTrack.recording.id
           console.log(`  ✅ Found recording ID: ${mbid}`)
           // Update database with recording MBID for future use
-          db.prepare('UPDATE tracks SET musicbrainz_track_id = ? WHERE id = ?').run(mbid, trackId)
+          db.prepare('UPDATE tracks SET musicbrainz_trackid = ? WHERE id = ?').run(mbid, trackId)
         }
       }
     } catch (error) {
@@ -132,7 +132,7 @@ async function enrichTrackAcousticBrainz(trackId: string, recordingMbid: string 
     const id = uuidv4()
     const stmt = db.prepare(`
       INSERT OR REPLACE INTO acousticbrainz_data (
-        id, track_id, mbid, bpm, bpm_confidence, key, key_confidence,
+        id, track_id, musicbrainz_recordingid, bpm, bpm_confidence, key, key_confidence,
         energy, danceability, mood_acoustic, mood_aggressive, mood_electronic,
         mood_happy, mood_sad, mood_relaxed, mood_party,
         arousal, valence, mood_category, confidence_score
@@ -241,7 +241,7 @@ async function enrichAlbumPerformers(albumMbid: string, progress: EnrichmentProg
 
     // 1. Process Album-level credits (Producer, etc.)
     const albumRoles = musicBrainzService.extractRoles(release)
-    const albumRow = db.prepare('SELECT id FROM albums_cache WHERE musicbrainz_album_id = ?').get(albumMbid) as { id: string } | undefined
+    const albumRow = db.prepare('SELECT id FROM albums_cache WHERE musicbrainz_albumid = ?').get(albumMbid) as { id: string } | undefined
 
     if (albumRow) {
       for (const [role, artists] of Object.entries(albumRoles)) {
@@ -273,14 +273,14 @@ async function enrichAlbumPerformers(albumMbid: string, progress: EnrichmentProg
           if (!recMbid) continue
 
           // Find track in our DB by recording MBID
-          let trackRow = db.prepare('SELECT id FROM tracks WHERE musicbrainz_track_id = ?').get(recMbid) as { id: string } | undefined
+          let trackRow = db.prepare('SELECT id FROM tracks WHERE musicbrainz_trackid = ?').get(recMbid) as { id: string } | undefined
 
           // Fallback: match by album name + disc/track number
           if (!trackRow) {
             const discNum = media.position
             const trackNum = parseInt(mbTrack.number) || parseInt(mbTrack.position)
 
-            const localAlbum = db.prepare('SELECT name, artist FROM albums_cache WHERE musicbrainz_album_id = ?').get(albumMbid) as { name: string, artist: string } | undefined
+            const localAlbum = db.prepare('SELECT name, artist FROM albums_cache WHERE musicbrainz_albumid = ?').get(albumMbid) as { name: string, artist: string } | undefined
 
             if (localAlbum) {
               trackRow = db.prepare(`
@@ -291,7 +291,7 @@ async function enrichAlbumPerformers(albumMbid: string, progress: EnrichmentProg
 
               if (trackRow) {
                 console.log(`  🔗 Matched local track ${trackRow.id} via track/disc number fallback (${mbTrack.title})`)
-                db.prepare('UPDATE tracks SET musicbrainz_track_id = ? WHERE id = ?').run(recMbid, trackRow.id)
+                db.prepare('UPDATE tracks SET musicbrainz_trackid = ? WHERE id = ?').run(recMbid, trackRow.id)
               }
             }
           }
@@ -380,10 +380,10 @@ export async function startEnrichmentWorker(progressCallback?: (progress: Enrich
 
       // 2. Enrich each track's AcousticBrainz data
       for (const trackId of trackIds) {
-        const track = db.prepare('SELECT musicbrainz_track_id FROM tracks WHERE id = ?').get(trackId) as any
+        const track = db.prepare('SELECT musicbrainz_trackid FROM tracks WHERE id = ?').get(trackId) as any
 
         // Pass null recording_id if not present - enrichTrackAcousticBrainz will try to fetch it
-        const enriched = await enrichTrackAcousticBrainz(trackId, track?.musicbrainz_track_id || null, progress)
+        const enriched = await enrichTrackAcousticBrainz(trackId, track?.musicbrainz_trackid || null, progress)
         if (enriched) {
           progress.enrichedTracks++
         }

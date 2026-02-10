@@ -7,6 +7,8 @@ import { acoustidService } from '../../services/acoustid'
 import { getDatabase } from '../../database/index'
 import { updateTrackWithMBID, upsertAlbumWithMBID, upsertArtistWithMBID } from '../../database/musicbrainz'
 import { writeMusicBrainzDataToFile } from '../../services/metadataWriter'
+import { lastFmService } from '../../services/lastfm'
+import { spotifyService } from '../../services/spotify'
 
 export const identifyTrack = async (req: Request, res: Response) => {
     const { trackId } = req.params
@@ -71,144 +73,114 @@ export const getMusicBrainzDetails = async (req: Request, res: Response) => {
     }
 }
 
-import { lastFmService } from '../../services/lastfm'
-import { spotifyService } from '../../services/spotify'
-
 export const getArtistDetails = async (req: Request, res: Response) => {
     const id = req.params.id as string
     console.log(`[DEBUG] getArtistDetails called for artist ID: ${id}`)
     try {
         const db = getDatabase()
         const mbResult: any = await musicBrainzService.getArtistDetails(id)
-        console.log(`[DEBUG] MusicBrainz returned artist: ${mbResult?.name}, has image: ${!!mbResult?.image}`)
+
         if (!mbResult) {
             return res.status(404).json({ error: 'Artist not found' })
         }
 
-        // Clone to prevent mutations from polluting MusicBrainz cache
         const details = { ...mbResult }
 
-        // Check DB for existing bio to avoid re-fetching
-        // Note: Image validation happens in downloadImage() which checks file size
+        // Check DB for existing bio
         try {
             const existing = db
-                .prepare('SELECT bio FROM artists WHERE mbid = ? OR id = ? OR name = ?')
+                .prepare('SELECT bio FROM artists WHERE musicbrainz_artistid = ? OR id = ? OR name = ?')
                 .get(id, id, details.name) as any
+
             if (existing?.bio) {
-                details.biography = existing.bio
-                details.bio = existing.bio.substring(0, 200) + '...'
+                if (!lastFmService.isNonEnglish(existing.bio)) {
+                    console.log(`[Metadata] Using existing English bio for ${details.name}`)
+                    details.biography = existing.bio
+                    details.bio = existing.bio.substring(0, 200) + '...'
+                } else {
+                    console.log(`[Metadata] 🚩 Non-English bio detected in DB for ${details.name}. Will re-fetch.`)
+                }
             }
         } catch (e) { /* ignore */ }
 
         // Enrich with Last.fm data (Bio & Image)
+        let bestImage: string | null = null
         try {
-            console.log(`[DEBUG] Fetching Last.fm info for: ${details.name}`)
-            const lastFmInfo = await lastFmService.getArtistInfo(details.name)
+            console.log(`[DEBUG] Fetching Last.fm info for: ${details.name} (MBID: ${id})`)
+            const forceRefresh = !details.biography
+            const lastFmInfo = await lastFmService.getArtistInfo(details.name, id)
+
             if (lastFmInfo) {
-                console.log(`[DEBUG] Last.fm response has bio:`, !!lastFmInfo.bio)
-                // Add Bio if missing
-                if (lastFmInfo.bio?.content) {
-                    console.log(`[DEBUG] Last.fm bio content length:`, lastFmInfo.bio.content.length)
-                    details.biography = lastFmInfo.bio.content
-                    details.bio = lastFmInfo.bio.summary
+                // SAFETY CHECK: Ensure Last.fm hasn't hijacked the artist (e.g. Zippy Kid / Russian redirects)
+                const expectedName = details.name.toLowerCase()
+                const receivedName = lastFmInfo.name.toLowerCase()
+
+                const isLikelyMatch = receivedName.includes(expectedName) || expectedName.includes(receivedName)
+
+                if (!isLikelyMatch) {
+                    console.warn(`[Metadata] 🛑 Hijacking detected! Expected ${details.name} but Last.fm gave us ${lastFmInfo.name}. Skipping Last.fm enrichment.`)
                 } else {
-                    console.log(`[DEBUG] No bio in Last.fm response. Bio object:`, JSON.stringify(lastFmInfo.bio))
-                }
-
-                // Add Image if missing (MusicBrainz service doesn't fetch artist images natively yet)
-                console.log(`[DEBUG] Checking if image needed. Current details.image: ${details.image}`)
-                if (!details.image) {
-                    console.log(`[DEBUG] No image found, searching for best image...`)
-                    let bestImage: string | null = null
-
-                    // 1. Try Spotify (High Quality)
-                    try {
-                        bestImage = await spotifyService.getArtistImage(details.name)
-                        if (bestImage) console.log(`[Metadata] Found Spotify image for ${details.name}`)
-                    } catch (e) { }
-
-                    // 2. Fallback to Last.fm
-                    if (!bestImage) {
-                        bestImage = lastFmService.getBestImage(lastFmInfo.image)
-                    }
-
-                    // 3. Fallback to Deezer
-                    if (!bestImage) {
-                        try {
-                            bestImage = await lastFmService.getDeezerArtistImage(details.name)
-                            if (bestImage) console.log(`[Metadata] Found Deezer image for ${details.name}`)
-                        } catch (e) { }
-                    }
-
-                    if (bestImage) {
-                        console.log(`[DEBUG] Best image URL found: ${bestImage}`)
-                        // Download image to cache to avoid hotlinking issues and valid local serving
-                        const urlWithoutParams = bestImage.split(/[#?]/)[0]
-                        let ext = urlWithoutParams.split('.').pop() || 'jpg'
-
-                        // Sanitize extension (Spotify URLs often don't have extensions, e.g. .../image/ab67...)
-                        // If it looks like a path or is too long, default to jpg
-                        if (ext.length > 5 || ext.includes('/') || ext.includes('\\')) {
-                            ext = 'jpg'
-                        }
-                        console.log(`[DEBUG] Sanitized extension: ${ext}`)
-
-                        const filename = `artist_${details.id}.${ext}`
-                        console.log(`[DEBUG] Calling downloadImage with filename: ${filename}`)
-                        let localPath = await lastFmService.downloadImage(bestImage, filename)
-
-                        // Validate image size (reject placeholders < 5KB)
-                        if (localPath) {
-                            try {
-                                const stats = fs.statSync(localPath)
-                                if (stats.size < 5120) {
-                                    console.warn(`[Metadata] Rejected small image for ${details.name} (${stats.size} bytes)`)
-                                    fs.unlinkSync(localPath)
-                                    localPath = null
-                                }
-                            } catch (e) {
-                                console.error('Error checking image size:', e)
-                            }
-                        }
-
-                        if (localPath) {
-
-                            // Persist to DB immediately so Grid View sees it (without creating duplicates)
-                            let imageId = id
-                            try {
-                                const existing = db
-                                    .prepare('SELECT id FROM artists WHERE mbid = ? OR name = ?')
-                                    .get(id, details.name) as any
-
-                                if (existing) {
-                                    imageId = existing.id
-                                    console.log(`[DEBUG] Updating artist ${existing.id} with bio length:`, details.biography ? details.biography.length : 'NULL')
-                                    db.prepare(
-                                        'UPDATE artists SET image_path = ?, bio = COALESCE(?, bio), mbid = COALESCE(?, mbid) WHERE id = ?'
-                                    ).run(localPath, details.biography || null, id, existing.id)
-                                    console.log(`[Metadata] ✅ Updated image${details.biography ? ' + bio' : ''} for existing artist ${details.name} (${existing.id})`)
-                                } else {
-                                    console.log(`[Metadata] Skipping artist insert for ${details.name} to avoid duplicates`)
-                                }
-                            } catch (err) {
-                                console.error('[Metadata] ❌ Failed to persist artist image:', err)
-                            }
-
-                            // Send URL to frontend
-                            details.image = `/api/cover/artist/${imageId}?t=${Date.now()}`
+                    if (lastFmInfo.bio?.content && (forceRefresh || !details.biography)) {
+                        if (!lastFmService.isNonEnglish(lastFmInfo.bio.content)) {
+                            console.log(`[Metadata] Successfully fetched English bio for ${details.name}`)
+                            details.biography = lastFmInfo.bio.content
+                            details.bio = lastFmInfo.bio.summary
                         } else {
-                            // Fallback to URL if download failed
-                            details.image = bestImage
+                            console.warn(`[Metadata] ⚠️ Last.fm also returned a non-English bio for ${details.name}. Keeping whatever we have.`)
                         }
+                    }
+
+                    if (!details.image) {
+                        bestImage = lastFmService.getBestImage(lastFmInfo.image)
                     }
                 }
             }
-        } catch (err) {
-            console.warn(`[Metadata] Failed to enrich artist ${details.name} from Last.fm:`, err)
+        } catch (e) {
+            console.error(`[Metadata] Failed to enrich with Last.fm:`, e)
+        }
+
+        // Final fallback for image (Spotify/Deezer) if Last.fm failed or mismatch occurred
+        if (!details.image && !bestImage) {
+            try {
+                bestImage = await spotifyService.getArtistImage(details.name)
+                if (!bestImage) {
+                    bestImage = await lastFmService.getDeezerArtistImage(details.name)
+                }
+            } catch (e) { }
+        }
+
+        // If we found a new image URL, download and persist it
+        if (bestImage) {
+            const urlWithoutParams = bestImage.split(/[#?]/)[0]
+            let ext = urlWithoutParams.split('.').pop() || 'jpg'
+            if (ext.length > 5 || ext.includes('/') || ext.includes('\\')) ext = 'jpg'
+
+            const filename = `artist_${id}.${ext}`
+            const localPath = await lastFmService.downloadImage(bestImage, filename)
+
+            if (localPath) {
+                try {
+                    const stats = fs.statSync(localPath)
+                    if (stats.size > 5120) {
+                        db.prepare(
+                            'UPDATE artists SET image_path = ?, bio = COALESCE(?, bio), musicbrainz_artistid = ? WHERE id = ? OR musicbrainz_artistid = ?'
+                        ).run(localPath, details.biography || null, id, id, id)
+                        details.image = `/api/cover/artist/${id}?t=${Date.now()}`
+                    } else {
+                        fs.unlinkSync(localPath)
+                        details.image = bestImage
+                    }
+                } catch (err) {
+                    details.image = bestImage
+                }
+            } else {
+                details.image = bestImage
+            }
         }
 
         res.json(details)
     } catch (error: any) {
+        console.error('Metadata API Error:', error)
         res.status(500).json({ error: error.message })
     }
 }
@@ -243,17 +215,14 @@ export const applyCandidate = async (req: Request, res: Response) => {
     try {
         const db = getDatabase()
 
-        // Ensure values are strings to satisfy TypeScript
         const recordingMbid = String(candidate.recordingMbid || '')
         const releaseMbid = String(candidate.releaseMbid || '')
         const artistMbid = String(candidate.artistMbid || '')
 
-        // Only proceed if we have at least a recording MBID
         if (!recordingMbid) {
             throw new Error('Missing recording MBID')
         }
 
-        // 1. Update Database
         updateTrackWithMBID(
             trackId as string,
             recordingMbid,
@@ -261,49 +230,37 @@ export const applyCandidate = async (req: Request, res: Response) => {
             artistMbid
         )
 
-        // 1b. Update album cache if we have a release MBID
         if (releaseMbid) {
             const trackInfo = db.prepare('SELECT album, artist FROM tracks WHERE id = ?').get(trackId) as any
             if (trackInfo) {
-                db.prepare('UPDATE albums_cache SET musicbrainz_album_id = ? WHERE name = ? AND artist = ?')
+                db.prepare('UPDATE albums_cache SET musicbrainz_albumid = ? WHERE name = ? AND artist = ?')
                     .run(releaseMbid, trackInfo.album, trackInfo.artist)
             }
         }
 
-        // 2. Handle Cover Art
         let coverPath: string | undefined
         if (releaseMbid) {
             try {
-                // Get track path to find directory
                 const track = db.prepare('SELECT file_path FROM tracks WHERE id = ?').get(trackId) as { file_path: string } | undefined
                 if (track?.file_path) {
                     const dir = path.dirname(track.file_path)
                     const coverDest = path.join(dir, 'cover.jpg')
 
-                    // Check if cover already exists
                     if (!fs.existsSync(coverDest)) {
                         const coverUrl = `https://coverartarchive.org/release/${releaseMbid}/front`
-                        console.log(`Downloading cover from ${coverUrl}...`)
                         const response = await axios.get(coverUrl, { responseType: 'arraybuffer' })
                         fs.writeFileSync(coverDest, response.data)
-                        console.log(`Saved cover to ${coverDest}`)
                         coverPath = coverDest
                     } else {
                         coverPath = coverDest
                     }
                 }
-            } catch (err) {
-                console.warn('Failed to download cover art:', err)
-                // Continue without cover
-            }
+            } catch (err) { }
         }
 
-        // 3. Write Tags to File
         const success = await writeMusicBrainzDataToFile(db, trackId as string, coverPath)
-
         res.json({ success })
     } catch (error: any) {
-        console.error('Failed to apply candidate:', error)
         res.status(500).json({ error: error.message })
     }
 }
@@ -314,12 +271,9 @@ export const tagAlbumMetadata = async (req: Request, res: Response) => {
 
     try {
         const db = getDatabase()
-
-        // 1. Get MB details
         const mbAlbum = await musicBrainzService.getReleaseDetails(mbAlbumId)
         if (!mbAlbum) throw new Error('Failed to fetch MB album details')
 
-        // 1b. Get release-group details for first-release-date
         let firstReleaseDate = mbAlbum.date
         if (mbAlbum['release-group']?.id) {
             const releaseGroup = await musicBrainzService.getReleaseGroupDetails(mbAlbum['release-group'].id)
@@ -328,14 +282,12 @@ export const tagAlbumMetadata = async (req: Request, res: Response) => {
             }
         }
 
-        // 2. Get local tracks
         const album = db.prepare('SELECT id, name, artist FROM albums_cache WHERE id = ?').get(albumId) as any
         if (!album) throw new Error('Album not found')
 
-        // 3. Update album cache with MBID and full metadata
         db.prepare(`
             UPDATE albums_cache SET 
-                musicbrainz_album_id = ?,
+                musicbrainz_albumid = ?,
                 album_type = ?,
                 status = ?,
                 release_date = ?,
@@ -345,7 +297,7 @@ export const tagAlbumMetadata = async (req: Request, res: Response) => {
                 barcode = ?,
                 country = ?,
                 media = ?,
-                release_group_mbid = ?,
+                musicbrainz_releasegroupid = ?,
                 script = ?,
                 total_discs = ?,
                 total_tracks = ?
@@ -368,22 +320,20 @@ export const tagAlbumMetadata = async (req: Request, res: Response) => {
             albumId
         )
 
-        // 4. Upsert to extended schema (for fallback/enrichment)
         const primaryArtist = (mbAlbum as any)['artist-credit']?.[0]?.artist
         let dbArtistId: string | null = null
         if (primaryArtist) {
-            // Include sort-name when upserting artist
             dbArtistId = upsertArtistWithMBID(
                 primaryArtist.name,
                 primaryArtist.id,
-                null, // country
-                null, // artistType
-                null, // lifeSpanBegin
-                null, // lifeSpanEnd
-                null, // bio
-                null, // website
-                null, // imagePath
-                primaryArtist['sort-name'] || null // nameSortOrder
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                primaryArtist['sort-name'] || null
             )
         }
         upsertAlbumWithMBID(mbAlbum.title, dbArtistId, mbAlbum.id, mbAlbum['release-group']?.['primary-type'], mbAlbum.date)
@@ -430,7 +380,6 @@ export const previewMatchAlbum = async (req: Request, res: Response) => {
         const mbAlbum = await musicBrainzService.getReleaseDetails(mbAlbumId)
         if (!mbAlbum) throw new Error('Failed to fetch MB album details')
 
-        // Get release-group details for original release date
         let firstReleaseDate = mbAlbum.date
         if (mbAlbum['release-group']?.id) {
             const releaseGroup = await musicBrainzService.getReleaseGroupDetails(mbAlbum['release-group'].id)
@@ -508,11 +457,10 @@ export const syncMetadata = async (_req: Request, res: Response) => {
         const { syncAllMusicBrainzData } = await import('../../services/metadataWriter')
         const db = getDatabase()
 
-        // Start sync in background
         syncAllMusicBrainzData(db, (current, total, trackPath) => {
             console.log(`[Metadata Sync] ${current}/${total}: ${trackPath}`)
         }).then(results => {
-            console.log(`[Metadata Sync] Complete: ${results.success} successful, ${results.failed} failed, ${results.skipped} skipped`)
+            console.log(`[Metadata Sync] Complete`)
         }).catch(error => {
             console.error('[Metadata Sync] Error:', error)
         })
@@ -539,7 +487,6 @@ export const writeTrackMetadata = async (req: Request, res: Response) => {
             res.status(400).json({ success: false, error: 'Failed to write metadata' })
         }
     } catch (error: any) {
-        console.error(`[Write Metadata] Error for track ${trackId}:`, error)
         res.status(500).json({ success: false, error: error.message })
     }
 }

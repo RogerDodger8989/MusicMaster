@@ -1418,7 +1418,7 @@ current_track_id = excluded.current_track_id,
             )
             .get(artistName) as any
 
-          db.prepare('UPDATE artists SET album_count = ?, track_count = ? WHERE mbid = ?')
+          db.prepare('UPDATE artists SET album_count = ?, track_count = ? WHERE musicbrainz_artistid = ?')
             .run(counts?.album_count || 0, counts?.track_count || 0, artistMbid)
         }
 
@@ -1464,7 +1464,7 @@ current_track_id = excluded.current_track_id,
 
         // 4. Update Album ID in cache
         const db = getDatabase()
-        db.prepare('UPDATE albums_cache SET musicbrainz_album_id = ? WHERE id = ?').run(
+        db.prepare('UPDATE albums_cache SET musicbrainz_albumid = ? WHERE id = ?').run(
           mbAlbumId,
           albumId
         )
@@ -2369,7 +2369,7 @@ current_track_id = excluded.current_track_id,
             window.webContents.send('enrichment:error', error.message)
           })
         })
-        
+
         return { started: true }
       } catch (error) {
         console.error('❌ Failed to start enrichment:', error)
