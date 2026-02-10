@@ -1,16 +1,42 @@
-music/2002 - Steal This Album!/01-01 - System Of A Down - Chic ’N’ Stu.flac
-music/2002 - Steal This Album!/01-02 - System Of A Down - Innervision.flac
-music/2002 - Steal This Album!/01-03 - System Of A Down - Bubbles.flac
-music/2002 - Steal This Album!/01-04 - System Of A Down - Boom!.flac
-music/2002 - Steal This Album!/01-05 - System Of A Down - Nüguns.flac
-music/2002 - Steal This Album!/01-06 - System Of A Down - A.D.D..flac
-music/2002 - Steal This Album!/01-07 - System Of A Down - Mr. Jack.flac
-music/2002 - Steal This Album!/01-08 - System Of A Down - I‐E‐A‐I‐A‐I‐O.flac
-music/2002 - Steal This Album!/01-09 - System Of A Down - 36.flac
-music/2002 - Steal This Album!/01-10 - System Of A Down - Pictures.flac
-music/2002 - Steal This Album!/01-11 - System Of A Down - Highway Song.flac
-music/2002 - Steal This Album!/01-12 - System Of A Down - Fuck The System.flac
-music/2002 - Steal This Album!/01-13 - System Of A Down - Ego Brain.flac
-music/2002 - Steal This Album!/01-14 - System Of A Down - Thetawaves.flac
-music/2002 - Steal This Album!/01-15 - System Of A Down - Roulette.flac
-music/2002 - Steal This Album!/01-16 - System Of A Down - Streamline.flac
+# Dependencies
+node_modules/
+dist/
+.DS_Store
+
+# Environment / Secret
+.env
+.env.local
+
+# Build artifacts
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Databases
+*.db
+*.db-journal
+*.sqlite
+server/data/*.db
+server/data/*.sqlite
+
+# Local Caches & Media
+data/
+server/data/external_cache/
+server/data/waveforms/
+server/debug-*.log
+
+# MUSIC FILES (CRITICAL)
+music/
+Musik/
+*.flac
+*.mp3
+*.m4a
+*.wav
+*.ogg
+*.opus
+
+# Desktop specific
+desktop/out/
+desktop/.vite-inspect
+desktop/src/renderer/src/assets/

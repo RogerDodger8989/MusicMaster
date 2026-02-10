@@ -35,6 +35,10 @@ export interface Track {
     // Audio Analysis (AcousticBrainz)
     bpm?: number
     key?: string
+    arousal?: number
+    valence?: number
+    moodCategory?: string
+    confidenceScore?: number
     moodAcoustic?: number
     moodAggressive?: number
     moodElectronic?: number
@@ -45,6 +49,7 @@ export interface Track {
     energy?: number
     danceability?: number
     instrumentalness?: number
+    mood?: string // Text-based tags (Sad, Energetic, etc.)
 
     createdAt: Date
     updatedAt: Date

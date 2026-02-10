@@ -51,6 +51,7 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
         replaygain_album_gain = ?,
         replaygain_track_peak = ?,
         replaygain_album_peak = ?,
+        mood = ?,
         updated_at = ?
       WHERE id = ?
     `)
@@ -85,6 +86,7 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
             track.replayGainAlbum || null,
             track.replayGainTrackPeak || null,
             track.replayGainAlbumPeak || null,
+            (track as any).mood || null,
             now,
             id
         )
@@ -98,8 +100,8 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
         musicbrainz_albumid, musicbrainz_artistid, musicbrainz_recordingid, 
         musicbrainz_releasegroupid, musicbrainz_workid, sample_rate, bit_depth, 
         replaygain_track_gain, replaygain_album_gain, replaygain_track_peak, replaygain_album_peak,
-        created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        mood, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
         stmt.run(
@@ -135,6 +137,7 @@ export function upsertTrack(track: Omit<Track, 'id' | 'createdAt' | 'updatedAt'>
             track.replayGainAlbum || null,
             track.replayGainTrackPeak || null,
             track.replayGainAlbumPeak || null,
+            (track as any).mood || null,
             now,
             now
         )
@@ -199,7 +202,11 @@ export function getAllTracks(): Track[] {
             COALESCE(ab.mood_happy, null) as mood_happy,
             COALESCE(ab.mood_sad, null) as mood_sad,
             COALESCE(ab.mood_relaxed, null) as mood_relaxed,
-            COALESCE(ab.mood_party, null) as mood_party
+            COALESCE(ab.mood_party, null) as mood_party,
+            COALESCE(ab.arousal, null) as arousal,
+            COALESCE(ab.valence, null) as valence,
+            COALESCE(ab.mood_category, null) as mood_category,
+            COALESCE(ab.confidence_score, null) as confidence_score
         FROM tracks t
         LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
         LEFT JOIN acousticbrainz_data ab ON t.id = ab.track_id
@@ -228,7 +235,11 @@ export function getTracksByFolder(folderId: string): Track[] {
             COALESCE(ab.mood_happy, null) as mood_happy,
             COALESCE(ab.mood_sad, null) as mood_sad,
             COALESCE(ab.mood_relaxed, null) as mood_relaxed,
-            COALESCE(ab.mood_party, null) as mood_party
+            COALESCE(ab.mood_party, null) as mood_party,
+            COALESCE(ab.arousal, null) as arousal,
+            COALESCE(ab.valence, null) as valence,
+            COALESCE(ab.mood_category, null) as mood_category,
+            COALESCE(ab.confidence_score, null) as confidence_score
         FROM tracks t
         LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
         LEFT JOIN acousticbrainz_data ab ON t.id = ab.track_id
@@ -267,7 +278,11 @@ export function getTracksByAlbum(name: string, artist: string): Track[] {
             COALESCE(ab.mood_happy, null) as mood_happy,
             COALESCE(ab.mood_sad, null) as mood_sad,
             COALESCE(ab.mood_relaxed, null) as mood_relaxed,
-            COALESCE(ab.mood_party, null) as mood_party
+            COALESCE(ab.mood_party, null) as mood_party,
+            COALESCE(ab.arousal, null) as arousal,
+            COALESCE(ab.valence, null) as valence,
+            COALESCE(ab.mood_category, null) as mood_category,
+            COALESCE(ab.confidence_score, null) as confidence_score
         FROM tracks t 
         LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
         LEFT JOIN acousticbrainz_data ab ON t.id = ab.track_id
@@ -298,7 +313,11 @@ export function getTrackById(id: string): Track | null {
             COALESCE(ab.mood_happy, null) as mood_happy,
             COALESCE(ab.mood_sad, null) as mood_sad,
             COALESCE(ab.mood_relaxed, null) as mood_relaxed,
-            COALESCE(ab.mood_party, null) as mood_party
+            COALESCE(ab.mood_party, null) as mood_party,
+            COALESCE(ab.arousal, null) as arousal,
+            COALESCE(ab.valence, null) as valence,
+            COALESCE(ab.mood_category, null) as mood_category,
+            COALESCE(ab.confidence_score, null) as confidence_score
         FROM tracks t
         LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
         LEFT JOIN acousticbrainz_data ab ON t.id = ab.track_id
@@ -326,7 +345,11 @@ export function getTrackByPath(filePath: string): Track | null {
             COALESCE(ab.mood_happy, null) as mood_happy,
             COALESCE(ab.mood_sad, null) as mood_sad,
             COALESCE(ab.mood_relaxed, null) as mood_relaxed,
-            COALESCE(ab.mood_party, null) as mood_party
+            COALESCE(ab.mood_party, null) as mood_party,
+            COALESCE(ab.arousal, null) as arousal,
+            COALESCE(ab.valence, null) as valence,
+            COALESCE(ab.mood_category, null) as mood_category,
+            COALESCE(ab.confidence_score, null) as confidence_score
         FROM tracks t
         LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
         LEFT JOIN acousticbrainz_data ab ON t.id = ab.track_id
@@ -438,6 +461,11 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
         moodRelaxed: dbTrack.mood_relaxed || undefined,
         moodParty: dbTrack.mood_party || undefined,
         instrumentalness: dbTrack.instrumentalness || undefined,
+        arousal: (dbTrack as any).arousal || undefined,
+        valence: (dbTrack as any).valence || undefined,
+        moodCategory: (dbTrack as any).mood_category || undefined,
+        confidenceScore: (dbTrack as any).confidence_score || undefined,
+        mood: dbTrack.mood || undefined,
         createdAt: new Date(dbTrack.created_at),
         updatedAt: new Date(dbTrack.updated_at)
     }

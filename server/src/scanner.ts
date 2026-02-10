@@ -394,8 +394,9 @@ export class MusicScanner extends EventEmitter {
                 replayGainTrack,
                 replayGainAlbum,
                 replayGainTrackPeak,
-                replayGainAlbumPeak
-            })
+                replayGainAlbumPeak,
+                mood: metadata.common.mood || metadata.native?.vorbis?.find(t => t.id.toUpperCase() === 'MOOD')?.value.toString() || undefined
+            } as any)
 
             // Trigger audio analysis if not already present
             const db = getDatabase()

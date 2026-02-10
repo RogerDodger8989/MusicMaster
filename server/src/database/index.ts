@@ -384,6 +384,7 @@ CREATE TABLE IF NOT EXISTS tracks (
     movement TEXT,
     movement_num INTEGER,
     movement_total INTEGER,
+    mood TEXT,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (folder_id) REFERENCES music_folders(id) ON DELETE CASCADE
@@ -695,9 +696,11 @@ export function initDatabase(): Database.Database {
 
             // Mood system enhancements (Phase: Arousal-Valence)
             "ALTER TABLE acousticbrainz_data ADD COLUMN arousal REAL",
+            "ALTER TABLE acousticbrainz_data ADD COLUMN valence REAL",
             "ALTER TABLE acousticbrainz_data ADD COLUMN mood_category TEXT",
             "ALTER TABLE acousticbrainz_data ADD COLUMN confidence_score REAL",
             "ALTER TABLE acousticbrainz_data ADD COLUMN instrumentalness REAL",
+            "ALTER TABLE tracks ADD COLUMN mood TEXT",
             "ALTER TABLE artists ADD COLUMN last_enrich_attempt DATETIME",
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_acousticbrainz_track_unique ON acousticbrainz_data(track_id)"
         ]
@@ -791,6 +794,7 @@ export interface DbTrack {
     movement: string | null
     movement_num: number | null
     movement_total: number | null
+    mood: string | null
     // AcousticBrainz enrichment data (from LEFT JOIN)
     bpm?: number | null
     key?: string | null

@@ -4,6 +4,7 @@
  */
 
 import { getDatabase } from '../database'
+import { MOOD_CATEGORIES, classifyMusicBrainzTag } from './moodTaxonomy'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -13,6 +14,15 @@ function logDebug(msg: string) {
   try {
     fs.appendFileSync(LOG_FILE, new Date().toISOString() + ': ' + msg + '\n')
   } catch (e) { }
+}
+
+/**
+ * Calculate Euclidean Distance between two mood vectors (Valence & Arousal)
+ */
+function calculateEuclideanDistance(v1: number, a1: number, v2: number, a2: number): number {
+  const dv = v1 - v2
+  const da = a1 - a2
+  return Math.sqrt(dv * dv + da * da)
 }
 
 export interface VibeDefinition {
@@ -29,6 +39,8 @@ export interface VibeDefinition {
     instrumentalness?: { min?: number; max?: number }
     moods?: string[]
   }
+  targetValence?: number
+  targetArousal?: number
 }
 
 const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
@@ -43,7 +55,9 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
       bpm: { min: 110 },
       danceability: { min: 0.7 },
       instrumentalness: { max: 0.4 }
-    }
+    },
+    targetValence: 0.8,
+    targetArousal: 0.8
   },
   chill: {
     id: 'chill',
@@ -55,7 +69,9 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
       valence: { min: 0.6 },
       bpm: { max: 95 },
       energy: { max: 0.4 }
-    }
+    },
+    targetValence: 0.8,
+    targetArousal: 0.2
   },
   workout: {
     id: 'workout',
@@ -66,7 +82,9 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
       energy: { min: 0.75 },
       arousal: { min: 0.75 },
       moods: ['mood_happy', 'mood_aggressive', 'mood_party']
-    }
+    },
+    targetValence: 0.6,
+    targetArousal: 0.9
   },
   sad: {
     id: 'sad',
@@ -76,7 +94,9 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
     filters: {
       energy: { min: 0.4, max: 0.7 },
       moods: ['mood_sad']
-    }
+    },
+    targetValence: 0.2,
+    targetArousal: 0.3
   },
   late_night: {
     id: 'late_night',
@@ -86,7 +106,9 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
     filters: {
       energy: { min: 0.3, max: 0.5 },
       moods: ['mood_relaxed', 'mood_acoustic']
-    }
+    },
+    targetValence: 0.4,
+    targetArousal: 0.2
   },
   aggressive: {
     id: 'aggressive',
@@ -96,7 +118,9 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
     filters: {
       energy: { min: 0.7 },
       moods: ['mood_aggressive']
-    }
+    },
+    targetValence: 0.2,
+    targetArousal: 0.8
   },
   acoustic: {
     id: 'acoustic',
@@ -106,7 +130,9 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
     filters: {
       energy: { max: 0.6 },
       moods: ['mood_acoustic']
-    }
+    },
+    targetValence: 0.7,
+    targetArousal: 0.3
   },
   pure_joy: {
     id: 'pure_joy',
@@ -117,7 +143,9 @@ const VIBE_DEFINITIONS: Record<string, VibeDefinition> = {
       energy: { min: 0.6 },
       danceability: { min: 0.7 },
       moods: ['mood_happy']
-    }
+    },
+    targetValence: 0.9,
+    targetArousal: 0.7
   }
 }
 
@@ -139,6 +167,7 @@ interface TrackWithFeatures {
   arousal: number | null
   valence: number | null
   mood_category: string | null
+  mood: string | null
 }
 
 /**
@@ -378,7 +407,7 @@ export function getVibePlaylist(vibeId: string, limit: number = 50): TrackWithFe
         ab.mood_happy, ab.mood_sad, ab.mood_aggressive,
         ab.mood_party, ab.mood_relaxed, ab.mood_acoustic,
         ab.bpm, ab.key, ab.arousal, ab.valence, ab.mood_category,
-        ab.instrumentalness
+        ab.instrumentalness, t.mood
       FROM tracks t
       LEFT JOIN albums_cache ac ON t.album = ac.name AND COALESCE(t.album_artist, t.artist) = ac.artist
       LEFT JOIN acousticbrainz_data ab ON t.id = ab.track_id
@@ -397,13 +426,39 @@ export function getVibePlaylist(vibeId: string, limit: number = 50): TrackWithFe
 
     const allTracks = db.prepare(query).all() as TrackWithFeatures[]
 
-    // --- PHASE 1: STRICT FILTERING (AB Data) ---
-    // Filter out duplicate artists (keep up to 10 per artist for small libraries)
+    // --- PHASE 1: STRICT FILTERING (AB Data & Text Tags) ---
+    // Filter and score tracks
     const artistCounts = new Map<string, number>()
-    const uniqueTracks: TrackWithFeatures[] = []
+    const trackScores: Array<{ track: TrackWithFeatures; distance: number }> = []
 
     for (const track of allTracks) {
-      logDebug(`Checking ${track.title} [${vibeId}] En:${track.energy} Ar:${track.arousal} Va:${track.valence} Inst:${track.instrumentalness}`)
+      // 🛡️ Fallback: If no AB data, try to infer from text mood tags
+      let effectiveArousal = track.arousal
+      let effectiveValence = track.valence
+
+      if ((effectiveArousal === null || effectiveValence === null) && track.mood) {
+        const moodTags = track.mood.split(/[;|,]/)
+        let totalA = 0
+        let totalV = 0
+        let count = 0
+
+        for (const tag of moodTags) {
+          const category = classifyMusicBrainzTag(tag)
+          if (category) {
+            totalA += category.arousal
+            totalV += category.valence
+            count++
+          }
+        }
+
+        if (count > 0) {
+          effectiveArousal = totalA / count
+          effectiveValence = totalV / count
+          logDebug(`  ✨ Inferred A-V from tags for ${track.title}: Ar:${effectiveArousal.toFixed(2)} Va:${effectiveValence.toFixed(2)}`)
+        }
+      }
+
+      logDebug(`Checking ${track.title} [${vibeId}] En:${track.energy} Ar:${effectiveArousal} Va:${effectiveValence} Inst:${track.instrumentalness}`)
 
       // 🛡️ Safety Net: Explicitly check filters in JS to prevent SQL leaks
       if (vibe.filters.energy) {
@@ -417,18 +472,18 @@ export function getVibePlaylist(vibeId: string, limit: number = 50): TrackWithFe
         }
       }
       if (vibe.filters.arousal) {
-        if (vibe.filters.arousal.max !== undefined && (track.arousal === null || track.arousal > vibe.filters.arousal.max)) {
-          logDebug(`  ❌ REJECTED Arousal: ${track.arousal} > ${vibe.filters.arousal.max}`)
+        if (vibe.filters.arousal.max !== undefined && (effectiveArousal === null || effectiveArousal > vibe.filters.arousal.max)) {
+          logDebug(`  ❌ REJECTED Arousal: ${effectiveArousal} > ${vibe.filters.arousal.max}`)
           continue
         }
-        if (vibe.filters.arousal.min !== undefined && (track.arousal === null || track.arousal < vibe.filters.arousal.min)) {
-          logDebug(`  ❌ REJECTED Arousal: ${track.arousal} < ${vibe.filters.arousal.min}`)
+        if (vibe.filters.arousal.min !== undefined && (effectiveArousal === null || effectiveArousal < vibe.filters.arousal.min)) {
+          logDebug(`  ❌ REJECTED Arousal: ${effectiveArousal} < ${vibe.filters.arousal.min}`)
           continue
         }
       }
       if (vibe.filters.valence) {
-        if (vibe.filters.valence.max !== undefined && (track.valence === null || track.valence > vibe.filters.valence.max)) continue
-        if (vibe.filters.valence.min !== undefined && (track.valence === null || track.valence < vibe.filters.valence.min)) continue
+        if (vibe.filters.valence.max !== undefined && (effectiveValence === null || effectiveValence > vibe.filters.valence.max)) continue
+        if (vibe.filters.valence.min !== undefined && (effectiveValence === null || effectiveValence < vibe.filters.valence.min)) continue
       }
       if (vibe.filters.instrumentalness) {
         if (vibe.filters.instrumentalness.max !== undefined && (track.instrumentalness === null || track.instrumentalness > vibe.filters.instrumentalness.max)) {
@@ -441,19 +496,27 @@ export function getVibePlaylist(vibeId: string, limit: number = 50): TrackWithFe
         }
       }
 
-      logDebug(`  ✅ ACCEPTED (Strict mode)`)
-
       const artistKey = track.artist.toLowerCase()
       const count = artistCounts.get(artistKey) || 0
-      if (count < 10) {
-        artistCounts.set(artistKey, count + 1)
-        uniqueTracks.push(track)
 
-        if (uniqueTracks.length >= limit) {
-          break
-        }
+      // Calculate distance if target is defined
+      let distance = 0
+      if (vibe.targetValence !== undefined && vibe.targetArousal !== undefined && effectiveValence !== null && effectiveArousal !== null) {
+        distance = calculateEuclideanDistance(effectiveValence, effectiveArousal, vibe.targetValence, vibe.targetArousal)
+      } else {
+        distance = Math.random() // Tie-break with randomness if no target
+      }
+
+      if (count < 10) {
+        logDebug(`  ✅ ACCEPTED (Strict mode) dist: ${distance.toFixed(4)}`)
+        artistCounts.set(artistKey, count + 1)
+        trackScores.push({ track, distance })
       }
     }
+
+    // Sort by distance and take top tracks
+    trackScores.sort((a, b) => a.distance - b.distance)
+    const uniqueTracks = trackScores.map(ts => ts.track).slice(0, limit)
 
     // --- PHASE 2: FALLBACK (Not Enriched Tracks / Genre based) ---
     // If we have very few tracks, fill the pool with tracks that aren't blacklisted

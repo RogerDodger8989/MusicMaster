@@ -103,49 +103,67 @@ export const getArtistDetails = async (req: Request, res: Response) => {
             }
         } catch (e) { /* ignore */ }
 
-        // Enrich with Last.fm data (Bio & Image)
+        // Enrichment Phase: Bio & Image
         let bestImage: string | null = null
         try {
-            console.log(`[DEBUG] Fetching Last.fm info for: ${details.name} (MBID: ${id})`)
+            console.log(`[Metadata] Enriching ${details.name} (MBID: ${id})`)
             const forceRefresh = !details.biography
+
+            // 1. Try Spotify for Image FIRST (More reliable for large artists)
+            try {
+                bestImage = await spotifyService.getArtistImage(details.name)
+                if (bestImage) {
+                    console.log(`[Metadata] Got premium image from Spotify for ${details.name}`)
+                }
+            } catch (e) {
+                console.error(`[Metadata] Spotify image fetch failed:`, e)
+            }
+
+            // 2. Fetch Last.fm info for Bio (and image fallback)
             const lastFmInfo = await lastFmService.getArtistInfo(details.name, id)
 
             if (lastFmInfo) {
                 // SAFETY CHECK: Ensure Last.fm hasn't hijacked the artist (e.g. Zippy Kid / Russian redirects)
-                const expectedName = details.name.toLowerCase()
+                const originalName = details.name.toLowerCase()
                 const receivedName = lastFmInfo.name.toLowerCase()
 
-                const isLikelyMatch = receivedName.includes(expectedName) || expectedName.includes(receivedName)
+                const isLikelyMatch =
+                    receivedName.includes(originalName) ||
+                    originalName.includes(receivedName) ||
+                    (originalName === 'metallica' && receivedName === 'metallica')
 
                 if (!isLikelyMatch) {
-                    console.warn(`[Metadata] 🛑 Hijacking detected! Expected ${details.name} but Last.fm gave us ${lastFmInfo.name}. Skipping Last.fm enrichment.`)
+                    console.warn(`[Metadata] 🛑 Hijacking detected! Expected ${details.name} but Last.fm gave us ${lastFmInfo.name}. Skipping Last.fm bio/image.`)
                 } else {
-                    if (lastFmInfo.bio?.content && (forceRefresh || !details.biography)) {
-                        if (!lastFmService.isNonEnglish(lastFmInfo.bio.content)) {
-                            console.log(`[Metadata] Successfully fetched English bio for ${details.name}`)
-                            details.biography = lastFmInfo.bio.content
-                            details.bio = lastFmInfo.bio.summary
-                        } else {
-                            console.warn(`[Metadata] ⚠️ Last.fm also returned a non-English bio for ${details.name}. Keeping whatever we have.`)
+                    // Bio enrichment
+                    if (lastFmInfo.bio?.content) {
+                        const bioContent = lastFmInfo.bio.content
+                        if (!lastFmService.isNonEnglish(bioContent)) {
+                            // Only update if we don't have a bio or if it's much better (longer)
+                            if (!details.biography || bioContent.length > (details.biography.length + 10)) {
+                                console.log(`[Metadata] Updating bio for ${details.name}`)
+                                details.biography = bioContent
+                                details.bio = lastFmInfo.bio.summary || bioContent.substring(0, 300) + '...'
+                            }
+                        } else if (forceRefresh) {
+                            console.warn(`[Metadata] ⚠️ Last.fm returned a non-English bio for ${details.name}. Skipping bio update.`)
                         }
                     }
 
-                    if (!details.image) {
+                    // Image fallback (only if Spotify failed)
+                    if (!bestImage && lastFmInfo.image) {
                         bestImage = lastFmService.getBestImage(lastFmInfo.image)
                     }
                 }
             }
         } catch (e) {
-            console.error(`[Metadata] Failed to enrich with Last.fm:`, e)
+            console.error(`[Metadata] Enrichment failed:`, e)
         }
 
-        // Final fallback for image (Spotify/Deezer) if Last.fm failed or mismatch occurred
+        // Final fallback for image (Deezer)
         if (!details.image && !bestImage) {
             try {
-                bestImage = await spotifyService.getArtistImage(details.name)
-                if (!bestImage) {
-                    bestImage = await lastFmService.getDeezerArtistImage(details.name)
-                }
+                bestImage = await lastFmService.getDeezerArtistImage(details.name)
             } catch (e) { }
         }
 
@@ -162,9 +180,18 @@ export const getArtistDetails = async (req: Request, res: Response) => {
                 try {
                     const stats = fs.statSync(localPath)
                     if (stats.size > 5120) {
-                        db.prepare(
-                            'UPDATE artists SET image_path = ?, bio = COALESCE(?, bio), musicbrainz_artistid = ? WHERE id = ? OR musicbrainz_artistid = ?'
-                        ).run(localPath, details.biography || null, id, id, id)
+                        // EXHAUSTIVE UPDATE: Update all possible MBID columns to ensure consistency
+                        db.prepare(`
+                            UPDATE artists 
+                            SET image_path = ?, 
+                                bio = COALESCE(?, bio), 
+                                musicbrainz_artistid = ?,
+                                musicbrainz_artist_id = ?,
+                                mbid = ?,
+                                type = COALESCE(?, type)
+                            WHERE id = ? OR musicbrainz_artistid = ? OR mbid = ?
+                        `).run(localPath, details.biography || null, id, id, id, details.type || null, id, id, id)
+
                         details.image = `/api/cover/artist/${id}?t=${Date.now()}`
                     } else {
                         fs.unlinkSync(localPath)
