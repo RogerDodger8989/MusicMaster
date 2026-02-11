@@ -106,7 +106,7 @@ export interface ScanProgress {
 }
 
 export type ViewMode = 'grid' | 'list' | 'cover'
-export type SortField = 'title' | 'artist' | 'album' | 'year' | 'duration' | 'bitrate'
+export type SortField = 'title' | 'artist' | 'album' | 'year' | 'duration' | 'bitrate' | 'playCount' | 'rating' | 'createdAt'
 export type SortOrder = 'asc' | 'desc'
 
 export interface FilterOptions {

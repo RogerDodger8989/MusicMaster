@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { SortField, SortOrder, ViewMode } from '../types'
+export type TrackViewMode = 'list' | 'grid' | 'cover'
 import { client } from '../api/client'
 
 export type TrackPlayBehavior = 'ask' | 'play_next' | 'add_last' | 'replace'
@@ -22,6 +23,8 @@ interface SettingsStore {
   lastfmEnabled: boolean
   listenbrainzEnabled: boolean
   showWaveform: boolean
+  tracksViewMode: TrackViewMode
+  tracksColumns: string[]
 
   // Actions
   setViewMode: (mode: ViewMode) => void
@@ -40,6 +43,8 @@ interface SettingsStore {
   setLastfmEnabled: (enabled: boolean) => void
   setListenbrainzEnabled: (enabled: boolean) => void
   setShowWaveform: (enabled: boolean) => void
+  setTracksViewMode: (mode: TrackViewMode) => void
+  setTracksColumns: (columns: string[]) => void
 
   // Persistence
   loadSettings: () => Promise<void>
@@ -62,6 +67,8 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   lastfmEnabled: false,
   listenbrainzEnabled: false,
   showWaveform: false,
+  tracksViewMode: 'list',
+  tracksColumns: ['index', 'title', 'artist', 'album', 'vibe', 'played', 'rating', 'time'],
 
   setViewMode: (viewMode) => {
     set({ viewMode })
@@ -134,6 +141,14 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   setShowWaveform: (enabled) => {
     set({ showWaveform: enabled })
     client.saveSetting('showWaveform', enabled)
+  },
+  setTracksViewMode: (mode) => {
+    set({ tracksViewMode: mode })
+    client.saveSetting('tracksViewMode', mode)
+  },
+  setTracksColumns: (columns) => {
+    set({ tracksColumns: columns })
+    client.saveSetting('tracksColumns', columns)
   },
 
   loadSettings: async () => {

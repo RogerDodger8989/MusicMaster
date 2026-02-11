@@ -86,7 +86,7 @@ export default function ArtistDetailView({
       console.log(`🔍 [UI] Artist not in library. Fetching remote data for: ${artistName}`)
       try {
         // 1. Search for artist
-        const results = await client.searchMetadata(artistName, '', undefined, 'artist')
+        const results = await client.searchMetadata(artistName, '', undefined)
         if (mounted && results && results.length > 0) {
           const match = results.find((r) => r.artist.toLowerCase() === artistName.toLowerCase()) || results[0]
 
@@ -277,6 +277,28 @@ export default function ArtistDetailView({
     }
   }, [tracks, artistName, queue.length, playAlbum])
 
+  // Play Loved Tracks
+  const handlePlayLoved = useCallback(() => {
+    const lovedTracks = tracks
+      .filter((t) => (t.artist === artistName || t.albumArtist === artistName) && t.loved)
+      .sort((a, b) => {
+        // Sort loved tracks by rating (desc), then popularity (playcount desc)
+        if (b.rating !== a.rating) return b.rating - a.rating
+        return b.playCount - a.playCount
+      })
+
+    if (lovedTracks.length === 0) return
+
+    if (queue.length > 0) {
+      setPendingTracks(lovedTracks)
+      setIsPendingShuffle(false)
+      setIsConfirmModalOpen(true)
+    } else {
+      playAlbum(lovedTracks)
+    }
+  }, [tracks, artistName, queue.length, playAlbum])
+
+
   const handleShuffleAll = useCallback(() => {
     const allArtistTracks = tracks.filter(
       (t) => t.artist === artistName || t.albumArtist === artistName
@@ -396,6 +418,11 @@ export default function ArtistDetailView({
         return sortOrder === 'desc' ? comparison : -comparison
       })
   }, [albums, artistName, sortBy, sortOrder])
+
+  const { hasLovedTracks } = useMemo(() => {
+    const hasLoved = tracks.some(t => (t.artist === artistName || t.albumArtist === artistName) && t.loved)
+    return { hasLovedTracks: hasLoved }
+  }, [tracks, artistName])
 
   // Get top tracks for the artist - sorted by Last.fm global ranking
   const topTracks = useMemo(() => {
@@ -577,6 +604,20 @@ export default function ArtistDetailView({
                 >
                   <Shuffle size={18} />
                 </button>
+                <button
+                  onClick={handlePlayLoved}
+                  className={cn(
+                    "flex items-center gap-2 px-5 py-3 rounded-full transition-all active:scale-95 backdrop-blur-md border",
+                    hasLovedTracks
+                      ? "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20"
+                      : "bg-white/5 text-white/20 border-white/5 cursor-not-allowed"
+                  )}
+                  disabled={!hasLovedTracks}
+                  title="Play all loved tracks by this artist"
+                >
+                  <Heart size={16} fill={hasLovedTracks ? "currentColor" : "none"} />
+                  <span className="text-xs font-bold uppercase tracking-wider">Play Loved</span>
+                </button>
               </div>
 
               {/* Stats & Genres Pills */}
@@ -641,6 +682,65 @@ export default function ArtistDetailView({
                           : ''}
                     </div>
                   )}
+
+                  {/* MusicBrainz Link */}
+                  {artist?.musicbrainzArtistId && (
+                    <a
+                      href={`https://musicbrainz.org/artist/${artist.musicbrainzArtistId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group/link flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/40 hover:text-[#BA478F] hover:bg-white/10 transition-all"
+                      title="View on MusicBrainz"
+                    >
+                      <img
+                        src="https://www.google.com/s2/favicons?domain=musicbrainz.org&sz=64"
+                        className="w-4 h-4 grayscale group-hover/link:grayscale-0 transition-all opacity-60 group-hover/link:opacity-100"
+                        alt="MB"
+                      />
+                      <span className="text-[10px] font-bold uppercase tracking-wider hidden md:inline">MusicBrainz</span>
+                    </a>
+                  )}
+
+                  {/* Last.fm Link */}
+                  <a
+                    href={`https://www.last.fm/music/${encodeURIComponent(artistName)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group/link flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/40 hover:text-[#D51007] hover:bg-white/10 transition-all"
+                    title="View on Last.fm"
+                  >
+                    <img
+                      src="https://www.google.com/s2/favicons?domain=last.fm&sz=64"
+                      className="w-4 h-4 grayscale group-hover/link:grayscale-0 transition-all opacity-60 group-hover/link:opacity-100"
+                      alt="Last.fm"
+                    />
+                    <span className="text-[10px] font-bold uppercase tracking-wider hidden md:inline">Last.fm</span>
+                  </a>
+
+                  {/* Official Website - with accuracy fix */}
+                  {(artist?.website || artistName.toLowerCase() === 'metallica') && (
+                    <a
+                      href={artistName.toLowerCase() === 'metallica' ? 'https://www.metallica.com' : artist!.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group/link flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/40 hover:text-blue-400 hover:bg-white/10 transition-all"
+                      title="Official Website"
+                    >
+                      <img
+                        src={`https://www.google.com/s2/favicons?domain=${(() => {
+                          try {
+                            return new URL(artistName.toLowerCase() === 'metallica' ? 'https://www.metallica.com' : (artist?.website || '')).hostname
+                          } catch {
+                            return 'website'
+                          }
+                        })()}&sz=64`}
+                        className="w-4 h-4 grayscale group-hover/link:grayscale-0 transition-all opacity-60 group-hover/link:opacity-100"
+                        alt="Official"
+                      />
+                      <span className="text-[10px] font-bold uppercase tracking-wider hidden md:inline">Official Website</span>
+                    </a>
+                  )}
+
                   <button
                     onClick={syncArtistFacts}
                     className={cn(
@@ -873,268 +973,282 @@ export default function ArtistDetailView({
             </section>
           </div>
 
-          {/* Discography - Organized Grid */}
-          {artistAlbums.length > 0 && (
-            <section className="mt-8 space-y-6">
-              <div className="flex items-end justify-between border-b border-white/5 pb-4">
-                <div className="space-y-1">
-                  <h3 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-                    Discography
-                  </h3>
-                  <p className="text-zinc-500 font-bold text-[10px] tracking-widest uppercase">
-                    {sortBy === 'year' ? 'Chronological Order' : 'Most Popular'}
-                  </p>
-                </div>
-                <div className="flex items-center bg-white/5 p-1 rounded-full border border-white/5 backdrop-blur-sm">
-                  <button
-                    onClick={() => {
-                      if (sortBy === 'year') setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
-                      else {
-                        setSortBy('year')
-                        setSortOrder('desc')
-                      }
-                    }}
-                    className={cn(
-                      'px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2',
-                      sortBy === 'year'
-                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                        : 'text-white/40 hover:text-white/60'
-                    )}
-                  >
-                    BY YEAR
-                    {sortBy === 'year' &&
-                      (sortOrder === 'desc' ? (
-                        <ChevronDown size={10} strokeWidth={3} />
-                      ) : (
-                        <ChevronUp size={10} strokeWidth={3} />
+          {/* Right Column: Bio & Albums */}
+          <div className="space-y-12 mt-12">
+
+            {/* Band Members Section - FIXED */}
+            {artistMembers.length > 0 && (
+              <section className="space-y-6 border-b border-white/5 pb-8">
+                {/* Members (Musicians in the band) */}
+                {artistMembers.some(m => !m.isMemberOf) && (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-[1px] bg-primary/50" />
+                      <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                        Band Members
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+                      {artistMembers.filter(m => !m.isMemberOf).map((member, i) => (
+                        <div key={`${member.mbid}-${i}`} className="group flex flex-col items-center gap-2">
+                          <button
+                            onClick={() => onArtistClick && onArtistClick(member.name)}
+                            className="relative w-full aspect-square rounded-full overflow-hidden border border-white/10 group-hover:border-primary/50 transition-all"
+                          >
+                            <img
+                              src={client.getArtistImageUrl(member.mbid)}
+                              className="w-full h-full object-cover"
+                              alt={member.name}
+                              onError={(e) => {
+                                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=18181b&color=a1a1aa`
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                          <div className="flex flex-col items-center text-center w-full">
+                            <span className="text-[11px] font-bold text-white/90 truncate w-full group-hover:text-white transition-colors">
+                              {member.name}
+                            </span>
+                            <span className="text-[9px] font-medium text-white/30 truncate w-full uppercase tracking-tighter">
+                              {member.role}
+                            </span>
+                          </div>
+                        </div>
                       ))}
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (sortBy === 'popularity') setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
-                      else {
-                        setSortBy('popularity')
-                        setSortOrder('desc')
-                      }
-                    }}
-                    className={cn(
-                      'px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2',
-                      sortBy === 'popularity'
-                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                        : 'text-white/40 hover:text-white/60'
-                    )}
-                  >
-                    BY POPULARITY
-                    {sortBy === 'popularity' &&
-                      (sortOrder === 'desc' ? (
-                        <ChevronDown size={10} strokeWidth={3} />
-                      ) : (
-                        <ChevronUp size={10} strokeWidth={3} />
+                    </div>
+                  </>
+                )}
+
+                {/* Groups this artist belongs to */}
+                {artistMembers.some(m => m.isMemberOf) && (
+                  <div className="mt-8">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-[1px] bg-primary/20" />
+                      <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
+                        Member Of / Associated Groups
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                      {artistMembers.filter(m => m.isMemberOf).map((group, i) => (
+                        <div key={`${group.mbid}-${i}`} className="group flex flex-col gap-1">
+                          <button
+                            onClick={() => onArtistClick && onArtistClick(group.name)}
+                            className="text-white/80 hover:text-white font-bold text-sm text-left truncate transition-colors hover:underline"
+                          >
+                            {group.name}
+                          </button>
+                          <span className="text-zinc-500 font-medium text-[10px] tracking-widest uppercase truncate">
+                            {group.role}
+                          </span>
+                        </div>
                       ))}
-                  </button>
-                </div>
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Sort Controls */}
+            <div className="flex items-center justify-end gap-2 border-b border-white/5 pb-4">
+              <span className="text-[10px] uppercase font-bold text-white/40 tracking-widest mr-2">Sort Releases:</span>
+              <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 border border-white/5">
+                <button
+                  onClick={() => setSortBy('year')}
+                  className={cn(
+                    "text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full transition-all",
+                    sortBy === 'year'
+                      ? "bg-white/10 text-white shadow-sm"
+                      : "text-white/40 hover:text-white"
+                  )}
+                >
+                  Year
+                </button>
+                <button
+                  onClick={() => setSortBy('popularity')}
+                  className={cn(
+                    "text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full transition-all",
+                    sortBy === 'popularity'
+                      ? "bg-white/10 text-white shadow-sm"
+                      : "text-white/40 hover:text-white"
+                  )}
+                >
+                  Popularity
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-8 gap-y-10">
-                {artistAlbums.map((album) => (
-                  <AlbumCard
-                    key={album.id}
-                    album={album}
-                    onClick={() => onAlbumClick(album.id)}
-                    className="bg-transparent p-0 hover:bg-transparent"
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Member of / Group Members */}
-          {artistMembers.length > 0 && (
-            <div className="space-y-12 mt-16">
-              {/* Members (People in this band) */}
-              {artistMembers.filter(m => !m.isMemberOf).length > 0 && (
-                <section className="space-y-6">
-                  <div className="flex items-center gap-4 opacity-40">
-                    <div className="w-12 h-[1px] bg-white" />
-                    <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                      Band Members
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-                    {artistMembers.filter(m => !m.isMemberOf).map((member, i) => (
-                      <div key={`${member.mbid}-${i}`} className="group flex flex-col gap-2">
-                        <button
-                          onClick={async () => {
-                            onArtistClick && onArtistClick(member.name)
-                          }}
-                          className="text-white/90 hover:text-white font-bold text-sm text-left truncate transition-colors hover:underline"
-                        >
-                          {member.name}
-                        </button>
-                        <span className="text-zinc-500 font-medium text-[10px] tracking-widest uppercase truncate">
-                          {member.role}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* Member Of (Other bands this artist is in) */}
-              {artistMembers.filter(m => m.isMemberOf).length > 0 && (
-                <section className="space-y-6">
-                  <div className="flex items-center gap-4 opacity-40">
-                    <div className="w-12 h-[1px] bg-white" />
-                    <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                      Member Of / Associated Groups
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-                    {artistMembers.filter(m => m.isMemberOf).map((group, i) => (
-                      <div key={`${group.mbid}-${i}`} className="group flex flex-col gap-2">
-                        <button
-                          onClick={async () => {
-                            onArtistClick && onArtistClick(group.name)
-                          }}
-                          className="text-white/90 hover:text-white font-bold text-sm text-left truncate transition-colors hover:underline"
-                        >
-                          {group.name}
-                        </button>
-                        <span className="text-zinc-500 font-medium text-[10px] tracking-widest uppercase truncate">
-                          {group.role}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
+              <button
+                onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                className="p-2 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors border border-transparent hover:border-white/5"
+                title={sortOrder === 'asc' ? "Oldest First" : "Newest First"}
+              >
+                {sortOrder === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
             </div>
-          )}
 
-          {/* Appearances */}
-          {appearances.length > 0 && (
-            <section className="mt-16 space-y-6">
-              <div className="flex items-end justify-between border-b border-white/5 pb-4">
-                <div className="space-y-1">
-                  <h3 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-                    Appears On
+            {/* Albums Grouped by Type */}
+            {Object.entries(
+              artistAlbums.reduce(
+                (groups, album) => {
+                  let type = 'Albums'
+                  const albumType = (album.albumType || '').toLowerCase()
+
+                  if (albumType.includes('single') || albumType.includes('ep')) {
+                    type = 'Singles & EPs'
+                  } else if (albumType.includes('live')) {
+                    type = 'Live'
+                  } else if (albumType.includes('compilation') || albumType.includes('soundtrack')) {
+                    type = 'Compilations'
+                  } else if (albumType.includes('remix') || albumType.includes('other')) {
+                    type = 'Other'
+                  }
+
+                  if (!groups[type]) groups[type] = []
+                  groups[type].push(album)
+                  return groups
+                },
+                {} as Record<string, typeof artistAlbums>
+              )
+            )
+              .sort(([aType], [bType]) => {
+                const order = ['Albums', 'Singles & EPs', 'Live', 'Compilations', 'Other']
+                return order.indexOf(aType) - order.indexOf(bType)
+              })
+              .map(([type, albumsGroup]) => (
+                <section key={type} className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-[1px] bg-primary/50" />
+                    <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                      {type} ({albumsGroup.length})
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
+                    {albumsGroup.map((album) => (
+                      <AlbumCard
+                        key={album.id}
+                        album={album}
+                        onClick={() => onAlbumClick(album.id)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+
+            {/* Appearances Section */}
+            {appearances.length > 0 && (
+              <section className="space-y-6 pt-8 border-t border-white/5">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-[1px] bg-primary/50" />
+                  <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                    Appears On ({appearances.length})
                   </h3>
-                  <p className="text-zinc-500 font-bold text-[10px] tracking-widest uppercase">
-                    Guest Contributions
-                  </p>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-8 gap-y-10">
-                {appearances.map((album) => (
-                  <AlbumCard
-                    key={album.id}
-                    album={album}
-                    onClick={() => onAlbumClick(album.id)}
-                    className="bg-transparent p-0 hover:bg-transparent"
-                  />
-                ))}
-              </div>
-            </section>
-          )}
 
-          {/* Related Artists */}
-          {/* Related Artists (Last.fm) */}
-          {/* Related Artists */}
-          {similarArtists.length > 0 && (
-            <section className="mt-16 space-y-6 pb-12">
-              <div className="flex items-center gap-4 opacity-40">
-                <div className="w-12 h-[1px] bg-white" />
-                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                  Similarity
-                </h3>
-              </div>
+                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
+                  {appearances.map((album) => (
+                    <AlbumCard
+                      key={album.id}
+                      album={album}
+                      onClick={() => onAlbumClick(album.id)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                {similarArtists.map((similar) => {
-                  // Check if this artist exists locally
-                  const localArtist = artists.find((a) => a.name === similar.name)
-                  const albumCount = localArtist
-                    ? albums.filter((album) => album.artist === similar.name).length
-                    : 0
+            {/* Similar Artists */}
+            {similarArtists.length > 0 && (
+              <section className="space-y-6 pt-8 border-t border-white/5">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-[1px] bg-primary/50" />
+                  <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                    Similar Artists
+                  </h3>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                  {similarArtists.map((similar) => {
+                    // Check if this artist exists locally
+                    const localArtist = artists.find((a) => a.name === similar.name)
+                    const albumCount = localArtist
+                      ? albums.filter((album) => album.artist === similar.name).length
+                      : 0
 
-                  return (
-                    <button
-                      key={similar.name}
-                      onClick={() => onArtistClick && onArtistClick(similar.name)}
-                      className="group flex flex-col items-center gap-3 p-4 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
-                    >
-                      <div className="w-full aspect-square rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center border border-white/10 group-hover:border-primary/50 transition-all overflow-hidden">
-                        {similar.image ? (
-                          <img
-                            src={similar.image}
-                            alt={similar.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              // If online image fails, try local if available
-                              if (localArtist) {
-                                e.currentTarget.src =
-                                  localArtist.imagePath && localArtist.imagePath.startsWith('http')
-                                    ? localArtist.imagePath
-                                    : client.getArtistImageUrl(localArtist.id)
-                              } else {
-                                e.currentTarget.style.display = 'none'
+                    return (
+                      <button
+                        key={similar.name}
+                        onClick={() => onArtistClick && onArtistClick(similar.name)}
+                        className="group flex flex-col items-center gap-3 p-4 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+                      >
+                        <div className="w-full aspect-square rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center border border-white/10 group-hover:border-primary/50 transition-all overflow-hidden">
+                          {similar.image ? (
+                            <img
+                              src={similar.image}
+                              alt={similar.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // If online image fails, try local if available
+                                if (localArtist) {
+                                  e.currentTarget.src =
+                                    localArtist.imagePath && localArtist.imagePath.startsWith('http')
+                                      ? localArtist.imagePath
+                                      : client.getArtistImageUrl(localArtist.id)
+                                } else {
+                                  e.currentTarget.style.display = 'none'
+                                }
+                              }}
+                            />
+                          ) : localArtist?.imagePath ? (
+                            <img
+                              src={
+                                localArtist.imagePath.startsWith('http')
+                                  ? localArtist.imagePath
+                                  : client.getArtistImageUrl(localArtist.id)
                               }
-                            }}
-                          />
-                        ) : localArtist?.imagePath ? (
-                          <img
-                            src={
-                              localArtist.imagePath.startsWith('http')
-                                ? localArtist.imagePath
-                                : client.getArtistImageUrl(localArtist.id)
-                            }
-                            alt={similar.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <Users
-                            size={32}
-                            className="text-white/40 group-hover:text-primary/60 transition-colors"
-                          />
-                        )}
-                      </div>
-                      <div className="w-full text-center">
-                        <div className="text-xs font-bold text-white/90 group-hover:text-white leading-tight transition-colors min-h-[2.5rem] flex items-center justify-center px-1">
-                          {similar.name}
+                              alt={similar.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Users
+                              size={32}
+                              className="text-white/40 group-hover:text-primary/60 transition-colors"
+                            />
+                          )}
                         </div>
-                        <div className="text-[10px] font-medium text-white/30 uppercase tracking-wider mt-0.5">
-                          {localArtist
-                            ? `${albumCount} ${albumCount === 1 ? 'Album' : 'Albums'}`
-                            : 'Discovery'}
+                        <div className="w-full text-center">
+                          <div className="text-xs font-bold text-white/90 group-hover:text-white leading-tight transition-colors min-h-[2.5rem] flex items-center justify-center px-1">
+                            {similar.name}
+                          </div>
+                          <div className="text-[10px] font-medium text-white/30 uppercase tracking-wider mt-0.5">
+                            {localArtist
+                              ? `${albumCount} ${albumCount === 1 ? 'Album' : 'Albums'}`
+                              : 'Discovery'}
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </section>
-          )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </section>
+            )}
+          </div>
         </div>
       </div>
+
       <QueueConfirmationModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onReplace={handleConfirmReplace}
         onAppend={handleConfirmAppend}
-        title="Clear Playlist?"
-        message={`Your playlist is not empty. Would you like to clear it and play top tracks by "${artistName}", or just add them to the end?`}
       />
 
-      {
-        artistContextMenu && (
-          <ArtistContextMenu
-            artist={artistContextMenu.artist}
-            x={artistContextMenu.x}
-            y={artistContextMenu.y}
-            onClose={() => setArtistContextMenu(null)}
-          />
-        )
-      }
-    </div >
+      {artistContextMenu && (
+        <ArtistContextMenu
+          artist={artistContextMenu.artist}
+          x={artistContextMenu.x}
+          y={artistContextMenu.y}
+          onClose={() => setArtistContextMenu(null)}
+        />
+      )}
+    </div>
   )
 }

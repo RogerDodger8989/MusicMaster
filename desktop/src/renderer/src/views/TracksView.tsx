@@ -1,244 +1,183 @@
 import { useState, useMemo } from 'react'
-import { Hash, Clock, Star, Heart, Search } from 'lucide-react'
+import { Search, LayoutGrid, List, Settings2 } from 'lucide-react'
 import { useLibrary } from '../store/library'
-import { usePlayer } from '../store/player'
+import { useSettings } from '../store/settings'
 import { cn } from '../lib/utils'
-import { useTrackSelection } from '../hooks/useTrackSelection'
+import TrackList from '../components/TrackList'
 
 export default function TracksView() {
-  const { tracks, toggleLoved, rateTrack } = useLibrary()
-  const { currentTrack, isPlaying } = usePlayer()
+  const { tracks } = useLibrary()
+  const {
+    tracksViewMode, setTracksViewMode,
+    tracksColumns, setTracksColumns,
+    sortField, setSortField,
+    sortOrder, setSortOrder
+  } = useSettings()
   const [searchQuery, setSearchQuery] = useState('')
 
   const filteredTracks = useMemo(() => {
-    if (!searchQuery.trim()) return tracks
-    const q = searchQuery.toLowerCase()
-    return tracks.filter(
-      (t) =>
-        t.title.toLowerCase().includes(q) ||
-        t.artist.toLowerCase().includes(q) ||
-        t.album.toLowerCase().includes(q)
-    )
-  }, [tracks, searchQuery])
+    let result = tracks
 
-  const { selectedTracks, handleTrackClick, clearSelection, selectSingleTrack } =
-    useTrackSelection(filteredTracks)
+    // 1. Filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter(
+        (t) =>
+          t.title.toLowerCase().includes(q) ||
+          t.artist.toLowerCase().includes(q) ||
+          t.album.toLowerCase().includes(q)
+      )
+    }
 
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+    // 2. Sort
+    return [...result].sort((a, b) => {
+      let valA: any = a[sortField]
+      let valB: any = b[sortField]
+
+      // Handle specific fields
+      if (sortField === 'artist') {
+        valA = a.artist || a.albumArtist || ''
+        valB = b.artist || b.albumArtist || ''
+      }
+      else if (sortField === 'album') {
+        valA = a.album || ''
+        valB = b.album || ''
+      } else if (sortField === 'year') {
+        valA = a.year || 0
+        valB = b.year || 0
+      } else if (sortField === 'playCount') {
+        valA = a.playCount || 0
+        valB = b.playCount || 0
+      } else if (sortField === 'rating') {
+        valA = a.rating || 0
+        valB = b.rating || 0
+      } else if (sortField === 'createdAt') {
+        valA = new Date(a.createdAt).getTime()
+        valB = new Date(b.createdAt).getTime()
+      }
+
+      // Fallback for strings
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA)
+      }
+
+      // Fallback for numbers
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return sortOrder === 'asc' ? valA - valB : valB - valA
+      }
+
+      return 0
+    })
+  }, [tracks, searchQuery, sortField, sortOrder])
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto" onClick={clearSelection}>
+    <div className="p-8 space-y-6 max-w-7xl mx-auto h-full flex flex-col">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-white">Tracks</h2>
-          <p className="text-zinc-500 text-sm mt-1">
-            {filteredTracks.length} tracks in your library
-          </p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-white">Tracks</h2>
+            <p className="text-zinc-500 text-sm mt-1">
+              {filteredTracks.length} tracks in your library
+            </p>
+          </div>
         </div>
 
-        <div className="relative w-full md:w-80" onClick={(e) => e.stopPropagation()}>
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-          <input
-            type="text"
-            placeholder="Search tracks..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
-          />
+        <div className="flex items-center gap-3">
+          {/* View Mode Toggles */}
+          <div className="flex bg-zinc-900 rounded-lg p-1 border border-zinc-800">
+            <button
+              onClick={() => setTracksViewMode('list')}
+              className={cn(
+                "p-2 rounded-md transition-all",
+                tracksViewMode === 'list' ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+              )}
+              title="List View"
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setTracksViewMode('grid')}
+              className={cn(
+                "p-2 rounded-md transition-all",
+                tracksViewMode === 'grid' ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+              )}
+              title="Grid View (Cards)"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Column Settings (List Mode only) */}
+          {tracksViewMode === 'list' && (
+            <div className="relative group">
+              <button className="p-2 text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 rounded-lg transition-colors">
+                <Settings2 className="w-4 h-4" />
+              </button>
+              {/* Popover */}
+              <div className="absolute right-0 top-full mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl p-2 hidden group-hover:block z-50">
+                <div className="text-xs font-medium text-zinc-500 px-2 py-1 uppercase tracking-wider mb-1">Columns</div>
+                {[
+                  { id: 'title', label: 'Title' },
+                  { id: 'artist', label: 'Artist' },
+                  { id: 'album', label: 'Album' },
+                  { id: 'vibe', label: 'Vibe' },
+                  { id: 'played', label: 'Played' },
+                  { id: 'rating', label: 'Rating' },
+                  { id: 'time', label: 'Time' },
+                ].map(col => (
+                  <label key={col.id} className="flex items-center gap-2 px-2 py-1.5 hover:bg-zinc-800 rounded cursor-pointer text-sm text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={tracksColumns.includes(col.id)}
+                      onChange={() => {
+                        const newCols = tracksColumns.includes(col.id)
+                          ? tracksColumns.filter(c => c !== col.id)
+                          : [...tracksColumns, col.id]
+                        setTracksColumns(newCols)
+                      }}
+                      className="rounded border-zinc-700 bg-zinc-800 text-indigo-500 focus:ring-0"
+                    />
+                    {col.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="relative w-full md:w-64" onClick={(e) => e.stopPropagation()}>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+            <input
+              type="text"
+              placeholder="Search tracks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+            />
+          </div>
         </div>
       </div>
 
       <div
-        className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden"
+        className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden h-full flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="grid grid-cols-[3rem_2fr_1.5fr_1.5fr_4rem_3rem_1fr_4rem] gap-4 px-6 py-3 border-b border-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-900/50">
-          <div className="text-center flex justify-center">
-            <Hash className="w-3 h-3" />
-          </div>
-          <div>Title</div>
-          <div>Artist</div>
-          <div>Album</div>
-          <div className="text-center">Vibe</div>
-          <div className="text-right">Played</div>
-          <div className="text-center">Rating</div>
-          <div className="text-right flex justify-end">
-            <Clock className="w-3 h-3" />
-          </div>
-        </div>
-
-        <div className="divide-y divide-zinc-900 overflow-y-auto max-h-[calc(100vh-280px)] custom-scrollbar">
-          {filteredTracks.map((track, idx) => {
-            const isCurrentTrack = currentTrack?.id === track.id
-            const isCurrentPlaying = isCurrentTrack && isPlaying
-            const isSelected = selectedTracks.includes(track.id)
-
-            // Simple vibe string construction
-            const vibeParts: string[] = []
-            if (track.bpm) vibeParts.push(`${Math.round(track.bpm)}`)
-            if (track.key) vibeParts.push(track.key)
-            // Note: We'd ideally want the mood emoji here too, but track object might need enrichment 
-            // from the join. For now, let's show BPM/Key which are on the track object.
-
-            return (
-              <div
-                key={track.id}
-                onClick={(e) => handleTrackClick(e, track.id, idx)}
-                onDoubleClick={(e) => {
-                  e.stopPropagation()
-                  window.dispatchEvent(new CustomEvent('request-track-play', { detail: { track } }))
-                }}
-                onContextMenu={(e) => {
-                  e.preventDefault()
-                  // If right-clicking outside selection, select this one
-                  if (!isSelected) {
-                    selectSingleTrack(track.id)
-                  }
-                  window.dispatchEvent(
-                    new CustomEvent('show-track-context-menu', {
-                      detail: { track, x: e.clientX, y: e.clientY }
-                    })
-                  )
-                }}
-                draggable
-                onDragStart={(e) => {
-                  const dragIds = isSelected ? selectedTracks : [track.id]
-                  const dragTracks = tracks.filter((t) => dragIds.includes(t.id))
-
-                  e.dataTransfer.setData(
-                    'application/json',
-                    JSON.stringify({
-                      type: 'tracks',
-                      data: dragTracks
-                    })
-                  )
-                  e.dataTransfer.effectAllowed = 'copy'
-                }}
-                className={cn(
-                  'group grid grid-cols-[3rem_2fr_1.5fr_1.5fr_4rem_3rem_1fr_4rem] gap-4 px-6 py-3 items-center transition-all cursor-default select-none',
-                  isSelected
-                    ? 'bg-white/10 hover:bg-white/10'
-                    : isCurrentTrack
-                      ? 'bg-blue-600/10 hover:bg-blue-600/20'
-                      : 'hover:bg-white/5'
-                )}
-              >
-                {/* Index / Playing Icon */}
-                <div className="text-center text-xs font-medium">
-                  {isCurrentPlaying ? (
-                    <div className="flex justify-center">
-                      <div className="flex items-end gap-0.5 h-3">
-                        <div className="w-0.5 bg-blue-500 animate-[music-bar_0.6s_ease-in-out_infinite]" />
-                        <div className="w-0.5 bg-blue-500 animate-[music-bar_0.8s_ease-in-out_infinite]" />
-                        <div className="w-0.5 bg-blue-500 animate-[music-bar_0.5s_ease-in-out_infinite]" />
-                      </div>
-                    </div>
-                  ) : (
-                    <span className={cn(isCurrentTrack ? 'text-blue-500' : 'text-zinc-600')}>
-                      {idx + 1}
-                    </span>
-                  )}
-                </div>
-
-                {/* Title */}
-                <div className="min-w-0">
-                  <div
-                    className={cn(
-                      'text-sm font-semibold truncate transition-colors',
-                      isCurrentTrack ? 'text-blue-500' : 'text-zinc-200 group-hover:text-white'
-                    )}
-                  >
-                    {track.title}
-                  </div>
-                </div>
-
-                {/* Artist */}
-                <div className="min-w-0">
-                  <div className="text-sm text-zinc-400 truncate group-hover:text-zinc-300 transition-colors">
-                    {track.artist}
-                  </div>
-                </div>
-
-                {/* Album */}
-                <div className="min-w-0">
-                  <div className="text-sm text-zinc-400 truncate group-hover:text-zinc-300 transition-colors">
-                    {track.album}
-                  </div>
-                </div>
-
-                {/* Vibe (BPM/Key) */}
-                <div className="min-w-0 flex items-center justify-center">
-                  <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-500 group-hover:text-zinc-400">
-                    {track.bpm && <span>{Math.round(track.bpm)}</span>}
-                    {track.bpm && track.key && <span className="text-zinc-700">•</span>}
-                    {track.key && <span className="text-zinc-400">{track.key}</span>}
-                    {!track.bpm && !track.key && <span className="text-zinc-800">-</span>}
-                  </div>
-                </div>
-
-                {/* Play Count */}
-                <div className="text-right text-xs text-zinc-500 font-medium tabular-nums px-2">
-                  {track.playCount > 0 ? track.playCount : '-'}
-                </div>
-
-                {/* Rating & Love */}
-                <div className="flex items-center justify-center gap-3">
-                  <div className="flex items-center">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          rateTrack(track.id, star === track.rating ? 0 : star)
-                        }}
-                        className={cn(
-                          'transition-all duration-200',
-                          star <= track.rating
-                            ? 'text-yellow-500 scale-110'
-                            : 'text-zinc-800 hover:text-zinc-600 scale-90'
-                        )}
-                      >
-                        <Star
-                          className="w-3 h-3"
-                          fill={star <= track.rating ? 'currentColor' : 'none'}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      toggleLoved(track.id)
-                    }}
-                    className={cn(
-                      'transition-colors',
-                      track.loved ? 'text-red-500' : 'text-zinc-800 hover:text-red-500/50'
-                    )}
-                  >
-                    <Heart className="w-3 h-3" fill={track.loved ? 'currentColor' : 'none'} />
-                  </button>
-                </div>
-
-                {/* Duration */}
-                <div className="text-right text-xs font-medium tabular-nums text-zinc-500 group-hover:text-zinc-300">
-                  {formatDuration(track.duration)}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        <TrackList
+          tracks={filteredTracks}
+          viewMode={tracksViewMode}
+          visibleColumns={tracksColumns}
+          sortField={sortField}
+          sortOrder={sortOrder}
+          onSort={(field) => {
+            if (sortField === field) {
+              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+            } else {
+              setSortField(field)
+              setSortOrder('asc')
+            }
+          }}
+        />
       </div>
 
-      <style>{`
-                @keyframes music-bar {
-                    0%, 100% { height: 4px; }
-                    50% { height: 12px; }
-                }
-            `}</style>
     </div>
   )
 }

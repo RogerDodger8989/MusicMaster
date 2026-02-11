@@ -323,6 +323,16 @@
     - [x] Create "Performers" UI section in Album Detail
     - [x] Display Mood/Energy tags in Player and Tracks view
 
+- [ ] **Phase 17: Library View Enhancements**
+    - [x] **Artist View Restoration & Polish**
+        - [x] Shrink album cards (fix grid-cols)
+        - [x] Fix external links (ensure 100% accuracy, add favicons)
+        - [x] Restore Band Members section with portraits
+        - [x] Verify Metallica metadata (website & MBID)
+    - [ ] **Tracks View**
+        - [ ] Verify sorting integration
+
+
 - [ ] **Phase 10: Final Polish & Packaging**
     - [ ] Run Lint/Cleanup (remove console.logs)
     - [ ] Configuration Check (package.json, electron-builder)
