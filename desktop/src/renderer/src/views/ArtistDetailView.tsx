@@ -55,7 +55,6 @@ export default function ArtistDetailView({
   const [isBioExpanded, setIsBioExpanded] = useState(false)
   const [artistMembers, setArtistMembers] = useState<any[]>([])
   const [appearances, setAppearances] = useState<any[]>([])
-  const [isLoadingMembers, setIsLoadingMembers] = useState(false)
   const [lastfmTopTracks, setLastfmTopTracks] = useState<{ name: string; playcount: string }[]>([])
   const [artistContextMenu, setArtistContextMenu] = useState<{
     artist: Artist
@@ -87,7 +86,7 @@ export default function ArtistDetailView({
       console.log(`🔍 [UI] Artist not in library. Fetching remote data for: ${artistName}`)
       try {
         // 1. Search for artist
-        const results = await client.searchMetadata(artistName, '')
+        const results = await client.searchMetadata(artistName, '', undefined, 'artist')
         if (mounted && results && results.length > 0) {
           const match = results.find((r) => r.artist.toLowerCase() === artistName.toLowerCase()) || results[0]
 
@@ -186,12 +185,19 @@ export default function ArtistDetailView({
 
       if (!mbArtistId) {
         console.log(`🔍 [UI] Searching MusicBrainz for artist: ${artistName}`)
-        const results = await client.searchMetadata(artistName, '') // Search for artist name
-        if (results && results.length > 0) {
-          // Try to find an exact name match
-          const match =
-            results.find((r) => r.artist.toLowerCase() === artistName.toLowerCase()) || results[0]
-          mbArtistId = match.artistId
+
+        const artistResults = await (client as any).req(`/api/metadata/search?artist=${encodeURIComponent(artistName)}&type=artist`)
+
+        if (artistResults && artistResults.length > 0) {
+          // Find exact name match (ignore case)
+          const match = artistResults.find((r: any) =>
+            r.name.toLowerCase() === artistName.toLowerCase()
+          ) || (artistResults[0].score >= 90 ? artistResults[0] : null)
+
+          if (match) {
+            mbArtistId = match.id
+            console.log(`✅ [UI] Found MBID for ${artistName}: ${mbArtistId} (Match: ${match.name})`)
+          }
         }
       }
 
@@ -328,7 +334,6 @@ export default function ArtistDetailView({
       console.log(`[UI] Fetching members for ${artistName}. Artist has MBID: ${artist.musicbrainzArtistId}. Current Image: ${artist.imagePath}`)
 
       setArtistMembers([]) // Clear previous members to avoid stale data
-      setIsLoadingMembers(true)
       try {
         const [members, details] = await Promise.all([
           client.getArtistMembers(artist.musicbrainzArtistId),
@@ -343,8 +348,6 @@ export default function ArtistDetailView({
         }
       } catch (error) {
         console.error('Failed to fetch artist data:', error)
-      } finally {
-        setIsLoadingMembers(false)
       }
     }
 
@@ -947,51 +950,65 @@ export default function ArtistDetailView({
 
           {/* Member of / Group Members */}
           {artistMembers.length > 0 && (
-            <section className="mt-16 space-y-6">
-              <div className="flex items-center gap-4 opacity-40">
-                <div className="w-12 h-[1px] bg-white" />
-                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                  {artist?.type === 'Group' || artist?.type === 'Band' ? 'Members' : 'Member Of'}
-                </h3>
-              </div>
-              {isLoadingMembers ? (
-                <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6 animate-pulse">
-                  {[...Array(6)].map((_, i) => (
-                    <div key={i} className="h-10 bg-white/5 rounded-lg" />
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-                  {artistMembers.map((member, i) => (
-                    <div key={`${member.mbid}-${i}`} className="group flex flex-col gap-2">
-                      <button
-                        onClick={async () => {
-                          // Auto-add member as artist if not already in library
-                          const existingArtist = artists.find(
-                            (a) => a.name === member.name || a.musicbrainzArtistId === member.mbid
-                          )
-                          if (!existingArtist && member.mbid) {
-                            try {
-                              console.log(`[UI] Adding member as artist: ${member.name} (${member.mbid})`)
-                              await client.getArtistDetails(member.mbid)
-                            } catch (err) {
-                              console.error('Failed to add member as artist:', err)
-                            }
-                          }
-                          onArtistClick && onArtistClick(member.name)
-                        }}
-                        className="text-white/90 hover:text-white font-bold text-sm text-left truncate transition-colors hover:underline"
-                      >
-                        {member.name}
-                      </button>
-                      <span className="text-zinc-500 font-medium text-[10px] tracking-widest uppercase truncate">
-                        {member.role}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+            <div className="space-y-12 mt-16">
+              {/* Members (People in this band) */}
+              {artistMembers.filter(m => !m.isMemberOf).length > 0 && (
+                <section className="space-y-6">
+                  <div className="flex items-center gap-4 opacity-40">
+                    <div className="w-12 h-[1px] bg-white" />
+                    <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                      Band Members
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                    {artistMembers.filter(m => !m.isMemberOf).map((member, i) => (
+                      <div key={`${member.mbid}-${i}`} className="group flex flex-col gap-2">
+                        <button
+                          onClick={async () => {
+                            onArtistClick && onArtistClick(member.name)
+                          }}
+                          className="text-white/90 hover:text-white font-bold text-sm text-left truncate transition-colors hover:underline"
+                        >
+                          {member.name}
+                        </button>
+                        <span className="text-zinc-500 font-medium text-[10px] tracking-widest uppercase truncate">
+                          {member.role}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               )}
-            </section>
+
+              {/* Member Of (Other bands this artist is in) */}
+              {artistMembers.filter(m => m.isMemberOf).length > 0 && (
+                <section className="space-y-6">
+                  <div className="flex items-center gap-4 opacity-40">
+                    <div className="w-12 h-[1px] bg-white" />
+                    <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                      Member Of / Associated Groups
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                    {artistMembers.filter(m => m.isMemberOf).map((group, i) => (
+                      <div key={`${group.mbid}-${i}`} className="group flex flex-col gap-2">
+                        <button
+                          onClick={async () => {
+                            onArtistClick && onArtistClick(group.name)
+                          }}
+                          className="text-white/90 hover:text-white font-bold text-sm text-left truncate transition-colors hover:underline"
+                        >
+                          {group.name}
+                        </button>
+                        <span className="text-zinc-500 font-medium text-[10px] tracking-widest uppercase truncate">
+                          {group.role}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
           )}
 
           {/* Appearances */}

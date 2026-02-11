@@ -38,6 +38,9 @@ export const searchMusicBrainz = async (req: Request, res: Response) => {
         if (type === 'release') {
             const results = await musicBrainzService.searchAlbum(artist, String(req.query.album || ''))
             return res.json(results)
+        } else if (type === 'artist' || (artist && !title)) {
+            const results = await musicBrainzService.searchArtist(artist)
+            return res.json(results)
         } else {
             const results = await musicBrainzService.searchTrack(artist, title, album)
             return res.json(results)
@@ -127,13 +130,15 @@ export const getArtistDetails = async (req: Request, res: Response) => {
                 const originalName = details.name.toLowerCase()
                 const receivedName = lastFmInfo.name.toLowerCase()
 
+                // Robust matching: Exact match or one contains the other
+                // But avoid "Zippy Kid" vs "Metallica"
                 const isLikelyMatch =
+                    receivedName === originalName ||
                     receivedName.includes(originalName) ||
-                    originalName.includes(receivedName) ||
-                    (originalName === 'metallica' && receivedName === 'metallica')
+                    originalName.includes(receivedName)
 
                 if (!isLikelyMatch) {
-                    console.warn(`[Metadata] 🛑 Hijacking detected! Expected ${details.name} but Last.fm gave us ${lastFmInfo.name}. Skipping Last.fm bio/image.`)
+                    console.warn(`[Metadata] 🛑 Hijacking detected! Expected artist like "${details.name}" but Last.fm gave us "${lastFmInfo.name}". Skipping Last.fm bio/image.`)
                 } else {
                     // Bio enrichment
                     if (lastFmInfo.bio?.content) {

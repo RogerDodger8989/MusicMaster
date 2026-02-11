@@ -39,65 +39,68 @@ export class BackgroundEnricher {
         }
     }
 
-    private async enrichArtists() {
+    private async enrichArtists(force: boolean = false) {
         const db = getDatabase()
-        const artists = db.prepare(`
-            SELECT id, name, musicbrainz_artistid
-            FROM artists
-            WHERE (image_path IS NULL OR bio IS NULL OR bio = '')
-            ORDER BY last_enrich_attempt ASC NULLS FIRST
-            LIMIT 20
-        `).all() as { id: string, name: string, musicbrainz_artistid: string | null }[]
+        const query = force
+            ? `SELECT id, name, musicbrainz_artistid FROM artists`
+            : `SELECT id, name, musicbrainz_artistid
+               FROM artists
+               WHERE (image_path IS NULL OR bio IS NULL OR bio = '')
+               ORDER BY last_enrich_attempt ASC NULLS FIRST
+               LIMIT 20`
+
+        const artists = db.prepare(query).all() as { id: string, name: string, musicbrainz_artistid: string | null }[]
 
         if (artists.length === 0) return
 
         console.log(`🤖 Enriching metadata for ${artists.length} artists...`)
 
         for (const artist of artists) {
-            await this.enrichArtistById(artist.id, artist.name)
+            await this.enrichArtistById(artist.id, artist.name, force)
         }
     }
 
-    public async enrichArtistById(artistId: string, artistName: string) {
+    public async enrichArtistById(artistId: string, artistName: string, force: boolean = false) {
         const db = getDatabase()
         // Mark attempt immediately to prevent infinite loop on failures
         db.prepare('UPDATE artists SET last_enrich_attempt = CURRENT_TIMESTAMP WHERE id = ?').run(artistId)
 
         try {
-            console.log(`🤖 Enriching artist: ${artistName}`)
+            console.log(`🤖 Enriching artist: ${artistName} (force: ${force})`)
 
             // Fetch Last.fm info for bio
             const info = await lastFmService.getArtistInfo(artistName)
 
             if (info) {
                 // Update bio
-                if (info.bio?.content) {
+                if (info.bio?.content && (force || !(db.prepare('SELECT bio FROM artists WHERE id = ?').get(artistId) as any)?.bio)) {
                     db.prepare('UPDATE artists SET bio = ? WHERE id = ?').run(info.bio.content, artistId)
                     console.log(`✅ Saved bio for ${artistName}`)
                 }
             }
 
             // Handle image separately with multiple sources
-            const dbArtist = db.prepare('SELECT image_path FROM artists WHERE id = ?').get(artistId) as { image_path: string | null }
-            if (!dbArtist?.image_path) {
+            const dbArtist = db.prepare('SELECT image_path, image_verified FROM artists WHERE id = ?').get(artistId) as { image_path: string | null, image_verified: number }
+
+            if (dbArtist?.image_verified && !force) {
+                console.log(`🤖 [Enricher] Artist ${artistName} has verified image lock. Skipping image fetch.`)
+            } else if (force || !dbArtist?.image_path) {
                 let imageUrl: string | null = null
                 let source = ''
 
-                // Try 1: Last.fm
-                if (info?.image) {
-                    imageUrl = lastFmService.getBestImage(info.image)
-                    if (imageUrl) source = 'Last.fm'
+                // Try 1: Spotify (Highest quality)
+                try {
+                    const { spotifyService } = await import('./spotify')
+                    imageUrl = await spotifyService.getArtistImage(artistName)
+                    if (imageUrl) source = 'Spotify'
+                } catch (e) {
+                    console.warn(`[Enricher] Spotify lookup failed for ${artistName}`)
                 }
 
-                // Try 2: Spotify (if Last.fm failed)
-                if (!imageUrl) {
-                    try {
-                        const { spotifyService } = await import('./spotify')
-                        imageUrl = await spotifyService.getArtistImage(artistName)
-                        if (imageUrl) source = 'Spotify'
-                    } catch (e) {
-                        console.warn(`[Enricher] Spotify lookup failed for ${artistName}`)
-                    }
+                // Try 2: Last.fm (if Spotify failed)
+                if (!imageUrl && info?.image) {
+                    imageUrl = lastFmService.getBestImage(info.image)
+                    if (imageUrl) source = 'Last.fm'
                 }
 
                 // Try 3: Deezer (last resort)

@@ -95,12 +95,27 @@ export const getArtistTopTracks = async (req: Request, res: Response) => {
 export const getArtistMembers = async (req: Request, res: Response) => {
     try {
         const { musicBrainzService } = await import('../../services/musicbrainz')
+        const { upsertArtistWithMBID } = await import('../../database/musicbrainz')
+        const { backgroundEnricher } = await import('../../services/enricher')
         const id = req.params.id as string
 
         console.log(`[API] getArtistMembers called for MBID: ${id}`)
 
         // Use the service to fetch members from MusicBrainz
         const members = await musicBrainzService.getArtistMembers(id)
+
+        // Asynchronously upsert and trigger enrichment for each member
+        // This won't block the response
+        Promise.all(members.map(async (member) => {
+            try {
+                const localId = upsertArtistWithMBID(member.name, member.mbid)
+                // Trigger enrichment (image/bio)
+                await backgroundEnricher.enrichArtistById(localId, member.name)
+            } catch (err) {
+                console.warn(`[API] Failed to pre-enrich member: ${member.name}`, err)
+            }
+        })).catch(err => console.error('Member enrichment failed:', err))
+
         res.json(members)
     } catch (error) {
         console.error('API Error:', error)

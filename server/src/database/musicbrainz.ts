@@ -83,21 +83,30 @@ export function upsertArtistWithMBID(
         const db = getDatabase()
 
         // 1. Try to find existing artist by MBID if provided
-        let existing: { id: string, name: string, musicbrainz_artistid: string | null } | undefined
+        let existing: { id: string, name: string, musicbrainz_artistid: string | null, mbid_verified?: number } | undefined
         if (mbid) {
-            existing = db.prepare('SELECT id, name, musicbrainz_artistid FROM artists WHERE musicbrainz_artistid = ?').get(mbid) as any
+            existing = db.prepare('SELECT id, name, musicbrainz_artistid, mbid_verified FROM artists WHERE musicbrainz_artistid = ?').get(mbid) as any
         }
 
         // 2. Fallback: Try to find by name (and country if provided)
         if (!existing) {
             if (countryCode) {
-                existing = db.prepare('SELECT id, name, musicbrainz_artistid FROM artists WHERE name = ? AND country = ?').get(name, countryCode) as any
+                existing = db.prepare('SELECT id, name, musicbrainz_artistid, mbid_verified FROM artists WHERE name = ? AND country = ?').get(name, countryCode) as any
             } else {
-                existing = db.prepare('SELECT id, name, musicbrainz_artistid FROM artists WHERE name = ?').get(name) as any
+                existing = db.prepare('SELECT id, name, musicbrainz_artistid, mbid_verified FROM artists WHERE name = ?').get(name) as any
             }
         }
 
         if (existing) {
+            // PROTECT VERIFIED MBID:
+            // If the existing artist is verified, and a new MBID is provided that differs, 
+            // we reject the new ID to prevent hijacking from scans/enrichment.
+            let mbidToUpdate = mbid
+            if (existing.mbid_verified && mbid && existing.musicbrainz_artistid && mbid !== existing.musicbrainz_artistid) {
+                console.warn(`[Metadata] 🛡️ Permanent Lock: Blocking MBID update for verified artist "${existing.name}". (New: ${mbid}, Kept: ${existing.musicbrainz_artistid})`)
+                mbidToUpdate = existing.musicbrainz_artistid
+            }
+
             // Update existing artist
             db.prepare(`
                 UPDATE artists SET
@@ -115,7 +124,7 @@ export function upsertArtistWithMBID(
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `).run(
-                name, mbid, countryCode, artistType, lifeSpanBegin, lifeSpanEnd,
+                name, mbidToUpdate, countryCode, artistType, lifeSpanBegin, lifeSpanEnd,
                 bio, website, imagePath, nameSortOrder, genderOther,
                 existing.id
             )

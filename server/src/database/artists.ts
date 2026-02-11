@@ -95,6 +95,16 @@ export function updateArtistFacts(id: string, facts: {
     bio?: string
 }): void {
     const db = getDatabase()
+
+    // Check for verification lock
+    const existing = db.prepare('SELECT musicbrainz_artistid, mbid_verified FROM artists WHERE id = ?').get(id) as { musicbrainz_artistid: string | null, mbid_verified: number } | undefined
+
+    let mbidToUpdate = facts.musicbrainzArtistId
+    if (existing?.mbid_verified && facts.musicbrainzArtistId && existing.musicbrainz_artistid && facts.musicbrainzArtistId !== existing.musicbrainz_artistid) {
+        console.warn(`[Metadata] 🛡️ Permanent Lock: Blocking manual/automated MBID change for verified artist. (Kept: ${existing.musicbrainz_artistid})`)
+        mbidToUpdate = existing.musicbrainz_artistid
+    }
+
     const stmt = db.prepare(`
         UPDATE artists 
         SET musicbrainz_artistid = COALESCE(?, musicbrainz_artistid),
@@ -104,11 +114,12 @@ export function updateArtistFacts(id: string, facts: {
             type = COALESCE(?, type),
             gender = COALESCE(?, gender),
             website = COALESCE(?, website),
-            bio = COALESCE(?, bio)
+            bio = COALESCE(?, bio),
+            updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
     `)
     stmt.run(
-        facts.musicbrainzArtistId || null,
+        mbidToUpdate || null,
         facts.country || null,
         facts.lifeSpanBegin || null,
         facts.lifeSpanEnd || null,

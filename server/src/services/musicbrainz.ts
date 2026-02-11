@@ -17,6 +17,7 @@ export interface MBArtistMember {
     name: string
     mbid: string
     role: string
+    isMemberOf: boolean // true if the target is a group the artist belongs to, false if target is a member of this artist
 }
 
 // Rate limiting: MusicBrainz requires delays between requests
@@ -176,8 +177,10 @@ export class MusicBrainzService {
             const members: MBArtistMember[] = relations
                 .filter((rel: any) => rel.type === 'member of band' || rel.type === 'member of')
                 .map((rel: any) => {
-                    let role = 'Band Member'
+                    let role = 'Member'
                     const attributes = rel.attributes || []
+                    const isForward = rel.direction === 'forward'
+
                     if (attributes.length > 0) {
                         const cleanAttrs = attributes.filter((a: string) =>
                             !['additional', 'guest', 'solo', 'minor', 'backdrops', 'programming'].includes(a.toLowerCase())
@@ -186,10 +189,14 @@ export class MusicBrainzService {
                             role = cleanAttrs.map((a: string) => a.charAt(0).toUpperCase() + a.slice(1)).join(', ')
                         }
                     }
+
+                    // If it's a "member of" relation and direction is forward, the target is the group.
+                    // If direction is backward, the target is the member.
                     return {
                         name: rel.artist.name,
                         mbid: rel.artist.id,
-                        role: role
+                        role: role,
+                        isMemberOf: isForward
                     }
                 })
 
@@ -242,7 +249,16 @@ export class MusicBrainzService {
 
             const results = result.recordings.map((rec: any) => {
                 const release = rec.releases?.[0]
-                const artistCredit = rec['artist-credit']?.[0]
+                const artistCredits = rec['artist-credit'] || []
+                const primaryCredit = artistCredits[0]
+
+                // Improve artist identification:
+                // Find the credit that best matches the original search artist name
+                const searchNameLower = artist.toLowerCase()
+                const bestMatchCredit = artistCredits.find((ac: any) => {
+                    const name = (ac.name || ac.artist?.name || '').toLowerCase()
+                    return name === searchNameLower || name.includes(searchNameLower) || searchNameLower.includes(name)
+                }) || primaryCredit
 
                 let label = ''
                 let catalogNumber = ''
@@ -260,12 +276,12 @@ export class MusicBrainzService {
                     id: rec.id,
                     title: rec.title,
                     artist:
-                        typeof artistCredit === 'string'
-                            ? artistCredit
-                            : (artistCredit as any)?.name || 'Unknown Artist',
+                        typeof bestMatchCredit === 'string'
+                            ? bestMatchCredit
+                            : (bestMatchCredit as any)?.name || (bestMatchCredit as any)?.artist?.name || 'Unknown Artist',
                     album: release?.title || 'Unknown Album',
                     albumId: release?.id || '',
-                    artistId: (artistCredit as any)?.artist?.id || '',
+                    artistId: (bestMatchCredit as any)?.artist?.id || (primaryCredit as any)?.artist?.id || '',
                     releaseDate: release?.date,
                     trackNum: release?.['media']?.[0]?.['tracks']?.[0]
                         ?.number
@@ -279,8 +295,8 @@ export class MusicBrainzService {
                     coverArt: release?.id ? `https://coverartarchive.org/release/${release.id}/front-250` : undefined,
                     media: release?.['media']?.[0]?.format,
                     genres: (rec as any).tags?.map((t: any) => t.name),
-                    artistCredits: rec['artist-credit']?.map((ac: any) => ({
-                        name: ac.name,
+                    artistCredits: artistCredits.map((ac: any) => ({
+                        name: ac.name || ac.artist?.name,
                         mbid: ac.artist?.id,
                         joinPhrase: ac.joinPhrase
                     }))

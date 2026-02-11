@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS artists (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     last_enrich_attempt DATETIME,
+    mbid_verified INTEGER DEFAULT 0,
+    image_verified INTEGER DEFAULT 0,
     UNIQUE(name, country)
 );
 
@@ -420,6 +422,7 @@ CREATE TABLE IF NOT EXISTS albums_cache (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     enriched_at DATETIME,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    is_verified INTEGER DEFAULT 0,
     UNIQUE(name, artist)
 );
 
@@ -439,7 +442,9 @@ CREATE TABLE IF NOT EXISTS artists (
     website TEXT,
     loved INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_enrich_attempt DATETIME
+    last_enrich_attempt DATETIME,
+    mbid_verified INTEGER DEFAULT 0,
+    image_verified INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_settings (
@@ -702,6 +707,9 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE acousticbrainz_data ADD COLUMN instrumentalness REAL",
             "ALTER TABLE tracks ADD COLUMN mood TEXT",
             "ALTER TABLE artists ADD COLUMN last_enrich_attempt DATETIME",
+            "ALTER TABLE artists ADD COLUMN mbid_verified INTEGER DEFAULT 0",
+            "ALTER TABLE artists ADD COLUMN image_verified INTEGER DEFAULT 0",
+            "ALTER TABLE albums_cache ADD COLUMN is_verified INTEGER DEFAULT 0",
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_acousticbrainz_track_unique ON acousticbrainz_data(track_id)"
         ]
 
@@ -837,6 +845,7 @@ export interface DbAlbumCache {
     bio: string | null
     created_at: string
     updated_at: string
+    is_verified: number
 }
 
 export interface DbArtist {
@@ -855,6 +864,8 @@ export interface DbArtist {
     website: string | null
     loved: number
     created_at: string
+    mbid_verified: number
+    image_verified: number
 }
 
 export interface DbUserSetting {
