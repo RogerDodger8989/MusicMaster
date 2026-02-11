@@ -49,7 +49,7 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   viewMode: 'grid',
   sortField: 'title',
   sortOrder: 'asc',
-  visibleSections: ['recently_added', 'recently_played'],
+  visibleSections: ['vibes', 'recently_added', 'recently_played'],
   trackPlayBehavior: 'ask',
   replayGainMode: 'track',
   gaplessEnabled: true,

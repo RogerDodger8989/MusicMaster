@@ -13,6 +13,9 @@ import TracksView from './views/TracksView'
 import PlaylistsView from './views/PlaylistsView'
 import UnsortedView from './views/UnsortedView'
 import HomeView from './views/HomeView'
+import FavoritesView from './views/FavoritesView'
+import AlbumArtistsView from './views/AlbumArtistsView'
+import GenresView from './views/GenresView'
 import { useTagging } from './store/tagging'
 import SearchModal from './components/SearchModal'
 import TaggingModal from './components/TaggingModal'
@@ -310,22 +313,22 @@ function App(): React.JSX.Element {
         // Album tagging - minimize modal and show progress
         setTagConfirmationOpen(false)
         setTagConfirmationData(null)
-        
+
         // Get album info for progress tracking
         const album = selectedItemForTagging as Album
         const trackCount = (album as any).trackCount || candidate.trackCount || 12 // Fallback estimate
-        
+
         startTagging(trackCount, `${album.name} by ${album.artist}`)
-        
+
         // Tag album (this will update all tracks)
         const updatedCount = await client.tagAlbumMetadata(track.id, candidate.id)
-        
+
         // Simulate progress updates for better UX
         for (let i = 1; i <= updatedCount; i++) {
           updateProgress(i, `Track ${i} of ${updatedCount}`)
           await new Promise(resolve => setTimeout(resolve, 80)) // Small delay for visual feedback
         }
-        
+
         console.log(`✅ [UI] Album tagged successfully. ${updatedCount} tracks updated.`)
       }
 
@@ -386,6 +389,16 @@ function App(): React.JSX.Element {
         return <PlaylistsView />
       case 'unsorted':
         return <UnsortedView />
+      case 'favorites':
+        return <FavoritesView />
+      case 'genres':
+        return <GenresView />
+      case 'album-artists':
+        return (
+          <AlbumArtistsView
+            onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
+          />
+        )
       case 'album-detail':
         return <AlbumDetailView albumId={viewParams?.albumId} onBack={() => goBack()} />
       case 'artist-detail':

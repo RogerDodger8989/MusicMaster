@@ -1,24 +1,33 @@
 import { useState, useEffect } from 'react'
-import { Music2, Play, Plus, Edit2, Trash2 } from 'lucide-react'
+import { Music2, Play, Plus, Edit2, Trash2, Settings, Check, EyeOff } from 'lucide-react'
 import { VibesButtons, Vibe } from '../components/VibesButtons'
 import CustomVibeBuilder, { CustomVibeInput } from '../components/modals/CustomVibeBuilder'
 import { usePlayer } from '../store/player'
+import { useLibrary } from '../store/library'
+import { useSettings } from '../store/settings'
 import { client } from '../api/client'
+import { AlbumCard } from '../components/AlbumCard'
+import TrackList from '../components/TrackList'
+import { useNavigation } from '../store/navigation'
 
 interface HomeViewProps { }
 
 /**
- * HOME VIEW - Mood-based vibe selection
+ * HOME VIEW - Configurable Dashboard
  */
 export default function HomeView({ }: HomeViewProps) {
   const { playAlbum, currentTrack } = usePlayer()
-  // const { tracks } = useLibrary() - No longer needed, we fetch from API
+  const { albums, tracks } = useLibrary()
+  const { visibleSections, toggleSection } = useSettings()
+  const { navigateTo } = useNavigation()
+
   const [selectedVibe, setSelectedVibe] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [vibes, setVibes] = useState<Vibe[]>([])
   const [isBuilderOpen, setIsBuilderOpen] = useState(false)
   const [editingVibe, setEditingVibe] = useState<CustomVibeInput | null>(null)
   const [customVibes, setCustomVibes] = useState<Vibe[]>([])
+  const [isConfigMode, setIsConfigMode] = useState(false)
 
   // Fetch available vibes on mount
   useEffect(() => {
@@ -163,107 +172,151 @@ export default function HomeView({ }: HomeViewProps) {
   }
 
   const currentVibeInfo = [...vibes, ...customVibes].find(v => v.id === selectedVibe)
-
   const allVibes = [...vibes, ...customVibes]
 
-  return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 to-slate-950 p-8 overflow-y-auto">
-      {/* Header */}
-      <div className="mb-12">
-        <div className="flex items-center gap-3 mb-4">
-          <Music2 className="w-10 h-10 text-cyan-400" />
-          <h1 className="text-5xl font-bold text-white">MusicMaster</h1>
+  // --- Calculated Data ---
+  const recentlyAddedAlbums = albums
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+    .slice(0, 6)
 
+  const recentlyPlayedTracks = tracks
+    // Assuming we have 'lastPlayed' or sorting by updated/playcount interactively?
+    // For now, let's filter by playCount > 0 and maybe sort by random or if we had a date.
+    // The Track interface doesn't strictly have lastPlayed in frontend types? 
+    // Let's use playCount for "Most Played" or actually "Recently Played" if we had the field.
+    // Fallback: Just show random loved tracks or high playcount.
+    .filter(t => t.playCount > 0)
+    .sort((a, b) => b.playCount - a.playCount) // Actually "Most Played"
+    .slice(0, 10)
+
+  // Section Component Helper
+  const Section = ({ id, title, children }: { id: string, title: string, children: React.ReactNode }) => {
+    const isVisible = visibleSections.includes(id)
+
+    if (!isVisible && !isConfigMode) return null
+
+    return (
+      <div className={`mb-12 transition-opacity ${!isVisible && isConfigMode ? 'opacity-50' : 'opacity-100'}`}>
+        <div className="flex items-center gap-4 mb-6">
+          {isConfigMode && (
+            <button
+              onClick={() => toggleSection(id)}
+              className={`p-1 rounded-full ${isVisible ? 'bg-green-500 text-white' : 'bg-zinc-700 text-zinc-400'}`}
+            >
+              {isVisible ? <Check size={16} /> : <EyeOff size={16} />}
+            </button>
+          )}
+          <h2 className="text-2xl font-bold text-white">{title}</h2>
         </div>
-        <p className="text-xl text-slate-400">
-          Choose your vibe and let the music take you
-        </p>
+        {children}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 to-slate-950 p-8 overflow-y-auto custom-scrollbar">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-12">
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <Music2 className="w-10 h-10 text-cyan-400" />
+            <h1 className="text-5xl font-bold text-white">MusicMaster</h1>
+          </div>
+          <p className="text-xl text-slate-400">
+            Welcome back! Here's what's happening.
+          </p>
+        </div>
+        <button
+          onClick={() => setIsConfigMode(!isConfigMode)}
+          className={`p-3 rounded-full transition-all ${isConfigMode ? 'bg-blue-600 text-white rotate-180' : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'}`}
+          title="Configure Home View"
+        >
+          <Settings size={20} />
+        </button>
       </div>
 
-      {/* Vibes Section */}
-      <div className="flex-1">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">🎵 Pick Your Vibe</h2>
-            <button
-              onClick={() => {
-                setEditingVibe(null)
-                setIsBuilderOpen(true)
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-semibold"
-            >
-              <Plus className="w-5 h-5" />
-              Create Custom Vibe
-            </button>
-          </div>
-
-          <VibesButtons
-            vibes={allVibes}
-            selectedVibe={selectedVibe}
-            onVibeSelect={handleVibeSelect}
-            isLoading={isLoading}
-          />
-
-          {/* Custom Vibes with Edit/Delete */}
-          {customVibes.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold text-white mb-4">✨ Your Custom Vibes</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {customVibes.map(vibe => (
-                  <div
-                    key={vibe.id}
-                    className="relative group"
-                  >
-                    <button
-                      onClick={() => handleVibeSelect(vibe.id)}
-                      className={`
-                        w-full p-6 rounded-lg border transition-all
-                        ${selectedVibe === vibe.id
-                          ? 'bg-purple-600/20 border-purple-500 shadow-lg shadow-purple-500/20'
-                          : 'bg-zinc-800 border-zinc-700 hover:border-purple-500/50'
-                        }
-                      `}
-                    >
-                      <div className="text-4xl mb-2">{vibe.emoji}</div>
-                      <div className="text-sm font-semibold text-white">{vibe.name}</div>
-                      {selectedVibe === vibe.id && (
-                        <div className="mt-2 text-xs text-purple-300">Playing</div>
-                      )}
-                    </button>
-
-                    {/* Edit/Delete buttons */}
-                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleEditCustomVibe(vibe.id)
-                        }}
-                        className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-                        title="Edit"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDeleteCustomVibe(vibe.id)
-                        }}
-                        className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* Vibes Section (Always Visible or Configurable?) Let's make it configurable 'vibes' */}
+      <Section id="vibes" title="🎵 Pick Your Vibe">
+        <div className="flex items-center justify-between mb-6">
+          <div />
+          <button
+            onClick={() => {
+              setEditingVibe(null)
+              setIsBuilderOpen(true)
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-semibold"
+          >
+            <Plus className="w-5 h-5" />
+            Create Custom Vibe
+          </button>
         </div>
 
-        {/* Now Playing Info */}
+        <VibesButtons
+          vibes={allVibes}
+          selectedVibe={selectedVibe}
+          onVibeSelect={handleVibeSelect}
+          isLoading={isLoading}
+        />
+
+        {/* Custom Vibes with Edit/Delete */}
+        {customVibes.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold text-white mb-4">✨ Your Custom Vibes</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {customVibes.map(vibe => (
+                <div
+                  key={vibe.id}
+                  className="relative group"
+                >
+                  <button
+                    onClick={() => handleVibeSelect(vibe.id)}
+                    className={`
+                        w-full p-6 rounded-lg border transition-all
+                        ${selectedVibe === vibe.id
+                        ? 'bg-purple-600/20 border-purple-500 shadow-lg shadow-purple-500/20'
+                        : 'bg-zinc-800 border-zinc-700 hover:border-purple-500/50'
+                      }
+                      `}
+                  >
+                    <div className="text-4xl mb-2">{vibe.emoji}</div>
+                    <div className="text-sm font-semibold text-white">{vibe.name}</div>
+                    {selectedVibe === vibe.id && (
+                      <div className="mt-2 text-xs text-purple-300">Playing</div>
+                    )}
+                  </button>
+
+                  {/* Edit/Delete buttons */}
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleEditCustomVibe(vibe.id)
+                      }}
+                      className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteCustomVibe(vibe.id)
+                      }}
+                      className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Now Playing Info (Vibe) */}
         {selectedVibe && currentTrack && (
-          <div className="mt-12 p-6 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+          <div className="mt-8 p-6 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-cyan-300 mb-2">
@@ -281,13 +334,25 @@ export default function HomeView({ }: HomeViewProps) {
             </div>
           </div>
         )}
+      </Section>
 
-        {/* Quick Info */}
-        <div className="mt-12 text-center text-slate-500 text-sm">
-          <p>💡 Pick a vibe to start a curated playlist based on your mood</p>
-          <p className="mt-2 text-xs">Your playlist will remain locked to this vibe until you select a different one</p>
+      <Section id="recently_added" title="🔥 Recently Added">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          {recentlyAddedAlbums.map(album => (
+            <AlbumCard
+              key={album.id}
+              album={album}
+              onClick={() => navigateTo('album-detail', { albumId: album.id })}
+            />
+          ))}
         </div>
-      </div>
+      </Section>
+
+      <Section id="recently_played" title="🎧 Recently Played (Most Played)">
+        <div className="bg-zinc-900/50 rounded-xl border border-white/5 overflow-hidden">
+          <TrackList tracks={recentlyPlayedTracks} />
+        </div>
+      </Section>
 
       {/* Custom Vibe Builder Modal */}
       <CustomVibeBuilder

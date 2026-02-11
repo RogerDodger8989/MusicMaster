@@ -1,4 +1,4 @@
-import { Home, Disc3, Users, Music, ListMusic, Settings, FileQuestion } from 'lucide-react'
+import { Home, Disc3, Users, Music, ListMusic, Settings, FileQuestion, Heart, Mic2, Tags } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { useLibrary } from '../store/library'
 import { useNavigation } from '../store/navigation'
@@ -11,9 +11,12 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: <Home className="w-5 h-5" /> },
-  { id: 'albums', label: 'Albums', icon: <Disc3 className="w-5 h-5" /> },
-  { id: 'artists', label: 'Artists', icon: <Users className="w-5 h-5" /> },
   { id: 'tracks', label: 'Tracks', icon: <Music className="w-5 h-5" /> },
+  { id: 'albums', label: 'Albums', icon: <Disc3 className="w-5 h-5" /> },
+  { id: 'genres', label: 'Genres', icon: <Tags className="w-5 h-5" /> },
+  { id: 'album-artists', label: 'Album Artists', icon: <Mic2 className="w-5 h-5" /> },
+  { id: 'artists', label: 'Artists', icon: <Users className="w-5 h-5" /> },
+  { id: 'favorites', label: 'Favorites', icon: <Heart className="w-5 h-5" /> },
   { id: 'playlists', label: 'Playlists', icon: <ListMusic className="w-5 h-5" /> },
   { id: 'unsorted', label: 'Unsorted', icon: <FileQuestion className="w-5 h-5" /> }
 ]

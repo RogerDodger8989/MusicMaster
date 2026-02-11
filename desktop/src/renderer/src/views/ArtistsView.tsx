@@ -21,7 +21,9 @@ export default function ArtistsView({ onArtistClick }: ArtistsViewProps) {
 
   // Filtered Artists
   const filteredArtists = useMemo(() => {
-    const libraryArtists = artists.filter((artist) => (artist.albumCount || 0) > 0)
+    // User requested ALL artists in this view, so we don't filter by albumCount
+    const libraryArtists = artists
+
     if (!searchQuery) return libraryArtists
     const query = searchQuery.toLowerCase()
     return libraryArtists.filter((artist) => artist.name.toLowerCase().includes(query))
