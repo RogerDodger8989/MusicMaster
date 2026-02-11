@@ -329,8 +329,21 @@
         - [x] Fix external links (ensure 100% accuracy, add favicons)
         - [x] Restore Band Members section with portraits
         - [x] Verify Metallica metadata (website & MBID)
-    - [ ] **Tracks View**
-        - [ ] Verify sorting integration
+    - [x] **Tracks View**
+        - [x] Implement "Played" count column
+        - [x] Add view mode toggles (List, Grid, Cover)
+        - [x] Add column visibility toggles
+        - [x] Ensure premium design matching Artist/Album views
+        - [x] Verify sorting integration
+        - [x] **Interactive Ratings & "Loved" Rule** (SAMMA)
+            - [x] Hover-activated glassmorphic rating selector (1-5 stars + clear)
+            - [x] Bi-directional sync: Rating > 0 => Loved, Rating = 0 => Unlove
+            - [x] Contiguous hover area & "bridge" to prevent selector closing
+            - [x] Visibility fix (removed `overflow-hidden` clipping)
+        - [x] **Advanced Sorting & Presets**
+            - [x] New header dropdown with presets (Highest Rated, Most Played, Recently Added)
+            - [x] Independent Asc/Desc toggle in menu
+            - [x] Visual feedback for current sort selection
 
 
 - [ ] **Phase 10: Final Polish & Packaging**
