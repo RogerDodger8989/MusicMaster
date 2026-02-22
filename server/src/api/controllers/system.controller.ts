@@ -78,3 +78,38 @@ export const listDirectory = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to access directory' })
     }
 }
+
+/**
+ * Open a file in the OS file explorer (highlight the file)
+ */
+export const showInFolder = async (req: Request, res: Response) => {
+    try {
+        const filePath = req.query.path as string
+        if (!filePath) {
+            return res.status(400).json({ error: 'Path is required' })
+        }
+
+        const platform = process.platform
+        let command: string
+
+        if (platform === 'win32') {
+            command = `explorer /select,"${filePath.replace(/\//g, '\\')}"`
+        } else if (platform === 'darwin') {
+            command = `open -R "${filePath}"`
+        } else {
+            const dir = path.dirname(filePath)
+            command = `xdg-open "${dir}"`
+        }
+
+        exec(command, (error) => {
+            if (error) {
+                console.error('showInFolder error:', error.message)
+            }
+        })
+
+        res.json({ ok: true })
+    } catch (error) {
+        console.error('Failed to show file in folder:', error)
+        res.status(500).json({ error: 'Failed to open file in folder' })
+    }
+}

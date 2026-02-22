@@ -319,15 +319,59 @@ export class MusicScanner extends EventEmitter {
             }
 
             // Extract MusicBrainz IDs
-            const musicbrainzTrackId = metadata.common.musicbrainz_trackid
-            const musicbrainzAlbumId = metadata.common.musicbrainz_albumid
-            const musicbrainzArtistId = (metadata.common as any).musicbrainz_artistid || (metadata.common as any).musicbrainz_artist_id
-            const musicbrainzRecordingId = (metadata.common as any).musicbrainz_recordingid
-            const musicbrainzReleaseGroupId = (metadata.common as any).musicbrainz_releasegroupid
-            const musicbrainzWorkId = (metadata.common as any).musicbrainz_workid
+            // First try metadata.common (music-metadata's normalized view)
+            // Then fall back to native Vorbis/ID3 tags (exact tag names used by MusicBee, beets, Picard etc.)
+            const vorbis = metadata.native?.vorbis || []
+            const id3 = metadata.native?.['ID3v2.4'] || metadata.native?.['ID3v2.3'] || []
 
-            if (musicbrainzTrackId || musicbrainzAlbumId) {
-                console.log(`[Scanner] ${path.basename(filePath)} MBIDs: Track=${musicbrainzTrackId}, Album=${musicbrainzAlbumId}`)
+            const getVorbis = (key: string): string | undefined => {
+                const tag = vorbis.find(t => t.id.toUpperCase() === key.toUpperCase())
+                return tag?.value?.toString() || undefined
+            }
+            const getId3 = (key: string): string | undefined => {
+                const tag = id3.find((t: any) => t.id?.toUpperCase() === key.toUpperCase())
+                return tag?.value?.text?.toString() || tag?.value?.toString() || undefined
+            }
+
+            const musicbrainzTrackId =
+                metadata.common.musicbrainz_trackid ||
+                getVorbis('MUSICBRAINZ_TRACKID') ||
+                getVorbis('MUSICBRAINZ_RELEASETRACKID') ||
+                getId3('TXXX:MUSICBRAINZ_TRACKID') ||
+                getId3('TXXX:MUSICBRAINZ TRACK ID')
+
+            const musicbrainzAlbumId =
+                metadata.common.musicbrainz_albumid ||
+                getVorbis('MUSICBRAINZ_ALBUMID') ||
+                getId3('TXXX:MUSICBRAINZ_ALBUMID') ||
+                getId3('TXXX:MUSICBRAINZ ALBUM ID')
+
+            const musicbrainzArtistId =
+                (metadata.common as any).musicbrainz_artistid ||
+                (metadata.common as any).musicbrainz_artist_id ||
+                getVorbis('MUSICBRAINZ_ARTISTID') ||
+                getId3('TXXX:MUSICBRAINZ_ARTISTID') ||
+                getId3('TXXX:MUSICBRAINZ ARTIST ID')
+
+            const musicbrainzRecordingId =
+                (metadata.common as any).musicbrainz_recordingid ||
+                getVorbis('MUSICBRAINZ_TRACKID') ||       // Picard writes recording ID here
+                getVorbis('MUSICBRAINZ_RECORDINGID') ||
+                getId3('TXXX:MUSICBRAINZ_TRACKID') ||
+                getId3('TXXX:MUSICBRAINZ RELEASE TRACK ID')
+
+            const musicbrainzReleaseGroupId =
+                (metadata.common as any).musicbrainz_releasegroupid ||
+                getVorbis('MUSICBRAINZ_RELEASEGROUPID') ||
+                getId3('TXXX:MUSICBRAINZ_RELEASEGROUPID')
+
+            const musicbrainzWorkId =
+                (metadata.common as any).musicbrainz_workid ||
+                getVorbis('MUSICBRAINZ_WORKID') ||
+                getId3('TXXX:MUSICBRAINZ_WORKID')
+
+            if (musicbrainzTrackId || musicbrainzAlbumId || musicbrainzArtistId) {
+                console.log(`[Scanner] ${path.basename(filePath)} MBIDs: Track=${musicbrainzTrackId}, Album=${musicbrainzAlbumId}, Artist=${musicbrainzArtistId}`)
             }
 
             // Extract ReplayGain metadata (values in dB)

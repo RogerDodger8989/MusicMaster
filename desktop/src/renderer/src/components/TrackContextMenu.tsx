@@ -91,7 +91,14 @@ export default function TrackContextMenu({ track, x, y, onClose }: TrackContextM
   }
 
   const handleLocateFile = () => {
-    window.api.util.showItemInFolder(track.filePath)
+    // Try Electron IPC first, fall back to server HTTP API
+    if ((window as any).api?.util?.showItemInFolder) {
+      ; (window as any).api.util.showItemInFolder(track.filePath)
+    } else {
+      fetch(`/api/system/show-in-folder?path=${encodeURIComponent(track.filePath)}`).catch(
+        (err) => console.error('Failed to show in folder:', err)
+      )
+    }
     onClose()
   }
 

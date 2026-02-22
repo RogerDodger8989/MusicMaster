@@ -6,6 +6,7 @@ import { cn } from '../lib/utils'
 import { formatDuration } from '../utils/format'
 import { PlaylistMosaic } from '../components/PlaylistMosaic'
 import { useTrackSelection } from '../hooks/useTrackSelection'
+import { PageHeader } from '../components/PageHeader'
 
 export default function PlaylistsView() {
   const { playlists, fetchPlaylists, deletePlaylist, removeTrackFromPlaylist, isLoading } =
@@ -351,105 +352,110 @@ export default function PlaylistsView() {
   }
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto min-h-full">
-      <div>
-        <h2 className="text-4xl font-black text-white tracking-tight">Your Playlists</h2>
-        <p className="text-zinc-500 mt-2 font-medium">Manage and play your custom collections</p>
-      </div>
+    <div className="h-full flex flex-col bg-zinc-950">
+      <PageHeader
+        icon={ListMusic}
+        iconColor="text-blue-400"
+        title="Playlists"
+        subtitle="Manage and play your custom collections"
+        count={playlists.length}
+      />
+      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
 
-      {playlists.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-zinc-950 border border-dashed border-zinc-800 rounded-2xl text-center space-y-4">
-          <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-700">
-            <ListMusic size={40} />
+        {playlists.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-zinc-950 border border-dashed border-zinc-800 rounded-2xl text-center space-y-4">
+            <div className="w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center text-zinc-700">
+              <ListMusic size={40} />
+            </div>
+            <div className="max-w-sm">
+              <h3 className="text-xl font-bold text-white">No playlists yet</h3>
+              <p className="text-zinc-500 mt-2">
+                Create a playlist from the queue or by right-clicking tracks.
+              </p>
+            </div>
           </div>
-          <div className="max-w-sm">
-            <h3 className="text-xl font-bold text-white">No playlists yet</h3>
-            <p className="text-zinc-500 mt-2">
-              Create a playlist from the queue or by right-clicking tracks.
-            </p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {playlists.map((pl) => (
+              <div
+                key={pl.id}
+                onClick={() => setSelectedPlaylist(pl)}
+                className="group bg-zinc-900/40 border border-zinc-800/50 rounded-2xl p-5 hover:bg-zinc-800/60 transition-all cursor-pointer hover:border-zinc-700 shadow-xl space-y-4"
+              >
+                <div className="relative">
+                  <PlaylistMosaic tracks={pl.tracks} size="md" className="w-full aspect-square" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                    <Play
+                      size={32}
+                      className="text-white fill-current translate-y-2 group-hover:translate-y-0 transition-transform duration-300"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors truncate">
+                    {pl.name}
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-500 font-bold">{pl.tracks.length} tracks</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setDeletingId(pl.id)
+                        setShowDeletePlaylistConfirm(true)
+                      }}
+                      className="p-1 text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {playlists.map((pl) => (
+        )}
+
+        {showDeletePlaylistConfirm && !selectedPlaylist && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-center">
             <div
-              key={pl.id}
-              onClick={() => setSelectedPlaylist(pl)}
-              className="group bg-zinc-900/40 border border-zinc-800/50 rounded-2xl p-5 hover:bg-zinc-800/60 transition-all cursor-pointer hover:border-zinc-700 shadow-xl space-y-4"
-            >
-              <div className="relative">
-                <PlaylistMosaic tracks={pl.tracks} size="md" className="w-full aspect-square" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                  <Play
-                    size={32}
-                    className="text-white fill-current translate-y-2 group-hover:translate-y-0 transition-transform duration-300"
-                  />
-                </div>
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowDeletePlaylistConfirm(false)}
+            />
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 shadow-2xl relative w-full max-w-[320px] animate-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center text-red-500 mx-auto mb-6">
+                <Trash2 size={32} />
               </div>
-              <div className="space-y-1">
-                <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors truncate">
-                  {pl.name}
-                </h3>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-zinc-500 font-bold">{pl.tracks.length} tracks</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setDeletingId(pl.id)
-                      setShowDeletePlaylistConfirm(true)
-                    }}
-                    className="p-1 text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+              <h4 className="text-white text-xl font-bold mb-2">Delete playlist?</h4>
+              <p className="text-zinc-500 text-sm mb-6 leading-relaxed">
+                This will permanently delete this playlist. This cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => deletingId && handleDeletePlaylist(deletingId)}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeletePlaylistConfirm(false)
+                    setDeletingId(null)
+                  }}
+                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
+                >
+                  Cancel
+                </button>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {showDeletePlaylistConfirm && !selectedPlaylist && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 text-center">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowDeletePlaylistConfirm(false)}
-          />
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 shadow-2xl relative w-full max-w-[320px] animate-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center text-red-500 mx-auto mb-6">
-              <Trash2 size={32} />
-            </div>
-            <h4 className="text-white text-xl font-bold mb-2">Delete playlist?</h4>
-            <p className="text-zinc-500 text-sm mb-6 leading-relaxed">
-              This will permanently delete this playlist. This cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => deletingId && handleDeletePlaylist(deletingId)}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => {
-                  setShowDeletePlaylistConfirm(false)
-                  setDeletingId(null)
-                }}
-                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95"
-              >
-                Cancel
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <style>{`
+        <style>{`
                 @keyframes music-bar {
                     0%, 100% { height: 4px; }
                     50% { height: 12px; }
                 }
             `}</style>
+      </div>
     </div>
   )
 }

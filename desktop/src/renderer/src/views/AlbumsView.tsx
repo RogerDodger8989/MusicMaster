@@ -6,9 +6,10 @@ import { AlbumListItem } from '../components/AlbumListItem'
 import { ViewSettings } from '../components/ViewSettings'
 import { AlbumPlayModal } from '../components/AlbumPlayModal'
 import { usePlayer } from '../store/player'
-import { Settings2 } from 'lucide-react'
+import { Disc, Settings2 } from 'lucide-react'
 import { cn } from '../utils'
 import { QueueConfirmationModal } from '../components/QueueConfirmationModal'
+import { PageHeader } from '../components/PageHeader'
 
 interface AlbumsViewProps {
   onAlbumClick: (albumId: string) => void
@@ -152,7 +153,7 @@ export default function AlbumsView({ onAlbumClick }: AlbumsViewProps) {
     const shuffled = [...tracksToShuffle]
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
-      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+        ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
     playAlbum(shuffled, 0)
   }
@@ -171,7 +172,7 @@ export default function AlbumsView({ onAlbumClick }: AlbumsViewProps) {
     if (isPendingShuffle) {
       for (let i = tracksToAppend.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1))
-        ;[tracksToAppend[i], tracksToAppend[j]] = [tracksToAppend[j], tracksToAppend[i]]
+          ;[tracksToAppend[i], tracksToAppend[j]] = [tracksToAppend[j], tracksToAppend[i]]
       }
     }
     insertToQueue(tracksToAppend, queue.length)
@@ -191,38 +192,31 @@ export default function AlbumsView({ onAlbumClick }: AlbumsViewProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background/95">
+    <div className="flex flex-col h-full bg-zinc-950">
       {/* Toolbar & Genres (Sticky Header) */}
-      <div className="flex-shrink-0 bg-background border-b z-20">
-        {/* Top Toolbar */}
-        <div className="flex items-center justify-between p-4 pb-2">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">Albums</h1>
-            <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-md">
-              {filteredAlbums.length}
-            </span>
-
-            {/* Search  */}
-            <input
-              type="text"
-              placeholder="Filter albums..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-muted px-3 py-1.5 rounded-md text-sm w-48 focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Settings Toggle */}
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="p-2 hover:bg-accent rounded-md transition-colors"
-              title="View Settings"
-            >
-              <Settings2 size={20} />
-            </button>
-          </div>
-        </div>
+      <div className="flex-shrink-0 bg-zinc-950 border-b border-zinc-800/70 z-20">
+        <PageHeader
+          icon={Disc}
+          iconColor="text-blue-400"
+          title="Albums"
+          count={filteredAlbums.length}
+        >
+          {/* Search */}
+          <input
+            type="text"
+            placeholder="Filter albums..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-md text-sm w-48 text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all"
+          />
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="p-2 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors"
+            title="View Settings"
+          >
+            <Settings2 size={18} />
+          </button>
+        </PageHeader>
 
         {/* Genre Pills (Horizontal Scroll) */}
         <div className="flex items-center gap-2 px-4 pb-4 overflow-x-auto custom-scrollbar mask-linear-fade">

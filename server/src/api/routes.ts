@@ -125,5 +125,6 @@ router.delete('/folders/:id', scan.deleteFolder)
 // System & Filesystem
 router.get('/system/drives', system.listDrives)
 router.get('/system/browse', system.listDirectory)
+router.get('/system/show-in-folder', system.showInFolder)
 
 export default router

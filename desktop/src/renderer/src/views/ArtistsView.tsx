@@ -4,6 +4,7 @@ import { usePlayer } from '../store/player'
 import { Users, Search } from 'lucide-react'
 import { ArtistCard } from '../components/ArtistCard'
 import { ArtistPlayModal } from '../components/ArtistPlayModal'
+import { PageHeader } from '../components/PageHeader'
 
 interface ArtistsViewProps {
   onArtistClick: (artistName: string) => void
@@ -86,35 +87,24 @@ export default function ArtistsView({ onArtistClick }: ArtistsViewProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background/95 relative">
-      {/* Toolbar */}
-      <div className="flex-shrink-0 bg-background border-b z-20 p-4">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">Artists</h1>
-            <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-md">
-              {filteredArtists.length}
-            </span>
-
-            {/* Search */}
-            <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={16}
-              />
-              <input
-                type="text"
-                placeholder="Filter artists..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-muted pl-10 pr-4 py-1.5 rounded-md text-sm w-64 focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2"></div>
+    <div className="flex flex-col h-full bg-zinc-950 relative">
+      <PageHeader
+        icon={Users}
+        iconColor="text-violet-400"
+        title="Artists"
+        count={filteredArtists.length}
+      >
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={14} />
+          <input
+            type="text"
+            placeholder="Filter artists..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-zinc-900 border border-zinc-800 pl-9 pr-4 py-1.5 rounded-md text-sm w-56 text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all"
+          />
         </div>
-      </div>
+      </PageHeader>
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-6 md:px-8 custom-scrollbar">

@@ -13,8 +13,8 @@ import { usePlayer } from '../store/player'
 import { Track } from '../types'
 import { cn } from '../utils'
 import TrackContextMenu from '../components/TrackContextMenu'
-
 import { useTrackSelection } from '../hooks/useTrackSelection'
+import { PageHeader } from '../components/PageHeader'
 
 export default function UnsortedView() {
   const { tracks } = useLibrary()
@@ -26,7 +26,13 @@ export default function UnsortedView() {
   )
 
   const unsortedTracks = useMemo(() => {
-    return tracks.filter((t) => !t.musicbrainzTrackId)
+    return tracks.filter(
+      (t) =>
+        !t.musicbrainzTrackId &&
+        !t.musicbrainzRecordingId &&
+        !t.musicbrainzAlbumId &&
+        !t.musicbrainzArtistId
+    )
   }, [tracks])
 
   const filteredTracks = useMemo(() => {
@@ -73,31 +79,27 @@ export default function UnsortedView() {
     useTrackSelection(filteredTracks)
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto h-full flex flex-col" onClick={clearSelection}>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-            <FileQuestion className="text-zinc-500" />
-            Unsorted Tracks
-          </h2>
-          <p className="text-zinc-500 text-sm mt-1">
-            {unsortedTracks.length} tracks lacking MusicBrainz IDs. Grouped by folder.
-          </p>
-        </div>
-
-        <div className="relative w-full md:w-80">
+    <div className="h-full flex flex-col bg-zinc-950" onClick={clearSelection}>
+      <PageHeader
+        icon={FileQuestion}
+        iconColor="text-amber-400"
+        title="Unsorted Tracks"
+        subtitle={`${unsortedTracks.length} tracks lacking MusicBrainz IDs`}
+        count={unsortedTracks.length}
+      >
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
             type="text"
             placeholder="Search unsorted..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all"
+            className="bg-zinc-900 border border-zinc-800 pl-9 pr-4 py-1.5 rounded-md text-sm w-52 text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all"
           />
         </div>
-      </div>
+      </PageHeader>
 
-      <div className="flex-1 overflow-auto rounded-xl border border-zinc-800 bg-zinc-950 custom-scrollbar">
+      <div className="flex-1 overflow-auto rounded-none border-0 bg-zinc-950 custom-scrollbar">
         {groupedFolders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-zinc-600">
             <Folder className="w-12 h-12 mb-4 opacity-20" />

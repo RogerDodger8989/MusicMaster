@@ -8,6 +8,7 @@ import { Tags, X, Search } from 'lucide-react'
 import { ArtistPlayModal } from '../components/ArtistPlayModal'
 import { usePlayer } from '../store/player'
 import { cn } from '../lib/utils'
+import { PageHeader } from '../components/PageHeader'
 
 export default function GenresView() {
     const { albums, tracks, artists } = useLibrary()
@@ -137,63 +138,36 @@ export default function GenresView() {
     }
 
     return (
-        <div className="flex flex-col h-full bg-background/95 relative">
-            {/* Header & Filter Bar */}
-            <div className="flex-shrink-0 bg-background border-b z-20 p-6 pb-4 space-y-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-indigo-500/10 rounded-full">
-                            <Tags className="w-8 h-8 text-indigo-500" />
-                        </div>
-                        <div>
-                            <h1 className="text-4xl font-bold tracking-tight">Genres</h1>
-                            <p className="text-muted-foreground text-sm mt-1">
-                                {allGenres.length} genres available
-                            </p>
-                        </div>
-                    </div>
-
+        <div className="flex flex-col h-full bg-zinc-950 relative">
+            {/* Header */}
+            <div className="flex-shrink-0 bg-zinc-950 border-b border-zinc-800/70 z-20 space-y-3">
+                <PageHeader
+                    icon={Tags}
+                    iconColor="text-indigo-400"
+                    title="Genres"
+                    subtitle={`${allGenres.length} genres available`}
+                >
                     {/* View Toggles */}
-                    <div className="flex items-center gap-4 bg-muted/50 p-2 rounded-lg">
-                        <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={showArtists}
-                                onChange={(e) => setShowArtists(e.target.checked)}
-                                className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
-                            />
-                            Show Artists
-                        </label>
-                        <div className="w-px h-4 bg-zinc-700" />
-                        <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={showAlbums}
-                                onChange={(e) => setShowAlbums(e.target.checked)}
-                                className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
-                            />
-                            Show Albums
-                        </label>
+                    <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer select-none">
+                        <input type="checkbox" checked={showArtists} onChange={(e) => setShowArtists(e.target.checked)}
+                            className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 text-indigo-500 focus:ring-0" />
+                        Artists
+                    </label>
+                    <label className="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer select-none">
+                        <input type="checkbox" checked={showAlbums} onChange={(e) => setShowAlbums(e.target.checked)}
+                            className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 text-indigo-500 focus:ring-0" />
+                        Albums
+                    </label>
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={14} />
+                        <input type="text" placeholder="Search genres..." value={genreSearchQuery}
+                            onChange={(e) => setGenreSearchQuery(e.target.value)}
+                            className="bg-zinc-900 border border-zinc-800 pl-9 pr-4 py-1.5 rounded-md text-sm w-44 text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-blue-600 transition-all" />
                     </div>
-                </div>
-
-                {/* Genre Search */}
-                <div className="relative">
-                    <Search
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                        size={16}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Search genres..."
-                        value={genreSearchQuery}
-                        onChange={(e) => setGenreSearchQuery(e.target.value)}
-                        className="bg-muted pl-10 pr-4 py-1.5 rounded-md text-sm w-64 focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-                    />
-                </div>
+                </PageHeader>
 
                 {/* Genre Pills */}
-                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto custom-scrollbar p-1">
+                <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto custom-scrollbar px-6 pb-3">
                     {allGenres
                         .filter(g => selectedGenres.includes(g) || g.toLowerCase().includes(genreSearchQuery.toLowerCase()))
                         .map(genre => {
