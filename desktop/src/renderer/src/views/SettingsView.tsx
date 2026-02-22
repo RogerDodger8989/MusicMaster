@@ -9,11 +9,13 @@ import {
   Database,
   RefreshCw,
   Zap,
-  Play
+  Play,
+  Keyboard,
+  Wand2
 } from 'lucide-react'
 import { useFolders } from '../store/folders'
 import { useLibrary } from '../store/library'
-import { useSettings, TrackPlayBehavior, ReplayGainMode } from '../store/settings'
+import { useSettings, TrackPlayBehavior, ReplayGainMode, AutoDjRatingFilter, AutoDjTriggerAt, AutoDjAddCount } from '../store/settings'
 import { useSyncStore } from '../store/sync'
 import { cn } from '../lib/utils'
 import MusicBrainzProgressModal from '../components/modals/MusicBrainzProgressModal'
@@ -700,6 +702,122 @@ export default function SettingsView() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Auto-DJ */}
+        <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-purple-500/10 rounded-lg">
+              <Wand2 className="w-5 h-5 text-purple-500" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Auto-DJ</h3>
+              <p className="text-[11px] text-zinc-500">Automatically fills the queue with similar music based on mood, BPM and genre.</p>
+            </div>
+          </div>
+          <div className="space-y-5">
+            <div className="pt-2 border-t border-zinc-800 flex items-center justify-between gap-3">
+              <div>
+                <label className="text-sm font-medium text-zinc-400">Song Filter</label>
+                <p className="text-[11px] text-zinc-600 mt-1">Which songs may Auto-DJ add to the queue?</p>
+              </div>
+              <div className="flex gap-2">
+                {([
+                  { value: 'rated' as AutoDjRatingFilter, label: 'Rated only' },
+                  { value: 'unrated' as AutoDjRatingFilter, label: 'Unrated only' },
+                  { value: 'both' as AutoDjRatingFilter, label: 'Both' }
+                ]).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => settings.setAutoDjRatingFilter(opt.value)}
+                    className={cn(
+                      'px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all',
+                      settings.autoDjRatingFilter === opt.value
+                        ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/20'
+                        : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200'
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="pt-4 border-t border-zinc-800 flex items-center justify-between gap-3">
+              <div>
+                <label className="text-sm font-medium text-zinc-400">Trigger when X songs left</label>
+                <p className="text-[11px] text-zinc-600 mt-1">Auto-DJ fills up the queue when this many songs remain.</p>
+              </div>
+              <div className="flex gap-2">
+                {([1, 3, 5] as AutoDjTriggerAt[]).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => settings.setAutoDjTriggerAt(n)}
+                    className={cn(
+                      'w-10 py-1.5 text-xs font-semibold rounded-lg border transition-all',
+                      settings.autoDjTriggerAt === n
+                        ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/20'
+                        : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200'
+                    )}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="pt-4 border-t border-zinc-800 flex items-center justify-between gap-3">
+              <div>
+                <label className="text-sm font-medium text-zinc-400">Songs to add per trigger</label>
+                <p className="text-[11px] text-zinc-600 mt-1">How many similar songs to add each time Auto-DJ triggers.</p>
+              </div>
+              <div className="flex gap-2">
+                {([1, 3, 5, 10, 20] as AutoDjAddCount[]).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => settings.setAutoDjAddCount(n)}
+                    className={cn(
+                      'w-10 py-1.5 text-xs font-semibold rounded-lg border transition-all',
+                      settings.autoDjAddCount === n
+                        ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/20'
+                        : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700 hover:text-zinc-200'
+                    )}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <Keyboard className="w-5 h-5 text-blue-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-white">Keyboard Shortcuts</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { key: 'Space', desc: 'Play / Pause' },
+              { key: '← / →', desc: 'Seek 5s Back / Forward' },
+              { key: 'Backspace', desc: 'Go Back' },
+              { key: 'Escape', desc: 'Close Modal / Cancel' },
+              { key: 'Enter', desc: 'Confirm Dialog' },
+              { key: 'Del', desc: 'Delete from Queue' },
+              { key: 'Shift + Enter', desc: 'Edit Selected Tracks' }
+            ].map((shortcut) => (
+              <div key={shortcut.key} className="flex items-center justify-between p-3 bg-zinc-900/50 rounded-lg border border-zinc-800/50">
+                <span className="text-xs text-zinc-400">{shortcut.desc}</span>
+                <kbd className="px-2 py-1 bg-zinc-800 text-zinc-200 text-[10px] font-mono rounded border border-zinc-700 shadow-sm min-w-[2.5rem] text-center">
+                  {shortcut.key}
+                </kbd>
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-zinc-600 mt-4">
+            Shortcuts are global but won't trigger if you are typing in a text field.
+          </p>
         </div>
 
         <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">

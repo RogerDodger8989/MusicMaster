@@ -268,20 +268,37 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
   reanalyzeLibrary: async () => {
     try {
       console.log('Starting full library re-analysis...')
-      // Backend handles this
-      // await client.reanalyzeLibrary() // Assuming this exists or we trigger scan
-      // For now just aggregations if that's what reanalyze means here, or full scan?
-      // "window.api.albums.aggregate()" was the fallback.
-      // Let's assume client has a method or we'll add it.
-      // Actually client.startScan exists. Library re-analysis might be different.
-      // Leaving as TODO/Warning for now if not in client interface.
-      console.warn('reanalyzeLibrary not fully implemented in client yet')
+      const progress = get().scanProgress
+      if (progress.isScanning) return
 
-      await get().loadAlbums()
-      await get().loadGenres()
-      await get().loadTracks()
+      const folders = await client.getFolders()
+      if (folders.length === 0) {
+        console.warn('No folders to scan')
+        return
+      }
+
+      set({
+        scanProgress: { ...progress, isScanning: true, scannedFiles: 0, currentFile: 'Initializing scan...' }
+      })
+
+      // Scan all folders
+      for (const folder of folders) {
+        await client.scanFolder(folder.id)
+      }
+
+      // Reload all data
+      await Promise.all([
+        get().loadTracks(),
+        get().loadAlbums(),
+        get().loadArtists(),
+        get().loadGenres()
+      ])
+
+      set({ scanProgress: { ...get().scanProgress, isScanning: false } })
+      console.log('Library re-analysis complete')
     } catch (error) {
       console.error('Failed to reanalyze library:', error)
+      set({ scanProgress: { ...get().scanProgress, isScanning: false } })
     }
   },
 

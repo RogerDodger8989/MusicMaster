@@ -7,6 +7,8 @@ interface KeyboardShortcutsConfig {
   onEnterPress?: () => void // Confirm
   onDeletePress?: () => void // Delete
   onShiftEnterPress?: () => void // Edit selected
+  onArrowLeftPress?: () => void // Seek back
+  onArrowRightPress?: () => void // Seek forward
   enabled?: boolean
 }
 
@@ -28,6 +30,8 @@ export function useKeyboardShortcuts({
   onEnterPress,
   onDeletePress,
   onShiftEnterPress,
+  onArrowLeftPress,
+  onArrowRightPress,
   enabled = true
 }: KeyboardShortcutsConfig) {
   useEffect(() => {
@@ -67,12 +71,20 @@ export function useKeyboardShortcuts({
             onEnterPress?.()
           }
           break
-        case 'Delete':
-          // Allow Delete in special contexts (queue)
           if (!isInput) {
             e.preventDefault()
             onDeletePress?.()
           }
+          break
+        case 'ArrowLeft':
+          if (isInput) return
+          e.preventDefault()
+          onArrowLeftPress?.()
+          break
+        case 'ArrowRight':
+          if (isInput) return
+          e.preventDefault()
+          onArrowRightPress?.()
           break
       }
     }
@@ -86,6 +98,8 @@ export function useKeyboardShortcuts({
     onEscapePress,
     onEnterPress,
     onDeletePress,
-    onShiftEnterPress
+    onShiftEnterPress,
+    onArrowLeftPress,
+    onArrowRightPress
   ])
 }

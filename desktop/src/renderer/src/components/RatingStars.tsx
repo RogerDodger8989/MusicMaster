@@ -76,7 +76,7 @@ export function RatingStars({
             {/* Empty Star (Background) */}
             <Star
               size={size}
-              className="text-muted-foreground/30 absolute inset-0 transition-colors"
+              className="text-zinc-500 absolute inset-0 transition-colors"
               strokeWidth={1.5}
             />
 

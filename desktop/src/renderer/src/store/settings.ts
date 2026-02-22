@@ -5,6 +5,9 @@ import { client } from '../api/client'
 
 export type TrackPlayBehavior = 'ask' | 'play_next' | 'add_last' | 'replace'
 export type ReplayGainMode = 'track' | 'album' | 'off'
+export type AutoDjRatingFilter = 'rated' | 'unrated' | 'both'
+export type AutoDjTriggerAt = 1 | 3 | 5
+export type AutoDjAddCount = 1 | 3 | 5 | 10 | 20
 
 interface SettingsStore {
   viewMode: ViewMode
@@ -25,6 +28,10 @@ interface SettingsStore {
   showWaveform: boolean
   tracksViewMode: TrackViewMode
   tracksColumns: string[]
+  autoDjEnabled: boolean
+  autoDjRatingFilter: AutoDjRatingFilter
+  autoDjTriggerAt: AutoDjTriggerAt
+  autoDjAddCount: AutoDjAddCount
 
   // Actions
   setViewMode: (mode: ViewMode) => void
@@ -45,6 +52,10 @@ interface SettingsStore {
   setShowWaveform: (enabled: boolean) => void
   setTracksViewMode: (mode: TrackViewMode) => void
   setTracksColumns: (columns: string[]) => void
+  setAutoDjEnabled: (enabled: boolean) => void
+  setAutoDjRatingFilter: (filter: AutoDjRatingFilter) => void
+  setAutoDjTriggerAt: (count: AutoDjTriggerAt) => void
+  setAutoDjAddCount: (count: AutoDjAddCount) => void
 
   // Persistence
   loadSettings: () => Promise<void>
@@ -69,6 +80,10 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   showWaveform: false,
   tracksViewMode: 'list',
   tracksColumns: ['index', 'title', 'artist', 'album', 'vibe', 'played', 'rating', 'time'],
+  autoDjEnabled: false,
+  autoDjRatingFilter: 'both',
+  autoDjTriggerAt: 1,
+  autoDjAddCount: 3,
 
   setViewMode: (viewMode) => {
     set({ viewMode })
@@ -149,6 +164,22 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   setTracksColumns: (columns) => {
     set({ tracksColumns: columns })
     client.saveSetting('tracksColumns', columns)
+  },
+  setAutoDjEnabled: (enabled) => {
+    set({ autoDjEnabled: enabled })
+    client.saveSetting('autoDjEnabled', enabled)
+  },
+  setAutoDjRatingFilter: (filter) => {
+    set({ autoDjRatingFilter: filter })
+    client.saveSetting('autoDjRatingFilter', filter)
+  },
+  setAutoDjTriggerAt: (count) => {
+    set({ autoDjTriggerAt: count })
+    client.saveSetting('autoDjTriggerAt', count)
+  },
+  setAutoDjAddCount: (count) => {
+    set({ autoDjAddCount: count })
+    client.saveSetting('autoDjAddCount', count)
   },
 
   loadSettings: async () => {

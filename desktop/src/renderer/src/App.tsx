@@ -29,15 +29,17 @@ import { useNavigation } from './store/navigation'
 import { usePlayer } from './store/player'
 import { useSettings, TrackPlayBehavior } from './store/settings'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { useAutoDJ } from './hooks/useAutoDJ'
 import { scrobbleService } from './services/scrobbleService'
 import { Track, Album } from './types'
 
 function App(): React.JSX.Element {
   const { initialize } = useLibrary()
   const { current, navigateTo, goBack } = useNavigation()
-  const { playTrack, playNext, addToQueue, loadSession, togglePlay } = usePlayer()
+  const { currentTrack, duration, currentTime, seek, togglePlay, playTrack, playNext, addToQueue, loadSession } = usePlayer()
   const { setTrackPlayBehavior, loadSettings } = useSettings()
   const { startTagging, updateProgress, finishTagging } = useTagging()
+  useAutoDJ()
 
   const activeView = current.view
   const viewParams = current.params
@@ -156,6 +158,12 @@ function App(): React.JSX.Element {
       if (isQueueOpen) {
         setIsQueueOpen(false)
       }
+    },
+    onArrowLeftPress: () => {
+      if (currentTrack) seek(Math.max(0, currentTime - 5))
+    },
+    onArrowRightPress: () => {
+      if (currentTrack && duration) seek(Math.min(duration, currentTime + 5))
     },
     enabled: true
   })
