@@ -26,6 +26,34 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Temporary endpoint to fix paths
+app.get('/api/fix-paths', (req, res) => {
+    try {
+        const db = require('./database').getDatabase();
+        const oldPath = 'C:\\\\Users\\\\denni\\\\Desktop\\\\Apps\\\\MusicMaster';
+        const newPath = 'C:\\\\Users\\\\denni\\\\Desktop\\\\Egna appar\\\\MusicMaster';
+
+        let changed = 0;
+        const updates = [
+            { t: 'albums', c: 'cover_art_path' },
+            { t: 'albums_cache', c: 'cover_art_path' },
+            { t: 'tracks', c: 'file_path' },
+            { t: 'tracks', c: 'cover_art_path' },
+            { t: 'artists', c: 'image_path' },
+            { t: 'music_folders', c: 'path' }
+        ];
+        for (const u of updates) {
+            try {
+                const result = db.prepare(`UPDATE ${u.t} SET ${u.c} = REPLACE(${u.c}, ?, ?) WHERE ${u.c} LIKE ?`).run(oldPath, newPath, oldPath + '%');
+                changed += result.changes;
+            } catch (e) { }
+        }
+        res.json({ success: true, changed });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Serve static files (cover art, etc) - to be configured
 // app.use('/music', express.static(process.env.MUSIC_PATH || ''));
 
@@ -40,7 +68,7 @@ app.listen(PORT, () => {
         try {
             const coverage = getEnrichmentCoverage();
             console.log(`📊 Enrichment Coverage: ${coverage.enrichedTracks}/${coverage.totalTracks} tracks (${coverage.coveragePercentage}%)`);
-            
+
             // Auto-start enrichment if coverage is less than 100%
             if (coverage.totalTracks > 0 && coverage.coveragePercentage < 100) {
                 console.log('🚀 Coverage incomplete, starting automatic enrichment...');

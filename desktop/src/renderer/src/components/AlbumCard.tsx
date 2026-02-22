@@ -1,11 +1,12 @@
 import { Album } from '../types'
 import { cn } from '../utils'
-import { Play, Heart, Star, Hash } from 'lucide-react'
+import { Play, Heart } from 'lucide-react'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
 import { client } from '../api/client'
 import { useState } from 'react'
 import AlbumContextMenu from './AlbumContextMenu'
+import { RatingStars } from './RatingStars'
 
 interface AlbumCardProps {
   album: Album
@@ -175,35 +176,15 @@ export function AlbumCard({ album, onClick, onPlayOptions, className }: AlbumCar
               <div className="w-5 h-12 -mr-2 cursor-default" />
 
               <div className="flex items-center gap-0.5 bg-black/90 backdrop-blur-3xl border border-white/10 p-1 rounded-full shadow-2xl scale-90 group-hover/rating:scale-100">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      const { rateAlbum } = useLibrary.getState()
-                      rateAlbum(album.id, star)
-                    }}
-                    className={cn(
-                      "p-1.5 hover:scale-125 transition-all text-sm",
-                      star <= album.rating ? "text-yellow-500" : "text-zinc-500 hover:text-zinc-300"
-                    )}
-                  >
-                    <Star size={16} className="w-4 h-4" fill={star <= album.rating ? "currentColor" : "none"} />
-                  </button>
-                ))}
-                {album.rating > 0 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      const { rateAlbum } = useLibrary.getState()
-                      rateAlbum(album.id, 0)
-                    }}
-                    className="p-1.5 ml-0.5 border-l border-white/10 text-zinc-500 hover:text-red-500 transition-colors"
-                    title="Clear Rating"
-                  >
-                    <Hash size={14} className="w-3.5 h-3.5" />
-                  </button>
-                )}
+                <RatingStars
+                  rating={album.rating}
+                  onChange={(r) => {
+                    const { rateAlbum } = useLibrary.getState()
+                    rateAlbum(album.id, r)
+                  }}
+                  size={14}
+                  className="px-1"
+                />
               </div>
             </div>
           </div>

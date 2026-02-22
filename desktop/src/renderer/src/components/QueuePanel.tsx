@@ -7,10 +7,10 @@ import {
   GripVertical,
   Play,
   Pause,
-  Star,
   Heart,
   Clock
 } from 'lucide-react'
+import { RatingStars } from './RatingStars'
 import { usePlayer } from '../store/player'
 import { usePlaylists } from '../store/playlists'
 import { useLibrary } from '../store/library'
@@ -356,7 +356,7 @@ export default function QueuePanel({
                             src={coverUrl}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              ;(e.target as HTMLImageElement).style.display = 'none'
+                              ; (e.target as HTMLImageElement).style.display = 'none'
                             }}
                           />
                         )
@@ -395,24 +395,11 @@ export default function QueuePanel({
 
                       {/* Rating & Love Row */}
                       <div className="flex items-center gap-3 pt-0.5 transition-opacity">
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <Star
-                              key={s}
-                              size={10}
-                              className={cn(
-                                'cursor-pointer',
-                                s <= track.rating
-                                  ? 'text-yellow-500 fill-current'
-                                  : 'text-zinc-800 hover:text-zinc-700'
-                              )}
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                rateTrack(track.id, s === track.rating ? 0 : s)
-                              }}
-                            />
-                          ))}
-                        </div>
+                        <RatingStars
+                          rating={track.rating}
+                          onChange={(r) => rateTrack(track.id, r)}
+                          size={10}
+                        />
                         <Heart
                           size={10}
                           className={cn(

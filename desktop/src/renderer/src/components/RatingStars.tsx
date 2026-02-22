@@ -68,7 +68,7 @@ export function RatingStars({
         return (
           <div
             key={i}
-            className="relative"
+            className="relative transition-transform duration-150 hover:scale-125"
             onMouseMove={(e) => handleMouseMove(e, i)}
             onClick={handleClick}
             style={{ width: size, height: size }}
@@ -76,16 +76,16 @@ export function RatingStars({
             {/* Empty Star (Background) */}
             <Star
               size={size}
-              className="text-muted-foreground/30 absolute inset-0"
+              className="text-muted-foreground/30 absolute inset-0 transition-colors"
               strokeWidth={1.5}
             />
 
             {/* Filled/Half Star (Foreground) */}
             {(isFull || isHalf) && (
               <div
-                className={cn('absolute inset-0 overflow-hidden', isHalf ? 'w-[50%]' : 'w-full')}
+                className={cn('absolute inset-0 overflow-hidden transition-all duration-300', isHalf ? 'w-[50%]' : 'w-full')}
               >
-                <Star size={size} className="fill-yellow-500 text-yellow-500" strokeWidth={1.5} />
+                <Star size={size} className="fill-yellow-500 text-yellow-500 transition-colors" strokeWidth={1.5} />
               </div>
             )}
           </div>

@@ -6,6 +6,7 @@ import { useTrackSelection } from '../hooks/useTrackSelection'
 import { Track, SortField, SortOrder } from '../types'
 import { TrackViewMode } from '../store/settings'
 import { client } from '../api/client'
+import { RatingStars } from './RatingStars'
 
 interface TrackListProps {
     tracks: Track[]
@@ -145,33 +146,12 @@ export default function TrackList({
                                             <div className="w-4 h-10 -mr-2 cursor-default" />
 
                                             <div className="flex items-center gap-0.5 bg-black/90 backdrop-blur-3xl border border-white/10 p-1 rounded-full shadow-2xl scale-90 group-hover/rating:scale-100">
-                                                {[1, 2, 3, 4, 5].map((star) => (
-                                                    <button
-                                                        key={star}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            rateTrack(track.id, star)
-                                                        }}
-                                                        className={cn(
-                                                            "p-1.5 hover:scale-125 transition-all",
-                                                            star <= track.rating ? "text-yellow-500" : "text-zinc-500 hover:text-zinc-300"
-                                                        )}
-                                                    >
-                                                        <Star className="w-3.5 h-3.5" fill={star <= track.rating ? "currentColor" : "none"} />
-                                                    </button>
-                                                ))}
-                                                {track.rating > 0 && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            rateTrack(track.id, 0)
-                                                        }}
-                                                        className="p-1.5 ml-0.5 border-l border-white/10 text-zinc-500 hover:text-red-500 transition-colors"
-                                                        title="Clear Rating"
-                                                    >
-                                                        <Hash className="w-3 h-3" />
-                                                    </button>
-                                                )}
+                                                <RatingStars
+                                                    rating={track.rating}
+                                                    onChange={(r) => rateTrack(track.id, r)}
+                                                    size={14}
+                                                    className="px-1"
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -405,26 +385,12 @@ export default function TrackList({
                             {isColVisible('rating') && (
                                 <div className="flex items-center justify-center gap-3">
                                     <div className="flex items-center">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    rateTrack(track.id, star === track.rating ? 0 : star)
-                                                }}
-                                                className={cn(
-                                                    'transition-all duration-200',
-                                                    star <= track.rating
-                                                        ? 'text-yellow-500 scale-110'
-                                                        : 'text-zinc-800 hover:text-zinc-600 scale-90'
-                                                )}
-                                            >
-                                                <Star
-                                                    className="w-3 h-3"
-                                                    fill={star <= track.rating ? 'currentColor' : 'none'}
-                                                />
-                                            </button>
-                                        ))}
+                                        <RatingStars
+                                            rating={track.rating}
+                                            onChange={(r) => rateTrack(track.id, r)}
+                                            size={12}
+                                            className="px-1"
+                                        />
                                     </div>
                                     <button
                                         onClick={(e) => {
@@ -432,7 +398,7 @@ export default function TrackList({
                                             toggleLoved(track.id)
                                         }}
                                         className={cn(
-                                            'transition-colors',
+                                            'transition-colors p-1',
                                             track.loved ? 'text-red-500' : 'text-zinc-800 hover:text-red-500/50'
                                         )}
                                     >

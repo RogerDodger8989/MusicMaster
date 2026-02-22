@@ -68,14 +68,39 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
 
     const [showVolumeBadge, setShowVolumeBadge] = useState(false)
     const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const volumeRef = useRef<HTMLDivElement>(null)
+    const [isDraggingVolume, setIsDraggingVolume] = useState(false)
 
-    const handleVolumeClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        const rect = e.currentTarget.getBoundingClientRect()
+    const updateVolumeFromEvent = (e: MouseEvent | React.MouseEvent) => {
+        if (!volumeRef.current) return
+        const rect = volumeRef.current.getBoundingClientRect()
         const x = e.clientX - rect.left
         const percentage = Math.max(0, Math.min(1, x / rect.width))
         setVolume(percentage)
-        showBadgeTemporarily()
     }
+
+    const handleVolumeMouseDown = (e: React.MouseEvent) => {
+        setIsDraggingVolume(true)
+        setShowVolumeBadge(true)
+        updateVolumeFromEvent(e)
+
+        const handleMouseMove = (moveEvent: MouseEvent) => {
+            updateVolumeFromEvent(moveEvent)
+            if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current)
+        }
+
+        const handleMouseUp = () => {
+            setIsDraggingVolume(false)
+            showBadgeTemporarily()
+            window.removeEventListener('mousemove', handleMouseMove)
+            window.removeEventListener('mouseup', handleMouseUp)
+        }
+
+        window.addEventListener('mousemove', handleMouseMove)
+        window.addEventListener('mouseup', handleMouseUp)
+    }
+
+
 
     const showBadgeTemporarily = () => {
         setShowVolumeBadge(true)
@@ -392,17 +417,24 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                     </button>
 
                     <div
+                        ref={volumeRef}
                         className="w-20 h-1.5 bg-zinc-800/50 rounded-full cursor-pointer relative group/volume"
-                        onClick={handleVolumeClick}
+                        onMouseDown={handleVolumeMouseDown}
                     >
                         <div className="absolute -inset-y-3 left-0 right-0 z-10" />
                         <div
-                            className="absolute inset-y-0 left-0 bg-zinc-400 group-hover/volume:bg-blue-500 rounded-full transition-colors"
+                            className={cn(
+                                "absolute inset-y-0 left-0 rounded-full transition-colors",
+                                isDraggingVolume ? "bg-blue-500" : "bg-zinc-400 group-hover/volume:bg-blue-500"
+                            )}
                             style={{ width: `${Math.min(100, Math.max(0, (volume || 0) * 100))}%` }}
                         />
                         {/* Inline Thumb for volume */}
                         <div
-                            className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full opacity-0 group-hover/volume:opacity-100 transition-opacity shadow-[0_0_8px_rgba(0,0,0,0.5)]"
+                            className={cn(
+                                "absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full transition-opacity shadow-[0_0_8px_rgba(0,0,0,0.5)]",
+                                isDraggingVolume ? "opacity-100 scale-125" : "opacity-0 group-hover/volume:opacity-100"
+                            )}
                             style={{
                                 left: `${Math.min(100, Math.max(0, (volume || 0) * 100))}%`,
                                 transform: 'translate(-50%, -50%)'
