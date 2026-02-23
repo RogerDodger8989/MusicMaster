@@ -23,9 +23,9 @@ interface VibesButtonsProps {
  * Snazzy vibes buttons component
  * Shows 8 different mood-based vibes with emojis
  */
-export const VibesButtons: React.FC<VibesButtonsProps> = ({ 
-  onVibeSelect, 
-  selectedVibe, 
+export const VibesButtons: React.FC<VibesButtonsProps> = ({
+  onVibeSelect,
+  selectedVibe,
   isLoading = false,
   vibes = []
 }) => {
@@ -51,62 +51,43 @@ export const VibesButtons: React.FC<VibesButtonsProps> = ({
   }
 
   return (
-    <div className="w-full space-y-4">
-      {/* Grid layout - up to 4 columns on desktop, 2 on mobile */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="w-full">
+      {/* Grid layout - up to 6 columns on desktop, 3 on mobile for compactness */}
+      <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-2">
         {allVibes.map((vibe) => (
           <button
             key={vibe.id}
             onClick={() => onVibeSelect(vibe.id)}
             disabled={isLoading}
             className={`
-              group relative overflow-hidden rounded-lg p-4
+              group relative overflow-hidden rounded-lg p-2.5
               transition-all duration-200 ease-out
               ${selectedVibe === vibe.id
-                ? 'ring-2 ring-cyan-400 shadow-lg shadow-cyan-400/30 scale-[1.02]'
-                : 'ring-1 ring-slate-600 hover:ring-slate-500 hover:scale-[1.01]'
+                ? 'ring-1 ring-cyan-400 shadow-lg shadow-cyan-400/20 scale-[1.02]'
+                : 'ring-1 ring-slate-700/50 hover:ring-slate-500 hover:scale-[1.02]'
               }
               ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-95'}
-              bg-gradient-to-br from-slate-700 to-slate-800
-              hover:from-slate-600 hover:to-slate-700
+              bg-slate-800/40 hover:bg-slate-700/60
             `}
             title={vibe.description}
           >
-            {/* Background shimmer effect */}
-            <div
-              className={`
-                absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent
-                opacity-0 group-hover:opacity-10 translate-x-[-100%] group-hover:translate-x-[100%]
-                transition-all duration-500
-              `}
-            />
+            {/* Background glow on selected */}
+            {selectedVibe === vibe.id && (
+              <div className="absolute inset-0 bg-cyan-400/5 animate-pulse" />
+            )}
 
             {/* Content */}
-            <div className="relative z-10 flex flex-col items-center gap-2">
-              {/* Emoji - large and prominent */}
-              <div className="text-4xl drop-shadow-lg">
+            <div className="relative z-10 flex flex-col items-center gap-1">
+              {/* Emoji - smaller */}
+              <div className="text-2xl drop-shadow-md">
                 {vibe.emoji}
               </div>
 
-              {/* Name */}
-              <div className="text-sm font-semibold text-white text-center">
+              {/* Name - smaller and tighter */}
+              <div className="text-[11px] font-bold text-slate-200 text-center leading-tight truncate w-full">
                 {vibe.name}
               </div>
-
-              {/* Selection indicator */}
-              {selectedVibe === vibe.id && (
-                <div className="mt-1 flex items-center justify-center">
-                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-cyan-400/20 border border-cyan-400/50">
-                    <span className="text-xs font-medium text-cyan-300">Playing</span>
-                  </div>
-                </div>
-              )}
             </div>
-
-            {/* Animated border on hover */}
-            {selectedVibe === vibe.id && (
-              <div className="absolute inset-0 border-2 border-cyan-400 rounded-lg animate-pulse" />
-            )}
           </button>
         ))}
       </div>

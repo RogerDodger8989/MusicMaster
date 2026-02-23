@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Music2, Play, Plus, Edit2, Trash2, Settings, Check, EyeOff } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Music2, Plus, Edit2, Trash2, Settings, Check, EyeOff } from 'lucide-react'
 import { VibesButtons, Vibe } from '../components/VibesButtons'
 import CustomVibeBuilder, { CustomVibeInput } from '../components/modals/CustomVibeBuilder'
 import { usePlayer } from '../store/player'
@@ -9,6 +9,9 @@ import { client } from '../api/client'
 import { AlbumCard } from '../components/AlbumCard'
 import TrackList from '../components/TrackList'
 import { useNavigation } from '../store/navigation'
+import { cn } from '../utils'
+import { ChevronUp, ChevronDown } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface HomeViewProps { }
 
@@ -16,9 +19,9 @@ interface HomeViewProps { }
  * HOME VIEW - Configurable Dashboard
  */
 export default function HomeView({ }: HomeViewProps) {
-  const { playAlbum, currentTrack } = usePlayer()
+  const { playAlbum } = usePlayer()
   const { albums, tracks } = useLibrary()
-  const { visibleSections, toggleSection } = useSettings()
+  const { visibleSections, homeSectionsOrder, toggleSection, setHomeSectionsOrder } = useSettings()
   const { navigateTo } = useNavigation()
 
   const [selectedVibe, setSelectedVibe] = useState<string | null>(null)
@@ -171,42 +174,124 @@ export default function HomeView({ }: HomeViewProps) {
     }
   }
 
-  const currentVibeInfo = [...vibes, ...customVibes].find(v => v.id === selectedVibe)
   const allVibes = [...vibes, ...customVibes]
 
-  // --- Calculated Data ---
-  const recentlyAddedAlbums = albums
-    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-    .slice(0, 6)
+  // --- Section Data Calculations ---
 
-  const recentlyPlayedTracks = tracks
-    // Assuming we have 'lastPlayed' or sorting by updated/playcount interactively?
-    // For now, let's filter by playCount > 0 and maybe sort by random or if we had a date.
-    // The Track interface doesn't strictly have lastPlayed in frontend types? 
-    // Let's use playCount for "Most Played" or actually "Recently Played" if we had the field.
-    // Fallback: Just show random loved tracks or high playcount.
-    .filter(t => t.playCount > 0)
-    .sort((a, b) => b.playCount - a.playCount) // Actually "Most Played"
-    .slice(0, 10)
+  // Most Played: Top tracks by play count
+  const mostPlayedTracks = useMemo(() => {
+    return tracks
+      .filter(t => t.playCount > 0)
+      .sort((a, b) => b.playCount - a.playCount)
+      .slice(0, 5)
+  }, [tracks])
 
-  // Section Component Helper
+  // Explore: Random albums from the library
+  const exploreAlbums = useMemo(() => {
+    return [...albums]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 6)
+  }, [albums])
+
+  // Newly Added Releases: Albums sorted by creation date
+  const newlyAddedAlbums = useMemo(() => {
+    return [...albums]
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+      .slice(0, 6)
+  }, [albums])
+
+  // Recently Played: Albums sorted by last-played-track date if we had it, but for now using a mix or just recent playCount increase
+  // Since we don't have lastPlayed on albums strictly, let's use albums with high play count that are also recent?
+  // Let's assume recently played = albums of recently played tracks
+  const recentlyPlayedAlbums = useMemo(() => {
+    const recentPlayTracks = [...tracks]
+      .filter(t => t.playCount > 0)
+      .sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime())
+      .slice(0, 20)
+
+    const albumNames = new Set(recentPlayTracks.map(t => t.album))
+    return albums
+      .filter(a => albumNames.has(a.name))
+      .slice(0, 6)
+  }, [tracks, albums])
+
+  // Recently Released: Albums sorted by year/release date
+  const recentlyReleasedAlbums = useMemo(() => {
+    return [...albums]
+      .sort((a, b) => (b.year || 0) - (a.year || 0))
+      .slice(0, 6)
+  }, [albums])
+
+  // --- Handlers ---
+
+  const moveSection = (id: string, direction: 'up' | 'down') => {
+    const index = homeSectionsOrder.indexOf(id)
+    if (index === -1) return
+    const newOrder = [...homeSectionsOrder]
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    if (targetIndex < 0 || targetIndex >= newOrder.length) return
+    [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]]
+    setHomeSectionsOrder(newOrder)
+  }
+
   const Section = ({ id, title, children }: { id: string, title: string, children: React.ReactNode }) => {
     const isVisible = visibleSections.includes(id)
+    const index = homeSectionsOrder.indexOf(id)
 
-    if (!isVisible && !isConfigMode) return null
+    // Notice: we moved the isVisible and isConfigMode check to the outer mapping loop
+    // so AnimatePresence can handle unmounting properly.
 
     return (
-      <div className={`mb-12 transition-opacity ${!isVisible && isConfigMode ? 'opacity-50' : 'opacity-100'}`}>
-        <div className="flex items-center gap-4 mb-6">
+      <div className={cn(
+        "mb-12 transition-all p-4 rounded-2xl",
+        !isVisible && isConfigMode ? "opacity-40 bg-zinc-950/20 grayscale" : "opacity-100",
+        isConfigMode && "border border-white/5 bg-white/2"
+      )}>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            {isConfigMode && (
+              <div className="flex items-center gap-1 bg-zinc-900 rounded-lg p-1">
+                <button
+                  onClick={() => moveSection(id, 'up')}
+                  disabled={index === 0}
+                  className="p-1 text-zinc-500 hover:text-white disabled:opacity-20"
+                >
+                  <ChevronUp size={16} />
+                </button>
+                <div className="w-px h-4 bg-white/10" />
+                <button
+                  onClick={() => moveSection(id, 'down')}
+                  disabled={index === homeSectionsOrder.length - 1}
+                  className="p-1 text-zinc-500 hover:text-white disabled:opacity-20"
+                >
+                  <ChevronDown size={16} />
+                </button>
+              </div>
+            )}
+            <h2 className="text-2xl font-bold text-white tracking-tight">{title}</h2>
+          </div>
+
           {isConfigMode && (
             <button
               onClick={() => toggleSection(id)}
-              className={`p-1 rounded-full ${isVisible ? 'bg-green-500 text-white' : 'bg-zinc-700 text-zinc-400'}`}
+              className={cn(
+                "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                isVisible ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-zinc-800 text-zinc-500 border border-zinc-700"
+              )}
             >
-              {isVisible ? <Check size={16} /> : <EyeOff size={16} />}
+              {isVisible ? (
+                <>
+                  <Check size={12} />
+                  Visible
+                </>
+              ) : (
+                <>
+                  <EyeOff size={12} />
+                  Hidden
+                </>
+              )}
             </button>
           )}
-          <h2 className="text-2xl font-bold text-white">{title}</h2>
         </div>
         {children}
       </div>
@@ -235,124 +320,172 @@ export default function HomeView({ }: HomeViewProps) {
         </button>
       </div>
 
-      {/* Vibes Section (Always Visible or Configurable?) Let's make it configurable 'vibes' */}
-      <Section id="vibes" title="🎵 Pick Your Vibe">
-        <div className="flex items-center justify-between mb-6">
-          <div />
-          <button
-            onClick={() => {
-              setEditingVibe(null)
-              setIsBuilderOpen(true)
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-semibold"
-          >
-            <Plus className="w-5 h-5" />
-            Create Custom Vibe
-          </button>
-        </div>
+      {/* Dynamic Sections Based on Order */}
+      <AnimatePresence>
+        {homeSectionsOrder.map(sectionId => {
+          // If section is not visible AND we are not in config mode, don't render it
+          // This allows AnimatePresence to handle the exit animation
+          const isVisible = visibleSections.includes(sectionId)
+          if (!isVisible && !isConfigMode) return null
 
-        <VibesButtons
-          vibes={allVibes}
-          selectedVibe={selectedVibe}
-          onVibeSelect={handleVibeSelect}
-          isLoading={isLoading}
-        />
+          let content: React.ReactNode = null
 
-        {/* Custom Vibes with Edit/Delete */}
-        {customVibes.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold text-white mb-4">✨ Your Custom Vibes</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {customVibes.map(vibe => (
-                <div
-                  key={vibe.id}
-                  className="relative group"
-                >
-                  <button
-                    onClick={() => handleVibeSelect(vibe.id)}
-                    className={`
-                        w-full p-6 rounded-lg border transition-all
-                        ${selectedVibe === vibe.id
-                        ? 'bg-purple-600/20 border-purple-500 shadow-lg shadow-purple-500/20'
-                        : 'bg-zinc-800 border-zinc-700 hover:border-purple-500/50'
-                      }
-                      `}
-                  >
-                    <div className="text-4xl mb-2">{vibe.emoji}</div>
-                    <div className="text-sm font-semibold text-white">{vibe.name}</div>
-                    {selectedVibe === vibe.id && (
-                      <div className="mt-2 text-xs text-purple-300">Playing</div>
-                    )}
-                  </button>
-
-                  {/* Edit/Delete buttons */}
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          if (sectionId === 'vibes') {
+            content = (
+              <Section key="vibes" id="vibes" title="🎵 Vibes">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-slate-400">
+                      Pick a mood to start a dynamic playlist
+                    </p>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleEditCustomVibe(vibe.id)
+                      onClick={() => {
+                        setEditingVibe(null)
+                        setIsBuilderOpen(true)
                       }}
-                      className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-                      title="Edit"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors text-xs font-bold shadow-lg shadow-purple-900/20"
                     >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDeleteCustomVibe(vibe.id)
-                      }}
-                      className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Plus className="w-3.5 h-3.5" />
+                      Custom Vibe
                     </button>
                   </div>
+
+                  <VibesButtons
+                    vibes={allVibes}
+                    selectedVibe={selectedVibe}
+                    onVibeSelect={handleVibeSelect}
+                    isLoading={isLoading}
+                  />
+
+                  {customVibes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {customVibes.map(vibe => (
+                        <div
+                          key={vibe.id}
+                          className={cn(
+                            "flex items-center gap-2 px-2 py-1 rounded-md border text-[10px] font-bold transition-all",
+                            selectedVibe === vibe.id ? "bg-purple-500/20 border-purple-500/50 text-purple-200" : "bg-zinc-900/50 border-zinc-800 text-zinc-400"
+                          )}
+                        >
+                          <span>{vibe.emoji} {vibe.name}</span>
+                          <div className="flex items-center gap-1 ml-1 border-l border-white/10 pl-1.5">
+                            <button
+                              onClick={() => handleEditCustomVibe(vibe.id)}
+                              className="hover:text-blue-400 transition-colors"
+                            >
+                              <Edit2 size={10} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCustomVibe(vibe.id)}
+                              className="hover:text-red-400 transition-colors"
+                            >
+                              <Trash2 size={10} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </Section>
+            )
+          }
 
-        {/* Now Playing Info (Vibe) */}
-        {selectedVibe && currentTrack && (
-          <div className="mt-8 p-6 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-cyan-300 mb-2">
-                  {currentVibeInfo?.emoji} Now Playing: {currentVibeInfo?.name}
-                </h3>
-                <p className="text-slate-300">
-                  <span className="font-medium">{currentTrack.title}</span> by{' '}
-                  <span className="font-medium">{currentTrack.artist}</span>
-                </p>
-                <p className="text-sm text-slate-500 mt-2">
-                  {currentVibeInfo?.description}
-                </p>
-              </div>
-              <Play className="w-8 h-8 text-cyan-400 animate-pulse" />
-            </div>
-          </div>
-        )}
-      </Section>
+          if (sectionId === 'most_played') {
+            content = (
+              <Section key="most_played" id="most_played" title="🔝 Most Played Tracks">
+                <div className="bg-zinc-900/40 rounded-xl border border-white/5 p-2">
+                  <TrackList tracks={mostPlayedTracks} hideHeader />
+                </div>
+              </Section>
+            )
+          }
 
-      <Section id="recently_added" title="🔥 Recently Added">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          {recentlyAddedAlbums.map(album => (
-            <AlbumCard
-              key={album.id}
-              album={album}
-              onClick={() => navigateTo('album-detail', { albumId: album.id })}
-            />
-          ))}
-        </div>
-      </Section>
+          if (sectionId === 'explore') {
+            content = (
+              <Section key="explore" id="explore" title="🔭 Explore from your library">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                  {exploreAlbums.map(album => (
+                    <AlbumCard
+                      key={album.id}
+                      album={album}
+                      onClick={() => navigateTo('album-detail', { albumId: album.id })}
+                    />
+                  ))}
+                </div>
+              </Section>
+            )
+          }
 
-      <Section id="recently_played" title="🎧 Recently Played (Most Played)">
-        <div className="bg-zinc-900/50 rounded-xl border border-white/5 overflow-hidden">
-          <TrackList tracks={recentlyPlayedTracks} />
-        </div>
-      </Section>
+          if (sectionId === 'newly_added') {
+            content = (
+              <Section key="newly_added" id="newly_added" title="🔥 Newly added releases">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                  {newlyAddedAlbums.map(album => (
+                    <AlbumCard
+                      key={album.id}
+                      album={album}
+                      onClick={() => navigateTo('album-detail', { albumId: album.id })}
+                    />
+                  ))}
+                </div>
+              </Section>
+            )
+          }
+
+          if (sectionId === 'recently_played') {
+            content = (
+              <Section key="recently_played" id="recently_played" title="🎧 Recently played">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                  {recentlyPlayedAlbums.map(album => (
+                    <AlbumCard
+                      key={album.id}
+                      album={album}
+                      onClick={() => navigateTo('album-detail', { albumId: album.id })}
+                    />
+                  ))}
+                </div>
+              </Section>
+            )
+          }
+
+          if (sectionId === 'recently_released') {
+            content = (
+              <Section key="recently_released" id="recently_released" title="✨ Recently released">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                  {recentlyReleasedAlbums.map(album => (
+                    <AlbumCard
+                      key={album.id}
+                      album={album}
+                      onClick={() => navigateTo('album-detail', { albumId: album.id })}
+                    />
+                  ))}
+                </div>
+              </Section>
+            )
+          }
+
+          if (!content) return null
+
+          return (
+            <motion.div
+              key={sectionId}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                mass: 1
+              }}
+            >
+              {content}
+            </motion.div>
+          )
+        })}
+      </AnimatePresence>
 
       {/* Custom Vibe Builder Modal */}
       <CustomVibeBuilder

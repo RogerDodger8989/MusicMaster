@@ -14,6 +14,7 @@ interface SettingsStore {
   sortField: SortField
   sortOrder: SortOrder
   visibleSections: string[]
+  homeSectionsOrder: string[]
   trackPlayBehavior: TrackPlayBehavior
   replayGainMode: ReplayGainMode
   gaplessEnabled: boolean
@@ -38,6 +39,7 @@ interface SettingsStore {
   setSortField: (field: SortField) => void
   setSortOrder: (order: SortOrder) => void
   toggleSection: (section: string) => void
+  setHomeSectionsOrder: (order: string[]) => void
   setTrackPlayBehavior: (behavior: TrackPlayBehavior) => void
   setReplayGainMode: (mode: ReplayGainMode) => void
   setGaplessEnabled: (enabled: boolean) => void
@@ -65,7 +67,8 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   viewMode: 'grid',
   sortField: 'title',
   sortOrder: 'asc',
-  visibleSections: ['vibes', 'recently_added', 'recently_played'],
+  visibleSections: ['vibes', 'most_played', 'explore', 'newly_added', 'recently_played', 'recently_released'],
+  homeSectionsOrder: ['vibes', 'most_played', 'explore', 'newly_added', 'recently_played', 'recently_released'],
   trackPlayBehavior: 'ask',
   replayGainMode: 'track',
   gaplessEnabled: true,
@@ -107,6 +110,10 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     }
     set({ visibleSections: updated })
     client.saveSetting('visibleSections', updated)
+  },
+  setHomeSectionsOrder: (order) => {
+    set({ homeSectionsOrder: order })
+    client.saveSetting('homeSectionsOrder', order)
   },
   setTrackPlayBehavior: (behavior) => {
     set({ trackPlayBehavior: behavior })

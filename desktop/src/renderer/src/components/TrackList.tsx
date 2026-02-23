@@ -19,6 +19,7 @@ interface TrackListProps {
     isReorderable?: boolean
     onReorder?: (startIndex: number, endIndex: number) => void
     onRemove?: (trackId: string, position: number) => void
+    hideHeader?: boolean
 }
 
 export default function TrackList({
@@ -30,7 +31,8 @@ export default function TrackList({
     onSort,
     isReorderable,
     onReorder,
-    onRemove
+    onRemove,
+    hideHeader = false
 }: TrackListProps) {
     const { toggleLoved, rateTrack, tracks: allTracks } = useLibrary()
     const { currentTrack, playTrack, isPlaying } = usePlayer()
@@ -252,21 +254,23 @@ export default function TrackList({
     return (
         <div className="h-full flex flex-col" onClick={clearSelection}>
             {/* List Header - Sticky Header matched to AlbumsView style */}
-            <div
-                className="grid gap-4 px-6 py-4 border-b border-white/5 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] bg-zinc-900/90 sticky top-0 z-10"
-                style={{ gridTemplateColumns: gridTemplate }}
-            >
-                {/* Dynamically render headers */}
-                {renderHeader('index', <Hash className="w-3 h-3" />, undefined, 'center')}
-                {renderHeader('title', 'Title', 'title')}
-                {renderHeader('artist', 'Artist', 'artist')}
-                {renderHeader('album', 'Album', 'album')}
-                {renderHeader('vibe', 'Vibe', undefined, 'center')}
-                {renderHeader('played', 'Played', 'playCount', 'right')}
-                {renderHeader('rating', 'Rating', 'rating', 'center')}
-                {renderHeader('time', <Clock className="w-3 h-3" />, 'duration', 'right')}
-                {onRemove && <div />}
-            </div>
+            {!hideHeader && (
+                <div
+                    className="grid gap-4 px-6 py-4 border-b border-white/5 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] bg-zinc-900/90 sticky top-0 z-10"
+                    style={{ gridTemplateColumns: gridTemplate }}
+                >
+                    {/* Dynamically render headers */}
+                    {renderHeader('index', <Hash className="w-3 h-3" />, undefined, 'center')}
+                    {renderHeader('title', 'Title', 'title')}
+                    {renderHeader('artist', 'Artist', 'artist')}
+                    {renderHeader('album', 'Album', 'album')}
+                    {renderHeader('vibe', 'Vibe', undefined, 'center')}
+                    {renderHeader('played', 'Played', 'playCount', 'right')}
+                    {renderHeader('rating', 'Rating', 'rating', 'center')}
+                    {renderHeader('time', <Clock className="w-3 h-3" />, 'duration', 'right')}
+                    {onRemove && <div />}
+                </div>
+            )}
 
             <div className="flex-1 divide-y divide-zinc-900 overflow-y-auto custom-scrollbar">
                 {inputTracks.map((track, idx) => {
