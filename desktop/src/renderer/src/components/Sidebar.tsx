@@ -1,6 +1,5 @@
 import { Home, Disc3, Users, Music, ListMusic, Settings, FileQuestion, Heart, Mic2, Tags } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { useLibrary } from '../store/library'
 import { useNavigation } from '../store/navigation'
 
 type NavItem = {
@@ -22,7 +21,6 @@ const navItems: NavItem[] = [
 ]
 
 export default function Sidebar() {
-  const { tracks, albums } = useLibrary()
   const { current, navigateTo } = useNavigation()
   const activeView = current.view
   const setActiveView = (view: string) => navigateTo(view)
@@ -60,26 +58,6 @@ export default function Sidebar() {
           <Settings className="w-5 h-5" />
           <span className="font-medium">Settings</span>
         </button>
-      </div>
-
-      {/* Library Stats */}
-      <div className="p-4 border-t border-zinc-800 text-sm text-zinc-500">
-        <div className="space-y-1">
-          <div className="flex justify-between">
-            <span>Tracks</span>
-            <span className="font-medium text-zinc-400">{tracks.length}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Albums</span>
-            <span className="font-medium text-zinc-400">{albums.length}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Artists</span>
-            <span className="font-medium text-zinc-400">
-              {new Set(tracks.map((t) => t.artist)).size}
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   )

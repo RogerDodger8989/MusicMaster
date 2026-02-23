@@ -11,12 +11,13 @@ import {
   Check,
   Minus
 } from 'lucide-react'
+import { cn } from '../lib/utils'
 import { usePlaylists } from '../store/playlists'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
 import { useNavigation } from '../store/navigation'
 import { Track } from '../types'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useLayoutEffect } from 'react'
 
 interface TrackContextMenuProps {
   track: Track
@@ -44,6 +45,43 @@ export default function TrackContextMenu({
   const { navigateTo } = useNavigation()
   const [showPlaylists, setShowPlaylists] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const [coords, setCoords] = useState({ left: x, top: y })
+  const [subMenuSide, setSubMenuSide] = useState<'right' | 'left'>('right')
+
+  useLayoutEffect(() => {
+    if (menuRef.current) {
+      const rect = menuRef.current.getBoundingClientRect()
+      const winW = window.innerWidth
+      const winH = window.innerHeight
+
+      let newX = x
+      let newY = y
+
+      // Vertical adjustment (flip if overflow)
+      if (y + rect.height > winH) {
+        newY = y - rect.height
+        // If still overflowing top, just clamp to top
+        if (newY < 0) newY = 10
+      }
+
+      // Horizontal adjustment (flip if overflow)
+      if (x + rect.width > winW) {
+        newX = x - rect.width
+        // If still overflowing left, clamp to left
+        if (newX < 0) newX = 10
+      }
+
+      // sub-menu positioning logic
+      const subMenuWidth = 224 // w-56 is 14rem
+      if (newX + rect.width + subMenuWidth > winW) {
+        setSubMenuSide('left')
+      } else {
+        setSubMenuSide('right')
+      }
+
+      setCoords({ left: newX, top: newY })
+    }
+  }, [x, y])
 
   useEffect(() => {
     fetchPlaylists()
@@ -158,7 +196,7 @@ export default function TrackContextMenu({
     <div
       ref={menuRef}
       className="fixed z-[100] w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in zoom-in-95 duration-100"
-      style={{ left: x, top: y }}
+      style={{ left: coords.left, top: coords.top }}
     >
       <button
         onClick={() => {
@@ -219,7 +257,12 @@ export default function TrackContextMenu({
         </button>
 
         {showPlaylists && (
-          <div className="absolute left-full top-0 ml-1 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in slide-in-from-left-2 duration-100">
+          <div
+            className={cn(
+              'absolute top-0 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in duration-100',
+              subMenuSide === 'right' ? 'left-full ml-1 slide-in-from-left-2' : 'right-full mr-1 slide-in-from-right-2'
+            )}
+          >
             {playlists.length === 0 ? (
               <div className="px-4 py-2 text-xs text-zinc-500 font-medium italic">
                 No playlists created

@@ -589,6 +589,30 @@ export default function SettingsView() {
         )}
       </div>
 
+      {/* Library Statistics Section */}
+      <div className="mb-8 p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
+        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <Database className="w-5 h-5 text-blue-500" />
+          Library Statistics
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-4 bg-zinc-900/50 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
+            <span className="text-3xl font-bold text-white mb-1">{useLibrary.getState().tracks.length}</span>
+            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Tracks</span>
+          </div>
+          <div className="p-4 bg-zinc-900/50 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
+            <span className="text-3xl font-bold text-white mb-1">{useLibrary.getState().albums.length}</span>
+            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Albums</span>
+          </div>
+          <div className="p-4 bg-zinc-900/50 rounded-xl border border-white/5 flex flex-col items-center justify-center text-center">
+            <span className="text-3xl font-bold text-white mb-1">
+              {new Set(useLibrary.getState().tracks.map(t => t.artist)).size}
+            </span>
+            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Artists</span>
+          </div>
+        </div>
+      </div>
+
       {/* Other Settings Sections */}
       <div className="space-y-6">
         <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">

@@ -159,6 +159,20 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
     const [waveformError, setWaveformError] = useState(false)
     const showWaveform = useSettings((state) => state.showWaveform)
 
+    const handleCoverContextMenu = (e: React.MouseEvent) => {
+        if (!currentTrack) return
+        e.preventDefault()
+        window.dispatchEvent(
+            new CustomEvent('show-track-context-menu', {
+                detail: {
+                    track: currentTrack,
+                    x: e.clientX,
+                    y: e.clientY
+                }
+            })
+        )
+    }
+
     useEffect(() => {
         setWaveformError(false)
     }, [currentTrack?.id])
@@ -168,8 +182,11 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
             <div className="flex items-center justify-between w-full">
 
                 {/* Left: Currently Playing Info */}
-                <div className="flex items-center gap-4 min-w-0 w-[30%] max-w-[400px]">
-                    <div className="w-14 h-14 bg-zinc-900 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-inner ring-1 ring-white/5">
+                <div className="flex items-center gap-5 min-w-0 w-[30%] max-w-[450px]">
+                    <div
+                        className="w-20 h-20 bg-zinc-900 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-2xl ring-1 ring-white/10 group/cover"
+                        onContextMenu={handleCoverContextMenu}
+                    >
                         {currentTrack ? (
                             <img
                                 src={client.getCoverUrl(
@@ -192,7 +209,7 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                     <div className="flex flex-col min-w-0">
                         <span
                             className={cn(
-                                'font-semibold text-sm text-white truncate',
+                                'font-bold text-base text-white truncate leading-tight',
                                 onAlbumClick && currentTrack && 'cursor-pointer hover:underline decoration-white/30'
                             )}
                             onClick={handleTitleClick}
