@@ -164,6 +164,47 @@ export interface MBReleaseFull {
 }
 
 export class MusicBrainzService {
+    async submitRating(recordingId: string, rating: number, auth: { username: string; password: string }): Promise<void> {
+        if (!auth.username || !auth.password) return
+
+        try {
+            await applyRateLimit()
+            // MusicBrainz ratings are scaled 0-100
+            const scaledRating = Math.max(0, Math.min(100, Math.round((rating / 5) * 100)))
+
+            const url = `https://musicbrainz.org/ws/2/rating?client=musicmaster-1.0.0`
+            const { request } = require('urllib')
+
+            const xmlBody = `
+            <metadata xmlns="http://musicbrainz.org/ns/mmd-2.0#">
+              <recording-list>
+                <recording id="${recordingId}">
+                  <user-rating>${scaledRating}</user-rating>
+                </recording>
+              </recording-list>
+            </metadata>`.trim()
+
+            const res = await request(url, {
+                method: 'POST',
+                digestAuth: `${auth.username}:${auth.password}`,
+                headers: {
+                    'Content-Type': 'application/xml; charset=utf-8',
+                    'Accept': 'application/xml',
+                    'User-Agent': 'MusicMaster/1.0.0'
+                },
+                content: xmlBody
+            })
+
+            if (res.status !== 200) {
+                console.error('MB rating submission failed:', res.data.toString())
+            } else {
+                console.log(`📡 Submitted rating ${rating}/5 (${scaledRating}/100) to MusicBrainz for recording ${recordingId}`)
+            }
+        } catch (error) {
+            console.error('MB rating submission failed:', error)
+        }
+    }
+
     async getArtistMembers(artistId: string): Promise<MBArtistMember[]> {
         const cacheKey = `artist_members_${artistId}`
         const cached = getFromCache(cacheKey)

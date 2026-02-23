@@ -88,4 +88,7 @@ app.listen(PORT, () => {
     // Start background tasks
     const { backgroundEnricher } = require('./services/enricher');
     backgroundEnricher.start(10000); // Process one album every 10 seconds
+
+    const { syncWorker } = require('./services/syncWorker');
+    syncWorker.start();
 });

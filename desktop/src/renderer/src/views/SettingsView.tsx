@@ -11,7 +11,8 @@ import {
   Zap,
   Play,
   Keyboard,
-  Wand2
+  Wand2,
+  UploadCloud
 } from 'lucide-react'
 import { useFolders } from '../store/folders'
 import { useLibrary } from '../store/library'
@@ -33,7 +34,7 @@ export default function SettingsView() {
     scanFolder
   } = useFolders()
   const settings = useSettings()
-  const { progress, startSync, updateProgress, completeSync } = useSyncStore()
+  const { progress, startSync, completeSync } = useSyncStore()
   const [lastfmAuthToken, setLastfmAuthToken] = useState('')
   const [lastfmAuthUrl, setLastfmAuthUrl] = useState('')
   const [lastfmAuthInProgress, setLastfmAuthInProgress] = useState(false)
@@ -81,7 +82,6 @@ export default function SettingsView() {
   const [enrichmentStatus, setEnrichmentStatus] = useState<'idle' | 'running' | 'completed' | 'error'>('idle')
 
   const enrichmentPollRef = useRef<NodeJS.Timeout | null>(null)
-  const syncPollRef = useRef<NodeJS.Timeout | null>(null)
   const enhancePollRef = useRef<NodeJS.Timeout | null>(null)
   const fileSyncPollRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -124,44 +124,7 @@ export default function SettingsView() {
     }
   }, [])
 
-  useEffect(() => {
-    // Poll for Scrobble Sync Status if running
-    if (progress?.isRunning) {
-      syncPollRef.current = setInterval(async () => {
-        try {
-          const status = await client.getSyncStatus()
-          if (status.isRunning) {
-            updateProgress({
-              isRunning: true,
-              current: status.current,
-              total: status.total,
-              trackName: status.trackName,
-              percentage: status.percentage,
-              errors: status.errors
-            })
-          } else if (status.total > 0 && !status.isRunning) {
-            // Finished
-            updateProgress({
-              isRunning: false,
-              current: status.total,
-              total: status.total,
-              trackName: 'Complete',
-              percentage: 100,
-              errors: status.errors
-            })
-            clearInterval(syncPollRef.current!)
-            completeSync()
-          }
-        } catch (e) {
-          console.error('Sync Poll Error', e)
-        }
-      }, 1000)
-    }
-
-    return () => {
-      if (syncPollRef.current) clearInterval(syncPollRef.current)
-    }
-  }, [progress?.isRunning])
+  // Left blank intentionally, polling moved to global App.tsx so it persists across views
 
   // Load MusicBrainz coverage stats
   useEffect(() => {
@@ -252,9 +215,7 @@ export default function SettingsView() {
           clearInterval(checkDone)
           completeSync()
           if (status.errors && status.errors.length > 0) {
-            alert(`✅ Synced with errors.\nDetails in console.`)
-          } else {
-            alert('✅ Successfully synced play counts!')
+            console.warn('Synced with errors:', status.errors)
           }
           await useLibrary.getState().loadTracks()
         }
@@ -917,6 +878,29 @@ export default function SettingsView() {
             </div>
 
             <div>
+              <div className="mb-3">
+                <label className="text-sm font-medium text-zinc-400">MusicBrainz Rating Sync</label>
+                <p className="text-xs text-zinc-600 mt-1">
+                  MusicBrainz requires authentication (HTTP Digest) to submit 1-5 star ratings.
+                </p>
+              </div>
+              <input
+                type="text"
+                value={settings.musicbrainzUsername}
+                onChange={(e) => settings.setMusicbrainzUsername(e.target.value)}
+                placeholder="MusicBrainz username..."
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 mb-3"
+              />
+              <input
+                type="password"
+                value={settings.musicbrainzPassword}
+                onChange={(e) => settings.setMusicbrainzPassword(e.target.value)}
+                placeholder="MusicBrainz password..."
+                className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 mb-3"
+              />
+            </div>
+
+            <div>
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <label className="text-sm font-medium text-zinc-400">Last.fm API Key</label>
@@ -1111,6 +1095,22 @@ export default function SettingsView() {
                 >
                   <Database className="w-4 h-4" />
                   {isListenBrainzImporting ? 'Importing JSON...' : 'Import ListenBrainz JSON'}
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!settings.musicbrainzUsername || !settings.musicbrainzPassword) {
+                      alert('Please provide your MusicBrainz credentials first.')
+                      return;
+                    }
+                    try {
+                      await client.syncMusicBrainzRatings()
+                      alert('Ratings sync started in background.')
+                    } catch (e) { console.error('Failed to trigger sync', e) }
+                  }}
+                  className="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                >
+                  <UploadCloud className="w-4 h-4" />
+                  Sync Ratings to MusicBrainz
                 </button>
                 {listenBrainzImportResult && (
                   <div className="text-xs text-zinc-400 bg-zinc-900/60 border border-zinc-800 rounded-lg p-3">

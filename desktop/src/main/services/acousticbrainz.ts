@@ -294,7 +294,7 @@ export class AcousticBrainzService {
     highlevel?: AcousticBrainzHighLevel
   ): Partial<DbAcousticBrainzData> {
     const result: Partial<DbAcousticBrainzData> = {
-      mbid,
+      musicbrainz_recordingid: mbid,
       updated_at: new Date().toISOString()
     }
 

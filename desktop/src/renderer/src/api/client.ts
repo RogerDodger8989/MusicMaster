@@ -87,6 +87,7 @@ export interface MusicClient {
     listenbrainzUsername: string,
     writeToFile?: boolean
   ): Promise<void>
+  syncMusicBrainzRatings(): Promise<void>
   getSyncStatus(): Promise<any>
   getLastFmAuthToken(): Promise<any>
   createLastFmSession(token: string): Promise<any>
@@ -271,6 +272,7 @@ export class DomClient implements MusicClient {
   async scrobble(): Promise<void> { }
   async updateNowPlaying(): Promise<void> { }
   async syncScrobble(): Promise<void> { }
+  async syncMusicBrainzRatings(): Promise<void> { }
   async getSyncStatus(): Promise<any> {
     return {}
   }
@@ -635,6 +637,10 @@ export class RestClient implements MusicClient {
       method: 'POST',
       body: JSON.stringify({ lastfmUsername, listenbrainzUsername, writeToFile })
     })
+  }
+
+  async syncMusicBrainzRatings(): Promise<void> {
+    await this.req('/api/scrobble/mb-rating-sync', { method: 'POST' })
   }
 
   async getSyncStatus(): Promise<any> {

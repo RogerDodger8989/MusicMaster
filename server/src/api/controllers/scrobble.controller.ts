@@ -5,16 +5,7 @@ import { getDatabase } from '../../database'
 import { getAllTracks, getTrackPlayCount, updateTrackPlayCount } from '../../database/tracks'
 import { writeMetadata } from '../../services/metadataWriter'
 
-// In-memory state for sync status
-// Note: In a real production app, this should be in Redis or DB
-let syncState = {
-    isRunning: false,
-    current: 0,
-    total: 0,
-    trackName: '',
-    percentage: 0,
-    errors: [] as string[]
-}
+import { syncWorker, syncState } from '../../services/syncWorker'
 
 export const scrobbleTrack = async (req: Request, res: Response) => {
     try {
@@ -143,92 +134,20 @@ export const syncPlayCounts = async (req: Request, res: Response) => {
 
     const { lastfmUsername, listenbrainzUsername, writeToFile } = req.body
 
-    syncState = {
-        isRunning: true,
-        current: 0,
-        total: 0,
-        trackName: '',
-        percentage: 0,
-        errors: []
-    };
-
-    // Start background process
+    // Start background process via the shared worker
     // We don't await this promise so the response returns immediately
-    (async () => {
-        try {
-            console.log('Starting play count sync...')
-            const tracks = getAllTracks()
-            syncState.total = tracks.length
-
-            for (let i = 0; i < tracks.length; i++) {
-                const track = tracks[i]
-                syncState.current = i + 1
-                syncState.trackName = `${track.artist} - ${track.title}`
-                syncState.percentage = Math.round(((i + 1) / tracks.length) * 100)
-
-                try {
-                    const localPlayCount = getTrackPlayCount(track.id)
-                    let lastfmPlayCount = 0
-                    let listenbrainzPlayCount = 0
-
-                    if (listenbrainzUsername) {
-                        try {
-                            listenbrainzPlayCount = await listenBrainzService.getTrackPlayCount(
-                                listenbrainzUsername,
-                                track.artist,
-                                track.title
-                            )
-                        } catch (e) {
-                            // ignore
-                        }
-                    }
-
-                    if (lastfmUsername) {
-                        try {
-                            lastfmPlayCount = await lastFmService.getUserTrackPlayCount(
-                                track.artist,
-                                track.title,
-                                lastfmUsername
-                            )
-                        } catch (e) {
-                            // ignore
-                        }
-                    }
-
-                    // Choose max
-                    // IMPORTANT: track.playCount might be undefined in Type but 0 in DB. 
-                    const dbPlayCount = track.playCount || 0
-                    const maxPlayCount = Math.max(dbPlayCount, localPlayCount, lastfmPlayCount, listenbrainzPlayCount)
-
-                    if (maxPlayCount > dbPlayCount) {
-                        console.log(`Updating play count for ${track.title}: ${dbPlayCount} -> ${maxPlayCount}`)
-                        updateTrackPlayCount(track.id, maxPlayCount)
-
-                        if (writeToFile && track.filePath) {
-                            try {
-                                await writeMetadata(track.filePath, track.rating, track.loved, maxPlayCount)
-                            } catch (error) {
-                                console.error('Failed to write metadata:', error)
-                            }
-                        }
-                    }
-
-                } catch (error) {
-                    console.error(`Failed to sync track ${track.id}:`, error)
-                    syncState.errors.push(`${track.artist} - ${track.title}: ${error}`)
-                }
-
-                // Rate limit to avoid API bans
-                await new Promise(resolve => setTimeout(resolve, 350))
-            }
-            console.log('Play count sync complete')
-        } catch (error) {
-            console.error('Sync failed:', error)
-            syncState.errors.push(`General failure: ${error}`)
-        } finally {
-            syncState.isRunning = false
-        }
-    })()
+    syncWorker.runSync(lastfmUsername, listenbrainzUsername, writeToFile)
 
     res.json({ message: 'Sync started' })
+}
+
+export const syncMusicBrainzRatings = async (req: Request, res: Response) => {
+    if (syncState.isRunning) {
+        return res.status(409).json({ error: 'Sync already in progress' })
+    }
+
+    // Start background process via the shared worker
+    syncWorker.syncMusicBrainzRatings()
+
+    res.json({ message: 'MusicBrainz ratings sync started' })
 }

@@ -33,6 +33,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useAutoDJ } from './hooks/useAutoDJ'
 import { scrobbleService } from './services/scrobbleService'
 import { Track, Album } from './types'
+import { useSyncStore } from './store/sync'
 
 function App(): React.JSX.Element {
   const { initialize } = useLibrary()
@@ -141,7 +142,41 @@ function App(): React.JSX.Element {
 
     initApp()
 
+    // Setup global background sync polling
+    const syncPollInterval = setInterval(async () => {
+      try {
+        const status = await client.getSyncStatus()
+        const store = useSyncStore.getState()
+        if (status.isRunning) {
+          store.updateProgress({
+            isRunning: true,
+            current: status.current,
+            total: status.total,
+            trackName: status.trackName,
+            percentage: status.percentage,
+            errors: status.errors
+          })
+        } else if (store.progress?.isRunning && !status.isRunning) {
+          // Finished
+          store.updateProgress({
+            isRunning: false,
+            current: status.total,
+            total: status.total,
+            trackName: 'Complete',
+            percentage: 100,
+            errors: status.errors
+          })
+          store.completeSync()
+          // Reload library data implicitly when a background sync finishes
+          useLibrary.getState().loadTracks()
+        }
+      } catch (e) {
+        // ignore network error
+      }
+    }, 2000)
+
     return () => {
+      clearInterval(syncPollInterval)
       scrobbleService.stop()
       initialize()
     }

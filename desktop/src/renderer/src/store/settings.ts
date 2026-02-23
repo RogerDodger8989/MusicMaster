@@ -24,6 +24,8 @@ interface SettingsStore {
   lastfmUsername: string
   listenbrainzToken: string
   listenbrainzUsername: string
+  musicbrainzUsername: string
+  musicbrainzPassword: string
   lastfmEnabled: boolean
   listenbrainzEnabled: boolean
   showWaveform: boolean
@@ -50,6 +52,8 @@ interface SettingsStore {
   setLastfmUsername: (username: string) => void
   setListenbrainzToken: (token: string) => void
   setListenbrainzUsername: (username: string) => void
+  setMusicbrainzUsername: (username: string) => void
+  setMusicbrainzPassword: (password: string) => void
   setLastfmEnabled: (enabled: boolean) => void
   setListenbrainzEnabled: (enabled: boolean) => void
   setShowWaveform: (enabled: boolean) => void
@@ -80,6 +84,8 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   lastfmUsername: '',
   listenbrainzToken: '',
   listenbrainzUsername: '',
+  musicbrainzUsername: '',
+  musicbrainzPassword: '',
   lastfmEnabled: false,
   listenbrainzEnabled: false,
   showWaveform: false,
@@ -154,6 +160,14 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   setListenbrainzUsername: (username: string) => {
     set({ listenbrainzUsername: username })
     client.saveSetting('listenbrainzUsername', username)
+  },
+  setMusicbrainzUsername: (username: string) => {
+    set({ musicbrainzUsername: username })
+    client.saveSetting('musicbrainzUsername', username)
+  },
+  setMusicbrainzPassword: (password: string) => {
+    set({ musicbrainzPassword: password })
+    client.saveSetting('musicbrainzPassword', password)
   },
   setLastfmEnabled: (enabled) => {
     set({ lastfmEnabled: enabled })

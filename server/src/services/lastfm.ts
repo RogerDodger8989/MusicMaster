@@ -22,6 +22,8 @@ export interface LastFmTrackInfo {
     duration?: number
     listeners?: string
     playcount?: string
+    userplaycount?: string
+    userloved?: string
     artist: { name: string; url: string }
     album?: { artist: string; title: string; image: any[] }
     toptags?: { tag: any[] }
