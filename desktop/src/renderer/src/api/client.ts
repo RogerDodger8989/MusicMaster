@@ -98,6 +98,7 @@ export interface MusicClient {
   // System
   getDrives(): Promise<any[]>;
   getDirectory(path: string): Promise<any[]>;
+  browseNative(): Promise<{ path: string | null }>;
   showItemInFolder(path: string): Promise<void>;
 
   // Media URLs
@@ -219,6 +220,7 @@ export class DomClient implements MusicClient {
   // System
   async getDrives(): Promise<any[]> { return []; }
   async getDirectory(_path: string): Promise<any[]> { return []; }
+  async browseNative(): Promise<{ path: string | null }> { return { path: null }; }
   async showItemInFolder(path: string): Promise<void> {
     if (this.api?.util?.showItemInFolder) {
       this.api.util.showItemInFolder(path);
@@ -288,7 +290,7 @@ export class RestClient implements MusicClient {
 
   async updateArtist(id: string, updates: Partial<Artist>): Promise<void> {
     await this.req<void>(`/api/artists/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates)
     });
@@ -318,23 +320,43 @@ export class RestClient implements MusicClient {
 
   // Interactions
   async rateTrack(id: string, rating: number): Promise<void> {
-    await this.req<void>(`/api/tracks/${id}/rating?rating=${rating}`, { method: 'POST' });
+    await this.req<void>(`/api/tracks/${id}/rate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rating })
+    });
   }
 
   async rateAlbum(id: string, rating: number): Promise<void> {
-    await this.req<void>(`/api/albums/${id}/rating?rating=${rating}`, { method: 'POST' });
+    await this.req<void>(`/api/albums/${id}/rate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rating })
+    });
   }
 
   async toggleTrackLoved(id: string, loved: boolean): Promise<void> {
-    await this.req<void>(`/api/tracks/${id}/loved?loved=${loved}`, { method: 'POST' });
+    await this.req<void>(`/api/tracks/${id}/loved`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ loved })
+    });
   }
 
   async toggleAlbumLoved(id: string, loved: boolean): Promise<void> {
-    await this.req<void>(`/api/albums/${id}/loved?loved=${loved}`, { method: 'POST' });
+    await this.req<void>(`/api/albums/${id}/loved`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ loved })
+    });
   }
 
   async toggleArtistLoved(id: string, loved: boolean): Promise<void> {
-    await this.req<void>(`/api/artists/${id}/loved?loved=${loved}`, { method: 'POST' });
+    await this.req<void>(`/api/artists/${id}/loved`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ loved })
+    });
   }
 
   // Search
@@ -594,11 +616,11 @@ export class RestClient implements MusicClient {
   }
 
   async getArtistMembers(id: string): Promise<any[]> {
-    return this.req<any[]>(`/api/metadata/artist/${id}/members`);
+    return this.req<any[]>(`/api/artists/${id}/members`);
   }
 
   async getArtistTopTracks(artist: string, limit: number = 50): Promise<{ name: string; playcount: string }[]> {
-    return this.req<any[]>(`/api/metadata/artist/${encodeURIComponent(artist)}/top-tracks?limit=${limit}`);
+    return this.req<any[]>(`/api/artists/topTracks?artist=${encodeURIComponent(artist)}&limit=${limit}`);
   }
 
   async getCandidates(trackId: string): Promise<{ candidates: any[] }> {
@@ -630,7 +652,7 @@ export class RestClient implements MusicClient {
   }
 
   async getSimilarArtists(artist: string): Promise<any[]> {
-    return this.req<any[]>(`/api/musicbrainz/similar?artist=${encodeURIComponent(artist)}`);
+    return this.req<any[]>(`/api/artists/similar?artist=${encodeURIComponent(artist)}`);
   }
 
   async openExternal(url: string): Promise<void> {
@@ -638,7 +660,7 @@ export class RestClient implements MusicClient {
   }
 
   async enrichArtists(artistIds: string[]): Promise<void> {
-    await this.req<void>(`/api/metadata/enrich`, {
+    await this.req<void>(`/api/enrich/artists`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ artistIds })
@@ -652,6 +674,10 @@ export class RestClient implements MusicClient {
 
   async getDirectory(path: string): Promise<any[]> {
     return this.req<any[]>(`/api/system/browse?path=${encodeURIComponent(path)}`);
+  }
+
+  async browseNative(): Promise<{ path: string | null }> {
+    return this.req<{ path: string | null }>(`/api/system/browse-native`);
   }
 
   async showItemInFolder(path: string): Promise<void> {

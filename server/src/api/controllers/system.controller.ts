@@ -17,22 +17,25 @@ interface FileSystemNode {
 export const listDrives = async (req: Request, res: Response) => {
     try {
         if (process.platform === 'win32') {
-            exec('wmic logicaldisk get name', (error, stdout, stderr) => {
-                if (error) {
-                    console.error('Disk read error:', error)
-                    return res.status(500).json({ error: 'Generic disk read error' })
+            const drives: FileSystemNode[] = []
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+
+            for (const letter of letters) {
+                const drivePath = `${letter}:\\`
+                try {
+                    if (fs.existsSync(drivePath)) {
+                        drives.push({
+                            name: `${letter}:`,
+                            path: drivePath,
+                            isDirectory: true,
+                            isDrive: true
+                        })
+                    }
+                } catch (e) {
+                    // Skip drives that aren't ready (e.g. empty DVD drives)
                 }
-                const drives = stdout.split('\r\r\n')
-                    .filter(value => /[A-Za-z]:/.test(value))
-                    .map(value => value.trim())
-                    .map(drive => ({
-                        name: drive,
-                        path: drive + '\\',
-                        isDirectory: true,
-                        isDrive: true
-                    }))
-                res.json(drives)
-            })
+            }
+            res.json(drives)
         } else {
             // Linux/Mac
             res.json([{
@@ -112,4 +115,30 @@ export const showInFolder = async (req: Request, res: Response) => {
         console.error('Failed to show file in folder:', error)
         res.status(500).json({ error: 'Failed to open file in folder' })
     }
+}
+
+/**
+ * Open a native Windows folder browser dialog via PowerShell
+ */
+export const browseNative = async (req: Request, res: Response) => {
+    if (process.platform !== 'win32') {
+        return res.status(400).json({ error: 'Native browsing only supported on Windows' })
+    }
+
+    const script = [
+        'Add-Type -AssemblyName System.Windows.Forms',
+        '$browser = New-Object System.Windows.Forms.FolderBrowserDialog',
+        '$browser.Description = "Select a music folder"',
+        '$show = $browser.ShowDialog()',
+        'if ($show -eq "OK") { Write-Host $browser.SelectedPath }'
+    ].join('; ')
+
+    exec(`powershell -Command "${script}"`, (error, stdout) => {
+        if (error) {
+            console.error('browseNative error:', error)
+            return res.status(500).json({ error: 'Failed to open native dialog' })
+        }
+        const selectedPath = stdout.trim()
+        res.json({ path: selectedPath || null })
+    })
 }

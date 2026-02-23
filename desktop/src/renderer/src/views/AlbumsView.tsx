@@ -6,6 +6,7 @@ import { AlbumListItem } from '../components/AlbumListItem'
 import { ViewSettings } from '../components/ViewSettings'
 import { AlbumPlayModal } from '../components/AlbumPlayModal'
 import { usePlayer } from '../store/player'
+import { client } from '../api/client'
 import { Disc, Settings2 } from 'lucide-react'
 import { cn } from '../utils'
 import { QueueConfirmationModal } from '../components/QueueConfirmationModal'
@@ -110,7 +111,7 @@ export default function AlbumsView({ onAlbumClick }: AlbumsViewProps) {
       (t) => t.album === album.name && (t.albumArtist === album.artist || t.artist === album.artist)
     )
     if (tracks.length === 0) {
-      tracks = await (window as any).api.tracks.getTracksByAlbum(album.name, album.artist)
+      tracks = await client.getTracks({ albumId: album.id })
     }
     return tracks
   }

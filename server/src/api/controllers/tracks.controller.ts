@@ -87,7 +87,7 @@ export const updateTrack = (req: Request, res: Response) => {
 export const rateTrack = async (req: Request, res: Response) => {
     try {
         const id = req.params.id as string
-        const { rating } = req.body
+        const rating = req.body.rating !== undefined ? req.body.rating : req.query.rating
 
         if (rating === undefined) {
             return res.status(400).json({ error: 'Rating is required' })
@@ -109,7 +109,7 @@ export const rateTrack = async (req: Request, res: Response) => {
 export const loveTrack = async (req: Request, res: Response) => {
     try {
         const id = req.params.id as string
-        const { loved } = req.body
+        const loved = req.body.loved !== undefined ? req.body.loved : req.query.loved
 
         if (loved === undefined) {
             return res.status(400).json({ error: 'Loved status is required' })

@@ -84,11 +84,20 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
   // Find tracks for this album
   const albumTracks = useMemo(() => {
     if (!album) return []
+    const albumName = album.name?.trim().toLowerCase()
+    const albumArtist = album.artist?.trim().toLowerCase()
+
     return tracks
-      .filter(
-        (t) =>
-          t.album === album.name && (t.albumArtist === album.artist || t.artist === album.artist)
-      )
+      .filter((t) => {
+        const tAlbum = t.album?.trim().toLowerCase()
+        const tArtist = t.artist?.trim().toLowerCase()
+        const tAlbumArtist = t.albumArtist?.trim().toLowerCase()
+
+        return (
+          tAlbum === albumName &&
+          (tAlbumArtist === albumArtist || tArtist === albumArtist || !albumArtist)
+        )
+      })
       .sort((a, b) => {
         const discA = a.discNum || 1
         const discB = b.discNum || 1

@@ -42,7 +42,7 @@ export const updateArtistDetails = (req: Request, res: Response) => {
 export const getSimilarArtists = async (req: Request, res: Response) => {
     try {
         const { lastFmService } = await import('../../services/lastfm')
-        const artistName = req.query.name as string
+        const artistName = (req.query.name || req.query.artist) as string
 
         if (!artistName) {
             res.status(400).json({ error: 'Artist name is required' })
@@ -76,7 +76,7 @@ export const toggleArtistLoved = (req: Request, res: Response) => {
 export const getArtistTopTracks = async (req: Request, res: Response) => {
     try {
         const { lastFmService } = await import('../../services/lastfm')
-        const artistName = req.query.name as string
+        const artistName = (req.query.name || req.query.artist) as string
         const limit = parseInt(req.query.limit as string) || 50
 
         if (!artistName) {

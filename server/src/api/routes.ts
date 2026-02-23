@@ -35,6 +35,7 @@ router.get('/artists/topTracks', artists.getArtistTopTracks)
 router.get('/artists/:id', artists.getArtist)
 router.get('/artists/:id/members', artists.getArtistMembers)
 router.put('/artists/:id', artists.updateArtistDetails)
+router.patch('/artists/:id', artists.updateArtistDetails)
 router.post('/artists/:id/loved', artists.toggleArtistLoved)
 
 // Tracks
@@ -132,6 +133,7 @@ router.delete('/folders/:id', scan.deleteFolder)
 router.get('/system/drives', system.listDrives)
 router.get('/system/browse', system.listDirectory)
 router.get('/system/show-in-folder', system.showInFolder)
+router.get('/system/browse-native', system.browseNative)
 
 // Smart Playlists
 router.get('/smart-playlists', smartPlaylists.getAll)

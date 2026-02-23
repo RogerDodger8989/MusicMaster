@@ -22,6 +22,7 @@ import { cn } from '../utils'
 import { QueueConfirmationModal } from '../components/QueueConfirmationModal'
 import { useTrackSelection } from '../hooks/useTrackSelection'
 import ArtistContextMenu from '../components/ArtistContextMenu'
+import { ArtistBioModal } from '../components/modals/ArtistBioModal'
 import type { Artist } from '../types/index'
 
 interface ArtistDetailViewProps {
@@ -52,7 +53,7 @@ export default function ArtistDetailView({
 
   const [sortBy, setSortBy] = useState<'year' | 'popularity'>('year')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [isBioExpanded, setIsBioExpanded] = useState(false)
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false)
   const [artistMembers, setArtistMembers] = useState<any[]>([])
   const [appearances, setAppearances] = useState<any[]>([])
   const [lastfmTopTracks, setLastfmTopTracks] = useState<{ name: string; playcount: string }[]>([])
@@ -920,10 +921,7 @@ export default function ArtistDetailView({
             <section className="space-y-6">
               <div className="relative group/bio">
                 <div
-                  className={cn(
-                    'text-zinc-300 leading-[1.6] text-base font-medium transition-all duration-500 ease-in-out',
-                    !isBioExpanded ? 'max-h-[350px] overflow-hidden' : 'max-h-[2000px]'
-                  )}
+                  className="text-zinc-300 leading-[1.6] text-base font-medium transition-all max-h-[350px] overflow-hidden"
                   onClick={(e) => {
                     const target = e.target as HTMLElement
                     const anchor = target.closest('a')
@@ -949,24 +947,16 @@ export default function ArtistDetailView({
                 {artist?.bio && (
                   <div className="mt-2 flex justify-start">
                     <button
-                      onClick={() => setIsBioExpanded(!isBioExpanded)}
+                      onClick={() => setIsBioModalOpen(true)}
                       className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-white/50 uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
                     >
-                      {isBioExpanded ? (
-                        <>
-                          Show Less <ChevronUp size={12} />
-                        </>
-                      ) : (
-                        <>
-                          Read More <ChevronDown size={12} />
-                        </>
-                      )}
+                      Read More <ChevronDown size={12} />
                     </button>
                   </div>
                 )}
 
                 {/* Bottom Fade for Truncated Bio */}
-                {!isBioExpanded && artist?.bio && (
+                {artist?.bio && (
                   <div className="absolute bottom-[40px] left-0 right-0 h-24 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none" />
                 )}
               </div>
@@ -1249,6 +1239,13 @@ export default function ArtistDetailView({
           onClose={() => setArtistContextMenu(null)}
         />
       )}
+
+      <ArtistBioModal
+        artistName={artistName}
+        bio={artist?.bio || ''}
+        isOpen={isBioModalOpen}
+        onClose={() => setIsBioModalOpen(false)}
+      />
     </div>
   )
 }

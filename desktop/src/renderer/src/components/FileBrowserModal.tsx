@@ -118,17 +118,38 @@ export const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
             <span className="text-lg">💻</span>
           </button>
           <div className="h-4 w-[1px] bg-zinc-600 mx-1"></div>
-          <div className="flex-1 flex items-center overflow-hidden">
-            {currentPath ? (
-              <div className="flex items-center text-zinc-300 font-medium">
-                <span className="mr-2 text-zinc-500">Path:</span>
-                <span className="font-mono truncate select-all cursor-text bg-zinc-900/50 px-2 py-1 rounded border border-zinc-700 w-full">
-                  {currentPath}
-                </span>
+          <div className="flex-1 flex items-center gap-2 overflow-hidden">
+            {currentPath || drives.length > 0 ? (
+              <div className="flex-1 flex items-center text-zinc-300 font-medium">
+                <span className="mr-2 text-zinc-500 whitespace-nowrap">Path:</span>
+                <input
+                  type="text"
+                  value={currentPath}
+                  onChange={(e) => setCurrentPath(e.target.value)}
+                  onBlur={() => currentPath && loadDirectory(currentPath)}
+                  placeholder="C:\Users\..."
+                  className="flex-1 font-mono text-sm bg-zinc-900/50 px-3 py-1.5 rounded border border-zinc-700 focus:border-blue-500 focus:outline-none transition-all"
+                />
               </div>
             ) : (
               <span className="text-zinc-500 italic">Select a drive...</span>
             )}
+            <button
+              onClick={async () => {
+                try {
+                  const result = await client.browseNative();
+                  if (result.path) {
+                    onSelect(result.path);
+                  }
+                } catch (e) {
+                  setError("Failed to open Windows dialog. Please ensure the server is running on Windows.");
+                }
+              }}
+              className="px-3 py-1.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded text-xs hover:bg-blue-600/40 transition-all flex items-center gap-2 whitespace-nowrap"
+            >
+              <span>📂</span>
+              Select via Windows Explorer
+            </button>
           </div>
           {currentPath && (
             <button
@@ -200,9 +221,8 @@ export const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
                       onDoubleClick={() => onSelect(node.path)} // Allow double click to drill down is default, but maybe explicit select?
                       // Actually double click on folder usually enters it.
                       // Let's add single click selection style?
-                      className={`flex items-center px-4 py-2 hover:bg-blue-600/20 border-b border-zinc-800/50 transition-colors text-left group ${
-                        currentPath === node.path ? 'bg-blue-600/30' : ''
-                      }`}
+                      className={`flex items-center px-4 py-2 hover:bg-blue-600/20 border-b border-zinc-800/50 transition-colors text-left group ${currentPath === node.path ? 'bg-blue-600/30' : ''
+                        }`}
                     >
                       <span className="text-yellow-500 text-lg mr-3">📁</span>
                       <span className="flex-1 text-zinc-300 group-hover:text-white truncate">
@@ -228,11 +248,10 @@ export const FileBrowserModal: React.FC<FileBrowserModalProps> = ({
           <button
             onClick={() => onSelect(currentPath)}
             disabled={!currentPath}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              currentPath
-                ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                : 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${currentPath
+              ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+              : 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
+              }`}
           >
             Select This Folder
           </button>

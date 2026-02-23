@@ -415,8 +415,21 @@ export default function SettingsView() {
     }
   }
 
-  const handleAddFolder = () => {
-    setIsBrowserOpen(true)
+  const handleAddFolder = async () => {
+    // If in Electron, use native dialog
+    if (window.api?.folders?.browse) {
+      try {
+        const path = await window.api.folders.browse()
+        if (path) {
+          await handleFolderSelected(path)
+        }
+      } catch (error) {
+        console.error('Native browse error:', error)
+      }
+    } else {
+      // Fallback for web mode
+      setIsBrowserOpen(true)
+    }
   }
 
   const handleFolderSelected = async (path: string) => {
