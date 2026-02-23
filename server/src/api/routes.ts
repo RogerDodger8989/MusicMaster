@@ -2,6 +2,7 @@ import { Router } from 'express'
 import * as albums from './controllers/albums.controller'
 import * as artists from './controllers/artists.controller'
 import * as tracks from './controllers/tracks.controller'
+import * as trackInfo from './controllers/trackInfo.controller'
 import * as search from './controllers/search.controller'
 import * as scan from './controllers/scan.controller'
 import * as playlists from './controllers/playlists.controller'
@@ -42,6 +43,7 @@ router.get('/tracks/:id', tracks.getTrack)
 router.put('/tracks/:id', tracks.updateTrack)
 router.post('/tracks/:id/rate', tracks.rateTrack)
 router.post('/tracks/:id/loved', tracks.loveTrack)
+router.get('/tracks/:id/info', trackInfo.getTrackInfo)
 
 // Playlists
 router.get('/playlists', playlists.listPlaylists)

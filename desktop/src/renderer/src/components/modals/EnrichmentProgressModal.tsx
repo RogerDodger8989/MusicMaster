@@ -1,4 +1,3 @@
-import React from 'react'
 import { X, CheckCircle2, AlertCircle } from 'lucide-react'
 
 interface EnrichmentProgress {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigation } from '../store/navigation'
 import { MatchSelectionModal } from '../components/modals/MatchSelectionModal'
 
 /**
@@ -9,7 +9,7 @@ import { MatchSelectionModal } from '../components/modals/MatchSelectionModal'
  * Can be accessed from Settings or Track context menu
  */
 export default function ManualMatchView() {
-  const navigate = useNavigate()
+  const { goBack } = useNavigation()
   const [tracks, setTracks] = useState<any[]>([])
   const [selectedTrack, setSelectedTrack] = useState<any | null>(null)
   const [candidates, setCandidates] = useState<any[]>([])
@@ -78,7 +78,7 @@ export default function ManualMatchView() {
       {/* Header */}
       <div className="max-w-6xl mx-auto mb-8">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => goBack()}
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
         >
           <ArrowLeft className="w-5 h-5" />

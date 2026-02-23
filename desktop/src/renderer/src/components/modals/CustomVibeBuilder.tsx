@@ -3,7 +3,7 @@
  * Allows users to create custom mood-based playlists with filters
  */
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Sparkles } from 'lucide-react'
 
 interface CustomVibeBuilderProps {
@@ -34,11 +34,11 @@ const MOOD_OPTIONS = [
   { value: 'mood_acoustic', label: 'Acoustic', emoji: '🎸' }
 ]
 
-export default function CustomVibeBuilder({ 
-  isOpen, 
-  onClose, 
+export default function CustomVibeBuilder({
+  isOpen,
+  onClose,
   onSave,
-  editingVibe 
+  editingVibe
 }: CustomVibeBuilderProps) {
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('✨')
@@ -77,17 +77,17 @@ export default function CustomVibeBuilder({
   }
 
   const handleMoodToggle = (mood: string) => {
-    setSelectedMoods(prev => 
-      prev.includes(mood) 
+    setSelectedMoods(prev =>
+      prev.includes(mood)
         ? prev.filter(m => m !== mood)
         : [...prev, mood]
     )
   }
 
   const handleSave = () => {
-    const hasFilters = 
-      energyMin > 0 || energyMax < 100 || 
-      danceMin > 0 || danceMax < 100 || 
+    const hasFilters =
+      energyMin > 0 || energyMax < 100 ||
+      danceMin > 0 || danceMax < 100 ||
       selectedMoods.length > 0
 
     if (!name.trim() || !emoji.trim() || !hasFilters) {

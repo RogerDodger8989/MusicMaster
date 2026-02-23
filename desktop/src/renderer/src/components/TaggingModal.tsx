@@ -64,8 +64,8 @@ export default function TaggingModal({
             setMatches(matchData)
             setAlbumDetails(null)
           } else {
-            setMatches(matchData.matches || [])
-            setAlbumDetails(matchData.album || null)
+            setMatches((matchData as any).matches || [])
+            setAlbumDetails((matchData as any).album || null)
           }
         } catch (error) {
           console.error('Failed to fetch match preview:', error)

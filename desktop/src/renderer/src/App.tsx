@@ -24,6 +24,7 @@ import QueuePanel from './components/QueuePanel'
 import TrackContextMenu from './components/TrackContextMenu'
 import { TrackPlayOptionModal } from './components/modals/TrackPlayOptionModal'
 import { CreatePlaylistModal } from './components/modals/CreatePlaylistModal'
+import TrackInfoModal from './components/modals/TrackInfoModal'
 import { client } from './api/client'
 import { useLibrary } from './store/library'
 import { useNavigation } from './store/navigation'
@@ -66,6 +67,8 @@ function App(): React.JSX.Element {
     candidate: any
     type: 'track' | 'album'
   } | null>(null)
+
+  const [infoModalTrack, setInfoModalTrack] = useState<Track | null>(null)
 
   const [trackContextMenu, setTrackContextMenu] = useState<{
     track: Track
@@ -195,6 +198,7 @@ function App(): React.JSX.Element {
     onEscapePress: () => {
       setPlayModalOpen(false)
       setTaggingModalOpen(false)
+      setInfoModalTrack(null) // Close info modal on escape
       if (isQueueOpen) {
         setIsQueueOpen(false)
       }
@@ -242,18 +246,18 @@ function App(): React.JSX.Element {
 
   // Listen for request-create-playlist
   useEffect(() => {
-    const handleRequest = (e: CustomEvent) => {
+    const handleCreatePlaylistRequest = (e: CustomEvent) => {
       const trackIds = e.detail.trackIds as string[]
       setInitialTrackIdsForNewPlaylist(trackIds || [])
       setCreatePlaylistModalOpen(true)
     }
-    window.addEventListener('request-create-playlist', handleRequest as EventListener)
-    return () => window.removeEventListener('request-create-playlist', handleRequest as EventListener)
+    window.addEventListener('request-create-playlist', handleCreatePlaylistRequest as EventListener)
+    return () => window.removeEventListener('request-create-playlist', handleCreatePlaylistRequest as EventListener)
   }, [])
 
-  // Listen for request-track-tagging
+  // Listen for request-track-tagging, request-album-tagging, and request-track-info
   useEffect(() => {
-    const handleTaggingRequest = (e: CustomEvent) => {
+    const handleTrackTaggingRequest = (e: CustomEvent) => {
       const track = e.detail.track as Track
       if (track) {
         setSelectedItemForTagging(track)
@@ -261,13 +265,7 @@ function App(): React.JSX.Element {
         setTaggingModalOpen(true)
       }
     }
-    window.addEventListener('request-track-tagging', handleTaggingRequest as EventListener)
-    return () =>
-      window.removeEventListener('request-track-tagging', handleTaggingRequest as EventListener)
-  }, [])
 
-  // Listen for request-album-tagging
-  useEffect(() => {
     const handleAlbumTaggingRequest = (e: CustomEvent) => {
       const album = e.detail.album as Album
       if (album) {
@@ -276,12 +274,23 @@ function App(): React.JSX.Element {
         setTaggingModalOpen(true)
       }
     }
+
+    const handleTrackInfoRequest = (e: CustomEvent) => {
+      const { track } = e.detail
+      if (track) {
+        setInfoModalTrack(track)
+      }
+    }
+
+    window.addEventListener('request-track-tagging', handleTrackTaggingRequest as EventListener)
     window.addEventListener('request-album-tagging', handleAlbumTaggingRequest as EventListener)
-    return () =>
-      window.removeEventListener(
-        'request-album-tagging',
-        handleAlbumTaggingRequest as EventListener
-      )
+    window.addEventListener('request-track-info', handleTrackInfoRequest as EventListener)
+
+    return () => {
+      window.removeEventListener('request-track-tagging', handleTrackTaggingRequest as EventListener)
+      window.removeEventListener('request-album-tagging', handleAlbumTaggingRequest as EventListener)
+      window.removeEventListener('request-track-info', handleTrackInfoRequest as EventListener)
+    }
   }, [])
 
   // Global Context Menu Listener
@@ -557,6 +566,13 @@ function App(): React.JSX.Element {
 
       {/* Sync Progress Toast */}
       <SyncProgressToast />
+
+      {infoModalTrack && (
+        <TrackInfoModal
+          track={infoModalTrack}
+          onClose={() => setInfoModalTrack(null)}
+        />
+      )}
 
       {/* Global Track Context Menu */}
       {trackContextMenu && (

@@ -1,4 +1,3 @@
-import { useRef, useEffect, useState } from 'react'
 import { Play, Shuffle, X, ListPlus } from 'lucide-react'
 import { useDraggable } from '../hooks/useDraggable'
 
@@ -14,7 +13,6 @@ interface AlbumPlayModalProps {
 
 export function AlbumPlayModal({
   albumName,
-  artistName,
   isOpen,
   onClose,
   onPlayAll,

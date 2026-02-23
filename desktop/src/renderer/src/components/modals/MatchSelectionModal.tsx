@@ -1,3 +1,4 @@
+import React from 'react'
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 
@@ -43,7 +44,7 @@ export function MatchSelectionModal({
   onSelect,
   onSkip,
   onClose
-}: MatchSelectionModalProps): JSX.Element {
+}: MatchSelectionModalProps): React.ReactElement {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
@@ -91,6 +92,7 @@ export function MatchSelectionModal({
         document.removeEventListener('mouseup', handleMouseUp)
       }
     }
+    return undefined
   }, [isDragging, dragStart])
 
   const selectedCandidate = candidates[selectedIndex]
@@ -146,11 +148,10 @@ export function MatchSelectionModal({
                 <div
                   key={`${candidate.releaseMbid}-${index}`}
                   onClick={() => setSelectedIndex(index)}
-                  className={`p-3 rounded cursor-pointer transition-colors ${
-                    index === selectedIndex
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  }`}
+                  className={`p-3 rounded cursor-pointer transition-colors ${index === selectedIndex
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
@@ -227,9 +228,8 @@ export function MatchSelectionModal({
                   return (
                     <div
                       key={idx}
-                      className={`flex items-center justify-between p-2 rounded text-xs ${
-                        isCurrentTrack ? 'bg-blue-900/30' : ''
-                      }`}
+                      className={`flex items-center justify-between p-2 rounded text-xs ${isCurrentTrack ? 'bg-blue-900/30' : ''
+                        }`}
                     >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <span className="text-gray-500 w-6">{track.position}</span>

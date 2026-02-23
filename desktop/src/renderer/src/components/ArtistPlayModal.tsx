@@ -1,4 +1,4 @@
-import { Play, Shuffle, X } from 'lucide-react'
+import { Play, Shuffle, X, Heart } from 'lucide-react'
 import { useDraggable } from '../hooks/useDraggable'
 
 interface ArtistPlayModalProps {

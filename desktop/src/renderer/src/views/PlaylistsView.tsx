@@ -1,4 +1,4 @@
-import { ListMusic, Play, Trash2, Hash, Plus, Sparkles, Search, Settings2, Download, Share2 } from 'lucide-react'
+import { ListMusic, Play, Trash2, Plus, Sparkles, Search, Settings2, Download, Share2 } from 'lucide-react'
 import { usePlaylists, Playlist } from '../store/playlists'
 import { useSmartPlaylists, SmartPlaylist } from '../store/smartPlaylists'
 import { usePlayer } from '../store/player'
@@ -80,7 +80,7 @@ export default function PlaylistsView({ playlistId }: PlaylistsViewProps) {
     }
   }, [selectedPlaylist, resolvePlaylist])
 
-  const { clearSelection } = useTrackSelection(playlistTracks)
+  useTrackSelection(playlistTracks)
 
   const filteredPlaylists = useMemo(() => {
     const manual = manualPlaylists.map((p) => ({ ...p, type: 'manual' as const }))

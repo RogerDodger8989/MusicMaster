@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Fingerprint,
   Plus,
+  Info,
   Check,
   Minus
 } from 'lucide-react'
@@ -183,6 +184,15 @@ export default function TrackContextMenu({
     onClose()
   }
 
+  const handleGetInfo = () => {
+    window.dispatchEvent(
+      new CustomEvent('request-track-info', {
+        detail: { track }
+      })
+    )
+    onClose()
+  }
+
   const handleIdentify = () => {
     window.dispatchEvent(
       new CustomEvent('request-track-tagging', {
@@ -316,6 +326,14 @@ export default function TrackContextMenu({
       </button>
 
       <div className="h-px bg-zinc-800 my-1 mx-2" />
+
+      <button
+        onClick={handleGetInfo}
+        className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors text-blue-400 hover:text-white"
+      >
+        <Info size={16} />
+        Get info
+      </button>
 
       <button
         onClick={handleIdentify}
