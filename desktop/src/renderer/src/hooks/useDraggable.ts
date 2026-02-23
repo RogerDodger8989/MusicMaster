@@ -41,5 +41,5 @@ export function useDraggable() {
     }
   }, [isDragging, dragStart])
 
-  return { position, handleMouseDown }
+  return { position, handleMouseDown, setPosition }
 }

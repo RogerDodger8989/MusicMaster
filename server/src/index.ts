@@ -49,8 +49,8 @@ app.get('/api/fix-paths', (req, res) => {
             } catch (e) { }
         }
         res.json({ success: true, changed });
-    } catch (e: any) {
-        res.status(500).json({ error: e.message });
+    } catch (e) {
+        res.status(500).json({ error: e instanceof Error ? e.message : 'Unknown error' });
     }
 });
 

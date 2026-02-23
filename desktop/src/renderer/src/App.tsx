@@ -23,6 +23,7 @@ import TagConfirmationModal from './components/TagConfirmationModal'
 import QueuePanel from './components/QueuePanel'
 import TrackContextMenu from './components/TrackContextMenu'
 import { TrackPlayOptionModal } from './components/modals/TrackPlayOptionModal'
+import { CreatePlaylistModal } from './components/modals/CreatePlaylistModal'
 import { client } from './api/client'
 import { useLibrary } from './store/library'
 import { useNavigation } from './store/navigation'
@@ -51,6 +52,9 @@ function App(): React.JSX.Element {
   const [isResizing, setIsResizing] = useState(false)
   const [queueSelectedIndex, setQueueSelectedIndex] = useState<number | null>(null)
 
+  const [createPlaylistModalOpen, setCreatePlaylistModalOpen] = useState(false)
+  const [initialTrackIdsForNewPlaylist, setInitialTrackIdsForNewPlaylist] = useState<string[]>([])
+
   const [taggingModalOpen, setTaggingModalOpen] = useState(false)
   const [selectedItemForTagging, setSelectedItemForTagging] = useState<Track | Album | null>(null)
   const [taggingItemType, setTaggingItemType] = useState<'track' | 'album'>('track')
@@ -64,6 +68,7 @@ function App(): React.JSX.Element {
 
   const [trackContextMenu, setTrackContextMenu] = useState<{
     track: Track
+    selectedTrackIds?: string[]
     x: number
     y: number
   } | null>(null)
@@ -200,6 +205,17 @@ function App(): React.JSX.Element {
     return () => window.removeEventListener('request-track-play', handleRequest as EventListener)
   }, [playTrack, playNext, addToQueue])
 
+  // Listen for request-create-playlist
+  useEffect(() => {
+    const handleRequest = (e: CustomEvent) => {
+      const trackIds = e.detail.trackIds as string[]
+      setInitialTrackIdsForNewPlaylist(trackIds || [])
+      setCreatePlaylistModalOpen(true)
+    }
+    window.addEventListener('request-create-playlist', handleRequest as EventListener)
+    return () => window.removeEventListener('request-create-playlist', handleRequest as EventListener)
+  }, [])
+
   // Listen for request-track-tagging
   useEffect(() => {
     const handleTaggingRequest = (e: CustomEvent) => {
@@ -236,9 +252,9 @@ function App(): React.JSX.Element {
   // Global Context Menu Listener
   useEffect(() => {
     const handleContextMenuRequest = (e: CustomEvent) => {
-      const { track, x, y } = e.detail
+      const { track, selectedTrackIds, x, y } = e.detail
       if (track) {
-        setTrackContextMenu({ track, x, y })
+        setTrackContextMenu({ track, selectedTrackIds, x, y })
       }
     }
     window.addEventListener('show-track-context-menu', handleContextMenuRequest as EventListener)
@@ -394,7 +410,7 @@ function App(): React.JSX.Element {
       case 'tracks':
         return <TracksView />
       case 'playlists':
-        return <PlaylistsView />
+        return <PlaylistsView playlistId={viewParams?.playlistId} />
       case 'unsorted':
         return <UnsortedView />
       case 'favorites':
@@ -437,6 +453,12 @@ function App(): React.JSX.Element {
         onClose={() => setPlayModalOpen(false)}
         onSelect={handlePlayOptionSelect}
         trackTitle={selectedTrackForPlay?.title || ''}
+      />
+
+      <CreatePlaylistModal
+        isOpen={createPlaylistModalOpen}
+        onClose={() => setCreatePlaylistModalOpen(false)}
+        initialTrackIds={initialTrackIdsForNewPlaylist}
       />
 
       <TaggingModal
@@ -505,6 +527,7 @@ function App(): React.JSX.Element {
       {trackContextMenu && (
         <TrackContextMenu
           track={trackContextMenu.track}
+          selectedTrackIds={trackContextMenu.selectedTrackIds}
           x={trackContextMenu.x}
           y={trackContextMenu.y}
           onClose={() => setTrackContextMenu(null)}

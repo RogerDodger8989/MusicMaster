@@ -6,7 +6,10 @@ import {
   User,
   Disc,
   FolderOpen,
-  Fingerprint
+  Fingerprint,
+  Plus,
+  Check,
+  Minus
 } from 'lucide-react'
 import { usePlaylists } from '../store/playlists'
 import { usePlayer } from '../store/player'
@@ -17,13 +20,25 @@ import { useEffect, useState, useRef } from 'react'
 
 interface TrackContextMenuProps {
   track: Track
+  selectedTrackIds?: string[]
   x: number
   y: number
   onClose: () => void
 }
 
-export default function TrackContextMenu({ track, x, y, onClose }: TrackContextMenuProps) {
-  const { playlists, fetchPlaylists, addTrackToPlaylist } = usePlaylists()
+export default function TrackContextMenu({
+  track,
+  selectedTrackIds,
+  x,
+  y,
+  onClose
+}: TrackContextMenuProps) {
+  const {
+    playlists,
+    fetchPlaylists,
+    addTrackToPlaylist,
+    removeTrackByIdFromPlaylist
+  } = usePlaylists()
   const { playAlbum } = usePlayer()
   const { albums } = useLibrary()
   const { navigateTo } = useNavigation()
@@ -52,8 +67,36 @@ export default function TrackContextMenu({ track, x, y, onClose }: TrackContextM
     }
   }, [fetchPlaylists, onClose])
 
-  const handleAddToPlaylist = async (playlistId: string) => {
-    await addTrackToPlaylist(playlistId, track.id)
+  const handleTogglePlaylist = async (e: React.MouseEvent, playlistId: string) => {
+    e.stopPropagation()
+
+    const ids = selectedTrackIds || [track.id]
+    const playlist = playlists.find((p) => p.id === playlistId)
+    if (!playlist) return
+
+    const tracksInPlaylist = playlist.tracks.map((t) => t.id)
+    const allPresent = ids.every((id) => tracksInPlaylist.includes(id))
+
+    if (allPresent) {
+      for (const id of ids) {
+        await removeTrackByIdFromPlaylist(playlistId, id)
+      }
+    } else {
+      for (const id of ids) {
+        if (!tracksInPlaylist.includes(id)) {
+          await addTrackToPlaylist(playlistId, id)
+        }
+      }
+    }
+    // Note: No onClose() here to keep the menu open
+  }
+
+  const handleCreateNewPlaylist = () => {
+    window.dispatchEvent(
+      new CustomEvent('request-create-playlist', {
+        detail: { trackIds: selectedTrackIds || [track.id] }
+      })
+    )
     onClose()
   }
 
@@ -182,16 +225,39 @@ export default function TrackContextMenu({ track, x, y, onClose }: TrackContextM
                 No playlists created
               </div>
             ) : (
-              playlists.map((pl) => (
-                <button
-                  key={pl.id}
-                  onClick={() => handleAddToPlaylist(pl.id)}
-                  className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white truncate transition-colors"
-                >
-                  {pl.name}
-                </button>
-              ))
+              <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                {[...playlists]
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((pl) => {
+                    const ids = selectedTrackIds || [track.id]
+                    const tracksInPlaylist = pl.tracks.map((t) => t.id)
+                    const allPresent = ids.every((id) => tracksInPlaylist.includes(id))
+                    const somePresent = !allPresent && ids.some((id) => tracksInPlaylist.includes(id))
+
+                    return (
+                      <button
+                        key={pl.id}
+                        onClick={(e) => handleTogglePlaylist(e, pl.id)}
+                        className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center justify-between group transition-colors"
+                      >
+                        <span className="truncate">{pl.name}</span>
+                        {allPresent && <Check size={14} className="text-blue-400 group-hover:text-white" />}
+                        {somePresent && (
+                          <Minus size={14} className="text-zinc-500 group-hover:text-white" />
+                        )}
+                      </button>
+                    )
+                  })}
+              </div>
             )}
+            <div className="h-px bg-zinc-800 my-1 mx-2" />
+            <button
+              onClick={handleCreateNewPlaylist}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-blue-400 hover:bg-blue-600 hover:text-white flex items-center gap-2 transition-colors"
+            >
+              <Plus size={14} />
+              New Playlist...
+            </button>
           </div>
         )}
       </div>

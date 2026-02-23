@@ -5,7 +5,9 @@ import {
     deletePlaylist,
     addTrackToPlaylist,
     removeTrackFromPlaylist,
-    renamePlaylist
+    renamePlaylist,
+    reorderPlaylistTracks,
+    removeTrackByIdFromPlaylist
 } from '../../database/playlists'
 
 export const listPlaylists = (req: Request, res: Response) => {
@@ -103,5 +105,31 @@ export const updatePlaylist = (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error updating playlist:', error)
         res.status(500).json({ error: 'Failed to update playlist' })
+    }
+}
+export const reorderTracks = (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string
+        const { trackIds } = req.body
+        if (!trackIds || !Array.isArray(trackIds)) {
+            return res.status(400).json({ error: 'Track IDs array is required' })
+        }
+        reorderPlaylistTracks(id, trackIds)
+        res.json({ success: true })
+    } catch (error) {
+        console.error('Error reordering playlist:', error)
+        res.status(500).json({ error: 'Failed to reorder playlist' })
+    }
+}
+export const removeByTrackId = (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string
+        const trackId = req.params.trackId as string
+
+        removeTrackByIdFromPlaylist(id, trackId)
+        res.json({ success: true })
+    } catch (error) {
+        console.error('Error removing track from playlist by ID:', error)
+        res.status(500).json({ error: 'Failed to remove track from playlist' })
     }
 }

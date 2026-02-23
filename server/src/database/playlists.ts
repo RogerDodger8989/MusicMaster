@@ -94,3 +94,42 @@ export const renamePlaylist = (id: string, name: string) => {
     const db = getDatabase()
     db.prepare('UPDATE playlists SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(name, id)
 }
+export const reorderPlaylistTracks = (playlistId: string, trackIds: string[]) => {
+    const db = getDatabase()
+    const transaction = db.transaction(() => {
+        db.prepare('DELETE FROM playlist_tracks WHERE playlist_id = ?').run(playlistId)
+
+        const insertTrack = db.prepare('INSERT INTO playlist_tracks (id, playlist_id, track_id, position) VALUES (?, ?, ?, ?)')
+        trackIds.forEach((trackId, index) => {
+            insertTrack.run(randomUUID(), playlistId, trackId, index)
+        })
+
+        db.prepare('UPDATE playlists SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(playlistId)
+    })
+
+    transaction()
+}
+export const removeTrackByIdFromPlaylist = (playlistId: string, trackId: string) => {
+    const db = getDatabase()
+
+    const transaction = db.transaction(() => {
+        db.prepare('DELETE FROM playlist_tracks WHERE playlist_id = ? AND track_id = ?')
+            .run(playlistId, trackId)
+
+        // Close gaps by re-ordering everything
+        const tracks = db.prepare(`
+            SELECT id FROM playlist_tracks 
+            WHERE playlist_id = ? 
+            ORDER BY position ASC
+        `).all(playlistId) as { id: string }[]
+
+        const updatePos = db.prepare('UPDATE playlist_tracks SET position = ? WHERE id = ?')
+        tracks.forEach((row, index) => {
+            updatePos.run(index, row.id)
+        })
+
+        db.prepare('UPDATE playlists SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(playlistId)
+    })
+
+    transaction()
+}

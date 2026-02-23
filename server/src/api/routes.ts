@@ -13,6 +13,7 @@ import * as system from './controllers/system.controller'
 import * as dashboard from './controllers/dashboard.controller'
 import * as media from './controllers/media.controller'
 import * as enrichment from './controllers/enrichment.controller'
+import * as smartPlaylists from './controllers/smartPlaylists.controller'
 import vibesRouter from './controllers/vibes.controller'
 import customVibesRouter from './controllers/customVibes.controller'
 
@@ -49,7 +50,9 @@ router.post('/playlists', playlists.createNewPlaylist)
 router.delete('/playlists/:id', playlists.removePlaylist)
 router.post('/playlists/:id/tracks', playlists.addToPlaylist)
 router.delete('/playlists/:id/tracks/:trackId', playlists.deleteFromPlaylist)
+router.delete('/playlists/:id/tracks-by-id/:trackId', playlists.removeByTrackId)
 router.put('/playlists/:id', playlists.updatePlaylist)
+router.post('/playlists/:id/reorder', playlists.reorderTracks)
 
 // Settings
 router.get('/settings', settings.getSettings)
@@ -126,5 +129,14 @@ router.delete('/folders/:id', scan.deleteFolder)
 router.get('/system/drives', system.listDrives)
 router.get('/system/browse', system.listDirectory)
 router.get('/system/show-in-folder', system.showInFolder)
+
+// Smart Playlists
+router.get('/smart-playlists', smartPlaylists.getAll)
+router.post('/smart-playlists', smartPlaylists.create)
+router.post('/smart-playlists/preview', smartPlaylists.preview)
+router.get('/smart-playlists/:id', smartPlaylists.getById)
+router.put('/smart-playlists/:id', smartPlaylists.update)
+router.delete('/smart-playlists/:id', smartPlaylists.remove)
+router.get('/smart-playlists/:id/resolve', smartPlaylists.resolve)
 
 export default router

@@ -52,7 +52,18 @@ export interface MusicClient {
   deletePlaylist(id: string): Promise<void>
   addToPlaylist(id: string, trackId: string): Promise<void>
   removeFromPlaylist(id: string, trackId: string, position: number): Promise<void>
+  removeFromPlaylistById(id: string, trackId: string): Promise<void>
   renamePlaylist(id: string, name: string): Promise<void>
+  reorderPlaylist(id: string, trackIds: string[]): Promise<void>
+
+  // Smart Playlists
+  getSmartPlaylists(): Promise<any[]>
+  getSmartPlaylist(id: string): Promise<any>
+  createSmartPlaylist(data: any): Promise<any>
+  updateSmartPlaylist(id: string, data: any): Promise<any>
+  deleteSmartPlaylist(id: string): Promise<void>
+  resolveSmartPlaylist(id: string): Promise<{ tracks: any[]; total: number }>
+  previewSmartPlaylist(data: any): Promise<{ tracks: any[]; total: number }>
 
   // Settings
   getSettings(): Promise<any>
@@ -243,7 +254,9 @@ export class DomClient implements MusicClient {
   async deletePlaylist(_id: string): Promise<void> { }
   async addToPlaylist(_id: string, _trackId: string): Promise<void> { }
   async removeFromPlaylist(_id: string, _trackId: string, _position: number): Promise<void> { }
+  async removeFromPlaylistById(_id: string, _trackId: string): Promise<void> { }
   async renamePlaylist(_id: string, _name: string): Promise<void> { }
+  async reorderPlaylist(_id: string, _trackIds: string[]): Promise<void> { }
 
   async getSettings(): Promise<any> {
     return {}
@@ -385,6 +398,15 @@ export class DomClient implements MusicClient {
   async getVibePlaylist(_vibeId: string, _limit?: number): Promise<Track[]> {
     return []
   }
+
+  // Smart Playlists — DomClient stubs (REST endpoint is used instead)
+  async getSmartPlaylists(): Promise<any[]> { return [] }
+  async getSmartPlaylist(_id: string): Promise<any> { return null }
+  async createSmartPlaylist(data: any): Promise<any> { return null }
+  async updateSmartPlaylist(_id: string, _data: any): Promise<any> { return null }
+  async deleteSmartPlaylist(_id: string): Promise<void> { }
+  async resolveSmartPlaylist(_id: string): Promise<{ tracks: any[]; total: number }> { return { tracks: [], total: 0 } }
+  async previewSmartPlaylist(_data: any): Promise<{ tracks: any[]; total: number }> { return { tracks: [], total: 0 } }
 }
 
 // Implementation using fetch (REST API)
@@ -543,8 +565,21 @@ export class RestClient implements MusicClient {
     })
   }
 
+  async removeFromPlaylistById(id: string, trackId: string): Promise<void> {
+    await this.req(`/api/playlists/${id}/tracks-by-id/${trackId}`, {
+      method: 'DELETE'
+    })
+  }
+
   async renamePlaylist(id: string, name: string): Promise<void> {
     await this.req(`/api/playlists/${id}`, { method: 'PUT', body: JSON.stringify({ name }) })
+  }
+
+  async reorderPlaylist(id: string, trackIds: string[]): Promise<void> {
+    await this.req(`/api/playlists/${id}/reorder`, {
+      method: 'POST',
+      body: JSON.stringify({ trackIds })
+    })
   }
 
   // Settings
@@ -763,6 +798,29 @@ export class RestClient implements MusicClient {
   async getVibePlaylist(vibeId: string, limit: number = 50): Promise<Track[]> {
     const res = await this.req<{ tracks: Track[] }>(`/api/vibes/${vibeId}?limit=${limit}`)
     return res.tracks
+  }
+
+  // Smart Playlists
+  async getSmartPlaylists(): Promise<any[]> {
+    return this.req<any[]>('/api/smart-playlists')
+  }
+  async getSmartPlaylist(id: string): Promise<any> {
+    return this.req<any>(`/api/smart-playlists/${id}`)
+  }
+  async createSmartPlaylist(data: any): Promise<any> {
+    return this.req<any>('/api/smart-playlists', { method: 'POST', body: JSON.stringify(data) })
+  }
+  async updateSmartPlaylist(id: string, data: any): Promise<any> {
+    return this.req<any>(`/api/smart-playlists/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+  }
+  async deleteSmartPlaylist(id: string): Promise<void> {
+    await this.req<any>(`/api/smart-playlists/${id}`, { method: 'DELETE' })
+  }
+  async resolveSmartPlaylist(id: string): Promise<{ tracks: any[]; total: number }> {
+    return this.req<{ tracks: any[]; total: number }>(`/api/smart-playlists/${id}/resolve`)
+  }
+  async previewSmartPlaylist(data: any): Promise<{ tracks: any[]; total: number }> {
+    return this.req<{ tracks: any[]; total: number }>('/api/smart-playlists/preview', { method: 'POST', body: JSON.stringify(data) })
   }
 }
 

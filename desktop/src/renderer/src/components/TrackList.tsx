@@ -1,4 +1,5 @@
-import { Hash, Clock, Star, Heart, Play, ChevronUp, ChevronDown } from 'lucide-react'
+import { useState } from 'react'
+import { Hash, Clock, Heart, Play, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
 import { useLibrary } from '../store/library'
 import { usePlayer } from '../store/player'
 import { cn } from '../lib/utils'
@@ -15,6 +16,9 @@ interface TrackListProps {
     sortField?: SortField
     sortOrder?: SortOrder
     onSort?: (field: SortField) => void
+    isReorderable?: boolean
+    onReorder?: (startIndex: number, endIndex: number) => void
+    onRemove?: (trackId: string, position: number) => void
 }
 
 export default function TrackList({
@@ -23,10 +27,15 @@ export default function TrackList({
     visibleColumns = ['index', 'title', 'artist', 'album', 'vibe', 'played', 'rating', 'time'],
     sortField,
     sortOrder,
-    onSort
+    onSort,
+    isReorderable,
+    onReorder,
+    onRemove
 }: TrackListProps) {
     const { toggleLoved, rateTrack, tracks: allTracks } = useLibrary()
     const { currentTrack, playTrack, isPlaying } = usePlayer()
+
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
     const { selectedTracks, handleTrackClick, clearSelection, selectSingleTrack } =
         useTrackSelection(inputTracks)
@@ -210,7 +219,8 @@ export default function TrackList({
         if (isColVisible('vibe')) template += "5rem " // Vibe
         if (isColVisible('played')) template += "4rem " // Played
         if (isColVisible('rating')) template += "6rem " // Rating
-        if (isColVisible('time')) template += "4rem" // Time
+        if (isColVisible('time')) template += "4rem " // Time
+        if (onRemove) template += "3rem" // Remove
         return template.trim()
     }
 
@@ -255,6 +265,7 @@ export default function TrackList({
                 {renderHeader('played', 'Played', 'playCount', 'right')}
                 {renderHeader('rating', 'Rating', 'rating', 'center')}
                 {renderHeader('time', <Clock className="w-3 h-3" />, 'duration', 'right')}
+                {onRemove && <div />}
             </div>
 
             <div className="flex-1 divide-y divide-zinc-900 overflow-y-auto custom-scrollbar">
@@ -266,6 +277,7 @@ export default function TrackList({
                     return (
                         <div
                             key={track.id}
+                            draggable={true}
                             onClick={(e) => handleTrackClick(e, track.id, idx)}
                             onDoubleClick={(e) => {
                                 e.stopPropagation()
@@ -278,12 +290,20 @@ export default function TrackList({
                                 }
                                 window.dispatchEvent(
                                     new CustomEvent('show-track-context-menu', {
-                                        detail: { track, x: e.clientX, y: e.clientY }
+                                        detail: {
+                                            track,
+                                            selectedTrackIds: isSelected ? selectedTracks : [track.id],
+                                            x: e.clientX,
+                                            y: e.clientY
+                                        }
                                     })
                                 )
                             }}
-                            draggable
                             onDragStart={(e) => {
+                                if (isReorderable) {
+                                    e.dataTransfer.setData('application/reorder-index', idx.toString())
+                                }
+
                                 const dragIds = isSelected ? selectedTracks : [track.id]
                                 const dragTracks = allTracks.filter((t) => dragIds.includes(t.id))
 
@@ -294,15 +314,40 @@ export default function TrackList({
                                         data: dragTracks
                                     })
                                 )
-                                e.dataTransfer.effectAllowed = 'copy'
+                                e.dataTransfer.effectAllowed = isReorderable ? 'move' : 'copy'
+                            }}
+                            onDragOver={(e) => {
+                                if (isReorderable) {
+                                    e.preventDefault()
+                                    // Highlight only if not dragging same item
+                                    setDragOverIndex(idx)
+                                }
+                            }}
+                            onDragLeave={() => {
+                                if (isReorderable) setDragOverIndex(null)
+                            }}
+                            onDrop={(e) => {
+                                if (isReorderable) {
+                                    const fromIndexStr = e.dataTransfer.getData('application/reorder-index')
+                                    if (fromIndexStr) {
+                                        e.preventDefault()
+                                        const fromIndex = parseInt(fromIndexStr)
+                                        setDragOverIndex(null)
+                                        if (fromIndex !== idx) {
+                                            onReorder?.(fromIndex, idx)
+                                        }
+                                        return
+                                    }
+                                }
                             }}
                             className={cn(
-                                'group grid gap-4 px-6 py-3 items-center transition-all cursor-default select-none mx-2 my-1 rounded-xl border border-transparent',
+                                'group grid gap-4 px-6 py-3 items-center transition-all cursor-default select-none mx-2 my-1 rounded-xl border-l-[3px] border-transparent',
                                 isSelected
-                                    ? 'bg-white/10 border-white/10'
+                                    ? 'bg-white/10 !border-l-zinc-700'
                                     : isCurrentTrack
-                                        ? 'bg-primary/20 text-primary border-primary/20'
-                                        : 'hover:bg-white/5 hover:border-white/5'
+                                        ? 'bg-primary/20 text-primary !border-l-primary'
+                                        : 'hover:bg-white/5 hover:!border-l-white/20',
+                                dragOverIndex === idx && "border-t-2 border-t-primary !rounded-t-none"
                             )}
                             style={{ gridTemplateColumns: gridTemplate }}
                         >
@@ -413,6 +458,22 @@ export default function TrackList({
                                     {formatDuration(track.duration)}
                                 </div>
                             )}
+
+                            {/* Removal */}
+                            {onRemove && (
+                                <div className="flex justify-end pr-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            onRemove(track.id, idx)
+                                        }}
+                                        className="p-1.5 text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-red-500/10"
+                                        title="Remove from playlist"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )
                 })}
@@ -423,6 +484,6 @@ export default function TrackList({
               50% { height: 12px; }
           }
       `}</style>
-        </div>
+        </div >
     )
 }
