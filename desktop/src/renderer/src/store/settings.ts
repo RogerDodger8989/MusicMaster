@@ -33,6 +33,7 @@ interface SettingsStore {
   autoDjRatingFilter: AutoDjRatingFilter
   autoDjTriggerAt: AutoDjTriggerAt
   autoDjAddCount: AutoDjAddCount
+  isCoverExpanded: boolean
 
   // Actions
   setViewMode: (mode: ViewMode) => void
@@ -58,6 +59,7 @@ interface SettingsStore {
   setAutoDjRatingFilter: (filter: AutoDjRatingFilter) => void
   setAutoDjTriggerAt: (count: AutoDjTriggerAt) => void
   setAutoDjAddCount: (count: AutoDjAddCount) => void
+  toggleCoverExpanded: () => void
 
   // Persistence
   loadSettings: () => Promise<void>
@@ -87,6 +89,7 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   autoDjRatingFilter: 'both',
   autoDjTriggerAt: 1,
   autoDjAddCount: 3,
+  isCoverExpanded: false,
 
   setViewMode: (viewMode) => {
     set({ viewMode })
@@ -187,6 +190,11 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   setAutoDjAddCount: (count) => {
     set({ autoDjAddCount: count })
     client.saveSetting('autoDjAddCount', count)
+  },
+  toggleCoverExpanded: () => {
+    const current = get().isCoverExpanded
+    set({ isCoverExpanded: !current })
+    client.saveSetting('isCoverExpanded', !current)
   },
 
   loadSettings: async () => {

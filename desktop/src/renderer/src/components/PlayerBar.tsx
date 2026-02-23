@@ -13,6 +13,7 @@ import {
     Wand2
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { RatingStars } from './RatingStars'
 import { cn } from '../lib/utils'
 import { usePlayer } from '../store/player'
@@ -53,6 +54,8 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
     const listenbrainzEnabled = useSettings((state) => state.listenbrainzEnabled)
     const autoDjEnabled = useSettings((state) => state.autoDjEnabled)
     const setAutoDjEnabled = useSettings((state) => state.setAutoDjEnabled)
+    const isCoverExpanded = useSettings((state) => state.isCoverExpanded)
+    const toggleCoverExpanded = useSettings((state) => state.toggleCoverExpanded)
 
     const currentTrack = playerTrack
         ? allTracks.find((t) => t.id === playerTrack.id) || playerTrack
@@ -183,29 +186,39 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
 
                 {/* Left: Currently Playing Info */}
                 <div className="flex items-center gap-5 min-w-0 w-[30%] max-w-[450px]">
-                    <div
-                        className="w-20 h-20 bg-zinc-900 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-2xl ring-1 ring-white/10 group/cover"
-                        onContextMenu={handleCoverContextMenu}
-                    >
-                        {currentTrack ? (
-                            <img
-                                src={client.getCoverUrl(
-                                    albums.find(
-                                        (a) =>
-                                            a.name === currentTrack.album &&
-                                            a.artist === (currentTrack.albumArtist || currentTrack.artist)
-                                    )?.id || ''
+                    <AnimatePresence>
+                        {!isCoverExpanded && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8, width: 0, marginRight: -20 }}
+                                animate={{ opacity: 1, scale: 1, width: 80, marginRight: 0 }}
+                                exit={{ opacity: 0, scale: 0.8, width: 0, marginRight: -20 }}
+                                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                                className="h-20 bg-zinc-900 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0 relative shadow-[0_4px_20px_rgba(0,0,0,0.5)] ring-1 ring-white/10 group/cover cursor-pointer hover:scale-105 transition-transform origin-left"
+                                onContextMenu={handleCoverContextMenu}
+                                onClick={toggleCoverExpanded}
+                                title="Expand cover"
+                            >
+                                {currentTrack ? (
+                                    <img
+                                        src={client.getCoverUrl(
+                                            albums.find(
+                                                (a) =>
+                                                    a.name === currentTrack.album &&
+                                                    a.artist === (currentTrack.albumArtist || currentTrack.artist)
+                                            )?.id || ''
+                                        )}
+                                        alt={currentTrack?.album || 'Album Art'}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            ; (e.target as HTMLImageElement).style.display = 'none'
+                                        }}
+                                    />
+                                ) : (
+                                    <Music className="w-6 h-6 text-zinc-700" />
                                 )}
-                                alt={currentTrack?.album || 'Album Art'}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    ; (e.target as HTMLImageElement).style.display = 'none'
-                                }}
-                            />
-                        ) : (
-                            <Music className="w-6 h-6 text-zinc-700" />
+                            </motion.div>
                         )}
-                    </div>
+                    </AnimatePresence>
                     <div className="flex flex-col min-w-0">
                         <span
                             className={cn(
