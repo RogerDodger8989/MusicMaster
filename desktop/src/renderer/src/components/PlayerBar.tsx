@@ -165,15 +165,35 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
     const handleCoverContextMenu = (e: React.MouseEvent) => {
         if (!currentTrack) return
         e.preventDefault()
-        window.dispatchEvent(
-            new CustomEvent('show-track-context-menu', {
-                detail: {
-                    track: currentTrack,
-                    x: e.clientX,
-                    y: e.clientY
-                }
-            })
+
+        const album = albums.find(
+            (a) =>
+                a.name === currentTrack.album &&
+                a.artist === (currentTrack.albumArtist || currentTrack.artist)
         )
+
+        if (album) {
+            window.dispatchEvent(
+                new CustomEvent('show-album-context-menu', {
+                    detail: {
+                        album,
+                        x: e.clientX,
+                        y: e.clientY
+                    }
+                })
+            )
+        } else {
+            // Fallback to track menu if album not found in cache
+            window.dispatchEvent(
+                new CustomEvent('show-track-context-menu', {
+                    detail: {
+                        track: currentTrack,
+                        x: e.clientX,
+                        y: e.clientY
+                    }
+                })
+            )
+        }
     }
 
     useEffect(() => {

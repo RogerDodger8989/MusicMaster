@@ -12,7 +12,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Initialize database
 console.log('🔄 Initializing database...');
@@ -23,7 +24,18 @@ app.use('/api', apiRoutes);
 
 // Basic health check
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    try {
+        const dbList = require('./database').getDatabase().prepare('PRAGMA database_list').all()
+        res.json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            dbPathEnv: process.env.DB_PATH,
+            cwd: process.cwd(),
+            dbList: dbList
+        });
+    } catch (e: any) {
+        res.json({ error: e.message })
+    }
 });
 
 // Temporary endpoint to fix paths

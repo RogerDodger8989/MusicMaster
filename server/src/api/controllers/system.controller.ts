@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
-import { exec } from 'child_process'
+import { exec, spawn } from 'child_process'
 
 interface FileSystemNode {
     name: string
@@ -118,27 +118,59 @@ export const showInFolder = async (req: Request, res: Response) => {
 }
 
 /**
- * Open a native Windows folder browser dialog via PowerShell
+ * Open a native Windows browser dialog via PowerShell
  */
 export const browseNative = async (req: Request, res: Response) => {
     if (process.platform !== 'win32') {
         return res.status(400).json({ error: 'Native browsing only supported on Windows' })
     }
 
-    const script = [
-        'Add-Type -AssemblyName System.Windows.Forms',
-        '$browser = New-Object System.Windows.Forms.FolderBrowserDialog',
-        '$browser.Description = "Select a music folder"',
-        '$show = $browser.ShowDialog()',
-        'if ($show -eq "OK") { Write-Host $browser.SelectedPath }'
-    ].join('; ')
+    const type = req.query.type as string || 'folder'
+    let script = ''
 
-    exec(`powershell -Command "${script}"`, (error, stdout) => {
-        if (error) {
-            console.error('browseNative error:', error)
-            return res.status(500).json({ error: 'Failed to open native dialog' })
+    if (type === 'file') {
+        script = `
+            Add-Type -AssemblyName System.Windows.Forms
+            $dialog = New-Object System.Windows.Forms.OpenFileDialog
+            $dialog.Filter = "Image Files (*.jpg;*.jpeg;*.png;*.webp)|*.jpg;*.jpeg;*.png;*.webp|All Files (*.*)|*.*"
+            $dialog.Title = "Select Artwork"
+            if ($dialog.ShowDialog() -eq 'OK') { Write-Host $dialog.FileName }
+        `.trim()
+    } else {
+        script = `
+            Add-Type -AssemblyName System.Windows.Forms
+            $browser = New-Object System.Windows.Forms.FolderBrowserDialog
+            $browser.Description = "Select a music folder"
+            if ($browser.ShowDialog() -eq 'OK') { Write-Host $browser.SelectedPath }
+        `.trim()
+    }
+
+    console.log(`📂 Opening native ${type} dialog...`)
+
+    const ps = spawn('powershell.exe', [
+        '-ExecutionPolicy', 'Bypass',
+        '-NoProfile',
+        '-Command', script
+    ])
+
+    let stdout = ''
+    let stderr = ''
+
+    ps.stdout.on('data', (data) => {
+        stdout += data.toString()
+    })
+
+    ps.stderr.on('data', (data) => {
+        stderr += data.toString()
+    })
+
+    ps.on('close', (code) => {
+        if (code !== 0) {
+            console.error(`❌ browseNative error (code ${code}):`, stderr)
+            return res.status(500).json({ error: 'Failed' })
         }
         const selectedPath = stdout.trim()
+        console.log(`✅ Selected path: ${selectedPath || 'None'}`)
         res.json({ path: selectedPath || null })
     })
 }

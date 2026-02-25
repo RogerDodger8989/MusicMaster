@@ -6,7 +6,8 @@ import {
     getAlbumsSortedBy,
     updateAlbumRating,
     updateAlbumLoved,
-    getAllGenres
+    getAllGenres,
+    deleteAlbumById
 } from '../../database/albums'
 import { getAlbumPerformers as fetchMBPerformers } from '../../database/musicbrainz'
 
@@ -116,5 +117,16 @@ export const toggleAlbumLoved = (req: Request, res: Response) => {
     } catch (error) {
         console.error('API Error:', error)
         res.status(500).json({ error: 'Failed to love album' })
+    }
+}
+
+export const deleteAlbum = (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string
+        deleteAlbumById(id)
+        res.json({ success: true, id })
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to delete album' })
     }
 }

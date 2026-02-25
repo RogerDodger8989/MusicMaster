@@ -1,4 +1,5 @@
 import { AlertCircle, Play, ListPlus, X } from 'lucide-react'
+import { useDraggable } from '../hooks/useDraggable'
 
 interface QueueConfirmationModalProps {
   isOpen: boolean
@@ -17,29 +18,42 @@ export function QueueConfirmationModal({
   title = 'Clear Playlist?',
   message = 'Your playlist is not empty. Would you like to clear it and play these tracks, or just add them to the end?'
 }: QueueConfirmationModalProps) {
+  const { position, handleMouseDown } = useDraggable()
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
       <div
-        className="relative w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        style={{
+          left: '50%',
+          top: '50%',
+          transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px)`
+        }}
+        className="relative w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto absolute"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header with Icon */}
-        <div className="p-6 pb-4 flex items-start gap-4">
-          <div className="p-3 rounded-full bg-blue-500/10 text-blue-500">
-            <AlertCircle size={24} />
+        {/* Header - Draggable Area */}
+        <div
+          className="cursor-move select-none"
+          onMouseDown={handleMouseDown}
+        >
+          {/* Header with Icon */}
+          <div className="p-6 pb-4 flex items-start gap-4">
+            <div className="p-3 rounded-full bg-blue-500/10 text-blue-500">
+              <AlertCircle size={24} />
+            </div>
+            <div className="flex-1 space-y-1">
+              <h3 className="text-xl font-bold text-white tracking-tight">{title}</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed">{message}</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-white/5 rounded-full text-zinc-500 hover:text-white transition-colors"
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <X size={20} />
+            </button>
           </div>
-          <div className="flex-1 space-y-1">
-            <h3 className="text-xl font-bold text-white tracking-tight">{title}</h3>
-            <p className="text-sm text-zinc-400 leading-relaxed">{message}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-white/5 rounded-full text-zinc-500 hover:text-white transition-colors"
-          >
-            <X size={20} />
-          </button>
         </div>
 
         {/* Actions */}

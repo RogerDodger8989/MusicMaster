@@ -22,9 +22,11 @@ import TaggingModal from './components/TaggingModal'
 import TagConfirmationModal from './components/TagConfirmationModal'
 import QueuePanel from './components/QueuePanel'
 import TrackContextMenu from './components/TrackContextMenu'
+import AlbumContextMenu from './components/AlbumContextMenu'
 import { TrackPlayOptionModal } from './components/modals/TrackPlayOptionModal'
 import { CreatePlaylistModal } from './components/modals/CreatePlaylistModal'
 import TrackInfoModal from './components/modals/TrackInfoModal'
+import TagEditorModal from './components/modals/TagEditorModal'
 import { client } from './api/client'
 import { useLibrary } from './store/library'
 import { useNavigation } from './store/navigation'
@@ -37,7 +39,7 @@ import { Track, Album } from './types'
 import { useSyncStore } from './store/sync'
 
 function App(): React.JSX.Element {
-  const { initialize } = useLibrary()
+  const { initialize, selectedTracks: selectedTrackIds, tracks: allTracks } = useLibrary()
   const { current, navigateTo, goBack } = useNavigation()
   const { currentTrack, duration, currentTime, seek, togglePlay, playTrack, playNext, addToQueue, loadSession } = usePlayer()
   const { setTrackPlayBehavior, loadSettings } = useSettings()
@@ -70,9 +72,18 @@ function App(): React.JSX.Element {
 
   const [infoModalTrack, setInfoModalTrack] = useState<Track | null>(null)
 
+  const [isTagEditorOpen, setIsTagEditorOpen] = useState(false)
+  const [tagEditorTracks, setTagEditorTracks] = useState<Track[]>([])
+  const [tagEditorContext, setTagEditorContext] = useState<'track' | 'album' | undefined>(undefined)
+
   const [trackContextMenu, setTrackContextMenu] = useState<{
     track: Track
     selectedTrackIds?: string[]
+    x: number
+    y: number
+  } | null>(null)
+  const [albumContextMenu, setAlbumContextMenu] = useState<{
+    album: Album
     x: number
     y: number
   } | null>(null)
@@ -199,6 +210,7 @@ function App(): React.JSX.Element {
       setPlayModalOpen(false)
       setTaggingModalOpen(false)
       setInfoModalTrack(null) // Close info modal on escape
+      setIsTagEditorOpen(false) // Close tag editor on escape
       if (isQueueOpen) {
         setIsQueueOpen(false)
       }
@@ -282,31 +294,66 @@ function App(): React.JSX.Element {
       }
     }
 
+    const handleTrackEditRequest = (e: CustomEvent) => {
+      const { tracks, context } = e.detail
+      if (tracks && tracks.length > 0) {
+        setTagEditorTracks(tracks)
+        setTagEditorContext(context)
+        setIsTagEditorOpen(true)
+      }
+    }
+
     window.addEventListener('request-track-tagging', handleTrackTaggingRequest as EventListener)
     window.addEventListener('request-album-tagging', handleAlbumTaggingRequest as EventListener)
     window.addEventListener('request-track-info', handleTrackInfoRequest as EventListener)
+    window.addEventListener('request-track-edit', handleTrackEditRequest as EventListener)
 
     return () => {
       window.removeEventListener('request-track-tagging', handleTrackTaggingRequest as EventListener)
       window.removeEventListener('request-album-tagging', handleAlbumTaggingRequest as EventListener)
       window.removeEventListener('request-track-info', handleTrackInfoRequest as EventListener)
+      window.removeEventListener('request-track-edit', handleTrackEditRequest as EventListener)
     }
   }, [])
 
-  // Global Context Menu Listener
+  // Sync Tag Editor tracks with selection if open
   useEffect(() => {
-    const handleContextMenuRequest = (e: CustomEvent) => {
+    if (isTagEditorOpen && selectedTrackIds.length > 0) {
+      const selected = allTracks.filter((t) => selectedTrackIds.includes(t.id))
+      if (selected.length > 0) {
+        setTagEditorTracks(selected)
+      }
+    }
+  }, [selectedTrackIds, isTagEditorOpen, allTracks])
+
+  // Global Context Menu Listeners
+  useEffect(() => {
+    const handleTrackContextMenuRequest = (e: CustomEvent) => {
       const { track, selectedTrackIds, x, y } = e.detail
       if (track) {
         setTrackContextMenu({ track, selectedTrackIds, x, y })
       }
     }
-    window.addEventListener('show-track-context-menu', handleContextMenuRequest as EventListener)
-    return () =>
+    const handleAlbumContextMenuRequest = (e: CustomEvent) => {
+      const { album, x, y } = e.detail
+      if (album) {
+        setAlbumContextMenu({ album, x, y })
+      }
+    }
+
+    window.addEventListener('show-track-context-menu', handleTrackContextMenuRequest as EventListener)
+    window.addEventListener('show-album-context-menu', handleAlbumContextMenuRequest as EventListener)
+
+    return () => {
       window.removeEventListener(
         'show-track-context-menu',
-        handleContextMenuRequest as EventListener
+        handleTrackContextMenuRequest as EventListener
       )
+      window.removeEventListener(
+        'show-album-context-menu',
+        handleAlbumContextMenuRequest as EventListener
+      )
+    }
   }, [])
 
   const handleTaggingSave = async (id: string, metadata: any, type: 'track' | 'album') => {
@@ -574,7 +621,15 @@ function App(): React.JSX.Element {
         />
       )}
 
-      {/* Global Track Context Menu */}
+      {isTagEditorOpen && (
+        <TagEditorModal
+          tracks={tagEditorTracks}
+          context={tagEditorContext}
+          onClose={() => setIsTagEditorOpen(false)}
+        />
+      )}
+
+      {/* Global Context Menus */}
       {trackContextMenu && (
         <TrackContextMenu
           track={trackContextMenu.track}
@@ -582,6 +637,15 @@ function App(): React.JSX.Element {
           x={trackContextMenu.x}
           y={trackContextMenu.y}
           onClose={() => setTrackContextMenu(null)}
+        />
+      )}
+
+      {albumContextMenu && (
+        <AlbumContextMenu
+          album={albumContextMenu.album}
+          x={albumContextMenu.x}
+          y={albumContextMenu.y}
+          onClose={() => setAlbumContextMenu(null)}
         />
       )}
     </div>

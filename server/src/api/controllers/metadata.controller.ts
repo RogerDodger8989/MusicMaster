@@ -33,16 +33,19 @@ export const searchMusicBrainz = async (req: Request, res: Response) => {
     const title = (req.query.title as string) || ''
     const album = (req.query.album as string) || undefined
     const type = (req.query.type as string) || 'recording'
+    const mbid = (req.query.mbid as string) || undefined
+    const trackMbid = (req.query.trackMbid as string) || undefined
+    const albumMbid = (req.query.albumMbid as string) || undefined
 
     try {
         if (type === 'release') {
-            const results = await musicBrainzService.searchAlbum(artist, String(req.query.album || ''))
+            const results = await musicBrainzService.searchAlbum(artist, String(req.query.album || ''), mbid, albumMbid)
             return res.json(results)
         } else if (type === 'artist' || (artist && !title)) {
             const results = await musicBrainzService.searchArtist(artist)
             return res.json(results)
         } else {
-            const results = await musicBrainzService.searchTrack(artist, title, album)
+            const results = await musicBrainzService.searchTrack(artist, title, album, mbid, trackMbid, albumMbid)
             return res.json(results)
         }
     } catch (error: any) {
@@ -420,7 +423,13 @@ export const previewMatchAlbum = async (req: Request, res: Response) => {
             }
         }
 
-        const album = db.prepare('SELECT name, artist FROM albums_cache WHERE id = ?').get(albumId) as any
+        let album = db.prepare('SELECT name, artist FROM albums_cache WHERE id = ?').get(albumId) as any
+        if (!album) {
+            const track = db.prepare('SELECT album as name, COALESCE(album_artist, artist) as artist FROM tracks WHERE id = ?').get(albumId) as any
+            if (track) {
+                album = track
+            }
+        }
         if (!album) throw new Error('Album not found')
 
         const localTracks = db.prepare('SELECT id, title, track_num as trackNum FROM tracks WHERE album = ? AND artist = ?').all(album.name, album.artist) as any[]

@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "title": "Sounds Like a Melody",
+    "artist": "Alphaville",
+    "language": "German",
+    "publisher": "WEA",
+    "catalogNumber": "Kat-1234",
+    "isrc": "DEAB19840801",
+    "media": "Digital Media",
+    "trackNum": 8,
+    "trackTotal": 10,
+    "discNum": 1,
+    "discTotal": 1,
+    "year": 1984,
+    "genre": "Synthpop"
+  }
+}

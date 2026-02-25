@@ -1,0 +1,11 @@
+SqliteError: no such column: bpm
+    at Database.prepare (C:\Users\denni\Desktop\Egna appar\MusicMaster\server\node_modules\better-sqlite3\lib\methods\wrappers.js:5:21)
+    at updateTrackMetadata (C:\Users\denni\Desktop\Egna appar\MusicMaster\server\src\database\tracks.ts:886:21)
+    at updateTrack (C:\Users\denni\Desktop\Egna appar\MusicMaster\server\src\api\controllers\tracks.controller.ts:89:32)
+    at Layer.handle [as handle_request] (C:\Users\denni\Desktop\Egna appar\MusicMaster\server\node_modules\express\lib\router\layer.js:95:5)
+    at next (C:\Users\denni\Desktop\Egna appar\MusicMaster\server\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (C:\Users\denni\Desktop\Egna appar\MusicMaster\server\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (C:\Users\denni\Desktop\Egna appar\MusicMaster\server\node_modules\express\lib\router\layer.js:95:5)
+    at C:\Users\denni\Desktop\Egna appar\MusicMaster\server\node_modules\express\lib\router\index.js:284:15
+    at param (C:\Users\denni\Desktop\Egna appar\MusicMaster\server\node_modules\express\lib\router\index.js:365:14)
+    at param (C:\Users\denni\Desktop\Egna appar\MusicMaster\server\node_modules\express\lib\router\index.js:376:14)

@@ -5,11 +5,58 @@ import { exec } from 'child_process'
 import { promisify } from 'util'
 import path from 'path'
 import fs from 'fs'
+import os from 'os'
+const Metaflac = require('metaflac-js')
 
 const execAsync = promisify(exec)
 
-export interface MusicBrainzWriteData {
-    // Recording (Track) MBIDs
+export interface TrackMetadataWriteData {
+    // Basic Metadata
+    title?: string
+    artist?: string
+    album?: string
+    albumArtist?: string
+    year?: number
+    genre?: string
+    trackNum?: number
+    trackTotal?: number
+    discNum?: number
+    discTotal?: number
+    composer?: string
+    lyrics?: string
+    comment?: string
+    conductor?: string
+    grouping?: string
+    albumRating?: number
+    originalArtist?: string
+    originalAlbum?: string
+    originalYear?: number
+    tempo?: string
+    occasion?: string
+    keywords?: string
+    language?: string
+    custom1?: string
+    custom2?: string
+    custom3?: string
+    custom4?: string
+    custom5?: string
+    custom6?: string
+    custom7?: string
+    custom8?: string
+    custom9?: string
+    custom10?: string
+    custom11?: string
+    custom12?: string
+    custom13?: string
+    custom14?: string
+    custom15?: string
+    custom16?: string
+    custom17?: string
+    custom18?: string
+    custom19?: string
+    custom20?: string
+
+    // MusicBrainz Recording (Track) MBIDs
     trackId?: string           // MUSICBRAINZ_TRACKID
     recordingMBID?: string     // MUSICBRAINZ_RELEASETRACKID
     isrc?: string              // ISRC
@@ -45,7 +92,7 @@ export interface MusicBrainzWriteData {
     // Credits
     producers?: string[]       // PRODUCER
 
-    // Genre and tags
+    // Genre and tags (genre is in basic, but keeping genres for multiple)
     genres?: string[]          // GENRE
 
     // AcousticBrainz audio analysis
@@ -64,8 +111,17 @@ export interface MusicBrainzWriteData {
     movementNumber?: number    // MOVEMENT
     movementTotal?: number     // MOVEMENTTOTAL
 
-    // Cover Art
+    // Cover Art & Artwork Options
     coverPath?: string         // Path to cover image to embed
+    artworkOptions?: {
+        embed?: boolean
+        saveToFile?: boolean
+        fileName?: string
+        pending?: {
+            front?: { data: string; type: string }
+            back?: { data: string; type: string }
+        }
+    }
 }
 
 export async function writeMetadata(
@@ -73,11 +129,25 @@ export async function writeMetadata(
     rating: number,
     loved: boolean,
     playCount?: number,
-    musicBrainzData?: MusicBrainzWriteData
+    musicBrainzData?: TrackMetadataWriteData
 ): Promise<void> {
     const ext = path.extname(filePath).toLowerCase()
+    let tempCoverReq: string | undefined
 
     try {
+        if (musicBrainzData?.artworkOptions?.pending?.front?.data) {
+            try {
+                const b64Parts = musicBrainzData.artworkOptions.pending.front.data.split(',')
+                const b64Data = b64Parts.length > 1 ? b64Parts[1] : b64Parts[0]
+                tempCoverReq = path.join(os.tmpdir(), `musicmaster_cover_${Date.now()}_${Math.floor(Math.random() * 1000)}.jpg`)
+                fs.writeFileSync(tempCoverReq, b64Data, 'base64')
+                musicBrainzData.coverPath = tempCoverReq
+                console.log(`🖼️ Parsed pending base64 artwork to temp file: ${tempCoverReq}`)
+            } catch (err) {
+                console.error('Failed to parse base64 pending artwork:', err)
+            }
+        }
+
         if (ext === '.flac') {
             await writeFLACMetadata(filePath, rating, loved, playCount, musicBrainzData)
         } else if (ext === '.mp3') {
@@ -88,8 +158,36 @@ export async function writeMetadata(
         }
 
         console.log(`✅ Wrote metadata to ${filePath}: rating=${rating}, loved=${loved}, playCount=${playCount || 0}`)
-    } catch (error) {
-        console.error(`❌ Failed to write metadata to ${filePath}:`, error)
+
+        // Handle folder artwork saving if requested
+        if (musicBrainzData?.coverPath && musicBrainzData.artworkOptions?.saveToFile) {
+            const dir = path.dirname(filePath)
+            const picExt = path.extname(musicBrainzData.coverPath) || '.jpg'
+            const outName = (musicBrainzData.artworkOptions.fileName || 'cover') + picExt
+            const outPath = path.join(dir, outName)
+
+            try {
+                if (!fs.existsSync(outPath) || outPath !== musicBrainzData.coverPath) {
+                    fs.copyFileSync(musicBrainzData.coverPath, outPath)
+                    console.log(`✅ Saved artwork to folder: ${outPath}`)
+                }
+            } catch (err) {
+                console.error(`❌ Failed to save artwork to folder ${outPath}:`, err)
+            }
+        }
+    } catch (error: any) {
+        console.error(`❌ Failed to write metadata to ${filePath}:`, error.message || error)
+        try {
+            require('fs').appendFileSync('debug_write.txt', `[${new Date().toISOString()}] Write error on ${filePath}:\n${error.stack || error.toString()}\n\n`)
+        } catch (e) { }
+        // We log the error but don't rethrow it, so the DB update (which happened before) stays valid
+        // and the API doesn't return a 500 error.
+    } finally {
+        if (tempCoverReq && fs.existsSync(tempCoverReq)) {
+            try {
+                fs.unlinkSync(tempCoverReq)
+            } catch (e) { }
+        }
     }
 }
 
@@ -98,130 +196,208 @@ async function writeFLACMetadata(
     rating: number,
     loved: boolean,
     playCount?: number,
-    musicBrainzData?: MusicBrainzWriteData
+    musicBrainzData?: TrackMetadataWriteData
 ): Promise<void> {
     const fmpsRating = (rating / 5).toFixed(2)
 
     try {
-        await execAsync('where metaflac')
-    } catch (error) {
-        console.warn('⚠️ metaflac not found - install FLAC tools to write FLAC metadata.')
-        throw new Error('metaflac not installed on system path')
-    }
+        // Many FLAC files incorrectly have an ID3v2 tag at the start (usually from Windows tools).
+        // metaflac-js crashes if the file doesn't strictly start with 'fLaC'.
+        // We need to read the file, strip the ID3 tag if present, and operate on the clean buffer.
+        let fileBuffer = fs.readFileSync(filePath)
+        let id3HeaderSize = 0
+        if (fileBuffer.length > 10 && fileBuffer.subarray(0, 3).toString('ascii') === 'ID3') {
+            // ID3v2 size is stored as 4 bytes, using 7 bits per byte (sync-safe integer)
+            const id3 = fileBuffer.subarray(0, 10)
+            const size = (id3[6] << 21) | (id3[7] << 14) | (id3[8] << 7) | id3[9]
+            id3HeaderSize = size + 10
 
-    // Remove existing tags
-    await execAsync(`metaflac --remove-tag=FMPS_RATING "${filePath}"`)
-    await execAsync(`metaflac --remove-tag=FMPS_RATING_USER "${filePath}"`)
-    await execAsync(`metaflac --remove-tag=RATING "${filePath}"`)
-    await execAsync(`metaflac --remove-tag=LOVED "${filePath}"`)
-    await execAsync(`metaflac --remove-tag=PLAY_COUNT "${filePath}"`)
-
-    // Set new tags
-    await execAsync(`metaflac --set-tag=FMPS_RATING=${fmpsRating} "${filePath}"`)
-    await execAsync(`metaflac --set-tag=RATING=${rating} "${filePath}"`)
-    await execAsync(`metaflac --set-tag=FMPS_RATING_USER=MusicMaster "${filePath}"`)
-
-    if (loved) {
-        await execAsync(`metaflac --set-tag=LOVED=1 "${filePath}"`)
-    }
-
-    if (playCount !== undefined) {
-        await execAsync(`metaflac --set-tag=PLAY_COUNT=${playCount} "${filePath}"`)
-    }
-
-    if (musicBrainzData) {
-        const mbTags = [
-            { key: 'MUSICBRAINZ_TRACKID', value: musicBrainzData.trackId || musicBrainzData.recordingMBID },
-            { key: 'MUSICBRAINZ_RELEASETRACKID', value: musicBrainzData.recordingMBID },
-            { key: 'ISRC', value: musicBrainzData.isrc },
-            { key: 'MUSICBRAINZ_ALBUMID', value: musicBrainzData.albumId },
-            { key: 'MUSICBRAINZ_RELEASEGROUPID', value: musicBrainzData.releaseGroupMBID },
-            { key: 'MUSICBRAINZ_ARTISTID', value: musicBrainzData.artistId },
-            { key: 'MUSICBRAINZ_ALBUMARTISTID', value: musicBrainzData.albumArtistMBID },
-            { key: 'ARTISTSORT', value: musicBrainzData.artistSortOrder },
-            { key: 'ALBUMARTISTSORT', value: musicBrainzData.albumArtistSortOrder },
-            { key: 'DATE', value: musicBrainzData.releaseDate },
-            { key: 'ORIGINALDATE', value: musicBrainzData.originalDate },
-            { key: 'LABEL', value: musicBrainzData.label },
-            { key: 'CATALOGNUMBER', value: musicBrainzData.catalogNumber },
-            { key: 'BARCODE', value: musicBrainzData.barcode },
-            { key: 'RELEASECOUNTRY', value: musicBrainzData.country },
-            { key: 'MEDIA', value: musicBrainzData.media },
-            { key: 'SCRIPT', value: musicBrainzData.script },
-            { key: 'TOTALDISCS', value: musicBrainzData.totalDiscs?.toString() },
-            { key: 'TOTALTRACKS', value: musicBrainzData.totalTracks?.toString() },
-            { key: 'RELEASETYPE', value: musicBrainzData.albumType },
-            { key: 'RELEASESTATUS', value: musicBrainzData.releaseStatus },
-            { key: 'BPM', value: musicBrainzData.bpm?.toString() },
-            { key: 'INITIALKEY', value: musicBrainzData.key },
-            { key: 'KEY_SIGNATURE', value: musicBrainzData.keySignature },
-            { key: 'ENERGY', value: musicBrainzData.energy?.toFixed(3) },
-            { key: 'DANCEABILITY', value: musicBrainzData.danceability?.toFixed(3) },
-            { key: 'ACOUSTICNESS', value: musicBrainzData.acousticness?.toFixed(3) },
-            { key: 'VALENCE', value: musicBrainzData.valence?.toFixed(3) },
-            { key: 'INSTRUMENTALNESS', value: musicBrainzData.instrumentalness?.toFixed(3) },
-            { key: 'MUSICBRAINZ_WORKID', value: musicBrainzData.workMBID },
-            { key: 'MOVEMENTNAME', value: musicBrainzData.movement },
-            { key: 'MOVEMENT', value: musicBrainzData.movementNumber?.toString() },
-            { key: 'MOVEMENTTOTAL', value: musicBrainzData.movementTotal?.toString() }
-        ]
-
-        for (const tag of mbTags) {
-            if (tag.value) {
-                await execAsync(`metaflac --remove-tag=${tag.key} "${filePath}"`)
-                await execAsync(`metaflac --set-tag=${tag.key}="${tag.value}" "${filePath}"`)
+            // Only strip if the next bytes are actually fLaC, otherwise something is wrong
+            if (fileBuffer.length > id3HeaderSize + 4 && fileBuffer.subarray(id3HeaderSize, id3HeaderSize + 4).toString('ascii') === 'fLaC') {
+                console.log(`⚠️ Removing ${id3HeaderSize} bytes of invalid ID3v2 tags from start of FLAC file: ${filePath}`)
+                fileBuffer = fileBuffer.subarray(id3HeaderSize)
+                fs.writeFileSync(filePath, fileBuffer) // Strip it permanently from the file
+            } else {
+                console.log(`⚠️ File starts with ID3 but valid fLaC marker not found immediately after. Writing might fail: ${filePath}`)
             }
         }
 
-        if (musicBrainzData.artistMBIDs && musicBrainzData.artistMBIDs.length > 0) {
-            await execAsync(`metaflac --remove-tag=MUSICBRAINZ_ARTISTID "${filePath}"`)
-            for (const mbid of musicBrainzData.artistMBIDs) {
-                await execAsync(`metaflac --set-tag=MUSICBRAINZ_ARTISTID="${mbid}" "${filePath}"`)
-            }
+        const flac = new Metaflac(filePath)
+
+        const setTag = (key: string, value: string | number) => {
+            flac.removeTag(key)
+            flac.setTag(`${key}=${value}`)
         }
 
-        if (musicBrainzData.albumArtistMBIDs && musicBrainzData.albumArtistMBIDs.length > 0) {
-            await execAsync(`metaflac --remove-tag=MUSICBRAINZ_ALBUMARTISTID "${filePath}"`)
-            for (const mbid of musicBrainzData.albumArtistMBIDs) {
-                await execAsync(`metaflac --set-tag=MUSICBRAINZ_ALBUMARTISTID="${mbid}" "${filePath}"`)
+        // Write alla taggar – kombinerar direkta formulärfält med MusicBrainz-metadata
+        const d = musicBrainzData as any // Hjälper att läsa godtyckliga fält
+
+        if (d) {
+            // === GRUNDFÄLT (från formulärets Tags-flik) ===
+            const basicTags: Array<[string, any]> = [
+                ['TITLE', d.title],
+                ['ARTIST', d.artist],
+                ['ALBUM', d.album],
+                ['ALBUMARTIST', d.albumArtist],
+                ['DATE', d.year || d.releaseDate],
+                ['GENRE', d.genre],
+                ['TRACKNUMBER', d.trackNum],
+                ['TRACKTOTAL', d.trackTotal],
+                ['DISCNUMBER', d.discNum],
+                ['DISCTOTAL', d.discTotal],
+                ['COMPOSER', d.composer],
+                ['LYRICS', d.lyrics],
+                ['COMMENT', d.comment],
+                ['CONDUCTOR', d.conductor],
+                ['GROUPING', d.grouping],
+
+                // === UTGIVNINGSFÄLT ===
+                // "Publisher"/"Skivbolag" – frontend skickar som `publisher`
+                // MusicBrainz-data skickar som `label`
+                // Båda skrivs till ORGANIZATION-taggen (standard FLAC/Vorbis)
+                ['ORGANIZATION', d.publisher || d.label],
+
+                // Katalognummer
+                ['CATALOGNUMBER', d.catalogNumber],
+
+                // Streckkod
+                ['BARCODE', d.barcode],
+
+                // Media (Digital Media, CD, etc.)
+                ['MEDIA', d.media],
+
+                // Skript (Latin, Cyrillic, etc.)
+                ['SCRIPT', d.script],
+
+                // Utgivningsland
+                ['RELEASECOUNTRY', d.country],
+
+                // === ORIGINALTFÄLT ===
+                ['ORIGINALARTIST', d.originalArtist],
+                ['ORIGINALALBUM', d.originalAlbum],
+                ['ORIGINALYEAR', d.originalYear],
+                ['ORIGINALDATE', d.originalDate],
+
+                // === KATEGORISERING ===
+                ['LANGUAGE', d.language],
+                ['TEMPO', d.tempo],
+                ['MOOD', d.mood],
+                ['OCCASION', d.occasion],
+                ['KEYWORDS', d.keywords],
+
+                // === SORTERINGSORDNING ===
+                ['ARTISTSORT', d.artistSortOrder],
+                ['ALBUMARTISTSORT', d.albumArtistSortOrder],
+
+                // === MUSICBRAINZ IDs ===
+                ['MUSICBRAINZ_TRACKID', d.musicbrainzTrackId || d.trackId || d.recordingMBID],
+                ['MUSICBRAINZ_ALBUMID', d.musicbrainzAlbumId || d.albumId],
+                ['MUSICBRAINZ_ARTISTID', d.musicbrainzArtistId || d.artistId],
+                ['MUSICBRAINZ_RELEASEGROUPID', d.musicbrainzReleaseGroupId || d.releaseGroupMBID],
+                ['MUSICBRAINZ_WORKID', d.musicbrainzWorkId || d.workMBID],
+                ['MUSICBRAINZ_RECORDINGID', d.musicbrainzRecordingId || d.recordingMBID],
+                ['MUSICBRAINZ_RELEASETRACKID', d.recordingMBID],
+                ['ISRC', d.isrc],
+
+                // === UTGIVNINGSSTATUS/TYP ===
+                ['RELEASESTATUS', d.releaseStatus],
+                ['RELEASETYPE', d.albumType],
+
+                // === LJUD-ANALYS ===
+                ['BPM', d.bpm != null ? String(d.bpm) : undefined],
+                ['INITIALKEY', d.key],
+                ['ENERGY', d.energy != null ? Number(d.energy).toFixed(3) : undefined],
+                ['DANCEABILITY', d.danceability != null ? Number(d.danceability).toFixed(3) : undefined],
+                ['ACOUSTICNESS', d.acousticness != null ? Number(d.acousticness).toFixed(3) : undefined],
+                ['VALENCE', d.valence != null ? Number(d.valence).toFixed(3) : undefined],
+                ['INSTRUMENTALNESS', d.instrumentalness != null ? Number(d.instrumentalness).toFixed(3) : undefined],
+
+                // === MOVEMENT (klassisk musik) ===
+                ['MOVEMENTNAME', d.movement],
+                ['MOVEMENT', d.movementNumber != null ? String(d.movementNumber) : undefined],
+                ['MOVEMENTTOTAL', d.movementTotal != null ? String(d.movementTotal) : undefined],
+            ]
+
+            for (const [key, value] of basicTags) {
+                if (value != null && String(value).trim() !== '') {
+                    setTag(key, String(value))
+                }
             }
-        }
 
-        if (musicBrainzData.genres && musicBrainzData.genres.length > 0) {
-            await execAsync(`metaflac --remove-tag=GENRE "${filePath}"`)
-            for (const genre of musicBrainzData.genres) {
-                await execAsync(`metaflac --set-tag=GENRE="${genre}" "${filePath}"`)
+            // === CUSTOM-FÄLT (1–20) ===
+            for (let i = 1; i <= 20; i++) {
+                const val = d[`custom${i}`]
+                if (val && String(val).trim() !== '') {
+                    setTag(`CUSTOM${i}`, String(val))
+                }
+            }
 
-                if (musicBrainzData.producers && musicBrainzData.producers.length > 0) {
-                    await execAsync(`metaflac --remove-tag=PRODUCER "${filePath}"`)
-                    for (const producer of musicBrainzData.producers) {
-                        await execAsync(`metaflac --set-tag=PRODUCER="${producer}" "${filePath}"`)
-                    }
+            // === FLERVÄRDIGA FÄLT ===
+            if (d.genres && d.genres.length > 0) {
+                flac.removeTag('GENRE')
+                for (const genre of d.genres) {
+                    flac.setTag(`GENRE=${genre}`)
+                }
+            }
+
+            if (d.producers && d.producers.length > 0) {
+                flac.removeTag('PRODUCER')
+                for (const producer of d.producers) {
+                    flac.setTag(`PRODUCER=${producer}`)
+                }
+            }
+
+            if (d.artistMBIDs && d.artistMBIDs.length > 0) {
+                flac.removeTag('MUSICBRAINZ_ARTISTID')
+                for (const mbid of d.artistMBIDs) {
+                    flac.setTag(`MUSICBRAINZ_ARTISTID=${mbid}`)
+                }
+            }
+
+            if (d.albumArtistMBIDs && d.albumArtistMBIDs.length > 0) {
+                flac.removeTag('MUSICBRAINZ_ALBUMARTISTID')
+                for (const mbid of d.albumArtistMBIDs) {
+                    flac.setTag(`MUSICBRAINZ_ALBUMARTISTID=${mbid}`)
+                }
+            }
+
+            // === INBÄDDAD OMSLAGSBILD ===
+            if (d.coverPath && d.artworkOptions?.embed !== false) {
+                try {
+                    flac.importPictureFrom(d.coverPath)
+                } catch (error) {
+                    console.error(`Failed to embed cover art for ${filePath}:`, error)
                 }
             }
         }
 
-        // Embed Cover Art
-        if (musicBrainzData.coverPath) {
-            try {
-                // Remove existing picture
-                await execAsync(`metaflac --remove --block-type=PICTURE "${filePath}"`)
-                // Import new picture
-                // 3 = Cover (front)
-                await execAsync(`metaflac --import-picture-from="3:image/jpeg:${musicBrainzData.coverPath}" "${filePath}"`)
-            } catch (error) {
-                console.error(`Failed to embed cover art for ${filePath}:`, error)
-            }
-        }
+        // === BETYG & SPELADE ===
+        flac.removeTag('FMPS_RATING')
+        flac.removeTag('FMPS_RATING_USER')
+        flac.removeTag('RATING')
+        flac.removeTag('LOVED')
+        flac.removeTag('PLAY_COUNT')
+
+        setTag('FMPS_RATING', fmpsRating)
+        setTag('RATING', rating)
+        setTag('FMPS_RATING_USER', 'MusicMaster')
+        if (loved) setTag('LOVED', 1)
+        if (playCount !== undefined) setTag('PLAY_COUNT', playCount)
+
+        flac.save()
+    } catch (error) {
+        console.error('Failed to write FLAC metadata:', error)
+        throw error
     }
 }
+
 
 async function writeMP3Metadata(
     filePath: string,
     rating: number,
     loved: boolean,
     playCount?: number,
-    musicBrainzData?: MusicBrainzWriteData
+    musicBrainzData?: TrackMetadataWriteData
 ): Promise<void> {
     const popmRating = Math.round((rating / 5) * 255)
     const tags = NodeID3.read(filePath)
@@ -250,6 +426,51 @@ async function writeMP3Metadata(
     }
 
     if (musicBrainzData) {
+        if (musicBrainzData.title) updatedTags.title = musicBrainzData.title
+        if (musicBrainzData.artist) updatedTags.artist = musicBrainzData.artist
+        if (musicBrainzData.album) updatedTags.album = musicBrainzData.album
+        if (musicBrainzData.albumArtist) updatedTags.performerInfo = musicBrainzData.albumArtist
+        if (musicBrainzData.year) updatedTags.year = musicBrainzData.year.toString()
+        if (musicBrainzData.genre) updatedTags.genre = musicBrainzData.genre
+        if (musicBrainzData.trackNum) updatedTags.trackNumber = musicBrainzData.trackNum.toString()
+        if (musicBrainzData.discNum) updatedTags.partOfSet = musicBrainzData.discNum.toString()
+        if (musicBrainzData.composer) updatedTags.composer = musicBrainzData.composer
+        if (musicBrainzData.comment) updatedTags.comment = { language: 'eng', text: musicBrainzData.comment }
+        if (musicBrainzData.lyrics) updatedTags.unsynchronisedLyrics = { language: 'eng', text: musicBrainzData.lyrics }
+        if (musicBrainzData.conductor) {
+            updatedTags.userDefinedText = updatedTags.userDefinedText!.filter(t => t.description !== 'CONDUCTOR')
+            updatedTags.userDefinedText.push({ description: 'CONDUCTOR', value: musicBrainzData.conductor })
+        }
+        if (musicBrainzData.grouping) {
+            updatedTags.userDefinedText = updatedTags.userDefinedText!.filter(t => t.description !== 'GROUPING')
+            updatedTags.userDefinedText.push({ description: 'GROUPING', value: musicBrainzData.grouping })
+        }
+        if (musicBrainzData.originalArtist) {
+            updatedTags.userDefinedText = updatedTags.userDefinedText!.filter(t => t.description !== 'ORIGINAL ARTIST')
+            updatedTags.userDefinedText.push({ description: 'ORIGINAL ARTIST', value: musicBrainzData.originalArtist })
+        }
+        if (musicBrainzData.originalYear) {
+            updatedTags.userDefinedText = updatedTags.userDefinedText!.filter(t => t.description !== 'ORIGINAL YEAR')
+            updatedTags.userDefinedText.push({ description: 'ORIGINAL YEAR', value: musicBrainzData.originalYear.toString() })
+        }
+        if (musicBrainzData.tempo) {
+            updatedTags.userDefinedText = updatedTags.userDefinedText!.filter(t => t.description !== 'TEMPO')
+            updatedTags.userDefinedText.push({ description: 'TEMPO', value: musicBrainzData.tempo })
+        }
+        if (musicBrainzData.language) {
+            updatedTags.userDefinedText = updatedTags.userDefinedText!.filter(t => t.description !== 'LANGUAGE')
+            updatedTags.userDefinedText.push({ description: 'LANGUAGE', value: musicBrainzData.language })
+        }
+        // Custom Fields
+        for (let i = 1; i <= 20; i++) {
+            const key = `custom${i}` as keyof TrackMetadataWriteData
+            const val = musicBrainzData[key]
+            if (val && typeof val === 'string') {
+                updatedTags.userDefinedText = updatedTags.userDefinedText!.filter(t => t.description !== `CUSTOM${i}`)
+                updatedTags.userDefinedText.push({ description: `CUSTOM${i}`, value: val })
+            }
+        }
+
         if (musicBrainzData.releaseDate) updatedTags.date = musicBrainzData.releaseDate
         // @ts-ignore
         if (musicBrainzData.originalDate) updatedTags.originalDate = musicBrainzData.originalDate
@@ -316,7 +537,7 @@ async function writeMP3Metadata(
             updatedTags.userDefinedText.push({ description: 'MUSICBRAINZ_ALBUMARTISTID', value: mbids })
         }
 
-        if (musicBrainzData.coverPath) {
+        if (musicBrainzData.coverPath && musicBrainzData.artworkOptions?.embed !== false) {
             try {
                 const imageBuffer = fs.readFileSync(musicBrainzData.coverPath)
                 updatedTags.image = {
@@ -337,7 +558,8 @@ async function writeMP3Metadata(
     const success = NodeID3.write(updatedTags, filePath)
 
     if (!success) {
-        throw new Error('Failed to write ID3 tags')
+        console.error(`❌ NodeID3 failed to write tags to: ${filePath}`)
+        throw new Error(`Failed to write ID3 tags to ${filePath}`)
     }
 }
 
@@ -392,7 +614,7 @@ export async function checkMetaflacAvailable(): Promise<boolean> {
 export function buildMusicBrainzDataFromDb(
     db: any,
     trackId: string | number
-): MusicBrainzWriteData | null {
+): TrackMetadataWriteData | null {
     const track = db.prepare(`
         SELECT 
             t.musicbrainz_trackid as recording_mbid,
@@ -465,7 +687,7 @@ export function buildMusicBrainzDataFromDb(
         WHERE musicbrainz_recordingid = ?
     `).get(track.recording_mbid)
 
-    const data: MusicBrainzWriteData = {
+    const data: TrackMetadataWriteData = {
         recordingMBID: track.recording_mbid,
         trackId: track.recording_mbid,
         isrc: track.isrc,

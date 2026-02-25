@@ -20,6 +20,8 @@ interface TrackListProps {
     onReorder?: (startIndex: number, endIndex: number) => void
     onRemove?: (trackId: string, position: number) => void
     hideHeader?: boolean
+    onArtistClick?: (artist: string) => void
+    onAlbumClick?: (albumId: string) => void
 }
 
 export default function TrackList({
@@ -32,7 +34,9 @@ export default function TrackList({
     isReorderable,
     onReorder,
     onRemove,
-    hideHeader = false
+    hideHeader = false,
+    onArtistClick,
+    onAlbumClick
 }: TrackListProps) {
     const { toggleLoved, rateTrack, tracks: allTracks } = useLibrary()
     const { currentTrack, playTrack, isPlaying } = usePlayer()
@@ -391,7 +395,18 @@ export default function TrackList({
                             {/* Artist */}
                             {isColVisible('artist') && (
                                 <div className="min-w-0">
-                                    <div className="text-sm text-white/40 truncate group-hover:text-white/60 transition-colors">
+                                    <div
+                                        className={cn(
+                                            "text-sm text-white/40 truncate group-hover:text-white/60 transition-colors",
+                                            onArtistClick && "cursor-pointer hover:text-white hover:underline"
+                                        )}
+                                        onClick={(e) => {
+                                            if (onArtistClick) {
+                                                e.stopPropagation();
+                                                onArtistClick(track.artist);
+                                            }
+                                        }}
+                                    >
                                         {track.artist}
                                     </div>
                                 </div>
@@ -400,7 +415,18 @@ export default function TrackList({
                             {/* Album */}
                             {isColVisible('album') && (
                                 <div className="min-w-0">
-                                    <div className="text-sm text-white/40 truncate group-hover:text-white/60 transition-colors">
+                                    <div
+                                        className={cn(
+                                            "text-sm text-white/40 truncate group-hover:text-white/60 transition-colors",
+                                            onAlbumClick && track.albumId && "cursor-pointer hover:text-white hover:underline"
+                                        )}
+                                        onClick={(e) => {
+                                            if (onAlbumClick && track.albumId) {
+                                                e.stopPropagation();
+                                                onAlbumClick(track.albumId);
+                                            }
+                                        }}
+                                    >
                                         {track.album}
                                     </div>
                                 </div>

@@ -1,122 +1,117 @@
 ﻿# MusicMaster
 
-A high-fidelity desktop music player built with Electron, React, and TypeScript. MusicMaster has been refactored into a client-server architecture, featuring a headless Node.js/Express backend (Server) and a refined desktop frontend (Client).
+En högkvalitativ skrivbordsmusikspelare byggd med Electron, React och TypeScript. MusicMaster använder en klient-server-arkitektur med en headless Node.js/Express-backend och en Electron-klient.
 
-## Architecture
+## Arkitektur
 
-MusicMaster now operates as two distinct components:
+MusicMaster består av två komponenter:
 
-1.  **Server**: A headless Node.js application managing the database, file scanning, metadata (MusicBrainz/AcousticBrainz), and scrobbling. It provides a REST API for the client.
-2.  **Client (Desktop)**: An Electron application delivering the premium user interface, audio playback, and visual experience. It communicates with the Server via the REST API.
+1. **Server** – Headless Node.js-app som hanterar databas, filskanning, metadata (MusicBrainz) och scrobbling. Serverar ett REST API.
+2. **Klient (Desktop)** – Electron-app med React-UI, uppspelning och visualiseringar. Kommunicerar med servern via REST.
 
-## Features
+## Funktioner
 
-###  Server
--   **Centralized Database**: `better-sqlite3` data store for all library metadata.
--   **Headless Scanning**: Fast, non-blocking file scanning (FLAC, MP3, M4A).
--   **Metadata Services**:
-    -   MusicBrainz integration for track/artist/album identification.
-    -   AcousticBrainz integration for BPM, key, and mood data.
-    -   Writing metadata tags (rating, loved status) back to files (MP3/FLAC).
-    -   **Automatic Background Enrichment**: Automatically fetches artist images and biographies from Last.fm and Spotify without manual intervention.
--   **Scrobbling & Auto-Sync**: 
-    -   Background manual and automatic submission to Last.fm and ListenBrainz.
-    -   Silent background task synchronizing all-time playcounts and "hearts" matching remote data with the local database.
--   **API**: Comprehensive REST API for all library operations.
+### 🖥️ Server
+- **Databas**: SQLite via `better-sqlite3` för all bibliotekets metadata
+- **Filskanning**: Snabb, icke-blockerande skanning (FLAC, MP3, M4A)
+- **Metadata-tjänster**:
+  - MusicBrainz för identifiering av spår/artist/album
+  - Automatisk bakgrundsberikning med artistbilder och biografi (Last.fm/Spotify)
+  - **Komplett tagg-skrivning** – alla Vorbis-taggar (FLAC) och ID3-taggar (MP3) stöds
+- **Scrobbling**: Automatisk synk mot Last.fm och ListenBrainz
+- **REST API**: Komplett API för alla biblioteksoperationer
 
-###  Client (Desktop)
--   **High-Quality Audio**: Hardware-accelerated playback via Web Audio API.
--   **Gapless Playback**: Seamless transitions with dual-audio preloading.
--   **Modern UI**: React 18 + TailwindCSS with a custom premium dark theme.
--   **Rich Interactions**: Context menus, drag-and-drop queue, multi-select.
--   **Visualizations**: Scrobble status, ReplayGain indicators, loved ribbons.
+### 🎵 Klient (Desktop)
+- **Högkvalitativt ljud**: Hårdvaruaccelererad uppspelning via Web Audio API
+- **Gapless playback**: Sömlösa övergångar med dubbel förhandsladning
+- **Modernt UI**: React 18 med premiumdesign i mörkt tema
+- **Tag Editor**: Redigera och spara 30+ metadata-fält direkt i FLAC/MP3-filer
 
-## Development
+## Stödda metadata-fält (Tag Editor)
 
-### Prerequisites
--   Node.js 18+
--   npm or yarn
--   Docker (optional, for server deployment)
+| Kategori | Fält |
+|---|---|
+| Grundfält | Titel, Artist, Album, Albumartist, Genre, År |
+| Spårinfo | Spårnummer/totalt, Skivnummer/totalt |
+| Upphovsrätt | Kompositör, Skivbolag (→ ORGANIZATION), Dirigent, Katalognummer, ISRC, Streckkod |
+| Utgivning | Media, Skript, Utgivningsland, Utgivningsstatus, Utgivningstyp |
+| Kategorisering | Språk, Tempo, Humör, Nyckelord, Tillfälle |
+| Original | Ursprunglig artist/album/år, Ursprungligt datum |
+| Sortering | Artist sorteringsordning, Albumartist sorteringsordning |
+| MusicBrainz | Track ID, Album ID, Artist ID, Release Group ID, Work ID, Recording ID |
+| Analys | BPM, Energi, Dansbarhet, Valens, Instrumentalitet |
+| Betyg | Betyg (1–5), Loved, Spelantal |
+| Anpassat | Custom 1–20 |
 
-### Setup
+## Kom igång
 
-#### 1. Server
+### Förutsättningar
+- Node.js 18+
+- npm
+
+### Installation
+
 ```bash
+# 1. Server
 cd server
 npm install
-npm start
-# Server runs on http://localhost:3000
-```
+npm run dev
+# Servern körs på http://localhost:3000
 
-#### 2. Client
-```bash
+# 2. Klient
 cd desktop
 npm install
-npm run dev
-# Frontend runs in development mode, connecting to localhost:3000
+npm run dev:web
+# Öppnar i webbläsaren på http://localhost:5173
 ```
 
-### Production Build via Docker
-You can run the full backend stack using Docker Compose:
-
+### Docker
 ```bash
 docker-compose up -d
 ```
 
-### Project Structure
+## Projektstruktur
 ```
 /
-├── server/                 # Backend Node.js Application
+├── server/                 # Backend Node.js
 │   ├── src/
 │   │   ├── api/           # REST API Routes & Controllers
 │   │   ├── database/      # SQLite Schema & Queries
-│   │   ├── services/      # External Services (MusicBrainz, Last.fm)
-│   │   └── index.ts       # Server Entry Point
-│   ├── Dockerfile
+│   │   ├── services/      # Externa tjänster (MusicBrainz, Last.fm, metadata-skrivning)
+│   │   └── index.ts       # Entry Point
 │   └── package.json
 │
-├── desktop/                # Frontend Electron Application
+├── desktop/                # Frontend Electron/Vite
 │   ├── src/
-│   │   ├── main/          # Electron Main Process (Window Management)
-│   │   ├── renderer/      # React Frontend (UI)
-│   │   │   ├── api/       # API Client (RestClient)
-│   │   │   ├── components/
-│   │   │   ├── views/
-│   │   │   └── store/
-│   │   └── preload/
+│   │   └── renderer/      # React-app
+│   │       ├── api/       # REST-klient
+│   │       ├── components/
+│   │       └── store/
 │   └── package.json
-└── docker-compose.yml      # Container Orchestration
+│
+└── docker-compose.yml
 ```
 
-## Configuration
+## Miljövariabler (Server)
 
-### Environment Variables (Server)
-Create a `.env` file in `server/`:
+Skapa `.env` i `server/`:
 
 ```env
 PORT=3000
-MUSIC_PATH=/path/to/music      # For local dev or Docker volume
-LISTENBRAINZ_TOKEN=...          # Optional
+LASTFM_API_KEY=...        # Valfritt – för scrobbling
+SPOTIFY_CLIENT_ID=...      # Valfritt – för artistbilder
+LISTENBRAINZ_TOKEN=...     # Valfritt – för ListenBrainz
 ```
 
-### Frontend Configuration
-The frontend automatically connects to `http://localhost:3000` by default. This can be configured in `desktop/src/renderer/src/api/client.ts`.
+## Databas-schema
 
-## Database Schema
-The server manages a SQLite database with tables for:
--   **Tracks**, **Albums**, **Artists**, **Genres**
--   **Playlists** & **PlaylistTracks**
--   **PlaybackState** (Session persistence)
--   **UserSettings**
--   **ScrobbleQueue** & **PlayHistory**
--   **MusicBrainz** (Cache & Metadata)
+SQLite-databasen innehåller tabeller för:
+- **Tracks, Albums, Artists, Genres**
+- **Playlists & PlaylistTracks**
+- **PlaybackState** (session-persistens)
+- **UserSettings**
+- **ScrobbleQueue & PlayHistory**
+- **Performers** (kompositörer, producenter, textförfattare m.m.)
 
-## Future Roadmap
-
--   **Frontend Migration**: Complete migration of all UI components to use the new `RestClient`.
--   **Authentication**: Add user accounts/auth to the Server API.
--   **Mobile App**: Potential mobile client consuming the Server API.
--   **Web Client**: Standalone web interface hosted by the server.
-
-## License
+## Licens
 MIT

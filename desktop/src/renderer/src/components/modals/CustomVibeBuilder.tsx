@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, Sparkles } from 'lucide-react'
+import { useDraggable } from '../../hooks/useDraggable'
 
 interface CustomVibeBuilderProps {
   isOpen: boolean
@@ -40,6 +41,7 @@ export default function CustomVibeBuilder({
   onSave,
   editingVibe
 }: CustomVibeBuilderProps) {
+  const { position, handleMouseDown } = useDraggable()
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('✨')
   const [description, setDescription] = useState('')
@@ -119,10 +121,20 @@ export default function CustomVibeBuilder({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+      <div
+        style={{
+          left: '50%',
+          top: '50%',
+          transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px)`
+        }}
+        className="bg-zinc-900 border border-zinc-800 rounded-lg max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-hidden flex flex-col pointer-events-auto absolute"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zinc-800 sticky top-0 bg-zinc-900 z-10">
+        <div
+          className="flex items-center justify-between p-6 border-b border-zinc-800 bg-zinc-900 z-10 cursor-move select-none"
+          onMouseDown={handleMouseDown}
+        >
           <div className="flex items-center gap-3">
             <Sparkles className="w-6 h-6 text-purple-400" />
             <h2 className="text-lg font-semibold text-white">
@@ -138,7 +150,7 @@ export default function CustomVibeBuilder({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Name & Emoji */}
           <div className="grid grid-cols-[1fr_auto] gap-4">
             <div>
@@ -296,7 +308,7 @@ export default function CustomVibeBuilder({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-zinc-800 bg-zinc-900 sticky bottom-0">
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-zinc-800 bg-zinc-900">
           <button
             onClick={handleClose}
             className="px-6 py-2 rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800 transition-colors"

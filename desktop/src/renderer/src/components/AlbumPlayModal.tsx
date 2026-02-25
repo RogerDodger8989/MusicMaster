@@ -26,8 +26,12 @@ export function AlbumPlayModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
       <div
-        style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-        className="pointer-events-auto relative w-[320px] bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl animate-in zoom-in-95 duration-200"
+        style={{
+          left: '50%',
+          top: '50%',
+          transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px)`
+        }}
+        className="pointer-events-auto absolute w-[320px] bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl animate-in zoom-in-95 duration-200"
       >
         {/* Header */}
         <div

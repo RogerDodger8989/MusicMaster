@@ -1,0 +1,2 @@
+SQL: UPDATE tracks SET title = ?, artist = ?, language = ?, publisher = ?, isrc = ?, track_num = ?, track_total = ?, disc_num = ?, disc_total = ?, year = ?, genre = ?
+Values: ["Sounds Like a Melody","Alphaville","German","WEA","DEAB19840801",8,10,1,1,1984,"Synthpop"]

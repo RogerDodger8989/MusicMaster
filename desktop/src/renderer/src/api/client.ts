@@ -16,15 +16,19 @@ export interface MusicClient {
   updateArtist(id: string, updates: Partial<Artist>): Promise<void>;
 
   // Tracks
-  getTracks(filter?: { folderId?: string; albumId?: string; artistId?: string }): Promise<Track[]>;
+  getTracks(options?: { folderId?: string; albumId?: string; artistId?: string }): Promise<Track[]>;
   getTrack(id: string): Promise<Track | null>;
   getTrackInfo(id: string): Promise<any>;
-  updateTrack(id: string, updates: Partial<Track>): Promise<void>;
+  getSimilarTracks(id: string): Promise<Track[]>;
+  updateTrack(id: string, data: Partial<Track> & { metadata?: any }): Promise<void>;
+  bulkUpdateTracks(trackIds: string[], data: any): Promise<void>;
+  deleteTrack(id: string): Promise<void>;
 
   // Interactions
+  getMostPlayedTracks(range: string, limit?: number): Promise<Track[]>;
   rateTrack(id: string, rating: number): Promise<void>;
   rateAlbum(id: string, rating: number): Promise<void>;
-  toggleTrackLoved(id: string, loved: boolean): Promise<void>;
+  loveTrack(id: string, loved: boolean): Promise<void>;
   toggleAlbumLoved(id: string, loved: boolean): Promise<void>;
   toggleArtistLoved(id: string, loved: boolean): Promise<void>;
 
@@ -98,7 +102,7 @@ export interface MusicClient {
   // System
   getDrives(): Promise<any[]>;
   getDirectory(path: string): Promise<any[]>;
-  browseNative(): Promise<{ path: string | null }>;
+  browseNative(type?: 'file' | 'folder'): Promise<{ path: string | null }>;
   showItemInFolder(path: string): Promise<void>;
 
   // Media URLs
@@ -118,6 +122,8 @@ export class DomClient implements MusicClient {
   async getAlbum(_id: string): Promise<Album | null> { return null; }
   async getAlbumPerformers(_id: string): Promise<any[]> { return []; }
   async updateAlbum(_id: string, _updates: Partial<Album>): Promise<void> { }
+  async deleteAlbum(_id: string): Promise<void> { }
+  async pasteAlbumArtwork(_id: string, _imageBase64: string): Promise<{ path: string }> { return { path: '' }; }
   async getGenres(): Promise<{ genre: string; count: number }[]> { return []; }
 
   // Artists
@@ -126,15 +132,19 @@ export class DomClient implements MusicClient {
   async updateArtist(_id: string, _updates: Partial<Artist>): Promise<void> { }
 
   // Tracks
-  async getTracks(_filter?: { folderId?: string; albumId?: string; artistId?: string }): Promise<Track[]> { return []; }
+  async getTracks(_options?: { folderId?: string; albumId?: string; artistId?: string }): Promise<Track[]> { return []; }
   async getTrack(_id: string): Promise<Track | null> { return null; }
   async getTrackInfo(_id: string): Promise<any> { return null; }
-  async updateTrack(_id: string, _updates: Partial<Track>): Promise<void> { }
+  async getSimilarTracks(_id: string): Promise<Track[]> { return []; }
+  async updateTrack(_id: string, _data: Partial<Track> & { metadata?: any }): Promise<void> { }
+  async bulkUpdateTracks(_trackIds: string[], _data: any): Promise<void> { }
+  async deleteTrack(_id: string): Promise<void> { }
 
   // Interactions
+  async getMostPlayedTracks(_range: string, _limit?: number): Promise<Track[]> { return []; }
   async rateTrack(_id: string, _rating: number): Promise<void> { }
   async rateAlbum(_id: string, _rating: number): Promise<void> { }
-  async toggleTrackLoved(_id: string, _loved: boolean): Promise<void> { }
+  async loveTrack(_id: string, _loved: boolean): Promise<void> { }
   async toggleAlbumLoved(_id: string, _loved: boolean): Promise<void> { }
   async toggleArtistLoved(_id: string, _loved: boolean): Promise<void> { }
 
@@ -220,7 +230,7 @@ export class DomClient implements MusicClient {
   // System
   async getDrives(): Promise<any[]> { return []; }
   async getDirectory(_path: string): Promise<any[]> { return []; }
-  async browseNative(): Promise<{ path: string | null }> { return { path: null }; }
+  async browseNative(_type?: 'file' | 'folder'): Promise<{ path: string | null }> { return { path: null }; }
   async showItemInFolder(path: string): Promise<void> {
     if (this.api?.util?.showItemInFolder) {
       this.api.util.showItemInFolder(path);
@@ -267,11 +277,23 @@ export class RestClient implements MusicClient {
     return this.req<any[]>(`/api/albums/${id}/performers`);
   }
 
-  async updateAlbum(id: string, updates: Partial<Album>): Promise<void> {
+  async updateAlbum(id: string, data: Partial<Album>): Promise<void> {
     await this.req<void>(`/api/albums/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates)
+      body: JSON.stringify(data)
+    });
+  }
+
+  async deleteAlbum(id: string): Promise<void> {
+    await this.req<void>(`/api/albums/${id}`, { method: "DELETE" });
+  }
+
+  async pasteAlbumArtwork(id: string, imageBase64: string): Promise<{ path: string }> {
+    return this.req<{ path: string }>(`/api/albums/${id}/artwork/paste`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ image: imageBase64 }),
     });
   }
 
@@ -297,8 +319,8 @@ export class RestClient implements MusicClient {
   }
 
   // Tracks
-  async getTracks(filter?: { folderId?: string; albumId?: string; artistId?: string }): Promise<Track[]> {
-    const params = new URLSearchParams(filter as any);
+  async getTracks(options?: { folderId?: string; albumId?: string; artistId?: string }): Promise<Track[]> {
+    const params = new URLSearchParams(options as any);
     return this.req<Track[]>(`/api/tracks?${params.toString()}`);
   }
 
@@ -310,15 +332,35 @@ export class RestClient implements MusicClient {
     return this.req<any>(`/api/tracks/${id}/info`);
   }
 
-  async updateTrack(id: string, updates: Partial<Track>): Promise<void> {
+  async getSimilarTracks(id: string): Promise<Track[]> {
+    return this.req<Track[]>(`/api/tracks/${id}/similar`);
+  }
+
+  async updateTrack(id: string, data: Partial<Track> & { metadata?: any }): Promise<void> {
     await this.req<void>(`/api/tracks/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates)
+      body: JSON.stringify(data)
     });
   }
 
+  async bulkUpdateTracks(trackIds: string[], data: any): Promise<void> {
+    await this.req<void>(`/api/tracks/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trackIds, ...data })
+    });
+  }
+
+  async deleteTrack(id: string): Promise<void> {
+    await this.req<void>(`/api/tracks/${id}`, { method: 'DELETE' });
+  }
+
   // Interactions
+  async getMostPlayedTracks(range: string, limit: number = 10): Promise<Track[]> {
+    return this.req<Track[]>(`/api/tracks/most-played?range=${range}&limit=${limit}`);
+  }
+
   async rateTrack(id: string, rating: number): Promise<void> {
     await this.req<void>(`/api/tracks/${id}/rate`, {
       method: 'POST',
@@ -335,7 +377,7 @@ export class RestClient implements MusicClient {
     });
   }
 
-  async toggleTrackLoved(id: string, loved: boolean): Promise<void> {
+  async loveTrack(id: string, loved: boolean): Promise<void> {
     await this.req<void>(`/api/tracks/${id}/loved`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -594,21 +636,31 @@ export class RestClient implements MusicClient {
   async getEnhanceStatus(): Promise<any> {
     return this.req<any>(`/api/metadata/enhance/status`);
   }
-
   async getCoverage(): Promise<any> {
     return this.req<any>(`/api/metadata/coverage`);
   }
 
-  async searchMetadata(artist: string, title?: string, album?: string): Promise<any[]> {
-    const params = new URLSearchParams({ artist });
-    if (title) params.append('title', title);
-    if (album) params.append('album', album);
-    return this.req<any[]>(`/api/metadata/search?${params.toString()}`);
+  async searchMetadata(artist: string, title?: string, album?: string, mbid?: string, trackMbid?: string, albumMbid?: string): Promise<any[]> {
+    const params = new URLSearchParams()
+    if (artist) params.append('artist', artist)
+    if (title) params.append('title', title)
+    if (album) params.append('album', album)
+    if (mbid) params.append('mbid', mbid)
+    if (trackMbid) params.append('trackMbid', trackMbid)
+    if (albumMbid) params.append('albumMbid', albumMbid)
+    const res = await this.req<any>(`/api/metadata/search?${params.toString()}`)
+    return res
   }
 
-  async searchAlbums(artist: string, album: string): Promise<any[]> {
-    const params = new URLSearchParams({ artist, album });
-    return this.req<any[]>(`/api/metadata/searchAlbums?${params.toString()}`);
+  async searchAlbums(artist: string, album: string, mbid?: string, albumMbid?: string): Promise<any[]> {
+    const params = new URLSearchParams()
+    if (artist) params.append('artist', artist)
+    if (album) params.append('album', album)
+    if (mbid) params.append('mbid', mbid)
+    if (albumMbid) params.append('albumMbid', albumMbid)
+    params.append('type', 'release')
+    const res = await this.req<any>(`/api/metadata/search?${params.toString()}`)
+    return res
   }
 
   async getArtistDetails(id: string): Promise<any> {
@@ -644,7 +696,7 @@ export class RestClient implements MusicClient {
   }
 
   async previewMatchAlbum(albumId: string, mbAlbumId: string): Promise<any[]> {
-    return this.req<any[]>(`/api/musicbrainz/preview`, {
+    return this.req<any[]>(`/api/metadata/album/${albumId}/match`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ albumId, mbAlbumId })
@@ -676,8 +728,8 @@ export class RestClient implements MusicClient {
     return this.req<any[]>(`/api/system/browse?path=${encodeURIComponent(path)}`);
   }
 
-  async browseNative(): Promise<{ path: string | null }> {
-    return this.req<{ path: string | null }>(`/api/system/browse-native`);
+  async browseNative(type: 'file' | 'folder' = 'folder'): Promise<{ path: string | null }> {
+    return this.req<{ path: string | null }>(`/api/system/browse-native?type=${type}`);
   }
 
   async showItemInFolder(path: string): Promise<void> {

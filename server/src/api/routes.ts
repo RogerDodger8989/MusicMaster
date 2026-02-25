@@ -25,8 +25,10 @@ router.get('/albums', albums.listAlbums)
 router.get('/albums/:id', albums.getAlbum)
 router.get('/albums/:id/performers', albums.getAlbumPerformers)
 router.put('/albums/:id', albums.updateAlbum)
+router.delete('/albums/:id', albums.deleteAlbum)
 router.post('/albums/:id/rate', albums.rateAlbum)
 router.post('/albums/:id/loved', albums.toggleAlbumLoved)
+router.post('/albums/:id/artwork/paste', media.pasteArtwork)
 
 // Artists
 router.get('/artists', artists.listArtists)
@@ -40,8 +42,12 @@ router.post('/artists/:id/loved', artists.toggleArtistLoved)
 
 // Tracks
 router.get('/tracks', tracks.listTracks)
+router.get('/tracks/most-played', tracks.getMostPlayed)
 router.get('/tracks/:id', tracks.getTrack)
+router.get('/tracks/:id/similar', tracks.getSimilar)
 router.put('/tracks/:id', tracks.updateTrack)
+router.post('/tracks/bulk', tracks.bulkUpdateTracks)
+router.delete('/tracks/:id', tracks.deleteTrack)
 router.post('/tracks/:id/rate', tracks.rateTrack)
 router.post('/tracks/:id/loved', tracks.loveTrack)
 router.get('/tracks/:id/info', trackInfo.getTrackInfo)

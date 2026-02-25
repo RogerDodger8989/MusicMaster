@@ -252,44 +252,80 @@ export class MusicBrainzService {
     async searchTrack(
         artist: string,
         title: string,
-        album?: string
+        album?: string,
+        mbid?: string,
+        trackMbid?: string,
+        albumMbid?: string
     ): Promise<MBTrackResult[]> {
         try {
-            const cacheKey = `track:${artist}:${title}:${album || 'any'}`
+            const cacheKey = `track:${artist}:${title}:${album || 'any'}:${mbid || 'no-mbid'}:${trackMbid || 'no-tmbid'}:${albumMbid || 'no-ambid'}`
             const cached = getFromCache(cacheKey)
             if (cached) {
                 return cached
             }
 
-            let query = `artist:"${artist}" AND recording:"${title}"`
-            if (album) {
-                query += ` AND release:"${album}"`
-            }
+            let allRecordings: any[] = []
 
-            await applyRateLimit()
-            let result = await mbApi.search('recording', { query })
-
-            if (
-                (!result.recordings || result.recordings.length === 0) &&
-                album
-            ) {
-                query = `artist:"${artist}" AND recording:"${title}"`
+            if (mbid) {
                 await applyRateLimit()
-                result = await mbApi.search('recording', { query })
-            }
+                let result = await mbApi.search('recording', { query: `rid:"${mbid}"` })
+                allRecordings = result.recordings || []
+            } else {
+                if (trackMbid) {
+                    let exactQuery = `rid:"${trackMbid}"`
+                    if (albumMbid) exactQuery += ` AND reid:"${albumMbid}"`
+                    await applyRateLimit()
+                    let result = await mbApi.search('recording', { query: exactQuery })
+                    if (result.recordings && result.recordings.length > 0) {
+                        allRecordings = [...result.recordings]
+                    }
+                }
 
-            if (!result.recordings || result.recordings.length === 0) {
-                query = `${artist} ${title} ${album || ''}`
+                let query = `artist:"${artist}" AND recording:"${title}"`
+                if (album) {
+                    query += ` AND release:"${album}"`
+                }
+
                 await applyRateLimit()
-                result = await mbApi.search('recording', { query })
+                let result = await mbApi.search('recording', { query })
+
+                if ((!result.recordings || result.recordings.length === 0) && album) {
+                    query = `artist:"${artist}" AND recording:"${title}"`
+                    await applyRateLimit()
+                    result = await mbApi.search('recording', { query })
+                }
+
+                if (!result.recordings || result.recordings.length === 0) {
+                    query = `${artist} ${title} ${album || ''}`
+                    await applyRateLimit()
+                    result = await mbApi.search('recording', { query })
+                }
+
+                if (result.recordings && result.recordings.length > 0) {
+                    const filtered = result.recordings.filter((r: any) => !trackMbid || r.id !== trackMbid)
+                    allRecordings = [...allRecordings, ...filtered]
+                }
             }
 
-            if (!result.recordings || result.recordings.length === 0) {
+            if (allRecordings.length === 0) {
                 return []
             }
 
-            const results = result.recordings.map((rec: any) => {
-                const release = rec.releases?.[0]
+            const results = allRecordings.map((rec: any) => {
+                let bestRelease = rec.releases?.[0]
+                if (albumMbid && rec.releases && rec.releases.length > 0) {
+                    const exactIdMatch = rec.releases.find((r: any) => r.id === albumMbid || r['release-group']?.id === albumMbid)
+                    if (exactIdMatch) bestRelease = exactIdMatch;
+                }
+
+                if (!bestRelease && album && rec.releases && rec.releases.length > 0) {
+                    const searchAlbumLower = album.toLowerCase()
+                    const exactMatch = rec.releases.find((r: any) => (r.title || '').toLowerCase() === searchAlbumLower)
+                    const includesMatch = rec.releases.find((r: any) => (r.title || '').toLowerCase().includes(searchAlbumLower))
+                    bestRelease = exactMatch || includesMatch || bestRelease
+                }
+                const release = bestRelease
+
                 const artistCredits = rec['artist-credit'] || []
                 const primaryCredit = artistCredits[0]
 
@@ -352,29 +388,50 @@ export class MusicBrainzService {
         }
     }
 
-    async searchAlbum(artist: string, album: string): Promise<any[]> {
+    async searchAlbum(artist: string, album: string, mbid?: string, albumMbid?: string): Promise<any[]> {
         try {
-            const cacheKey = `album:${artist}:${album}`
+            const cacheKey = `album:${artist}:${album}:${mbid || 'no-mbid'}:${albumMbid || 'no-ambid'}`
             const cached = getFromCache(cacheKey)
             if (cached) {
                 return cached
             }
 
-            let query = `artist:"${artist}" AND release:"${album}"`
-            await applyRateLimit()
-            let result = await mbApi.search('release', { query })
+            let allReleases: any[] = []
 
-            if (!result.releases || result.releases.length === 0) {
-                query = `${artist} ${album}`
+            if (mbid) {
                 await applyRateLimit()
-                result = await mbApi.search('release', { query })
+                let result = await mbApi.search('release', { query: `reid:"${mbid}"` })
+                allReleases = result.releases || []
+            } else {
+                if (albumMbid) {
+                    await applyRateLimit()
+                    let result = await mbApi.search('release', { query: `reid:"${albumMbid}"` })
+                    if (result.releases && result.releases.length > 0) {
+                        allReleases = [...result.releases]
+                    }
+                }
+
+                let query = `artist:"${artist}" AND release:"${album}"`
+                await applyRateLimit()
+                let result = await mbApi.search('release', { query })
+
+                if (!result.releases || result.releases.length === 0) {
+                    query = `${artist} ${album}`
+                    await applyRateLimit()
+                    result = await mbApi.search('release', { query })
+                }
+
+                if (result.releases && result.releases.length > 0) {
+                    const filtered = result.releases.filter((r: any) => !albumMbid || r.id !== albumMbid)
+                    allReleases = [...allReleases, ...filtered]
+                }
             }
 
-            if (!result.releases || result.releases.length === 0) {
+            if (allReleases.length === 0) {
                 return []
             }
 
-            const results = result.releases.map((rel: any) => {
+            const results = allReleases.map((rel: any) => {
                 let label = ''
                 if (rel['label-info'] && rel['label-info'].length > 0) {
                     label = rel['label-info'][0].label?.name || ''
@@ -392,7 +449,8 @@ export class MusicBrainzService {
                     barcode: rel.barcode,
                     status: rel.status,
                     label,
-                    coverArt: rel.id ? `https://coverartarchive.org/release/${rel.id}/front-250` : undefined
+                    coverArt: rel.id ? `https://coverartarchive.org/release/${rel.id}/front-250` : undefined,
+                    media: rel.media?.[0]?.format || rel.packaging || 'Unknown'
                 }
             })
 

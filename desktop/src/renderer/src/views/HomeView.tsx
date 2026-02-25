@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
-import { Music2, Plus, Edit2, Trash2, Settings, Check, EyeOff } from 'lucide-react'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { Music2, Plus, Edit2, Trash2, Settings, Check, EyeOff, RotateCcw } from 'lucide-react'
 import { VibesButtons, Vibe } from '../components/VibesButtons'
 import CustomVibeBuilder, { CustomVibeInput } from '../components/modals/CustomVibeBuilder'
 import { usePlayer } from '../store/player'
@@ -31,12 +31,32 @@ export default function HomeView({ }: HomeViewProps) {
   const [editingVibe, setEditingVibe] = useState<CustomVibeInput | null>(null)
   const [customVibes, setCustomVibes] = useState<Vibe[]>([])
   const [isConfigMode, setIsConfigMode] = useState(false)
+  const [selectedTimeRange, setSelectedTimeRange] = useState('forever')
+  const [mostPlayedTracks, setMostPlayedTracks] = useState<any[]>([])
+  const [mostPlayedLimit, setMostPlayedLimit] = useState(10)
+  const [exploreSeed, setExploreSeed] = useState(0)
+
+  // Section Refs
+  const mostPlayedRef = useRef<HTMLDivElement>(null)
 
   // Fetch available vibes on mount
   useEffect(() => {
     fetchVibes()
     fetchCustomVibes()
   }, [])
+
+  useEffect(() => {
+    fetchMostPlayed()
+  }, [selectedTimeRange, mostPlayedLimit, tracks]) // Also refresh if limit or library tracks change
+
+  const fetchMostPlayed = async () => {
+    try {
+      const data = await client.getMostPlayedTracks(selectedTimeRange, mostPlayedLimit)
+      setMostPlayedTracks(data)
+    } catch (error) {
+      console.error('Failed to fetch most played tracks:', error)
+    }
+  }
 
   const fetchVibes = async () => {
     try {
@@ -178,20 +198,14 @@ export default function HomeView({ }: HomeViewProps) {
 
   // --- Section Data Calculations ---
 
-  // Most Played: Top tracks by play count
-  const mostPlayedTracks = useMemo(() => {
-    return tracks
-      .filter(t => t.playCount > 0)
-      .sort((a, b) => b.playCount - a.playCount)
-      .slice(0, 5)
-  }, [tracks])
+  // Most Played: Removed local calculation, now using fetched state 'mostPlayedTracks'
 
   // Explore: Random albums from the library
   const exploreAlbums = useMemo(() => {
     return [...albums]
       .sort(() => Math.random() - 0.5)
       .slice(0, 6)
-  }, [albums])
+  }, [albums, exploreSeed])
 
   // Newly Added Releases: Albums sorted by creation date
   const newlyAddedAlbums = useMemo(() => {
@@ -394,8 +408,105 @@ export default function HomeView({ }: HomeViewProps) {
           if (sectionId === 'most_played') {
             content = (
               <Section key="most_played" id="most_played" title="🔝 Most Played Tracks">
-                <div className="bg-zinc-900/40 rounded-xl border border-white/5 p-2">
-                  <TrackList tracks={mostPlayedTracks} hideHeader />
+                <div className="flex flex-col gap-4" ref={mostPlayedRef}>
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                      {[
+                        { id: 'this-week', label: 'This Week' },
+                        { id: 'week', label: 'Last Week' },
+                        { id: 'month', label: 'Last Month' },
+                        { id: 'year', label: 'This Year' },
+                        { id: 'last-year', label: 'Last Year' },
+                        { id: 'forever', label: 'Forever' }
+                      ].map(range => (
+                        <button
+                          key={range.id}
+                          onClick={() => setSelectedTimeRange(range.id)}
+                          className={cn(
+                            "px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shrink-0",
+                            selectedTimeRange === range.id
+                              ? "bg-cyan-500 text-black"
+                              : "bg-white/5 text-zinc-500 hover:bg-white/10 hover:text-zinc-300"
+                          )}
+                        >
+                          {range.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        const newLimit = mostPlayedLimit === 10 ? 100 : 10
+                        setMostPlayedLimit(newLimit)
+                        if (newLimit === 10) {
+                          mostPlayedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-cyan-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-cyan-500/20 transition-all flex items-center gap-2 mb-2"
+                    >
+                      {mostPlayedLimit === 10 ? (
+                        <>
+                          <Plus size={12} strokeWidth={3} />
+                          Top 100
+                        </>
+                      ) : (
+                        <>
+                          <ChevronUp size={12} strokeWidth={3} />
+                          Top 10
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <motion.div
+                    layout
+                    className="bg-zinc-900/40 rounded-xl border border-white/5 p-2 overflow-hidden"
+                    initial={false}
+                    animate={{ height: "auto" }}
+                  >
+                    {mostPlayedTracks.length > 0 ? (
+                      <div className="flex flex-col gap-4">
+                        <TrackList
+                          tracks={mostPlayedTracks}
+                          hideHeader
+                          onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
+                          onAlbumClick={(id) => navigateTo('album-detail', { albumId: id })}
+                        />
+
+                        {mostPlayedLimit === 100 && mostPlayedTracks.length > 10 && (
+                          <div className="flex justify-center p-4 border-t border-white/5">
+                            <button
+                              onClick={() => {
+                                setMostPlayedLimit(10)
+                                mostPlayedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                              }}
+                              className="flex items-center gap-2 px-6 py-2 bg-white/5 hover:bg-white/10 text-cyan-400 rounded-full text-xs font-black uppercase tracking-widest border border-cyan-500/20 transition-all"
+                            >
+                              <ChevronUp size={14} strokeWidth={3} />
+                              Back to Top 10
+                            </button>
+                          </div>
+                        )}
+
+                        {mostPlayedLimit === 10 && mostPlayedTracks.length >= 10 && (
+                          <div className="flex justify-center p-4 border-t border-white/5">
+                            <button
+                              onClick={() => setMostPlayedLimit(100)}
+                              className="flex items-center gap-2 px-6 py-2 bg-white/5 hover:bg-white/10 text-cyan-400 rounded-full text-xs font-black uppercase tracking-widest border border-cyan-500/20 transition-all"
+                            >
+                              <Plus size={14} strokeWidth={3} />
+                              Show Top 100
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="py-12 flex flex-col items-center justify-center text-zinc-500">
+                        <Music2 className="w-12 h-12 mb-4 opacity-20" />
+                        <p className="text-sm italic">No tracks played in this period yet.</p>
+                      </div>
+                    )}
+                  </motion.div>
                 </div>
               </Section>
             )
@@ -404,14 +515,25 @@ export default function HomeView({ }: HomeViewProps) {
           if (sectionId === 'explore') {
             content = (
               <Section key="explore" id="explore" title="🔭 Explore from your library">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                  {exploreAlbums.map(album => (
-                    <AlbumCard
-                      key={album.id}
-                      album={album}
-                      onClick={() => navigateTo('album-detail', { albumId: album.id })}
-                    />
-                  ))}
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => setExploreSeed(s => s + 1)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-md transition-all text-xs font-bold border border-white/5"
+                    >
+                      <RotateCcw size={14} className={cn("transition-transform duration-500", exploreSeed > 0 && "rotate-[-360deg]")} />
+                      Another set
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                    {exploreAlbums.map(album => (
+                      <AlbumCard
+                        key={album.id}
+                        album={album}
+                        onClick={() => navigateTo('album-detail', { albumId: album.id })}
+                      />
+                    ))}
+                  </div>
                 </div>
               </Section>
             )

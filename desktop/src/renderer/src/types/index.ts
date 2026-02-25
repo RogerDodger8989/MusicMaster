@@ -46,6 +46,12 @@ export interface Track {
   energy?: number
   danceability?: number
 
+  composer?: string
+  lyrics?: string
+  comment?: string
+  trackTotal?: number
+  discTotal?: number
+
   createdAt: Date
   updatedAt: Date
   performers?: Array<{ name: string; role: string; id: string }>

@@ -1,4 +1,5 @@
 import { X, Check, AlertCircle, Music } from 'lucide-react'
+import { useDraggable } from '../../hooks/useDraggable'
 
 interface MusicBrainzProgressModalProps {
   isOpen: boolean
@@ -30,6 +31,7 @@ export default function MusicBrainzProgressModal({
   isComplete,
   operation
 }: MusicBrainzProgressModalProps) {
+  const { position, handleMouseDown } = useDraggable()
   if (!isOpen) return null
 
   const percentage = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0
@@ -55,10 +57,20 @@ export default function MusicBrainzProgressModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4">
+      <div
+        style={{
+          left: '50%',
+          top: '50%',
+          transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px)`
+        }}
+        className="bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden pointer-events-auto absolute"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zinc-800">
+        <div
+          className="flex items-center justify-between p-6 border-b border-zinc-800 cursor-move select-none"
+          onMouseDown={handleMouseDown}
+        >
           <div className="flex items-center gap-3">
             {getOperationIcon()}
             <h2 className="text-xl font-bold text-white">{getOperationTitle()}</h2>

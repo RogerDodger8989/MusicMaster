@@ -1,4 +1,5 @@
 import { X, CheckCircle2, AlertCircle } from 'lucide-react'
+import { useDraggable } from '../../hooks/useDraggable'
 
 interface EnrichmentProgress {
   totalAlbums: number
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export default function EnrichmentProgressModal({ isOpen, onClose, progress, isComplete, isPending }: Props) {
+  const { position, handleMouseDown } = useDraggable()
   if (!isOpen) return null
 
   const percentage = progress && progress.totalAlbums > 0
@@ -26,10 +28,20 @@ export default function EnrichmentProgressModal({ isOpen, onClose, progress, isC
     : 0
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg max-w-md w-full shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4">
+      <div
+        style={{
+          left: '50%',
+          top: '50%',
+          transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px)`
+        }}
+        className="bg-zinc-900 border border-zinc-800 rounded-lg max-w-md w-full shadow-2xl pointer-events-auto absolute"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-zinc-800">
+        <div
+          className="flex items-center justify-between p-6 border-b border-zinc-800 cursor-move select-none"
+          onMouseDown={handleMouseDown}
+        >
           <h2 className="text-lg font-semibold text-white">Library Enrichment</h2>
           <button
             onClick={onClose}

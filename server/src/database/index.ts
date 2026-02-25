@@ -376,13 +376,15 @@ CREATE TABLE IF NOT EXISTS tracks (
     musicbrainz_artistid TEXT,
     publisher TEXT,
     isrc TEXT,
-    musicbrainz_recordingid TEXT,
-    musicbrainz_releasegroupid TEXT,
-    musicbrainz_workid TEXT,
     replaygain_track_gain REAL,
     replaygain_album_gain REAL,
     replaygain_track_peak REAL,
     replaygain_album_peak REAL,
+    composer TEXT,
+    lyrics TEXT,
+    comment TEXT,
+    track_total INTEGER,
+    disc_total INTEGER,
     movement TEXT,
     movement_num INTEGER,
     movement_total INTEGER,
@@ -706,11 +708,48 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE acousticbrainz_data ADD COLUMN confidence_score REAL",
             "ALTER TABLE acousticbrainz_data ADD COLUMN instrumentalness REAL",
             "ALTER TABLE tracks ADD COLUMN mood TEXT",
+            "ALTER TABLE tracks ADD COLUMN composer TEXT",
+            "ALTER TABLE tracks ADD COLUMN lyrics TEXT",
+            "ALTER TABLE tracks ADD COLUMN comment TEXT",
+            "ALTER TABLE tracks ADD COLUMN track_total INTEGER",
+            "ALTER TABLE tracks ADD COLUMN disc_total INTEGER",
             "ALTER TABLE artists ADD COLUMN last_enrich_attempt DATETIME",
             "ALTER TABLE artists ADD COLUMN mbid_verified INTEGER DEFAULT 0",
             "ALTER TABLE artists ADD COLUMN image_verified INTEGER DEFAULT 0",
             "ALTER TABLE albums_cache ADD COLUMN is_verified INTEGER DEFAULT 0",
-            "CREATE UNIQUE INDEX IF NOT EXISTS idx_acousticbrainz_track_unique ON acousticbrainz_data(track_id)"
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_acousticbrainz_track_unique ON acousticbrainz_data(track_id)",
+
+            // MusicBee Extended Fields
+            "ALTER TABLE tracks ADD COLUMN conductor TEXT",
+            "ALTER TABLE tracks ADD COLUMN [grouping] TEXT",
+            "ALTER TABLE tracks ADD COLUMN album_rating REAL DEFAULT 0",
+            "ALTER TABLE tracks ADD COLUMN original_artist TEXT",
+            "ALTER TABLE tracks ADD COLUMN original_album TEXT",
+            "ALTER TABLE tracks ADD COLUMN original_year INTEGER",
+            "ALTER TABLE tracks ADD COLUMN tempo TEXT",
+            "ALTER TABLE tracks ADD COLUMN occasion TEXT",
+            "ALTER TABLE tracks ADD COLUMN keywords TEXT",
+            "ALTER TABLE tracks ADD COLUMN language TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom1 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom2 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom3 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom4 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom5 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom6 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom7 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom8 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom9 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom10 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom11 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom12 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom13 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom14 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom15 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom16 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom17 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom18 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom19 TEXT",
+            "ALTER TABLE tracks ADD COLUMN custom20 TEXT"
         ]
 
         for (const migration of migrations) {
@@ -799,10 +838,45 @@ export interface DbTrack {
     replaygain_album_gain: number | null
     replaygain_track_peak: number | null
     replaygain_album_peak: number | null
+    composer: string | null
+    lyrics: string | null
+    comment: string | null
+    track_total: number | null
+    disc_total: number | null
     movement: string | null
     movement_num: number | null
     movement_total: number | null
     mood: string | null
+    conductor: string | null
+    grouping: string | null
+    album_rating: number
+    original_artist: string | null
+    original_album: string | null
+    original_year: number | null
+    tempo: string | null
+    occasion: string | null
+    keywords: string | null
+    language: string | null
+    custom1: string | null
+    custom2: string | null
+    custom3: string | null
+    custom4: string | null
+    custom5: string | null
+    custom6: string | null
+    custom7: string | null
+    custom8: string | null
+    custom9: string | null
+    custom10: string | null
+    custom11: string | null
+    custom12: string | null
+    custom13: string | null
+    custom14: string | null
+    custom15: string | null
+    custom16: string | null
+    custom17: string | null
+    custom18: string | null
+    custom19: string | null
+    custom20: string | null
     // AcousticBrainz enrichment data (from LEFT JOIN)
     bpm?: number | null
     key?: string | null

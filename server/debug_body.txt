@@ -1,0 +1,27 @@
+{
+  "trackIds": [
+    "2068d4a2-cb43-4791-8a3a-c2e8eff7f61f",
+    "1501d130-d1c4-45c6-b480-47bfbe788d52",
+    "8cedeac4-f9f3-4677-8abb-d93b39c20bf4",
+    "a04903e6-6bcb-4c43-9222-db183a081c9f",
+    "eb4abf0f-71b3-4054-94ad-bf135b554dec",
+    "5c397485-c081-4d49-b167-b13971a49b43",
+    "2b62f0f7-c355-4479-8201-f634a436aacf",
+    "01cc4e07-b473-4a5c-911b-5b627ccc9b6d",
+    "14dc3949-412d-44af-b1f9-cb738d703a3b",
+    "e4ac17cf-0e00-4e4d-968d-414071a9feca"
+  ],
+  "metadata": {
+    "album": "Forever Young",
+    "year": 1991,
+    "trackTotal": 10,
+    "publisher": "Tusk Music",
+    "musicbrainzAlbumId": "ca22ac22-ef1d-3101-ad2f-7b6d2d674a8f"
+  },
+  "artwork": {
+    "embed": true,
+    "saveToFile": false,
+    "fileName": "cover",
+    "pending": {}
+  }
+}

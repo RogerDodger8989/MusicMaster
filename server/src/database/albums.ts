@@ -435,6 +435,29 @@ export function updateAlbumBio(albumId: string, bio: string): void {
 }
 
 /**
+ * Delete album and its tracks from the library
+ */
+export function deleteAlbumById(albumId: string): void {
+    const db = getDatabase()
+    const album = getAlbumById(albumId)
+    if (!album) return
+
+    db.transaction(() => {
+        // Delete all tracks associated with this album
+        db.prepare(`
+            DELETE FROM tracks 
+            WHERE COALESCE(NULLIF(album, ''), 'Unknown Album') = ? 
+            AND COALESCE(album_artist, artist, 'Unknown Artist') = ?
+        `).run(album.name, album.artist)
+
+        // Delete the album from cache
+        db.prepare('DELETE FROM albums_cache WHERE id = ?').run(albumId)
+    })()
+
+    console.log(`✅ Deleted album ${album.name} and its tracks from library`)
+}
+
+/**
  * Convert database row to Album object
  */
 export function dbAlbumToAlbum(row: DbAlbumCache): Album {
@@ -445,8 +468,8 @@ export function dbAlbumToAlbum(row: DbAlbumCache): Album {
         year: row.year || undefined,
         releaseDate: row.release_date || undefined,
         genre: row.genre || undefined,
-        discCount: row.disc_count,
-        trackCount: row.track_count,
+        discCount: row.disc_count || (row as any).total_discs || 1,
+        trackCount: row.track_count || (row as any).total_tracks || 0,
         totalDuration: row.total_duration,
         coverArtPath: row.cover_art_path || undefined,
         musicbrainzAlbumId: row.musicbrainz_albumid || undefined,

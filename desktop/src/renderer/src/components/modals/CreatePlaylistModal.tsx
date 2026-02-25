@@ -43,10 +43,14 @@ export function CreatePlaylistModal({
     }
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4">
             <div
-                style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-                className="w-[400px] bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+                style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px)`
+                }}
+                className="w-[400px] bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto absolute"
             >
                 {/* Header */}
                 <div

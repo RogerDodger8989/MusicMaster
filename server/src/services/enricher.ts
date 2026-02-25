@@ -34,6 +34,9 @@ export class BackgroundEnricher {
         try {
             // Process Artists first (prioritize missing bio/images)
             await this.enrichArtists()
+
+            // Process Tracks (missing tempo/mood)
+            await this.enrichTracks()
         } catch (error) {
             console.error('❌ Background enrichment failed:', error)
         }
@@ -135,6 +138,53 @@ export class BackgroundEnricher {
     private markAsFailed(albumId: string) {
         const db = getDatabase()
         db.prepare("UPDATE albums_cache SET enriched_at = datetime('now') WHERE id = ?").run(albumId)
+    }
+
+    private async enrichTracks() {
+        const db = getDatabase()
+
+        // Find up to 20 tracks missing tempo/mood that haven't been checked recently
+        // We use the custom20 field as a temporary 'last_spotify_attempt' tracker if needed,
+        // but for now we'll just set 'unknown' on failure to avoid infinite loops
+        const query = `
+            SELECT id, title, artist 
+            FROM tracks 
+            WHERE (tempo IS NULL OR mood IS NULL)
+            AND tempo != 'unknown' AND mood != 'unknown'
+            LIMIT 20
+        `
+
+        const tracks = db.prepare(query).all() as { id: string, title: string, artist: string }[]
+
+        if (tracks.length === 0) return
+
+        console.log(`🤖 Enriching audio features for ${tracks.length} tracks from Spotify...`)
+
+        const { spotifyService } = await import('./spotify')
+
+        for (const track of tracks) {
+            try {
+                // If title or artist is literally "unknown", skip and mark as unknown
+                if (!track.title || !track.artist || track.artist.toLowerCase() === 'unknown artist') {
+                    db.prepare("UPDATE tracks SET tempo = 'unknown', mood = 'unknown' WHERE id = ?").run(track.id)
+                    continue
+                }
+
+                const features = await spotifyService.getTrackAudioFeatures(track.title, track.artist)
+
+                if (features) {
+                    db.prepare(`UPDATE tracks SET tempo = ?, mood = ? WHERE id = ?`)
+                        .run(features.tempo, features.mood, track.id)
+                    console.log(`✅ Saved Spotify features for "${track.title}": Tempo ${features.tempo}, Mood ${features.mood}`)
+                } else {
+                    // Mark as unknown so we don't spam Spotify over and over
+                    db.prepare("UPDATE tracks SET tempo = 'unknown', mood = 'unknown' WHERE id = ?").run(track.id)
+                    console.log(`⚠️ No Spotify features found for "${track.title}", marked as unknown`)
+                }
+            } catch (e) {
+                console.warn(`[Enricher] Failed to enrich track ${track.title}:`, e)
+            }
+        }
     }
 }
 

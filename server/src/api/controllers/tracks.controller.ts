@@ -8,10 +8,15 @@ import {
     updateTrackLoved,
     updateTrackPlayCount,
     calculateFileHash,
-    dbTrackToTrack
+    dbTrackToTrack,
+    getMostPlayedTracksByRange,
+    deleteTrackById,
+    getSimilarTracks,
+    updateTrackMetadata
 } from '../../database/tracks'
 import { getDatabase } from '../../database'
-import { writeMusicBrainzDataToFile } from '../../services/metadataWriter'
+import { writeMusicBrainzDataToFile, writeMetadata } from '../../services/metadataWriter'
+import { Track } from '../../types'
 
 // Additional helper since getTracksByFolder was imported but getTracksByAlbum might not be exported directly
 // I need to check if getTracksByAlbum exists in tracks.ts
@@ -63,10 +68,11 @@ export const listTracks = (req: Request, res: Response) => {
     }
 }
 
-export const updateTrack = (req: Request, res: Response) => {
+export const updateTrack = async (req: Request, res: Response) => {
     try {
         const id = req.params.id as string
-        const { rating, loved, playCount } = req.body
+        try { require('fs').writeFileSync('debug_update_track.txt', JSON.stringify(req.body, null, 2)) } catch (e) { }
+        const { rating, loved, playCount, metadata, artwork } = req.body
 
         if (rating !== undefined) {
             updateTrackRating(id, Number(rating))
@@ -78,10 +84,68 @@ export const updateTrack = (req: Request, res: Response) => {
             updateTrackPlayCount(id, Number(playCount))
         }
 
+        if (metadata) {
+            // Update additional metadata in DB
+            updateTrackMetadata(id, metadata)
+        }
+
+        // Trigger file write if metadata was provided
+        if (metadata || rating !== undefined || loved !== undefined) {
+            const fullTrack = getTrackById(id)
+            if (fullTrack) {
+                await writeMetadata(
+                    fullTrack.filePath,
+                    fullTrack.rating,
+                    fullTrack.loved,
+                    fullTrack.playCount,
+                    { ...fullTrack, ...metadata, artworkOptions: artwork } as any
+                )
+            }
+        }
+
         res.json({ success: true, id })
-    } catch (error) {
+    } catch (error: any) {
         console.error('API Error:', error)
-        res.status(500).json({ error: 'Failed to update track' })
+        try {
+            require('fs').writeFileSync('debug_500.txt', error.stack || error.toString() || 'Unknown error');
+        } catch (e) { }
+        res.status(500).json({ error: 'Failed to update track', details: error.toString() })
+    }
+}
+
+export const bulkUpdateTracks = async (req: Request, res: Response) => {
+    try {
+        require('fs').writeFileSync('debug_body.txt', JSON.stringify(req.body, null, 2))
+        const { trackIds, metadata, artworks, artwork } = req.body
+        const artworkData = artwork || artworks
+
+        if (!Array.isArray(trackIds) || !metadata) {
+            return res.status(400).json({ error: 'trackIds array and metadata are required' })
+        }
+
+        for (const id of trackIds) {
+            updateTrackMetadata(id, metadata)
+
+            // Trigger file write
+            const fullTrack = getTrackById(id)
+            if (fullTrack) {
+                await writeMetadata(
+                    fullTrack.filePath,
+                    fullTrack.rating,
+                    fullTrack.loved,
+                    fullTrack.playCount,
+                    { ...fullTrack, ...metadata, artworkOptions: artworkData } as any
+                )
+            }
+        }
+
+        res.json({ success: true, count: trackIds.length })
+    } catch (error: any) {
+        console.error('API Error:', error)
+        try {
+            require('fs').writeFileSync('debug_500.txt', error.stack || error.toString() || 'Unknown error');
+        } catch (e) { }
+        res.status(500).json({ error: 'Failed to bulk update tracks', details: error.toString() })
     }
 }
 export const rateTrack = async (req: Request, res: Response) => {
@@ -125,5 +189,38 @@ export const loveTrack = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('API Error:', error)
         res.status(500).json({ error: 'Failed to love track' })
+    }
+}
+
+export const getMostPlayed = (req: Request, res: Response) => {
+    try {
+        const { range, limit } = req.query
+        const tracks = getMostPlayedTracksByRange(String(range || 'forever'), Number(limit || 10))
+        res.json(tracks)
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to fetch most played tracks' })
+    }
+}
+
+export const deleteTrack = (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string
+        deleteTrackById(id)
+        res.json({ success: true, id })
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to delete track' })
+    }
+}
+
+export const getSimilar = (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string
+        const tracks = getSimilarTracks(id)
+        res.json(tracks)
+    } catch (error) {
+        console.error('API Error:', error)
+        res.status(500).json({ error: 'Failed to find similar tracks' })
     }
 }

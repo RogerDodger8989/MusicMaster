@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { lastFmService } from '../../services/lastfm'
 import { listenBrainzService } from '../../services/listenbrainz'
 import { getDatabase } from '../../database'
-import { getAllTracks, getTrackPlayCount, updateTrackPlayCount } from '../../database/tracks'
+import { getAllTracks, getTrackPlayCount, updateTrackPlayCount, recordPlayHistory } from '../../database/tracks'
 import { writeMetadata } from '../../services/metadataWriter'
 
 import { syncWorker, syncState } from '../../services/syncWorker'
@@ -57,13 +57,7 @@ export const scrobbleTrack = async (req: Request, res: Response) => {
         const row = db.prepare('SELECT id, play_count FROM tracks WHERE title = ? AND artist = ?').get(track, artist) as any
 
         if (row) {
-            db.prepare('UPDATE tracks SET play_count = play_count + 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(row.id)
-
-            // Record history
-            db.prepare('INSERT INTO play_history (id, track_id, played_at) VALUES (?, ?, CURRENT_TIMESTAMP)').run(
-                require('crypto').randomUUID(),
-                row.id
-            )
+            recordPlayHistory(row.id)
         }
 
         res.json({ success: true })

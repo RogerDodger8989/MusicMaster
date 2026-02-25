@@ -10,14 +10,21 @@ import {
   Plus,
   Info,
   Check,
-  Minus
+  Minus,
+  Heart,
+  Trash2,
+  Radio,
+  Mic2,
+  Sparkles
 } from 'lucide-react'
+import { RatingStars } from './RatingStars'
 import { cn } from '../lib/utils'
 import { usePlaylists } from '../store/playlists'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
 import { useNavigation } from '../store/navigation'
 import { Track } from '../types'
+import { client } from '../api/client'
 import { useEffect, useState, useRef, useLayoutEffect } from 'react'
 
 interface TrackContextMenuProps {
@@ -45,9 +52,27 @@ export default function TrackContextMenu({
   const { albums } = useLibrary()
   const { navigateTo } = useNavigation()
   const [showPlaylists, setShowPlaylists] = useState(false)
+  const [showPlayMore, setShowPlayMore] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const [coords, setCoords] = useState({ left: x, top: y })
   const [subMenuSide, setSubMenuSide] = useState<'right' | 'left'>('right')
+  const [showInfoSub, setShowInfoSub] = useState(false)
+  const { rateTrack, toggleTrackLoved, loadTracks } = useLibrary()
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handleMouseEnter = (setter: (v: boolean) => void) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    setter(true)
+  }
+
+  const handleMouseLeave = (setter: (v: boolean) => void) => {
+    timeoutRef.current = setTimeout(() => {
+      setter(false)
+    }, 150)
+  }
 
   useLayoutEffect(() => {
     if (menuRef.current) {
@@ -184,10 +209,41 @@ export default function TrackContextMenu({
     onClose()
   }
 
-  const handleGetInfo = () => {
+  const handleShowInfo = () => {
     window.dispatchEvent(
       new CustomEvent('request-track-info', {
         detail: { track }
+      })
+    )
+    onClose()
+  }
+
+  const handleEditInfo = () => {
+    const ids = selectedTrackIds || [track.id]
+    // If we have selected IDs, we need the full track objects
+    // For now, if it's multiple, we'll try to get them from the library state or just pass the IDs
+    // But App.tsx expects the full track objects. 
+    // Let's check how we can get them.
+
+    // Actually, the tracks are available in the library store.
+    // But a simpler way is to just dispatch the tracks we have.
+    // If it's multi-select, the component that opens the context menu 
+    // should probably pass the full track objects if possible.
+
+    // Looking at TracksView.tsx or similar, it often just passes trackIds.
+    // I'll update the listener in App.tsx to handle multi-edit correctly if I pass IDs,
+    // OR I'll just pass the track we have if it's single.
+
+    // For now, let's assume we want to edit the current track + any other selected ones.
+    // I'll dispatch a custom event that includes the track objects if available.
+
+    // Wait, I can just use useLibrary().tracks for multi-edit.
+    const allTracks = useLibrary.getState().tracks
+    const tracksToEdit = allTracks.filter(t => ids.includes(t.id))
+
+    window.dispatchEvent(
+      new CustomEvent('request-track-edit', {
+        detail: { tracks: tracksToEdit.length > 0 ? tracksToEdit : [track] }
       })
     )
     onClose()
@@ -199,6 +255,64 @@ export default function TrackContextMenu({
         detail: { track }
       })
     )
+    onClose()
+  }
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm(`Are you sure you want to remove "${track.title}" from your library? (The file will NOT be deleted from your disk)`)
+    if (confirmDelete) {
+      try {
+        await client.deleteTrack(track.id)
+        loadTracks()
+        onClose()
+      } catch (err) {
+        console.error('Failed to delete track:', err)
+      }
+    }
+  }
+
+  const handleAutoDJ = () => {
+    // Logic for starting Auto-DJ with this track
+    onClose()
+  }
+
+  const handlePlayArtist = async () => {
+    try {
+      // Find all tracks by this artist
+      const artistTracks = await client.getTracks({ artistId: track.artist }) // Using artist name if musicbrainzArtistId is not standard
+      if (artistTracks.length > 0) {
+        playAlbum(artistTracks, 0)
+      }
+    } catch (err) {
+      console.error('Failed to play artist tracks:', err)
+    }
+    onClose()
+  }
+
+  const handlePlayAllRated = async () => {
+    try {
+      const tracks = await client.getTracks({ artistId: track.artist })
+      const rated = tracks.filter(t => (t.rating || 0) > 0).sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      if (rated.length > 0) {
+        playAlbum(rated, 0)
+      } else {
+        alert('No rated tracks found for this artist')
+      }
+    } catch (err) {
+      console.error('Failed to play rated tracks:', err)
+    }
+    onClose()
+  }
+
+  const handlePlaySimilar = async () => {
+    try {
+      const similar = await client.getSimilarTracks(track.id)
+      if (similar.length > 0) {
+        playAlbum(similar, 0)
+      }
+    } catch (err) {
+      console.error('Failed to play similar tracks:', err)
+    }
     onClose()
   }
 
@@ -255,8 +369,8 @@ export default function TrackContextMenu({
 
       <div
         className="relative group/sub"
-        onMouseEnter={() => setShowPlaylists(true)}
-        onMouseLeave={() => setShowPlaylists(false)}
+        onMouseEnter={() => handleMouseEnter(setShowPlaylists)}
+        onMouseLeave={() => handleMouseLeave(setShowPlaylists)}
       >
         <button className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors">
           <div className="flex items-center gap-3">
@@ -270,7 +384,7 @@ export default function TrackContextMenu({
           <div
             className={cn(
               'absolute top-0 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in duration-100',
-              subMenuSide === 'right' ? 'left-full ml-1 slide-in-from-left-2' : 'right-full mr-1 slide-in-from-right-2'
+              subMenuSide === 'right' ? 'left-full slide-in-from-left-2' : 'right-full slide-in-from-right-2'
             )}
           >
             {playlists.length === 0 ? (
@@ -317,6 +431,84 @@ export default function TrackContextMenu({
 
       <div className="h-px bg-zinc-800 my-1 mx-2" />
 
+      {/* Play More Submenu */}
+      <div
+        className="relative group/more"
+        onMouseEnter={() => handleMouseEnter(setShowPlayMore)}
+        onMouseLeave={() => handleMouseLeave(setShowPlayMore)}
+      >
+        <button className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors">
+          <div className="flex items-center gap-3">
+            <Radio size={16} />
+            Play more..
+          </div>
+          <ChevronRight size={14} className="text-zinc-500 group-hover/more:text-white" />
+        </button>
+
+        {showPlayMore && (
+          <div
+            className={cn(
+              'absolute top-0 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in duration-100',
+              subMenuSide === 'right' ? 'left-full slide-in-from-left-2' : 'right-full slide-in-from-right-2'
+            )}
+          >
+            <button
+              onClick={handleAutoDJ}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Sparkles size={14} />
+              Auto-DJ
+            </button>
+            <button
+              onClick={handlePlayArtist}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Mic2 size={14} />
+              Play Artist
+            </button>
+            <button
+              onClick={handlePlayAllRated}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Sparkles size={14} />
+              Play all rated songs
+            </button>
+            <button
+              onClick={handlePlaySimilar}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Sparkles size={14} />
+              Play Similar Songs
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="h-px bg-zinc-800 my-1 mx-2" />
+
+      {/* Library Actions */}
+      <div className="px-4 py-2 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => toggleTrackLoved(track.id)}
+            className={cn(
+              "p-1.5 rounded-full transition-colors",
+              track.loved ? "text-red-500 bg-red-500/10 hover:bg-red-500/20" : "text-zinc-500 hover:bg-zinc-800"
+            )}
+          >
+            <Heart size={18} fill={track.loved ? "currentColor" : "none"} />
+          </button>
+          <div className="w-px h-4 bg-zinc-800 mx-1" />
+          <RatingStars
+            rating={track.rating || 0}
+            onChange={(r) => rateTrack(track.id, r)}
+            size={16}
+          />
+        </div>
+      </div>
+
+      <div className="h-px bg-zinc-800 my-1 mx-2" />
+
       <button
         onClick={handleLocateFile}
         className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
@@ -327,20 +519,61 @@ export default function TrackContextMenu({
 
       <div className="h-px bg-zinc-800 my-1 mx-2" />
 
-      <button
-        onClick={handleGetInfo}
-        className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors text-blue-400 hover:text-white"
+      {/* Info Submenu */}
+      <div
+        className="relative group/info"
+        onMouseEnter={() => handleMouseEnter(setShowInfoSub)}
+        onMouseLeave={() => handleMouseLeave(setShowInfoSub)}
       >
-        <Info size={16} />
-        Get info
-      </button>
+        <button className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors">
+          <div className="flex items-center gap-3">
+            <Info size={16} />
+            Info
+          </div>
+          <ChevronRight size={14} className="text-zinc-500 group-hover/info:text-white" />
+        </button>
+
+        {showInfoSub && (
+          <div
+            className={cn(
+              'absolute top-0 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in duration-100',
+              subMenuSide === 'right' ? 'left-full slide-in-from-left-2' : 'right-full slide-in-from-right-2'
+            )}
+          >
+            <button
+              onClick={handleShowInfo}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Info size={14} />
+              Properties
+            </button>
+            <button
+              onClick={handleEditInfo}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Plus size={14} />
+              Edit Info
+            </button>
+          </div>
+        )}
+      </div>
 
       <button
         onClick={handleIdentify}
-        className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors text-blue-400 hover:text-white"
+        className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
       >
         <Fingerprint size={16} />
         Identify with MusicBrainz
+      </button>
+
+      <div className="h-px bg-zinc-800 my-1 mx-2" />
+
+      <button
+        onClick={handleDelete}
+        className="w-full px-4 py-2.5 text-left text-sm font-medium text-red-400 hover:bg-red-600 hover:text-white flex items-center gap-3 transition-colors"
+      >
+        <Trash2 size={16} />
+        Delete from Library
       </button>
     </div>
   )

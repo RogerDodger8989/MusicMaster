@@ -162,3 +162,34 @@ export const getWaveform = (req: Request, res: Response) => {
         res.status(500).send('Internal Server Error')
     }
 }
+
+export const pasteArtwork = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params
+        const { image } = req.body // base64 data:image/...
+
+        if (!image) {
+            return res.status(400).json({ error: 'Image data is required' })
+        }
+
+        const base64Data = image.replace(/^data:image\/\w+;base64,/, "")
+        const buffer = Buffer.from(base64Data, 'base64')
+
+        const userDataPath = process.env.DATA_PATH || path.join(process.cwd(), 'data')
+        const cacheDir = path.join(userDataPath, 'external_cache')
+        if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true })
+
+        const fileName = `manual_album_${id}.jpg`
+        const filePath = path.join(cacheDir, fileName)
+
+        fs.writeFileSync(filePath, buffer)
+
+        const db = getDatabase()
+        db.prepare('UPDATE albums_cache SET cover_art_path = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(filePath, id)
+
+        res.json({ success: true, path: filePath })
+    } catch (error) {
+        console.error('Error pasting artwork:', error)
+        res.status(500).json({ error: 'Failed to paste artwork' })
+    }
+}

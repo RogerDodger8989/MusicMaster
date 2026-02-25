@@ -1,10 +1,31 @@
-import { ListPlus, Play, User, Fingerprint, ListMusic, Plus, ChevronRight, Check, Minus } from 'lucide-react'
+import {
+  ListPlus,
+  Play,
+  User,
+  Fingerprint,
+  ListMusic,
+  Plus,
+  ChevronRight,
+  Check,
+  Minus,
+  Heart,
+  Trash2,
+  Radio,
+  Mic2,
+  Sparkles,
+  Info,
+  FolderOpen,
+  Image as ImageIcon
+} from 'lucide-react'
 import { usePlaylists } from '../store/playlists'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
 import { useNavigation } from '../store/navigation'
 import { Album } from '../types'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useLayoutEffect } from 'react'
+import { RatingStars } from './RatingStars'
+import { client } from '../api/client'
+import { cn } from '../lib/utils'
 
 interface AlbumContextMenuProps {
   album: Album
@@ -15,7 +36,7 @@ interface AlbumContextMenuProps {
 
 export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextMenuProps) {
   const { playAlbum } = usePlayer()
-  const { tracks: allTracks } = useLibrary()
+  const { tracks: allTracks, rateAlbum, toggleAlbumLoved, loadAlbums, loadTracks } = useLibrary()
   const { navigateTo } = useNavigation()
   const {
     playlists,
@@ -24,7 +45,56 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
     removeTrackByIdFromPlaylist
   } = usePlaylists()
   const [showPlaylists, setShowPlaylists] = useState(false)
+  const [showPlayMore, setShowPlayMore] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const [coords, setCoords] = useState({ left: x, top: y })
+  const [subMenuSide, setSubMenuSide] = useState<'right' | 'left'>('right')
+  const [showInfoSub, setShowInfoSub] = useState(false)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handleMouseEnter = (setter: (v: boolean) => void) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    setter(true)
+  }
+
+  const handleMouseLeave = (setter: (v: boolean) => void) => {
+    timeoutRef.current = setTimeout(() => {
+      setter(false)
+    }, 150)
+  }
+
+  useLayoutEffect(() => {
+    if (menuRef.current) {
+      const rect = menuRef.current.getBoundingClientRect()
+      const winW = window.innerWidth
+      const winH = window.innerHeight
+
+      let newX = x
+      let newY = y
+
+      if (y + rect.height > winH) {
+        newY = y - rect.height
+        if (newY < 0) newY = 10
+      }
+
+      if (x + rect.width > winW) {
+        newX = x - rect.width
+        if (newX < 0) newX = 10
+      }
+
+      const subMenuWidth = 224
+      if (newX + rect.width + subMenuWidth > winW) {
+        setSubMenuSide('left')
+      } else {
+        setSubMenuSide('right')
+      }
+
+      setCoords({ left: newX, top: newY })
+    }
+  }, [x, y])
 
 
   useEffect(() => {
@@ -100,6 +170,117 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
     onClose()
   }
 
+  const handleShowInfo = async () => {
+    const tracks = await getAlbumTracks()
+    if (tracks.length > 0) {
+      window.dispatchEvent(
+        new CustomEvent('request-track-info', {
+          detail: { track: tracks[0] }
+        })
+      )
+    }
+    onClose()
+  }
+
+  const handleEditInfo = async () => {
+    const tracks = await getAlbumTracks()
+    if (tracks.length > 0) {
+      window.dispatchEvent(
+        new CustomEvent('request-track-edit', {
+          detail: { tracks, context: 'album' }
+        })
+      )
+    }
+    onClose()
+  }
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm(`Are you sure you want to remove "${album.name}" and all its tracks from your library? (Files will NOT be deleted from disk)`)
+    if (confirmDelete) {
+      try {
+        await client.deleteAlbum(album.id)
+        loadAlbums()
+        loadTracks()
+        onClose()
+      } catch (err) {
+        console.error('Failed to delete album:', err)
+      }
+    }
+  }
+
+  const handleLocateFolder = async () => {
+    const tracks = await getAlbumTracks()
+    if (tracks.length > 0) {
+      const filePath = tracks[0].filePath
+      if ((window as any).api?.util?.showItemInFolder) {
+        ; (window as any).api.util.showItemInFolder(filePath)
+      } else {
+        fetch(`/api/system/show-in-folder?path=${encodeURIComponent(filePath)}`).catch(err => console.error(err))
+      }
+    }
+    onClose()
+  }
+
+  const handlePasteArtwork = async () => {
+    try {
+      const items = await navigator.clipboard.read()
+      for (const item of items) {
+        for (const type of item.types) {
+          if (type.startsWith('image/')) {
+            const blob = await item.getType(type)
+            const reader = new FileReader()
+            reader.onloadend = async () => {
+              const base64data = reader.result as string
+              await client.pasteAlbumArtwork(album.id, base64data)
+              loadAlbums() // Refresh to show new cover
+            }
+            reader.readAsDataURL(blob)
+            onClose()
+            return
+          }
+        }
+      }
+      alert('No image found in clipboard')
+    } catch (err) {
+      console.error('Failed to paste artwork:', err)
+      alert('Failed to paste artwork. Make sure you have copied an image.')
+    }
+  }
+
+  const handleAutoDJ = async () => {
+    // Logic for Auto-DJ with album tracks
+    onClose()
+  }
+
+  const handlePlayAllRated = async () => {
+    try {
+      // Find all rated tracks by this artist
+      const tracks = await client.getTracks({ artistId: album.artist })
+      const rated = tracks.filter(t => (t.rating || 0) > 0).sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      if (rated.length > 0) {
+        playAlbum(rated, 0)
+      } else {
+        alert('No rated tracks found for this artist')
+      }
+    } catch (err) {
+      console.error('Failed to play rated tracks:', err)
+    }
+    onClose()
+  }
+
+  const handlePlayArtist = async () => {
+    try {
+      // Find all tracks by this artist
+      const artistTracks = await client.getTracks({ artistId: album.artist })
+      if (artistTracks.length > 0) {
+        playAlbum(artistTracks, 0)
+      }
+    } catch (err) {
+      console.error('Failed to play artist tracks:', err)
+    }
+    onClose()
+  }
+
   const handleTogglePlaylist = async (e: React.MouseEvent, playlistId: string) => {
     e.stopPropagation()
 
@@ -140,7 +321,7 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
     <div
       ref={menuRef}
       className="fixed z-[100] w-64 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in zoom-in-95 duration-100"
-      style={{ left: x, top: y }}
+      style={{ left: coords.left, top: coords.top }}
     >
       <div className="px-4 py-2 mb-1 border-b border-zinc-800/50">
         <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest truncate">
@@ -173,6 +354,77 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
 
       <div className="h-px bg-zinc-800 my-1 mx-2" />
 
+      {/* Play More Submenu */}
+      <div
+        className="relative group/more"
+        onMouseEnter={() => handleMouseEnter(setShowPlayMore)}
+        onMouseLeave={() => handleMouseLeave(setShowPlayMore)}
+      >
+        <button className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors">
+          <div className="flex items-center gap-3">
+            <Radio size={16} />
+            Play more..
+          </div>
+          <ChevronRight size={14} className="text-zinc-500 group-hover/more:text-white" />
+        </button>
+
+        {showPlayMore && (
+          <div
+            className={cn(
+              'absolute top-0 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in duration-100',
+              subMenuSide === 'right' ? 'left-full slide-in-from-left-2' : 'right-full slide-in-from-right-2'
+            )}
+          >
+            <button
+              onClick={handleAutoDJ}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Sparkles size={14} />
+              Auto-DJ
+            </button>
+            <button
+              onClick={handlePlayArtist}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Mic2 size={14} />
+              Play Artist
+            </button>
+            <button
+              onClick={handlePlayAllRated}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Sparkles size={14} />
+              Play all rated songs
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="h-px bg-zinc-800 my-1 mx-2" />
+
+      {/* Library Actions */}
+      <div className="px-4 py-2 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => toggleAlbumLoved(album.id)}
+            className={cn(
+              "p-1.5 rounded-full transition-colors",
+              album.loved ? "text-red-500 bg-red-500/10 hover:bg-red-500/20" : "text-zinc-500 hover:bg-zinc-800"
+            )}
+          >
+            <Heart size={18} fill={album.loved ? "currentColor" : "none"} />
+          </button>
+          <div className="w-px h-4 bg-zinc-800 mx-1" />
+          <RatingStars
+            rating={album.rating || 0}
+            onChange={(r) => rateAlbum(album.id, r)}
+            size={16}
+          />
+        </div>
+      </div>
+
+      <div className="h-px bg-zinc-800 my-1 mx-2" />
+
       <button
         onClick={handleGoToArtist}
         className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
@@ -185,8 +437,8 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
 
       <div
         className="relative group/sub"
-        onMouseEnter={() => setShowPlaylists(true)}
-        onMouseLeave={() => setShowPlaylists(false)}
+        onMouseEnter={() => handleMouseEnter(setShowPlaylists)}
+        onMouseLeave={() => handleMouseLeave(setShowPlaylists)}
       >
         <button className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors">
           <div className="flex items-center gap-3">
@@ -197,7 +449,12 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
         </button>
 
         {showPlaylists && (
-          <div className="absolute left-full top-0 ml-1 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in slide-in-from-left-2 duration-100">
+          <div
+            className={cn(
+              'absolute top-0 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in duration-100',
+              subMenuSide === 'right' ? 'left-full slide-in-from-left-2' : 'right-full slide-in-from-right-2'
+            )}
+          >
             {playlists.length === 0 ? (
               <div className="px-4 py-2 text-xs text-zinc-500 font-medium italic">
                 No playlists created
@@ -208,9 +465,6 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
                   .sort((a, b) => a.name.localeCompare(b.name))
                   .map((pl) => {
                     const tracksInPlaylist = pl.tracks.map((t) => t.id)
-                    // We need to wait for album tracks, but for UI state we can use a simpler check or just accept it's async
-                    // However, getAlbumTracks is usually sync if allTracks is populated.
-                    // Let's assume sync filter here for UI performance.
                     const albumTracks = allTracks.filter(
                       (t) =>
                         t.album === album.name &&
@@ -253,11 +507,78 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
       <div className="h-px bg-zinc-800 my-1 mx-2" />
 
       <button
+        onClick={handleLocateFolder}
+        className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+      >
+        <FolderOpen size={16} />
+        Locate in explorer
+      </button>
+
+      <button
+        onClick={handlePasteArtwork}
+        className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+      >
+        <ImageIcon size={16} />
+        Paste Artwork
+      </button>
+
+      <div className="h-px bg-zinc-800 my-1 mx-2" />
+
+      {/* Info Submenu */}
+      <div
+        className="relative group/info"
+        onMouseEnter={() => handleMouseEnter(setShowInfoSub)}
+        onMouseLeave={() => handleMouseLeave(setShowInfoSub)}
+      >
+        <button className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors">
+          <div className="flex items-center gap-3">
+            <Info size={16} />
+            Info
+          </div>
+          <ChevronRight size={14} className="text-zinc-500 group-hover/info:text-white" />
+        </button>
+
+        {showInfoSub && (
+          <div
+            className={cn(
+              'absolute top-0 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in duration-100',
+              subMenuSide === 'right' ? 'left-full slide-in-from-left-2' : 'right-full slide-in-from-right-2'
+            )}
+          >
+            <button
+              onClick={handleShowInfo}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Info size={14} />
+              Properties
+            </button>
+            <button
+              onClick={handleEditInfo}
+              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+            >
+              <Plus size={14} />
+              Edit Info
+            </button>
+          </div>
+        )}
+      </div>
+
+      <button
         onClick={handleIdentify}
-        className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors text-blue-400 hover:text-white"
+        className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
       >
         <Fingerprint size={16} />
         Identify with MusicBrainz
+      </button>
+
+      <div className="h-px bg-zinc-800 my-1 mx-2" />
+
+      <button
+        onClick={handleDelete}
+        className="w-full px-4 py-2.5 text-left text-sm font-medium text-red-400 hover:bg-red-600 hover:text-white flex items-center gap-3 transition-colors"
+      >
+        <Trash2 size={16} />
+        Remove from Library
       </button>
     </div>
   )

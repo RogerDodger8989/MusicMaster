@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { assignMoodCategory, calculateArousalValence } from './moodTaxonomy'
 
 function logDebug(message: string) {
     try {
@@ -71,6 +72,60 @@ export class SpotifyService {
             }
         } catch (error: any) {
             logDebug(`Failed to search Spotify for artist ${artistName}: ${error.message}`)
+        }
+        return null
+    }
+
+    async getTrackAudioFeatures(title: string, artist: string): Promise<{ tempo: number, mood: string } | null> {
+        const token = await this.getAccessToken()
+        if (!token) return null
+
+        try {
+            // 1. Search for track
+            const query = `track:${title} artist:${artist}`
+            const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            const searchData = await searchRes.json() as any
+            const track = searchData.tracks?.items?.[0]
+
+            if (!track || !track.id) {
+                logDebug(`No track found for ${title} by ${artist}`)
+                return null
+            }
+
+            // 2. Get audio features
+            const featuresRes = await fetch(`https://api.spotify.com/v1/audio-features/${track.id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            const features = await featuresRes.json() as any
+
+            if (!features || typeof features.tempo !== 'number') {
+                logDebug(`No audio features found for track ${track.id}`)
+                return null
+            }
+
+            const tempo = Math.round(features.tempo)
+            const energy = features.energy || 0.5
+            const danceability = features.danceability || 0.5
+            const valenceScore = features.valence || 0.5
+
+            // Calculate Mood
+            // Spotify valence maps directly to our valence.
+            // We use calculateArousalValence just to get the weighted arousal from energy and danceability, 
+            // though we skip the genre-based valence calc because Spotify's valence is already perfect.
+            const { arousal } = calculateArousalValence(energy, danceability, {})
+
+            const moodCategory = assignMoodCategory(arousal, valenceScore, tempo)
+
+            logDebug(`Got audio features for ${title}: Tempo ${tempo}, Mood ${moodCategory.id}`)
+            return {
+                tempo,
+                mood: moodCategory.id
+            }
+
+        } catch (error: any) {
+            logDebug(`Failed to fetch audio features for ${title} by ${artist}: ${error.message}`)
         }
         return null
     }

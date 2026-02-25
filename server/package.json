@@ -25,6 +25,7 @@
         "express": "^4.21.2",
         "ffmpeg-static": "^5.3.0",
         "ffprobe-static": "^3.1.0",
+        "metaflac-js": "^1.0.5",
         "music-metadata": "^7.14.0",
         "music-tempo": "^1.0.3",
         "musicbrainz-api": "^1.0.0",
