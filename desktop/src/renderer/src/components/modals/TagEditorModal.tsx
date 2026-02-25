@@ -60,14 +60,22 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
         const allKeys = [
             'title', 'artist', 'album', 'albumArtist', 'genre', 'year',
             'trackNum', 'trackTotal', 'discNum', 'discTotal',
-            'composer', 'publisher', 'conductor', 'grouping',
+            'composer', 'publisher', 'conductor', 'grouping', 'lyricist', 'arranger',
             'comment', 'lyrics', 'bpm', 'tempo', 'mood', 'occasion', 'keywords', 'language',
             'originalArtist', 'originalAlbum', 'originalYear', 'albumRating', 'rating', 'loved',
+            // Utgivningsfält
+            'catalogNumber', 'barcode', 'isrc', 'media', 'script',
+            'releaseCountry', 'releaseStatus', 'releaseType',
+            // Sortering
+            'artistSortOrder', 'albumArtistSortOrder',
+            // MusicBrainz IDs
+            'musicbrainzTrackId', 'musicbrainzAlbumId', 'musicbrainzArtistId',
+            'musicbrainzReleaseGroupId', 'musicbrainzRecordingId',
+            // Custom-fält
             'custom1', 'custom2', 'custom3', 'custom4', 'custom5',
             'custom6', 'custom7', 'custom8', 'custom9', 'custom10',
             'custom11', 'custom12', 'custom13', 'custom14', 'custom15',
             'custom16', 'custom17', 'custom18', 'custom19', 'custom20',
-            'musicbrainzTrackId', 'musicbrainzAlbumId', 'musicbrainzArtistId'
         ]
 
         const currentTracks = isMulti ? tracks : [tracks[currentIndex]]
@@ -194,15 +202,38 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
         mapField('discTotal', metadata.discCount)
         mapField('publisher', metadata.label)
         mapField('composer', metadata.composer)
+        mapField('lyricist', metadata.lyricist)
+        mapField('arranger', metadata.arranger)
         mapField('conductor', metadata.conductor)
         mapField('grouping', metadata.grouping)
-        // Add MBIDs so they're saved with the tags
+        mapField('mixer', metadata.mixer)
+        // Utgivning
+        mapField('catalogNumber', metadata.catalogNumber)
+        mapField('barcode', metadata.barcode)
+        mapField('isrc', metadata.isrc)
+        mapField('media', metadata.media)
+        mapField('script', metadata.script)
+        mapField('language', metadata.language)
+        mapField('releaseCountry', metadata.country)
+        mapField('releaseStatus', metadata.releaseStatus)
+        mapField('releaseType', metadata.releaseType)
+        // Sortering
+        mapField('artistSortOrder', metadata.artistSortOrder)
+        mapField('albumArtistSortOrder', metadata.albumArtistSortOrder)
+        // Totaler
+        mapField('trackTotal', metadata.trackCount || metadata.totalTracks)
+        mapField('discNum', metadata.discNum)
+        mapField('discTotal', metadata.discCount)
+        // MusicBrainz IDs
         if (type === 'track') {
             mapField('musicbrainzTrackId', metadata.id)
+            mapField('musicbrainzRecordingId', metadata.id)
             if (metadata.albumId) mapField('musicbrainzAlbumId', metadata.albumId)
         } else {
             mapField('musicbrainzAlbumId', metadata.id)
         }
+        if (metadata.artistId) mapField('musicbrainzArtistId', metadata.artistId)
+        if (metadata.releaseGroupId) mapField('musicbrainzReleaseGroupId', metadata.releaseGroupId)
         if (metadata.artistMbid) mapField('musicbrainzArtistId', metadata.artistMbid)
 
         setFields(newFields)

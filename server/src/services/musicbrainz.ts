@@ -62,6 +62,10 @@ export interface MBTrackResult {
     media?: string
     genres?: string[]
     artistCredits?: MBArtistCredit[]
+    composer?: string
+    lyricist?: string
+    arranger?: string
+    isrc?: string
 }
 
 export interface MBArtistCredit {
@@ -371,6 +375,11 @@ export class MusicBrainzService {
                     country: release?.country,
                     coverArt: release?.id ? `https://coverartarchive.org/release/${release.id}/front-250` : undefined,
                     media: release?.['media']?.[0]?.format,
+                    script: release?.['text-representation']?.['script'] || release?.['script'],
+                    language: release?.['text-representation']?.['language'] || release?.['language'],
+                    releaseStatus: release?.status,
+                    releaseType: release?.['release-group']?.['primary-type'],
+                    totalTracks: release?.['media']?.[0]?.['track-count'],
                     genres: (rec as any).tags?.map((t: any) => t.name),
                     artistCredits: artistCredits.map((ac: any) => ({
                         name: ac.name || ac.artist?.name,
@@ -381,7 +390,98 @@ export class MusicBrainzService {
             })
 
             cacheResult(cacheKey, results)
-            return results
+
+            // För de 5 första resultaten: hämta composer via recording work-relations
+            // Detta sker asynkront så det inte blockerar söket.
+            const topResults = results.slice(0, 5)
+            const enrichedResults = await Promise.all(
+                topResults.map(async (result: any) => {
+                    try {
+                        await applyRateLimit()
+                        const recording = await (mbApi as any).lookup('recording', result.id, [
+                            'work-rels',
+                            'artist-rels',
+                            'isrcs'
+                        ])
+
+                        // Hämta composer från work-relations
+                        let composer: string | undefined
+                        let lyricist: string | undefined
+                        let arranger: string | undefined
+                        let conductor: string | undefined
+                        let producer: string | undefined
+                        let mixer: string | undefined
+                        const performers: Array<{ name: string; role: string }> = []
+
+                        if (recording.relations) {
+                            for (const rel of recording.relations) {
+                                if (rel.type === 'performance' && rel.work?.id) {
+                                    // Work-objektet i recording-svaret saknar sina egna relations.
+                                    // Gör ett separat work-lookup med artist-rels.
+                                    try {
+                                        await applyRateLimit()
+                                        const work = await (mbApi as any).lookup('work', rel.work.id, ['artist-rels'])
+                                        if (work.relations) {
+                                            const composerRels = work.relations.filter((r: any) =>
+                                                ['composer', 'written-by', 'music by'].includes((r.type || '').toLowerCase())
+                                            )
+                                            if (composerRels.length > 0) {
+                                                composer = composerRels.map((r: any) => r.artist?.name).filter(Boolean).join(';')
+                                            }
+                                            const lyricistRels = work.relations.filter((r: any) =>
+                                                ['lyricist', 'words', 'librettist'].includes((r.type || '').toLowerCase())
+                                            )
+                                            if (lyricistRels.length > 0) {
+                                                lyricist = lyricistRels.map((r: any) => r.artist?.name).filter(Boolean).join(';')
+                                            }
+                                            const arrangerRels = work.relations.filter((r: any) =>
+                                                (r.type || '').toLowerCase() === 'arranger'
+                                            )
+                                            if (arrangerRels.length > 0) {
+                                                arranger = arrangerRels.map((r: any) => r.artist?.name).filter(Boolean).join(';')
+                                            }
+                                        }
+                                    } catch (workErr) {
+                                        // Ignorera - returnera utan composer om work-lookup misslyckas
+                                    }
+                                    break // Använd första funna verk
+                                } else if (rel['target-type'] === 'artist' && rel.artist && rel.type !== 'performance') {
+                                    // Artist-relationer direkt på inspelningen: conductor, producer, mix...
+                                    const relType = (rel.type || '').toLowerCase()
+                                    const artistName = rel.artist.name
+                                    if (artistName) {
+                                        if (relType === 'conductor') {
+                                            conductor = conductor ? `${conductor};${artistName}` : artistName
+                                        } else if (relType === 'producer' || relType === 'producing') {
+                                            producer = producer ? `${producer};${artistName}` : artistName
+                                        } else if (relType === 'mix' || relType === 'mixer' || relType === 'mix-dj' || relType === 'audio') {
+                                            mixer = mixer ? `${mixer};${artistName}` : artistName
+                                        } else if ((relType === 'arranger' || relType === 'orchestrator') && !arranger) {
+                                            arranger = artistName
+                                        } else {
+                                            performers.push({ name: artistName, role: rel.type })
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // ISRC
+                        const isrc = recording.isrcs?.[0]
+
+                        return { ...result, composer, lyricist, arranger, conductor, producer, mixer, isrc, performers }
+                    } catch (err) {
+                        // Om work-rels-lookup misslyckas (rate limit etc.), returnera bara original
+                        return result
+                    }
+                })
+            )
+
+            // Kombinera enriched top-results med resten
+            const finalResults = [...enrichedResults, ...results.slice(5)]
+            // Uppdatera cache med enriched data
+            cacheResult(cacheKey, finalResults)
+            return finalResults
         } catch (error) {
             console.error('MB track search failed:', error)
             return []

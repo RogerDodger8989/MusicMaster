@@ -51,6 +51,50 @@ export interface Track {
   comment?: string
   trackTotal?: number
   discTotal?: number
+  instrumentalness?: number
+  mood?: string
+  publisher?: string
+  conductor?: string
+  grouping?: string
+  albumRating?: number
+  originalArtist?: string
+  originalAlbum?: string
+  originalYear?: number
+  tempo?: string
+  occasion?: string
+  keywords?: string
+  language?: string
+  // Utgivningsfält
+  barcode?: string
+  script?: string
+  releaseCountry?: string
+  releaseStatus?: string
+  releaseType?: string
+  lyricist?: string
+  arranger?: string
+  mixer?: string
+  catalogNumber?: string
+  // Custom-fält
+  custom1?: string
+  custom2?: string
+  custom3?: string
+  custom4?: string
+  custom5?: string
+  custom6?: string
+  custom7?: string
+  custom8?: string
+  custom9?: string
+  custom10?: string
+  custom11?: string
+  custom12?: string
+  custom13?: string
+  custom14?: string
+  custom15?: string
+  custom16?: string
+  custom17?: string
+  custom18?: string
+  custom19?: string
+  custom20?: string
 
   createdAt: Date
   updatedAt: Date

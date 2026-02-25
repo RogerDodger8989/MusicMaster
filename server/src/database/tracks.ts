@@ -619,6 +619,17 @@ export function dbTrackToTrack(dbTrack: DbTrack): Track {
         custom18: dbTrack.custom18 || undefined,
         custom19: dbTrack.custom19 || undefined,
         custom20: dbTrack.custom20 || undefined,
+        // --- Fält som saknades tidigare ---
+        publisher: (dbTrack as any).publisher || undefined,
+        barcode: (dbTrack as any).barcode || undefined,
+        script: (dbTrack as any).script || undefined,
+        releaseCountry: (dbTrack as any).release_country || undefined,
+        releaseStatus: (dbTrack as any).release_status || undefined,
+        releaseType: (dbTrack as any).release_type || undefined,
+        lyricist: (dbTrack as any).lyricist || undefined,
+        arranger: (dbTrack as any).arranger || undefined,
+        mixer: (dbTrack as any).mixer || undefined,
+        catalogNumber: (dbTrack as any).catalog_number || undefined,
         createdAt: new Date(dbTrack.created_at),
         updatedAt: new Date(dbTrack.updated_at)
     }

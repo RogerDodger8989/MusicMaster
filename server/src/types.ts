@@ -86,6 +86,16 @@ export interface Track {
     custom18?: string
     custom19?: string
     custom20?: string
+    // Utgivnings- och redigeringsfält
+    barcode?: string
+    script?: string
+    releaseCountry?: string
+    releaseStatus?: string
+    releaseType?: string
+    lyricist?: string
+    arranger?: string
+    mixer?: string
+    catalogNumber?: string
 
     createdAt: Date
     updatedAt: Date
