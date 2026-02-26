@@ -35,6 +35,7 @@ import { useSettings, TrackPlayBehavior } from './store/settings'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useAutoDJ } from './hooks/useAutoDJ'
 import { useDJSession } from './hooks/useDJSession'
+import { useMediaSession } from './hooks/useMediaSession'
 import { scrobbleService } from './services/scrobbleService'
 import { Track, Album } from './types'
 import { useSyncStore } from './store/sync'
@@ -42,11 +43,24 @@ import { useSyncStore } from './store/sync'
 function App(): React.JSX.Element {
   const { initialize, selectedTracks: selectedTrackIds, tracks: allTracks } = useLibrary()
   const { current, navigateTo, goBack } = useNavigation()
-  const { currentTrack, duration, currentTime, seek, togglePlay, playTrack, playNext, addToQueue, loadSession } = usePlayer()
+  const {
+    currentTrack,
+    duration,
+    currentTime,
+    seek,
+    togglePlay,
+    playTrack,
+    playNext,
+    addToQueue,
+    loadSession,
+    next,
+    prev
+  } = usePlayer()
   const { setTrackPlayBehavior, loadSettings } = useSettings()
   const { startTagging, updateProgress, finishTagging } = useTagging()
   useAutoDJ()
   useDJSession()
+  useMediaSession()
 
   const activeView = current.view
   const viewParams = current.params
@@ -357,6 +371,28 @@ function App(): React.JSX.Element {
       )
     }
   }, [])
+
+  // Listen for Player commands from main process (Thumbar, global shortcuts etc)
+  useEffect(() => {
+    if (!window.api || !window.api.player.onCommand) return
+
+    const unsub = window.api.player.onCommand((command) => {
+      console.log('🎮 Player command received from main:', command)
+      switch (command) {
+        case 'togglePlay':
+          togglePlay()
+          break
+        case 'prev':
+          prev()
+          break
+        case 'next':
+          next()
+          break
+      }
+    })
+
+    return () => unsub()
+  }, [togglePlay, prev, next])
 
   const handleTaggingSave = async (id: string, metadata: any, type: 'track' | 'album') => {
     console.log(`💾 [UI] Saving MB Metadata for ${type}:`, id, metadata)

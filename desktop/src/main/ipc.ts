@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import { musicScanner } from './scanner'
+import { updateThumbarButtons } from './services/taskbar'
 import { initDatabase, getDatabase, DbPlaybackState } from './database'
 import {
   getAllMusicFolders,
@@ -651,6 +652,14 @@ current_track_id = excluded.current_track_id,
         session.repeatMode || 'normal',
         session.currentTime || 0
       )
+      return true
+    })
+
+    ipcMain.handle('player:updateThumbarButtons', async (event, isPlaying: boolean) => {
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (win) {
+        updateThumbarButtons(win, isPlaying)
+      }
       return true
     })
 
@@ -1669,27 +1678,12 @@ current_track_id = excluded.current_track_id,
      * Enhance multiple tracks with progress updates
      * Searches MB for each track, updates DB, and optionally writes to files
      */
-    // Metadata Handlers (Frontend compatibility)
-    ipcMain.handle('metadata:searchMusicBrainz', async (_, artist: string, title: string, album?: string) => {
-      console.log(`🔍 [IPC] Search MB Track: ${artist} - ${title}`)
-      return await musicBrainzService.searchTrack(artist, title, album)
-    })
-
-    ipcMain.handle('metadata:searchAlbumsMusicBrainz', async (_, artist: string, album: string) => {
-      console.log(`🔍 [IPC] Search MB Album: ${artist} - ${album}`)
-      return await musicBrainzService.searchAlbum(artist, album)
-    })
-
-    ipcMain.handle('metadata:getArtistDetails', async (_, artistId: string) => {
-      return await musicBrainzService.getArtistDetails(artistId)
-    })
-
-    ipcMain.handle('metadata:getAlbumDetails', async (_, albumId: string) => {
-      return await musicBrainzService.getReleaseDetails(albumId)
-    })
 
     /**
-     * Enhance a single track with MusicBrainz data
+     * Enhance multiple tracks with MusicBrainz data
+     */
+    ipcMain.handle(
+      'musicbrainz:enhanceTracks',
       async (event, trackIds: string[], writeToFiles = true) => {
         console.log(`✨ [IPC] Bulk enhancing ${trackIds.length} tracks...`)
 
@@ -1779,7 +1773,7 @@ current_track_id = excluded.current_track_id,
               const { updateTrackWithMBID } = await import('./database/musicbrainz')
               await updateTrackWithMBID(
                 trackId,
-                recordingMbid,
+                recording.id,
                 recording.releases?.[0]?.id, // Use recording.releases for release MBID
                 recording['artist-credit']?.[0]?.artist?.id,
                 recording.isrc?.[0],
@@ -1805,7 +1799,8 @@ current_track_id = excluded.current_track_id,
 
               // Write to file if requested
               if (writeToFiles) {
-                await writeMusicBrainzDataToFile(db, trackId)
+                const { writeMusicBrainzDataToFile } = await import('./services/metadataWriter')
+                await writeMusicBrainzDataToFile(db as any, trackId)
               }
 
               results.enhanced++

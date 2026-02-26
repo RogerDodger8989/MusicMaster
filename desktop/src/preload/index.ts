@@ -114,7 +114,14 @@ const api = {
   player: {
     loadSession: (): Promise<any> => ipcRenderer.invoke('player:loadSession'),
     saveSession: (session: any): Promise<boolean> =>
-      ipcRenderer.invoke('player:saveSession', session)
+      ipcRenderer.invoke('player:saveSession', session),
+    updateThumbarButtons: (isPlaying: boolean): Promise<boolean> =>
+      ipcRenderer.invoke('player:updateThumbarButtons', isPlaying),
+    onCommand: (callback: (command: 'togglePlay' | 'prev' | 'next') => void) => {
+      const listener = (_: any, command: any): void => callback(command)
+      ipcRenderer.on('player:command', listener)
+      return () => ipcRenderer.removeListener('player:command', listener)
+    }
   },
 
   // Playlists

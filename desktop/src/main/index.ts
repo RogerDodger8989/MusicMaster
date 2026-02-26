@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { app, shell, BrowserWindow, protocol } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -9,8 +8,13 @@ import { musicScanner } from './scanner'
 import { initCoverCache } from './services/coverArt'
 import fs from 'fs'
 
-const logPath = join(process.cwd(), 'debug-main.log')
-fs.writeFileSync(logPath, `[${new Date().toISOString()}] MAIN ENTRY POINT LOADED\n`)
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+})
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error)
+})
 
 // Register custom protocol privileges
 protocol.registerSchemesAsPrivileged([
@@ -26,6 +30,8 @@ protocol.registerSchemesAsPrivileged([
     }
   }
 ])
+
+import { updateThumbarButtons } from './services/taskbar'
 
 function createWindow(): void {
   // Create the browser window.
@@ -45,6 +51,8 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    // Initial taskbar buttons
+    updateThumbarButtons(mainWindow, false)
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -72,7 +80,9 @@ app.whenReady().then(() => {
   initCoverCache()
 
   // Register IPC handlers
+  console.log('Registering IPC handlers...')
   registerIpcHandlers()
+  console.log('IPC handlers registered')
 
   // Register custom protocol for local assets (covers & audio)
   protocol.registerFileProtocol('asset', (request, callback) => {
