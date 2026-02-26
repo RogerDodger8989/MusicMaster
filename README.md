@@ -26,6 +26,9 @@
    - [Sök](#sök)
    - [Dashboard](#dashboard)
    - [Spelkö (Queue)](#spelkö-queue)
+   - [Miniplayer – Kompakt vy](#miniplayer--kompakt-vy)
+   - [AI DJ & Radio](#ai-dj--radio)
+   - [Taskbar Media Controls](#taskbar-media-controls)
    - [Inställningar](#inställningar)
 3. [Kom igång](#-kom-igång)
 4. [Projektstruktur](#-projektstruktur)
@@ -49,7 +52,15 @@ MusicMaster är uppdelad i två separata appar som kommunicerar via REST:
 │  • Visualiseringar          │        │  • Last.fm / ListenBrainz    │
 └─────────────────────────────┘        │  • Metadata-skrivning        │
                                        │  • Bakgrundsberikning        │
-                                       └──────────────────────────────┘
+                                       └───────────────────────┬──────┘
+                                                               │
+                                                               │
+                                                               ▼
+                                                      ┌───────────────────┐
+                                                      │  AI DJ / Radio    │
+                                                      │  • Rekommendationer│
+                                                      │  • Dynamiska köer │
+                                                      └───────────────────┘
 ```
 
 - **Server**: Headless Node.js/Express-app. Hanterar all databas, skanning, metadata och tjänsteintegrationer. Körs på `http://localhost:3000`.
@@ -85,6 +96,20 @@ MusicMaster är uppdelad i två separata appar som kommunicerar via REST:
 - **Volymkontroll** – Inkl. mjuk dämpa-funktion
 - **Progressbar med klicksspola** – Klicka var som helst för att hoppa
 - **Waveform-visualiserare** – Röd staplar som visar RMS-ljudform i realtid under uppspelning
+- **Taskbar Media Controls** – Fullt stöd för Windows Taskbar (Thumbar Buttons) och OS-media-overlay (Media Session API). Styr musiken via tangentbordets mediaknappar eller direkt från aktivitetsfältet.
+
+---
+
+### AI DJ & Radio
+
+- **AI DJ** – En intelligent DJ som skapar dynamiska spellistor baserade på dina preferenser, lyssningshistorik och musikens metadata (t.ex. stämning, tempo, genre).
+  - **Personliga rekommendationer** – Få förslag på spår du sannolikt kommer att gilla.
+  - **Tematiska mixar** – Skapa spellistor för specifika aktiviteter eller stämningar.
+  - **Sömlösa övergångar** – AI:n försöker matcha spår för mjuka övergångar.
+- **Radio** – Starta en radiostation baserad på ett specifikt spår, album eller artist.
+  - **Artistradio** – Spela musik från liknande artister.
+  - **Spårradio** – Hitta spår som liknar det aktuella spåret.
+  - **Genre-radio** – Utforska musik inom en specifik genre.
 
 ---
 
@@ -369,6 +394,37 @@ En översiktssida som visar:
 - **Rensa kö** – Tömmer hela kön med ett klick
 - **Nu spelar** – Aktuellt spår markeras i kön
 - **Spara som playlist** – Konvertera kön till en namngiven spellista
+
+---
+
+### Miniplayer – Kompakt vy
+MusicMaster erbjuder en kraftfull och minimalistisk Miniplayer för de tillfällen då du vill fokusera på annat men ändå ha kontroll:
+- **Två layouter**:
+  - **Standard**: En elegant kvadratisk vy med stort omslag och fullständiga kontroller.
+  - **Bar Mode**: Ett ultra-kompakt horisontellt läge som tar minimal plats på skärmen (perfekt att ha i ett hörn).
+- **Always on Top**: Håll spelaren synlig över alla andra fönster.
+- **Smart Queue Drawer**: När du öppnar kön expanderar fönstret nedåt som en "låda" (drawer) för att visa listan utan att störa den kompakta vyn.
+- **Snabba kontroller**:
+  - Klicka på albumomslaget för att direkt pausa eller spela (Play/Pause).
+  - Tydlig seekbar och volymkontroll.
+  - Dedikerad knapp för att direkt växla mellan de två mini-layouterna.
+- **Transparent TopBar**: En sömlös och premium-känsla med innehåll som sträcker sig hela vägen upp till fönsterkanten.
+
+---
+
+### AI DJ & Radio
+
+MusicMaster inkluderar nu en avancerad AI-driven lyssningsupplevelse:
+
+- **AI DJ** – En personlig musikvärd som curerar ditt bibliotek i realtid:
+  - **Tematiska block** – Musiken grupperas i teman som "Favoriter", "Nyligen tillagt", "Discovery", "Vibes" och "Artistfokus".
+  - **Röstintroduktioner** – DJ:n presenterar varje nytt block med en svensk röst via Web Speech API.
+  - **Smart köhantering** – DJ:n fyller på kön automatiskt när den börjar ta slut utan att avbryta pågående låt.
+  - **Premium UI** – Ett dedikerat DJ-kort på Dashboarden med LIVE-indikator och animationer.
+- **Artist Radio** – Starta en omedelbar radiostation baserad på valfri artist:
+  - **Seed-logik** – Väljer ut de bästa låtarna som startpunkt och låter AutoDJ fylla på med liknande musik.
+  - **Snabbåtkomst** – "RADIO"-knapp finns tillgänglig direkt i Artist- och Albumvyer samt i kontextmenyer.
+- **AutoDJ** – Förbättrad algoritmen för liknande musik som tar hänsyn till genre, artist och stämning för en mer sammanhängande upplevelse.
 
 ---
 

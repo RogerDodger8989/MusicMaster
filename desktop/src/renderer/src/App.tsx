@@ -39,6 +39,9 @@ import { useMediaSession } from './hooks/useMediaSession'
 import { scrobbleService } from './services/scrobbleService'
 import { Track, Album } from './types'
 import { useSyncStore } from './store/sync'
+import { useUI } from './store/ui'
+import MiniPlayerView from './views/MiniPlayerView'
+import { motion, AnimatePresence } from 'framer-motion'
 
 function App(): React.JSX.Element {
   const { initialize, selectedTracks: selectedTrackIds, tracks: allTracks } = useLibrary()
@@ -103,6 +106,8 @@ function App(): React.JSX.Element {
     x: number
     y: number
   } | null>(null)
+
+  const { isMiniPlayer } = useUI()
 
   const startResizing = useCallback(() => {
     setIsResizing(true)
@@ -609,54 +614,80 @@ function App(): React.JSX.Element {
         />
       )}
 
-      {/* Top Bar */}
-      <TopBar />
+      <AnimatePresence mode="wait">
+        {isMiniPlayer ? (
+          <motion.div
+            key="miniplayer"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="flex-1 flex flex-col overflow-hidden bg-zinc-950 relative"
+          >
+            <div className="absolute top-0 left-0 right-0 z-50">
+              <TopBar />
+            </div>
+            <div className="flex-1 min-h-0">
+              <MiniPlayerView />
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="mainapp"
+            initial={{ opacity: 0, scale: 1.02 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="flex-1 flex flex-col overflow-hidden"
+          >
+            {/* Top Bar */}
+            <TopBar />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <Sidebar />
+            {/* Main Content Area */}
+            <div className="flex-1 flex overflow-hidden">
+              {/* Sidebar */}
+              <Sidebar />
 
-        {/* Main Content Container (Dynamic width) */}
-        <div className="flex-1 flex overflow-hidden">
-          <main className="flex-1 overflow-auto bg-zinc-900 border-r border-zinc-800">
-            {renderView()}
-          </main>
+              {/* Main Content Container (Dynamic width) */}
+              <div className="flex-1 flex overflow-hidden">
+                <main className="flex-1 overflow-auto bg-zinc-900 border-r border-zinc-800">
+                  {renderView()}
+                </main>
 
-          {/* Resizable Handle */}
-          {isQueueOpen && (
-            <div
-              onMouseDown={startResizing}
-              className="w-1 bg-zinc-800 hover:bg-blue-600 cursor-col-resize transition-colors z-10"
+                {/* Resizable Handle */}
+                {isQueueOpen && (
+                  <div
+                    onMouseDown={startResizing}
+                    className="w-1 bg-zinc-800 hover:bg-blue-600 cursor-col-resize transition-colors z-10"
+                  />
+                )}
+
+                {/* Queue Panel */}
+                <QueuePanel
+                  isOpen={isQueueOpen}
+                  width={queueWidth}
+                  onClose={() => setIsQueueOpen(false)}
+                  selectedTrackIndex={queueSelectedIndex}
+                  onTrackSelect={setQueueSelectedIndex}
+                />
+              </div>
+            </div>
+
+            {/* Player Bar */}
+            <PlayerBar
+              onQueueToggle={() => setIsQueueOpen(!isQueueOpen)}
+              onAlbumClick={(id) => navigateTo('album-detail', { albumId: id })}
+              onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
             />
-          )}
-
-          {/* Queue Panel */}
-          <QueuePanel
-            isOpen={isQueueOpen}
-            width={queueWidth}
-            onClose={() => setIsQueueOpen(false)}
-            selectedTrackIndex={queueSelectedIndex}
-            onTrackSelect={setQueueSelectedIndex}
-          />
-        </div>
-      </div>
-
-      {/* Player Bar */}
-      <PlayerBar
-        onQueueToggle={() => setIsQueueOpen(!isQueueOpen)}
-        onAlbumClick={(id) => navigateTo('album-detail', { albumId: id })}
-        onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
-      />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Sync Progress Toast */}
       <SyncProgressToast />
 
       {infoModalTrack && (
-        <TrackInfoModal
-          track={infoModalTrack}
-          onClose={() => setInfoModalTrack(null)}
-        />
+        <TrackInfoModal track={infoModalTrack} onClose={() => setInfoModalTrack(null)} />
       )}
 
       {isTagEditorOpen && (

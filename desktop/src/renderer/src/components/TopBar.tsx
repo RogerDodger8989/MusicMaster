@@ -1,4 +1,4 @@
-import { Music2, Moon, Sun, ChevronLeft, ChevronRight, Search, Clock, Loader2 } from 'lucide-react'
+import { Music2, Moon, Sun, ChevronLeft, ChevronRight, Search, Clock, Loader2, Minus, Maximize2, X, Monitor, ChevronUp, Square, RectangleHorizontal } from 'lucide-react'
 import { useTheme } from '../store/theme'
 import { useNavigation, ViewState } from '../store/navigation'
 import { useSearch } from '../store/search'
@@ -6,11 +6,23 @@ import { useTagging } from '../store/tagging'
 import { cn } from '../lib/utils'
 import { useState, useRef, useEffect } from 'react'
 
+import { useUI } from '../store/ui'
+
 export default function TopBar() {
   const { theme, toggleTheme } = useTheme()
   const { goBack, goForward, canGoBack, canGoForward, history, future, jumpTo } = useNavigation()
   const { setIsOpen } = useSearch()
   const { progress } = useTagging()
+  const { isMiniPlayer, toggleMiniPlayer, isAlwaysOnTop, setAlwaysOnTop } = useUI()
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth)
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isBarMode = windowWidth >= 500
 
   const [historyMenu, setHistoryMenu] = useState<{
     x: number
@@ -53,48 +65,60 @@ export default function TopBar() {
   }, [historyMenu])
 
   return (
-    <div className="h-16 border-b border-zinc-800 dark:border-zinc-800 bg-zinc-950 dark:bg-zinc-950 flex items-center justify-between px-6 z-50">
+    <div
+      className={cn(
+        isMiniPlayer ? 'h-10' : 'h-16',
+        'flex items-center justify-between px-6 z-50 select-none transition-colors duration-300',
+        !isMiniPlayer && 'border-b border-zinc-800 dark:border-zinc-800 bg-zinc-950 dark:bg-zinc-950',
+        isMiniPlayer && 'bg-transparent border-none'
+      )}
+      style={{ WebkitAppRegion: 'drag' } as any}
+    >
       {/* Left: Navigation and Search */}
-      <div className="flex items-center gap-6 flex-1">
-        {/* Logo */}
-        <div className="flex items-center gap-3 mr-4">
-          <Music2 className="w-8 h-8 text-blue-500" />
-          <h1 className="text-2xl font-bold text-white hidden md:block">MusicMaster</h1>
-        </div>
+      {!isMiniPlayer && (
+        <div className="flex items-center gap-6 flex-1">
+          {/* Logo */}
+          <div className="flex items-center gap-3 mr-4">
+            <Music2 className="w-8 h-8 text-blue-500" />
+            <h1 className="text-2xl font-bold text-white hidden md:block">MusicMaster</h1>
+          </div>
 
-        {/* Navigation Arrows */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={goBack}
-            onContextMenu={(e) => handleContextMenu(e, history, false)}
-            disabled={!canGoBack()}
-            className="p-1.5 rounded-md hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent text-white transition-colors relative"
-            title="Back (Right-click for history)"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={goForward}
-            onContextMenu={(e) => handleContextMenu(e, future, true)}
-            disabled={!canGoForward()}
-            className="p-1.5 rounded-md hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent text-white transition-colors relative"
-            title="Forward (Right-click for history)"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
+          {/* Navigation Arrows */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={goBack}
+              onContextMenu={(e) => handleContextMenu(e, history, false)}
+              disabled={!canGoBack()}
+              className="p-1.5 rounded-md hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent text-white transition-colors relative"
+              title="Back (Right-click for history)"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={goForward}
+              onContextMenu={(e) => handleContextMenu(e, future, true)}
+              disabled={!canGoForward()}
+              className="p-1.5 rounded-md hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent text-white transition-colors relative"
+              title="Forward (Right-click for history)"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
 
-        {/* Search Bar */}
-        <div className="flex-1 max-w-xl relative cursor-pointer" onClick={() => setIsOpen(true)}>
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-          <input
-            type="text"
-            placeholder="Search tracks, albums, artists..."
-            readOnly
-            className="w-full pl-10 pr-4 py-2 bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
-          />
+          {/* Search Bar */}
+          <div className="flex-1 max-w-xl relative cursor-pointer group" onClick={() => setIsOpen(true)} style={{ WebkitAppRegion: 'no-drag' } as any}>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+            <input
+              type="text"
+              placeholder="Search tracks, albums, artists..."
+              readOnly
+              className="w-full pl-10 pr-4 py-2 bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+            />
+          </div>
         </div>
-      </div>
+      )}
+
+      {isMiniPlayer && <div className="flex-1" />}
 
       {/* Right: Theme Toggle + Tagging Progress */}
       <div className="flex items-center gap-4">
@@ -120,17 +144,87 @@ export default function TopBar() {
           </div>
         )}
 
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className={cn(
-            'p-2 rounded-lg hover:bg-zinc-800 transition-colors text-white',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500'
+        {/* Action Buttons Container */}
+        <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as any}>
+          {/* Always on Top (Toggle) */}
+          <button
+            onClick={() => setAlwaysOnTop(!isAlwaysOnTop)}
+            className={cn(
+              'p-2 rounded-lg hover:bg-zinc-800 transition-colors',
+              isAlwaysOnTop ? 'text-blue-400' : 'text-zinc-500'
+            )}
+            title={isAlwaysOnTop ? 'Always on Top: On' : 'Always on Top: Off'}
+          >
+            <ChevronUp className={cn("w-4 h-4 transition-transform", isAlwaysOnTop && "rotate-180")} />
+          </button>
+
+          {/* Theme Toggle */}
+          {!isMiniPlayer && (
+            <button
+              onClick={toggleTheme}
+              className={cn(
+                'p-2 rounded-lg hover:bg-zinc-800 transition-colors text-white',
+                'focus:outline-none focus:ring-2 focus:ring-blue-500'
+              )}
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
           )}
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-        </button>
+
+          {!isMiniPlayer && <div className="w-px h-6 bg-zinc-800 mx-2" />}
+
+          {/* MiniPlayer Mode Toggle (Standard vs Bar) */}
+          {isMiniPlayer && (
+            <button
+              onClick={() => {
+                if (isBarMode) {
+                  window.api.window.setSize(400, 550)
+                } else {
+                  window.api.window.setSize(600, 120)
+                }
+              }}
+              className="p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white"
+              title={isBarMode ? "Standard Mode" : "Bar Mode"}
+            >
+              <div className="relative">
+                {isBarMode ? <Square size={16} /> : <RectangleHorizontal size={16} />}
+              </div>
+            </button>
+          )}
+
+          {/* MiniPlayer Toggle (Left of Minimize) */}
+          <button
+            onClick={toggleMiniPlayer}
+            className={cn(
+              'p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white',
+              isMiniPlayer && 'text-blue-400'
+            )}
+            title="MiniPlayer Mode"
+          >
+            <Monitor className="w-4 h-4" />
+          </button>
+
+          {/* Window Controls */}
+          <button
+            onClick={() => window.api.window.minimize()}
+            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white"
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => window.api.window.toggleMaximize()}
+            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white hidden md:block"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => window.api.window.close()}
+            className="p-2 rounded-lg hover:bg-red-600 transition-all text-zinc-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* History Dropdown Menu */}

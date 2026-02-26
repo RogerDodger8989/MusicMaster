@@ -34,7 +34,7 @@ export const useDJ = create<DJStore>((set, get) => ({
     nextBlock: async () => {
         if (!get().isActive) return
 
-        const themes: DJTheme[] = ['favorites', 'vibes', 'recently-added', 'discovery']
+        const themes: DJTheme[] = ['favorites', 'vibes', 'recently-added', 'discovery', 'artist-focus']
         const theme = themes[Math.floor(Math.random() * themes.length)]
 
         const player = usePlayer.getState()
@@ -84,6 +84,16 @@ export const useDJ = create<DJStore>((set, get) => ({
                         .filter(t => (t.playCount || 0) < 2)
                         .sort(() => Math.random() - 0.5)
                         .slice(0, 5)
+                    break
+                case 'artist-focus':
+                    // Pick a random artist from the library that has at least 3 tracks
+                    const artists = Array.from(new Set(library.tracks.map(t => t.artist))).filter(Boolean)
+                    const randomArtist = artists[Math.floor(Math.random() * artists.length)]
+                    blockTracks = library.tracks
+                        .filter(t => t.artist === randomArtist)
+                        .sort(() => Math.random() - 0.5)
+                        .slice(0, 5)
+                    extraData.artistName = randomArtist
                     break
             }
 

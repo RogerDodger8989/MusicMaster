@@ -1,5 +1,4 @@
 import { BrowserWindow, nativeImage, app } from 'electron'
-import fs from 'fs'
 import { is } from '@electron-toolkit/utils'
 import { join } from 'path'
 

@@ -7,19 +7,23 @@ import { useDJ } from '../store/dj'
  * between thematic blocks when AI DJ is active.
  */
 export function useDJSession() {
-    const { queue, currentIndex } = usePlayer()
+    const { queue, currentIndex, isPlaying, currentTime } = usePlayer()
     const { isActive, nextBlock, isTalking } = useDJ()
 
     useEffect(() => {
         if (!isActive || isTalking) return
 
-        // If we are on the last track of the block (or queue is empty), trigger next block
         const remaining = queue.length - currentIndex - 1
 
-        // Spotify DJ usually transitions when 0 or 1 tracks are left in the current block
-        if (remaining <= 0 && queue.length > 0) {
-            console.log('[AI DJ] Current block finished. Requesting next block...')
+        // Trigger next block if we are at the end (remaining 0) 
+        // AND the player has naturally stopped (isPlaying false, currentTime 0)
+        // OR if the queue is simply empty.
+        const isAtEnd = remaining <= 0
+        const isIdle = !isPlaying && (currentTime === 0 || queue.length === 0)
+
+        if (isAtEnd && isIdle) {
+            console.log('[AI DJ] Triggering next block transition...')
             nextBlock()
         }
-    }, [isActive, queue.length, currentIndex, isTalking, nextBlock])
+    }, [isActive, queue.length, currentIndex, isTalking, isPlaying, currentTime, nextBlock])
 }

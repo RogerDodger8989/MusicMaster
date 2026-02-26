@@ -2399,6 +2399,41 @@ current_track_id = excluded.current_track_id,
     })
 
     // ============================================================================
+    // WINDOW CONTROLS
+    // ============================================================================
+    ipcMain.handle('window:minimize', (event) => {
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (win) win.minimize()
+    })
+
+    ipcMain.handle('window:toggleMaximize', (event) => {
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (win) {
+        if (win.isMaximized()) win.unmaximize()
+        else win.maximize()
+      }
+    })
+
+    ipcMain.handle('window:close', (event) => {
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (win) win.close()
+    })
+
+    ipcMain.handle('window:setSize', (event, width: number, height: number, animate: boolean = true) => {
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (win) {
+        win.setSize(width, height, animate)
+        // Center window after resizing to miniplayer? Or just keep current position?
+        // Spotify stays in place. Let's keep it.
+      }
+    })
+
+    ipcMain.handle('window:setAlwaysOnTop', (event, flag: boolean) => {
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (win) win.setAlwaysOnTop(flag)
+    })
+
+    // ============================================================================
     // END PHASE 9
     // ============================================================================
 

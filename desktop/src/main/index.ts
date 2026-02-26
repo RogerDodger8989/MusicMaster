@@ -6,7 +6,6 @@ import { registerIpcHandlers } from './ipc'
 import { closeDatabase } from './database'
 import { musicScanner } from './scanner'
 import { initCoverCache } from './services/coverArt'
-import fs from 'fs'
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason)
@@ -40,6 +39,8 @@ function createWindow(): void {
     height: 900,
     show: false,
     autoHideMenuBar: true,
+    frame: false,
+    titleBarStyle: 'hidden',
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

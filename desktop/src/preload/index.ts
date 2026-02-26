@@ -314,6 +314,16 @@ const api = {
       ipcRenderer.on('enrichment:error', listener)
       return () => ipcRenderer.removeListener('enrichment:error', listener)
     }
+  },
+  // Window Controls
+  window: {
+    minimize: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
+    toggleMaximize: (): Promise<void> => ipcRenderer.invoke('window:toggleMaximize'),
+    close: (): Promise<void> => ipcRenderer.invoke('window:close'),
+    setSize: (width: number, height: number): Promise<void> =>
+      ipcRenderer.invoke('window:setSize', width, height),
+    setAlwaysOnTop: (flag: boolean): Promise<void> =>
+      ipcRenderer.invoke('window:setAlwaysOnTop', flag)
   }
 }
 
