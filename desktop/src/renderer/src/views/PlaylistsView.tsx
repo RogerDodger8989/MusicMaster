@@ -2,6 +2,7 @@ import { ListMusic, Play, Trash2, Plus, Sparkles, Search, Settings2, Download, S
 import { usePlaylists, Playlist } from '../store/playlists'
 import { useSmartPlaylists, SmartPlaylist } from '../store/smartPlaylists'
 import { usePlayer } from '../store/player'
+import { useDJ } from '../store/dj'
 import { useEffect, useState, useMemo } from 'react'
 import { cn } from '../lib/utils'
 import { PlaylistMosaic } from '../components/PlaylistMosaic'
@@ -88,6 +89,23 @@ export default function PlaylistsView({ playlistId }: PlaylistsViewProps) {
 
     let combined = [...manual, ...smart]
 
+    // Inject virtual DJ playlist
+    if (filterTab === 'all' || filterTab === 'smart') {
+      combined.unshift({
+        id: 'virtual-dj',
+        name: 'AI DJ',
+        description: 'Your personal AI host kurerar din musik i realtid.',
+        type: 'smart',
+        trackCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        rules: [],
+        limitRandom: true,
+        sortField: 'added',
+        sortOrder: 'desc'
+      } as any)
+    }
+
     if (filterTab === 'manual') combined = manual
     if (filterTab === 'smart') combined = smart
 
@@ -112,7 +130,12 @@ export default function PlaylistsView({ playlistId }: PlaylistsViewProps) {
     setDeletingId(null)
   }
 
-  const handlePlayPlaylist = async (p: Playlist | SmartPlaylist) => {
+  const handlePlayPlaylist = async (p: Playlist | SmartPlaylist | any) => {
+    if (p.id === 'virtual-dj') {
+      await useDJ.getState().startDJ()
+      return
+    }
+
     let tracks: any[] = []
     if ('rules' in p) {
       setTracksLoading(true)
@@ -183,6 +206,11 @@ export default function PlaylistsView({ playlistId }: PlaylistsViewProps) {
   }
 
   if (selectedPlaylist) {
+    if (selectedPlaylist.id === 'virtual-dj') {
+      navigateTo('home')
+      return null
+    }
+
     const isSmart = 'rules' in selectedPlaylist
     return (
       <div className="h-full flex flex-col bg-zinc-950">
@@ -357,6 +385,9 @@ export default function PlaylistsView({ playlistId }: PlaylistsViewProps) {
                       <Sparkles size={14} />
                     </div>
                   )}
+                  {pl.id === 'virtual-dj' && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/40 via-purple-600/40 to-cyan-600/40 animate-pulse rounded-xl" />
+                  )}
                 </div>
                 <div className="space-y-1">
                   <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors truncate">
@@ -364,9 +395,9 @@ export default function PlaylistsView({ playlistId }: PlaylistsViewProps) {
                   </h3>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-zinc-500 font-bold">
-                      {pl.type === 'smart'
+                      {pl.id === 'virtual-dj' ? 'AI Session' : (pl.type === 'smart'
                         ? `${pl.trackCount ?? 0} tracks`
-                        : `${pl.tracks.length} tracks`}
+                        : `${pl.tracks.length} tracks`)}
                     </span>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                       {pl.type === 'smart' && (

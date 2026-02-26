@@ -1,10 +1,11 @@
-import { Home, Disc3, Users, Music, ListMusic, Settings, FileQuestion, Heart, Mic2, Tags, ChevronDown } from 'lucide-react'
+import { Home, Disc3, Users, Music, ListMusic, Settings, FileQuestion, Heart, Mic2, Tags, ChevronDown, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '../lib/utils'
 import { useNavigation } from '../store/navigation'
 import { useSettings } from '../store/settings'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
+import { useDJ } from '../store/dj'
 import { client } from '../api/client'
 
 type NavItem = {
@@ -21,14 +22,22 @@ const navItems: NavItem[] = [
   { id: 'album-artists', label: 'Album Artists', icon: <Mic2 className="w-5 h-5" /> },
   { id: 'artists', label: 'Artists', icon: <Users className="w-5 h-5" /> },
   { id: 'favorites', label: 'Favorites', icon: <Heart className="w-5 h-5" /> },
+  { id: 'virtual-dj', label: 'AI DJ', icon: <Sparkles className="w-5 h-5 text-purple-400" /> },
   { id: 'playlists', label: 'Playlists', icon: <ListMusic className="w-5 h-5" /> },
   { id: 'unsorted', label: 'Unsorted', icon: <FileQuestion className="w-5 h-5" /> }
 ]
 
 export default function Sidebar() {
   const { current, navigateTo } = useNavigation()
+  const { startDJ } = useDJ.getState()
   const activeView = current.view
-  const setActiveView = (view: string) => navigateTo(view)
+  const setActiveView = (view: string) => {
+    if (view === 'virtual-dj') {
+      startDJ()
+      return
+    }
+    navigateTo(view)
+  }
 
   const isCoverExpanded = useSettings((state) => state.isCoverExpanded)
   const toggleCoverExpanded = useSettings((state) => state.toggleCoverExpanded)

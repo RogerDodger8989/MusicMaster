@@ -195,11 +195,11 @@ export function AlbumCard({ album, onClick, onPlayOptions, className }: AlbumCar
           <h3 className="font-medium leading-none truncate" title={album.name}>
             {album.name}
           </h3>
-          <p className="text-sm text-muted-foreground truncate" title={album.artist}>
+          <p className="text-sm text-white/50 truncate" title={album.artist}>
             {album.artist}
           </p>
           <div className="flex items-center justify-between pt-0.5">
-            <span className="text-[10px] text-muted-foreground/60 font-medium">{album.year}</span>
+            <span className="text-[10px] text-white/40 font-medium">{album.year}</span>
           </div>
         </div>
       </div>

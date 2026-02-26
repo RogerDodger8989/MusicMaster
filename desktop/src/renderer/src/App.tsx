@@ -34,6 +34,7 @@ import { usePlayer } from './store/player'
 import { useSettings, TrackPlayBehavior } from './store/settings'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useAutoDJ } from './hooks/useAutoDJ'
+import { useDJSession } from './hooks/useDJSession'
 import { scrobbleService } from './services/scrobbleService'
 import { Track, Album } from './types'
 import { useSyncStore } from './store/sync'
@@ -45,6 +46,7 @@ function App(): React.JSX.Element {
   const { setTrackPlayBehavior, loadSettings } = useSettings()
   const { startTagging, updateProgress, finishTagging } = useTagging()
   useAutoDJ()
+  useDJSession()
 
   const activeView = current.view
   const viewParams = current.params

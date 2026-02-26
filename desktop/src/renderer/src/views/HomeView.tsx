@@ -12,6 +12,7 @@ import { useNavigation } from '../store/navigation'
 import { cn } from '../utils'
 import { ChevronUp, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DJCard } from '../components/DJCard'
 
 interface HomeViewProps { }
 
@@ -313,7 +314,7 @@ export default function HomeView({ }: HomeViewProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 to-slate-950 p-8 overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 to-slate-950 px-8 py-8 overflow-y-auto overflow-x-hidden custom-scrollbar">
       {/* Header */}
       <div className="flex items-start justify-between mb-12">
         <div>
@@ -333,6 +334,8 @@ export default function HomeView({ }: HomeViewProps) {
           <Settings size={20} />
         </button>
       </div>
+
+      <DJCard />
 
       {/* Dynamic Sections Based on Order */}
       <AnimatePresence>

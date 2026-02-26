@@ -52,7 +52,7 @@ export default function QueuePanel({
     insertToQueue
   } = usePlayer()
   const { createPlaylist, playlists } = usePlaylists()
-  const { albums, toggleLoved, rateTrack } = useLibrary()
+  const { albums, tracks: libraryTracks, toggleLoved, rateTrack } = useLibrary()
 
   const [activeTab, setActiveTab] = useState<Tab>('queue')
   const [playlistName, setPlaylistName] = useState('')
@@ -322,7 +322,7 @@ export default function QueuePanel({
                   >
                     {/* Grip Handle (Only for Queue) */}
                     {activeTab === 'queue' && (
-                      <div className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-zinc-700">
+                      <div className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-zinc-500">
                         <GripVertical size={14} />
                       </div>
                     )}
@@ -389,36 +389,43 @@ export default function QueuePanel({
                       >
                         {track.title}
                       </div>
-                      <div className="text-[11px] text-zinc-500 truncate font-medium">
+                      <div className="text-[11px] text-zinc-400 truncate font-medium">
                         {track.artist}
                       </div>
 
                       {/* Rating & Love Row */}
-                      <div className="flex items-center gap-3 pt-0.5 transition-opacity">
-                        <RatingStars
-                          rating={track.rating}
-                          onChange={(r) => rateTrack(track.id, r)}
-                          size={10}
-                        />
-                        <Heart
-                          size={10}
-                          className={cn(
-                            'cursor-pointer transition-colors',
-                            track.loved
-                              ? 'text-red-500 fill-current'
-                              : 'text-zinc-800 hover:text-red-500/50'
-                          )}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleLoved(track.id)
-                          }}
-                        />
-                      </div>
+                      {(() => {
+                        const libTrack = libraryTracks.find((lt) => lt.id === track.id)
+                        const displayTrack = libTrack || track
+
+                        return (
+                          <div className="flex items-center gap-3 pt-0.5 transition-opacity">
+                            <RatingStars
+                              rating={displayTrack.rating}
+                              onChange={(r) => rateTrack(track.id, r)}
+                              size={10}
+                            />
+                            <Heart
+                              size={10}
+                              className={cn(
+                                'cursor-pointer transition-colors',
+                                displayTrack.loved
+                                  ? 'text-red-500 fill-current'
+                                  : 'text-zinc-600 hover:text-red-500/50'
+                              )}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                toggleLoved(track.id)
+                              }}
+                            />
+                          </div>
+                        )
+                      })()}
                     </div>
 
                     {/* Time */}
-                    <div className="text-[10px] font-bold text-zinc-700 tabular-nums">
-                      {formatDuration(track.duration)}
+                    <div className="text-[10px] font-bold text-zinc-400 tabular-nums">
+                      {formatDuration(libraryTracks.find(lt => lt.id === track.id)?.duration || track.duration)}
                     </div>
                   </div>
                 </div>

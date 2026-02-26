@@ -10,7 +10,8 @@ import {
     Music,
     Heart,
     ListMusic,
-    Wand2
+    Wand2,
+    Sparkles
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -21,6 +22,7 @@ import { useLibrary } from '../store/library'
 import { formatDuration } from '../utils/format'
 import { useSettings } from '../store/settings'
 import { client } from '../api/client'
+import { useDJ } from '../store/dj'
 
 interface PlayerBarProps {
     onQueueToggle?: () => void
@@ -56,6 +58,7 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
     const setAutoDjEnabled = useSettings((state) => state.setAutoDjEnabled)
     const isCoverExpanded = useSettings((state) => state.isCoverExpanded)
     const toggleCoverExpanded = useSettings((state) => state.toggleCoverExpanded)
+    const { isActive: djActive, isTalking: djTalking } = useDJ()
 
     const currentTrack = playerTrack
         ? allTracks.find((t) => t.id === playerTrack.id) || playerTrack
@@ -495,6 +498,18 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                                 >
                                     <Wand2 className="w-4 h-4" />
                                 </button>
+
+                                {djActive && (
+                                    <div className={cn(
+                                        "flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[10px] font-black uppercase tracking-tighter transition-all duration-500",
+                                        djTalking
+                                            ? "bg-white text-purple-700 border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.5)]"
+                                            : "bg-purple-600/20 text-purple-400 border-purple-500/30"
+                                    )}>
+                                        <Sparkles size={10} className={djTalking ? "animate-spin" : ""} />
+                                        <span>DJ</span>
+                                    </div>
+                                )}
 
                                 <button
                                     onClick={toggleMute}

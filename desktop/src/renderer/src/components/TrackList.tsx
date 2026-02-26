@@ -371,7 +371,7 @@ export default function TrackList({
                                             </div>
                                         </div>
                                     ) : (
-                                        <span className={cn(isCurrentTrack ? 'text-primary' : 'text-white/20 group-hover:text-white/40')}>
+                                        <span className={cn(isCurrentTrack ? 'text-primary' : 'text-zinc-500 group-hover:text-zinc-300')}>
                                             {idx + 1}
                                         </span>
                                     )}
@@ -397,7 +397,7 @@ export default function TrackList({
                                 <div className="min-w-0">
                                     <div
                                         className={cn(
-                                            "text-sm text-white/40 truncate group-hover:text-white/60 transition-colors",
+                                            "text-sm text-white/50 truncate group-hover:text-white/80 transition-colors",
                                             onArtistClick && "cursor-pointer hover:text-white hover:underline"
                                         )}
                                         onClick={(e) => {
@@ -417,7 +417,7 @@ export default function TrackList({
                                 <div className="min-w-0">
                                     <div
                                         className={cn(
-                                            "text-sm text-white/40 truncate group-hover:text-white/60 transition-colors",
+                                            "text-sm text-white/50 truncate group-hover:text-white/80 transition-colors",
                                             onAlbumClick && track.albumId && "cursor-pointer hover:text-white hover:underline"
                                         )}
                                         onClick={(e) => {
@@ -435,11 +435,11 @@ export default function TrackList({
                             {/* Vibe (BPM/Key) */}
                             {isColVisible('vibe') && (
                                 <div className="min-w-0 flex items-center justify-center">
-                                    <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-500 group-hover:text-zinc-400">
+                                    <div className="flex items-center gap-1.5 text-[10px] font-medium text-zinc-400 group-hover:text-zinc-300">
                                         {track.bpm && <span>{Math.round(track.bpm)}</span>}
-                                        {track.bpm && track.key && <span className="text-zinc-700">•</span>}
-                                        {track.key && <span className="text-zinc-400">{track.key}</span>}
-                                        {!track.bpm && !track.key && <span className="text-zinc-800">-</span>}
+                                        {track.bpm && track.key && <span className="text-zinc-600">•</span>}
+                                        {track.key && <span className="text-zinc-300">{track.key}</span>}
+                                        {!track.bpm && !track.key && <span className="text-zinc-700">-</span>}
                                     </div>
                                 </div>
                             )}
@@ -449,8 +449,8 @@ export default function TrackList({
                                 <div className="text-right text-[10px] text-white/20 font-black tabular-nums px-2 uppercase tracking-tighter">
                                     {track.playCount > 0 ? (
                                         <div className="flex items-center justify-end gap-1">
-                                            <span className="text-white/40">{track.playCount}</span>
-                                            <span className="text-[8px] opacity-50">PLYS</span>
+                                            <span className="text-white/60">{track.playCount}</span>
+                                            <span className="text-[8px] opacity-70">PLYS</span>
                                         </div>
                                     ) : '-'}
                                 </div>
@@ -484,7 +484,7 @@ export default function TrackList({
 
                             {/* Duration */}
                             {isColVisible('time') && (
-                                <div className="text-right text-[10px] font-bold tabular-nums text-white/20 group-hover:text-white/40 uppercase tracking-widest">
+                                <div className="text-right text-[10px] font-bold tabular-nums text-zinc-400 group-hover:text-zinc-300 uppercase tracking-widest">
                                     {formatDuration(track.duration)}
                                 </div>
                             )}
