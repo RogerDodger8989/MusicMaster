@@ -4,6 +4,7 @@ import { calculateReplayGain } from '../utils/replayGain'
 import { useSettings } from './settings'
 import { useLibrary } from './library'
 import { client } from '../api/client'
+import { useCastStore } from './cast'
 
 type PlayMode = 'normal' | 'repeat-all' | 'repeat-one'
 
@@ -46,6 +47,8 @@ interface PlayerState {
   insertToQueue: (tracks: Track[], index: number) => void
   updateTrack: (trackId: string, updates: Partial<Track>) => void
   loadSession: () => Promise<void>
+  handOffToCast: () => void
+  handOffToLocal: () => void
 }
 
 // Global Audio Elements (active + preloaded)
@@ -223,7 +226,8 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
   const preloadNextTrack = () => {
     const gaplessEnabled = useSettings.getState().gaplessEnabled
-    if (!gaplessEnabled) {
+    const castStore = useCastStore.getState()
+    if (!gaplessEnabled || castStore.activeDevice) {
       preloadedTrackIndex = null
       preloadedTrack = null
       preloadAudio.src = ''
@@ -264,6 +268,15 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
     const { volume, replayGainApplied } = get()
     applyEffectiveVolume(volume, replayGainApplied)
+
+    const castStore = useCastStore.getState()
+    if (castStore.activeDevice) {
+      activeAudio.pause()
+      activeAudio.src = ''
+      window.api.cast.play(track, castStore.activeDevice.type)
+      set({ isPlaying: true, duration: track.duration || 0 })
+      return
+    }
 
     if (activeAudio.src === src) {
       activeAudio
@@ -317,6 +330,55 @@ export const usePlayer = create<PlayerState>((set, get) => {
     trackPlayCount: 0,
     isMuted: false,
     prevVolume: 1,
+
+    handOffToCast: () => {
+      const { currentTrack, currentTime, isPlaying } = get()
+      const castStore = useCastStore.getState()
+
+      if (!currentTrack || !castStore.activeDevice) return
+
+      if (activeAudio.src) {
+        activeAudio.pause()
+        activeAudio.src = ''
+      }
+      preloadAudio.pause()
+      preloadAudio.src = ''
+      preloadedTrackIndex = null
+      preloadedTrack = null
+
+      window.api.cast.play(currentTrack, castStore.activeDevice.type)
+        .then(() => {
+          if (currentTime > 0) {
+            setTimeout(() => {
+              const activeDev = useCastStore.getState().activeDevice
+              if (activeDev) window.api.cast.seek(currentTime, activeDev.type)
+            }, 1000)
+          }
+          if (!isPlaying) {
+            setTimeout(() => {
+              const activeDev = useCastStore.getState().activeDevice
+              if (activeDev) window.api.cast.pause(activeDev.type)
+            }, 1500)
+          }
+        })
+    },
+
+    handOffToLocal: () => {
+      const { currentTrack, currentTime, isPlaying, volume, replayGainApplied } = get()
+      if (!currentTrack) return
+
+      const src = getTrackSrc(currentTrack)
+      if (src) {
+        activeAudio.src = src
+        activeAudio.load()
+        activeAudio.currentTime = currentTime
+        applyEffectiveVolume(volume, replayGainApplied)
+
+        if (isPlaying) {
+          activeAudio.play().catch(e => console.error('[Player] Local handoff resume failed:', e))
+        }
+      }
+    },
 
     playTrack: (track) => {
       // Calculate ReplayGain based on current settings
@@ -404,6 +466,19 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
       if (!currentTrack && queue.length === 0) return
 
+      const castStore = useCastStore.getState()
+      if (castStore.activeDevice) {
+        if (isPlaying) {
+          window.api.cast.pause(castStore.activeDevice.type)
+          set({ isPlaying: false })
+        } else {
+          window.api.cast.resume(castStore.activeDevice.type)
+          set({ isPlaying: true })
+        }
+        persistSession()
+        return
+      }
+
       if (isPlaying) {
         activeAudio.pause()
         set({ isPlaying: false })
@@ -433,8 +508,10 @@ export const usePlayer = create<PlayerState>((set, get) => {
       const replayGain = calculateReplayGain(nextTrack, mode)
 
       const gaplessEnabled = useSettings.getState().gaplessEnabled
+      const castStore = useCastStore.getState()
       if (
         gaplessEnabled &&
+        !castStore.activeDevice &&
         preloadedTrackIndex === nextIndex &&
         preloadedTrack &&
         preloadAudio.src
@@ -512,8 +589,16 @@ export const usePlayer = create<PlayerState>((set, get) => {
 
     prev: () => {
       const { queue, currentIndex, currentTime } = get()
+      const castStore = useCastStore.getState()
+
       if (currentTime > 3) {
-        activeAudio.currentTime = 0
+        if (castStore.activeDevice) {
+          window.api.cast.seek(0, castStore.activeDevice.type)
+          set({ currentTime: 0 })
+        } else {
+          activeAudio.currentTime = 0
+          set({ currentTime: 0 })
+        }
         return
       }
 
@@ -537,19 +622,31 @@ export const usePlayer = create<PlayerState>((set, get) => {
       persistSession()
     },
 
-    seek: (time) => {
+    seek: (time: number) => {
+      const castStore = useCastStore.getState()
+      if (castStore.activeDevice) {
+        window.api.cast.seek(time, castStore.activeDevice.type)
+        set({ currentTime: time })
+        return
+      }
+
       if (!isFinite(time)) return
       activeAudio.currentTime = time
       set({ currentTime: time })
-      persistSession()
+      persistSession() // Added back persistSession for non-cast path
     },
 
-    setVolume: (val) => {
-      const clamped = Math.max(0, Math.min(1, val))
-      const { replayGainApplied } = get()
-      // Combine user volume with ReplayGain
-      // Clamp final volume to prevent clipping
-      applyEffectiveVolume(clamped, replayGainApplied)
+    setVolume: (val: number) => {
+      const clamped = Math.min(1, Math.max(0, val))
+
+      const castStore = useCastStore.getState()
+      if (castStore.activeDevice) {
+        window.api.cast.setVolume(clamped, castStore.activeDevice.type)
+      } else {
+        const replayGain = get().replayGainApplied
+        applyEffectiveVolume(clamped, replayGain)
+      }
+
       set({ volume: clamped, isMuted: clamped === 0 })
       persistSession()
     },

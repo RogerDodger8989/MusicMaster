@@ -326,6 +326,30 @@ const api = {
       ipcRenderer.invoke('window:setAlwaysOnTop', flag),
     setFullScreen: (flag: boolean): Promise<void> =>
       ipcRenderer.invoke('window:setFullScreen', flag)
+  },
+
+  // Cast
+  cast: {
+    startDiscovery: (): Promise<void> => ipcRenderer.invoke('cast:startDiscovery'),
+    getDevices: (): Promise<any[]> => ipcRenderer.invoke('cast:getDevices'),
+    connect: (deviceId: string, type: string): Promise<boolean> => ipcRenderer.invoke('cast:connect', deviceId, type),
+    disconnect: (type: string): Promise<void> => ipcRenderer.invoke('cast:disconnect', type),
+    play: (track: any, type: string): Promise<boolean> => ipcRenderer.invoke('cast:play', track, type),
+    pause: (type: string): Promise<void> => ipcRenderer.invoke('cast:pause', type),
+    resume: (type: string): Promise<void> => ipcRenderer.invoke('cast:resume', type),
+    stop: (type: string): Promise<void> => ipcRenderer.invoke('cast:stop', type),
+    seek: (time: number, type: string): Promise<void> => ipcRenderer.invoke('cast:seek', time, type),
+    setVolume: (volume: number, type: string): Promise<void> => ipcRenderer.invoke('cast:setVolume', volume, type),
+    onDevices: (callback: (devices: any[]) => void) => {
+      const listener = (_: any, devices: any[]) => callback(devices)
+      ipcRenderer.on('cast:devices', listener)
+      return () => ipcRenderer.removeListener('cast:devices', listener)
+    },
+    onStatus: (callback: (status: any) => void) => {
+      const listener = (_: any, status: any) => callback(status)
+      ipcRenderer.on('cast:status', listener)
+      return () => ipcRenderer.removeListener('cast:status', listener)
+    }
   }
 }
 

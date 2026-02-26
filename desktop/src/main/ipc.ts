@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, dialog, shell } from 'electron'
+import { BrowserWindow, ipcMain, dialog, shell, app } from 'electron'
 import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
@@ -48,6 +48,35 @@ import { advancedMatch, scoreReleaseCandidates, MatchConfidence } from './servic
 import { acousticBrainzService } from './services/acousticbrainz'
 import { searchLibrary } from './database/search'
 import { startEnrichmentWorker, getEnrichmentStatus, getEnrichmentHistory } from './services/enrichmentWorker'
+
+// Cast imports
+import {
+  setMainWindowForCasting,
+  startChromecastDiscovery,
+  getDiscoveredDevices as getChromecastDevices,
+  connectToChromecast,
+  disconnectChromecast,
+  chromecastPlayTrack,
+  chromecastPause,
+  chromecastResume,
+  chromecastStop,
+  chromecastSeek,
+  chromecastSetVolume
+} from './services/cast/chromecast'
+
+import {
+  setMainWindowForSonos,
+  startSonosDiscovery,
+  getDiscoveredSonosDevices,
+  connectToSonos,
+  disconnectSonos,
+  sonosPlayTrack,
+  sonosPause,
+  sonosResume,
+  sonosStop,
+  sonosSeek,
+  sonosSetVolume
+} from './services/cast/sonos'
 
 export function registerIpcHandlers(): void {
   const logPath = path.join(process.cwd(), 'debug-ipc.log')
@@ -2436,6 +2465,79 @@ current_track_id = excluded.current_track_id,
     ipcMain.handle('window:setFullScreen', (event, flag: boolean) => {
       const win = BrowserWindow.fromWebContents(event.sender)
       if (win) win.setFullScreen(flag)
+    })
+
+    // ============================================================================
+    // CAST (Chromecast / Sonos)
+    // ============================================================================
+
+    // Pass main window for events
+    app.on('browser-window-created', (_, win) => {
+      setMainWindowForCasting(win)
+      setMainWindowForSonos(win)
+    })
+
+    // If window already exists:
+    const wins = BrowserWindow.getAllWindows()
+    if (wins.length > 0) {
+      setMainWindowForCasting(wins[0])
+      setMainWindowForSonos(wins[0])
+    }
+
+    ipcMain.handle('cast:startDiscovery', () => {
+      startChromecastDiscovery()
+      startSonosDiscovery()
+    })
+
+    ipcMain.handle('cast:getDevices', () => {
+      const cc = getChromecastDevices()
+      const sonos = getDiscoveredSonosDevices()
+      return [...cc, ...sonos]
+    })
+
+    ipcMain.handle('cast:connect', async (_, deviceId: string, type: string) => {
+      if (type === 'chromecast') {
+        return connectToChromecast(deviceId)
+      } else if (type === 'sonos') {
+        return connectToSonos(deviceId)
+      }
+      return false
+    })
+
+    ipcMain.handle('cast:disconnect', (_, type: string) => {
+      if (type === 'chromecast') disconnectChromecast()
+      if (type === 'sonos') disconnectSonos()
+    })
+
+    ipcMain.handle('cast:play', async (_, track: any, type: string) => {
+      if (type === 'chromecast') return chromecastPlayTrack(track)
+      if (type === 'sonos') return sonosPlayTrack(track)
+      return false
+    })
+
+    ipcMain.handle('cast:pause', async (_, type: string) => {
+      if (type === 'chromecast') chromecastPause()
+      if (type === 'sonos') await sonosPause()
+    })
+
+    ipcMain.handle('cast:resume', async (_, type: string) => {
+      if (type === 'chromecast') chromecastResume()
+      if (type === 'sonos') await sonosResume()
+    })
+
+    ipcMain.handle('cast:stop', async (_, type: string) => {
+      if (type === 'chromecast') chromecastStop()
+      if (type === 'sonos') await sonosStop()
+    })
+
+    ipcMain.handle('cast:seek', async (_, time: number, type: string) => {
+      if (type === 'chromecast') chromecastSeek(time)
+      if (type === 'sonos') await sonosSeek(time)
+    })
+
+    ipcMain.handle('cast:setVolume', async (_, volume: number, type: string) => {
+      if (type === 'chromecast') chromecastSetVolume(volume)
+      if (type === 'sonos') await sonosSetVolume(volume)
     })
 
     // ============================================================================

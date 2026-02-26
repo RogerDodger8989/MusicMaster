@@ -6,6 +6,7 @@ import { registerIpcHandlers } from './ipc'
 import { closeDatabase } from './database'
 import { musicScanner } from './scanner'
 import { initCoverCache } from './services/coverArt'
+import { startCastServer } from './services/cast/server'
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason)
@@ -79,6 +80,9 @@ app.whenReady().then(() => {
 
   // Initialize cache directories
   initCoverCache()
+
+  // Start Cast Streaming Server
+  startCastServer().catch(err => console.error('Failed to start Cast Streaming Server:', err))
 
   // Register IPC handlers
   console.log('Registering IPC handlers...')

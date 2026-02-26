@@ -1,2 +1,2 @@
-SQL: UPDATE tracks SET composer = ?, publisher = ?, conductor = ?, [grouping] = ?
-Values: ["Alexandre Desplat","Warner Bros. Records","John Williams","Film Score"]
+SQL: UPDATE tracks SET album = ?, year = ?, track_total = ?, publisher = ?, catalog_number = ?, barcode = ?, release_country = ?, release_type = ?, musicbrainz_album_id = ?
+Values: ["Hostage",2005,24,"Gut Records","GUTCD44","5060087560519","GB","Album","9832a5f4-2baf-3740-80a0-aef978e8e2ef"]

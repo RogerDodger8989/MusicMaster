@@ -16,6 +16,7 @@ import {
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RatingStars } from './RatingStars'
+import { CastMenu } from './CastMenu'
 import { cn } from '../lib/utils'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
@@ -611,7 +612,7 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                         </div>
                     )}
 
-                    {/* Scrobble Indicators + Queue */}
+                    {/* Scrobble Indicators + Cast + Queue */}
                     <div className="flex items-center gap-2">
                         {(lastfmEnabled || listenbrainzEnabled) && (
                             <div className="flex gap-1 items-center bg-zinc-900 px-2 py-1 rounded border border-white/5">
@@ -623,6 +624,7 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                                 )}
                             </div>
                         )}
+                        <CastMenu />
                         <button
                             onClick={onQueueToggle}
                             className="p-2 rounded-full hover:bg-zinc-800 text-zinc-500 hover:text-white transition-all active:scale-90"

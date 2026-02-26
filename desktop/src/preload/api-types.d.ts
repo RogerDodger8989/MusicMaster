@@ -263,7 +263,21 @@ declare global {
           }) => void
         ) => () => void
         onCompleted: (callback: (result: any) => void) => () => void
-        onError: (callback: (error: string) => void) => () => void
-      }    }
+      }
+      cast: {
+        startDiscovery: () => Promise<void>
+        getDevices: () => Promise<any[]>
+        connect: (deviceId: string, type: string) => Promise<boolean>
+        disconnect: (type: string) => Promise<void>
+        play: (trackId: string, type: string) => Promise<boolean>
+        pause: (type: string) => Promise<void>
+        resume: (type: string) => Promise<void>
+        stop: (type: string) => Promise<void>
+        seek: (time: number, type: string) => Promise<void>
+        setVolume: (volume: number, type: string) => Promise<void>
+        onDevices: (callback: (devices: any[]) => void) => () => void
+        onStatus: (callback: (status: any) => void) => () => void
+      }
+    }
   }
 }
