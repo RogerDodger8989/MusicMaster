@@ -2433,6 +2433,11 @@ current_track_id = excluded.current_track_id,
       if (win) win.setAlwaysOnTop(flag)
     })
 
+    ipcMain.handle('window:setFullScreen', (event, flag: boolean) => {
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (win) win.setFullScreen(flag)
+    })
+
     // ============================================================================
     // END PHASE 9
     // ============================================================================

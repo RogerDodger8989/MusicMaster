@@ -323,7 +323,9 @@ const api = {
     setSize: (width: number, height: number): Promise<void> =>
       ipcRenderer.invoke('window:setSize', width, height),
     setAlwaysOnTop: (flag: boolean): Promise<void> =>
-      ipcRenderer.invoke('window:setAlwaysOnTop', flag)
+      ipcRenderer.invoke('window:setAlwaysOnTop', flag),
+    setFullScreen: (flag: boolean): Promise<void> =>
+      ipcRenderer.invoke('window:setFullScreen', flag)
   }
 }
 

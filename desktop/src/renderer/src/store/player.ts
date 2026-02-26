@@ -55,24 +55,43 @@ preloadAudio.preload = 'auto'
 let preloadedTrackIndex: number | null = null
 let preloadedTrack: Track | null = null
 
+// Audio Analysis Setup
+let audioCtx: AudioContext | null = null
+let analyser: AnalyserNode | null = null
+let source: MediaElementAudioSourceNode | null = null
+
+export const getAnalyser = () => {
+  if (!analyser) {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    }
+    analyser = audioCtx.createAnalyser()
+    analyser.fftSize = 256
+    source = audioCtx.createMediaElementSource(activeAudio)
+    source.connect(analyser)
+    analyser.connect(audioCtx.destination)
+  }
+  return analyser
+}
+
 // DEBUG ALERT - REMOVE AFTER FIXING
 if (typeof window !== 'undefined') {
   // console.error to be visible
   console.error('PLAYER SCRIPT LOADED')
-  // window.alert("PLAYER LOADED - IF YOU SEE THIS, UPDATE WORKED")
+    // window.alert("PLAYER LOADED - IF YOU SEE THIS, UPDATE WORKED")
 
-  // Expose Debug Helper
-  ;(window as any).DEBUG_PLAY_TRACK = (path: string) => {
-    console.error('DEBUG: Manual Play Triggered for', path)
-    const audio = new Audio()
-    const src = `asset:///${encodeURI(path.replace(/\\/g, '/'))}`
-    console.error('DEBUG: Manual Source of Audio:', src)
-    audio.src = src
-    audio
-      .play()
-      .then(() => console.error('DEBUG: Manual Play SUCCESS'))
-      .catch((e) => console.error('DEBUG: Manual Play FAILED', e))
-  }
+    // Expose Debug Helper
+    ; (window as any).DEBUG_PLAY_TRACK = (path: string) => {
+      console.error('DEBUG: Manual Play Triggered for', path)
+      const audio = new Audio()
+      const src = `asset:///${encodeURI(path.replace(/\\/g, '/'))}`
+      console.error('DEBUG: Manual Source of Audio:', src)
+      audio.src = src
+      audio
+        .play()
+        .then(() => console.error('DEBUG: Manual Play SUCCESS'))
+        .catch((e) => console.error('DEBUG: Manual Play FAILED', e))
+    }
 }
 
 export const usePlayer = create<PlayerState>((set, get) => {
@@ -606,7 +625,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
       artistMap.forEach((tracks) => {
         for (let i = tracks.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1))
-          ;[tracks[i], tracks[j]] = [tracks[j], tracks[i]]
+            ;[tracks[i], tracks[j]] = [tracks[j], tracks[i]]
         }
       })
 

@@ -1,4 +1,4 @@
-import { Music2, Moon, Sun, ChevronLeft, ChevronRight, Search, Clock, Loader2, Minus, Maximize2, X, Monitor, ChevronUp, Square, RectangleHorizontal } from 'lucide-react'
+import { Music2, Moon, Sun, ChevronLeft, ChevronRight, Search, Clock, Loader2, Minus, Maximize2, X, Monitor, Pin, Square, RectangleHorizontal, Tv, Maximize } from 'lucide-react'
 import { useTheme } from '../store/theme'
 import { useNavigation, ViewState } from '../store/navigation'
 import { useSearch } from '../store/search'
@@ -13,7 +13,7 @@ export default function TopBar() {
   const { goBack, goForward, canGoBack, canGoForward, history, future, jumpTo } = useNavigation()
   const { setIsOpen } = useSearch()
   const { progress } = useTagging()
-  const { isMiniPlayer, toggleMiniPlayer, isAlwaysOnTop, setAlwaysOnTop } = useUI()
+  const { isMiniPlayer, toggleMiniPlayer, isAlwaysOnTop, setAlwaysOnTop, isTheaterMode, toggleTheaterMode, isFullScreen, setFullScreen } = useUI()
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
 
   useEffect(() => {
@@ -69,13 +69,13 @@ export default function TopBar() {
       className={cn(
         isMiniPlayer ? 'h-10' : 'h-16',
         'flex items-center justify-between px-6 z-50 select-none transition-colors duration-300',
-        !isMiniPlayer && 'border-b border-zinc-800 dark:border-zinc-800 bg-zinc-950 dark:bg-zinc-950',
-        isMiniPlayer && 'bg-transparent border-none'
+        (!isMiniPlayer && !isTheaterMode) && 'border-b border-zinc-800 dark:border-zinc-800 bg-zinc-950 dark:bg-zinc-950',
+        (isMiniPlayer || isTheaterMode) && 'bg-transparent border-none'
       )}
       style={{ WebkitAppRegion: 'drag' } as any}
     >
       {/* Left: Navigation and Search */}
-      {!isMiniPlayer && (
+      {(!isMiniPlayer && !isTheaterMode) && (
         <div className="flex items-center gap-6 flex-1">
           {/* Logo */}
           <div className="flex items-center gap-3 mr-4">
@@ -118,7 +118,7 @@ export default function TopBar() {
         </div>
       )}
 
-      {isMiniPlayer && <div className="flex-1" />}
+      {(isMiniPlayer || isTheaterMode) && <div className="flex-1" />}
 
       {/* Right: Theme Toggle + Tagging Progress */}
       <div className="flex items-center gap-4">
@@ -155,11 +155,11 @@ export default function TopBar() {
             )}
             title={isAlwaysOnTop ? 'Always on Top: On' : 'Always on Top: Off'}
           >
-            <ChevronUp className={cn("w-4 h-4 transition-transform", isAlwaysOnTop && "rotate-180")} />
+            <Pin className={cn("w-4 h-4 transition-all", isAlwaysOnTop ? "rotate-45 fill-blue-400" : "-rotate-45")} />
           </button>
 
           {/* Theme Toggle */}
-          {!isMiniPlayer && (
+          {(!isMiniPlayer && !isTheaterMode) && (
             <button
               onClick={toggleTheme}
               className={cn(
@@ -172,7 +172,7 @@ export default function TopBar() {
             </button>
           )}
 
-          {!isMiniPlayer && <div className="w-px h-6 bg-zinc-800 mx-2" />}
+          {(!isMiniPlayer && !isTheaterMode) && <div className="w-px h-6 bg-zinc-800 mx-2" />}
 
           {/* MiniPlayer Mode Toggle (Standard vs Bar) */}
           {isMiniPlayer && (
@@ -203,6 +203,30 @@ export default function TopBar() {
             title="MiniPlayer Mode"
           >
             <Monitor className="w-4 h-4" />
+          </button>
+
+          {/* Theater Mode Toggle */}
+          <button
+            onClick={toggleTheaterMode}
+            className={cn(
+              'p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white',
+              isTheaterMode && 'text-blue-400'
+            )}
+            title="Theater Mode"
+          >
+            <Tv className="w-4 h-4" />
+          </button>
+
+          {/* Fullscreen Toggle */}
+          <button
+            onClick={() => setFullScreen(!isFullScreen)}
+            className={cn(
+              'p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white',
+              isFullScreen && 'text-blue-400'
+            )}
+            title="Toggle Fullscreen"
+          >
+            <Maximize className="w-4 h-4" />
           </button>
 
           {/* Window Controls */}

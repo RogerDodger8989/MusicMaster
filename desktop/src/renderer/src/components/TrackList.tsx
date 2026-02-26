@@ -20,6 +20,7 @@ interface TrackListProps {
     onReorder?: (startIndex: number, endIndex: number) => void
     onRemove?: (trackId: string, position: number) => void
     hideHeader?: boolean
+    compactMode?: boolean
     onArtistClick?: (artist: string) => void
     onAlbumClick?: (albumId: string) => void
 }
@@ -35,6 +36,7 @@ export default function TrackList({
     onReorder,
     onRemove,
     hideHeader = false,
+    compactMode = false,
     onArtistClick,
     onAlbumClick
 }: TrackListProps) {
@@ -380,7 +382,7 @@ export default function TrackList({
 
                             {/* Title */}
                             {isColVisible('title') && (
-                                <div className="min-w-0">
+                                <div className="min-w-0 flex flex-col justify-center">
                                     <div
                                         className={cn(
                                             'text-sm font-bold truncate transition-colors',
@@ -389,6 +391,33 @@ export default function TrackList({
                                     >
                                         {track.title}
                                     </div>
+                                    {compactMode && (
+                                        <>
+                                            <div className="text-[11px] text-white/50 truncate transition-colors group-hover:text-white/80 mt-0.5">
+                                                {track.artist}
+                                            </div>
+                                            <div className="flex items-center gap-3 pt-1 transition-opacity">
+                                                <RatingStars
+                                                    rating={track.rating}
+                                                    onChange={(r) => rateTrack(track.id, r)}
+                                                    size={10}
+                                                />
+                                                <Heart
+                                                    size={10}
+                                                    className={cn(
+                                                        'cursor-pointer transition-colors',
+                                                        track.loved
+                                                            ? 'text-red-500 fill-current'
+                                                            : 'text-zinc-600 hover:text-red-500/50'
+                                                    )}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        toggleLoved(track.id)
+                                                    }}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
 

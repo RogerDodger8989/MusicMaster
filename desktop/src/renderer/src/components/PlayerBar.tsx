@@ -23,6 +23,7 @@ import { formatDuration } from '../utils/format'
 import { useSettings } from '../store/settings'
 import { client } from '../api/client'
 import { useDJ } from '../store/dj'
+import { useUI } from '../store/ui'
 
 interface PlayerBarProps {
     onQueueToggle?: () => void
@@ -49,6 +50,8 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
         isMuted,
         toggleMute
     } = usePlayer()
+
+    const { isTheaterMode } = useUI()
 
     const { albums, tracks: allTracks, rateTrack, toggleLoved } = useLibrary()
 
@@ -204,7 +207,10 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
     }, [currentTrack?.id])
 
     return (
-        <div className="h-32 border-t border-zinc-900 bg-zinc-950/80 backdrop-blur-xl flex flex-col justify-center px-6 z-50 relative">
+        <div className={cn(
+            "h-32 flex flex-col justify-center px-6 z-50 relative transition-colors duration-500",
+            !isTheaterMode && "border-t border-zinc-900 bg-zinc-950/80 backdrop-blur-xl"
+        )}>
             <div className="flex items-center justify-between w-full">
 
                 {/* Left: Currently Playing Info */}

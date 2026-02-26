@@ -41,6 +41,7 @@ import { Track, Album } from './types'
 import { useSyncStore } from './store/sync'
 import { useUI } from './store/ui'
 import MiniPlayerView from './views/MiniPlayerView'
+import TheaterModeView from './views/TheaterModeView'
 import { motion, AnimatePresence } from 'framer-motion'
 
 function App(): React.JSX.Element {
@@ -107,7 +108,7 @@ function App(): React.JSX.Element {
     y: number
   } | null>(null)
 
-  const { isMiniPlayer } = useUI()
+  const { isMiniPlayer, isTheaterMode } = useUI()
 
   const startResizing = useCallback(() => {
     setIsResizing(true)
@@ -629,6 +630,29 @@ function App(): React.JSX.Element {
             </div>
             <div className="flex-1 min-h-0">
               <MiniPlayerView />
+            </div>
+          </motion.div>
+        ) : isTheaterMode ? (
+          <motion.div
+            key="theatermode"
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="flex-1 overflow-hidden bg-black relative"
+          >
+            <div className="absolute inset-0 z-0">
+              <TheaterModeView />
+            </div>
+            <div className="absolute top-0 left-0 right-0 z-50">
+              <TopBar />
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none *:pointer-events-auto">
+              <PlayerBar
+                onQueueToggle={() => setIsQueueOpen(!isQueueOpen)}
+                onAlbumClick={(id) => navigateTo('album-detail', { albumId: id })}
+                onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
+              />
             </div>
           </motion.div>
         ) : (

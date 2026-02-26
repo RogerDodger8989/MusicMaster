@@ -998,3 +998,15 @@
 2026-02-26T09:35:13.781Z:   ✅ ACCEPTED (Strict mode) dist: 0.1416
 2026-02-26T09:35:13.781Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
 2026-02-26T09:35:13.782Z:   ✅ ACCEPTED (Strict mode) dist: 0.1239
+2026-02-26T14:12:52.776Z: Checking Nothing Else Matters [acoustic] En:0.5730997351057394 Ar:0.5886698145740176 Va:0.35 Inst:0.05
+2026-02-26T14:12:52.780Z:   ✅ ACCEPTED (Strict mode) dist: 0.4537
+2026-02-26T14:12:52.780Z: ⚠️ Playlist too small (1). Running fallback fallback for acoustic...
+2026-02-26T14:12:52.782Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-26T14:12:52.782Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-26T14:12:52.783Z:   ✅ ACCEPTED (Fallback mode): Pictures [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-26T14:12:52.784Z:   ✅ ACCEPTED (Fallback mode): Radio/Video [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-26T14:12:52.785Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-26T14:12:52.785Z:   ✅ ACCEPTED (Fallback mode): Tommy's Theme [Orchestral]
+2026-02-26T14:12:52.786Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-26T14:12:52.786Z:   ✅ ACCEPTED (Fallback mode): The Killer [Orchestral]
+2026-02-26T14:12:52.786Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
