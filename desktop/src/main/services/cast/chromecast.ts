@@ -7,9 +7,14 @@ let devices: any[] = []
 let activeDevice: any = null
 let mainWindow: BrowserWindow | null = null
 let statusTimer: NodeJS.Timeout | null = null
+let updateCallback: (() => void) | null = null
 
 export function setMainWindowForCasting(win: BrowserWindow) {
     mainWindow = win
+}
+
+export function setChromecastUpdateCallback(cb: () => void) {
+    updateCallback = cb
 }
 
 export function startChromecastDiscovery() {
@@ -170,7 +175,9 @@ export function chromecastSetVolume(volume: number) {
 }
 
 function notifyDevicesUpdated() {
-    if (mainWindow) {
+    if (updateCallback) {
+        updateCallback()
+    } else if (mainWindow) {
         mainWindow.webContents.send('cast:devices', getDiscoveredDevices())
     }
 }

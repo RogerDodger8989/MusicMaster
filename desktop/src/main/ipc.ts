@@ -61,7 +61,8 @@ import {
   chromecastResume,
   chromecastStop,
   chromecastSeek,
-  chromecastSetVolume
+  chromecastSetVolume,
+  setChromecastUpdateCallback
 } from './services/cast/chromecast'
 
 import {
@@ -75,7 +76,8 @@ import {
   sonosResume,
   sonosStop,
   sonosSeek,
-  sonosSetVolume
+  sonosSetVolume,
+  setSonosUpdateCallback
 } from './services/cast/sonos'
 
 export function registerIpcHandlers(): void {
@@ -2483,6 +2485,19 @@ current_track_id = excluded.current_track_id,
       setMainWindowForCasting(wins[0])
       setMainWindowForSonos(wins[0])
     }
+
+    const notifyAllDevices = () => {
+      const cc = getChromecastDevices()
+      const sonos = getDiscoveredSonosDevices()
+      const all = [...cc, ...sonos]
+      const activeWins = BrowserWindow.getAllWindows()
+      if (activeWins.length > 0) {
+        activeWins[0].webContents.send('cast:devices', all)
+      }
+    }
+
+    setChromecastUpdateCallback(notifyAllDevices)
+    setSonosUpdateCallback(notifyAllDevices)
 
     ipcMain.handle('cast:startDiscovery', () => {
       startChromecastDiscovery()

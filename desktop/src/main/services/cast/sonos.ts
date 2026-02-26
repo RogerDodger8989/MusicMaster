@@ -7,40 +7,70 @@ let activeDevice: Sonos | null = null
 let mainWindow: BrowserWindow | null = null
 let discoveryInstance: any = null
 let statusTimer: NodeJS.Timeout | null = null
+let updateCallback: (() => void) | null = null
 
 export function setMainWindowForSonos(win: BrowserWindow) {
     mainWindow = win
 }
+
+export function setSonosUpdateCallback(cb: () => void) {
+    updateCallback = cb
+}
 export function startSonosDiscovery() {
-    if (discoveryInstance) return // Already running
+    if (discoveryInstance) {
+        console.log('[Sonos] Discovery already running, destroying and restarting for a fresh scan...')
+        try {
+            discoveryInstance.destroy()
+        } catch (e) {
+            console.error('[Sonos] Error destroying discovery instance:', e)
+        }
+        discoveryInstance = null
+    }
+
     devices = []
     console.log('[Sonos] Starting discovery...')
 
-    // Use DeviceDiscovery for continuous listening
-    discoveryInstance = DeviceDiscovery((device: Sonos) => {
-        console.log(`[Sonos] Found potential device at ${device.host}`)
-        device.deviceDescription().then(info => {
-            console.log(`[Sonos] Device ${device.host} identified as: ${info.roomName || info.friendlyName}`)
-            const exists = devices.find(d => d.host === device.host)
-            if (!exists) {
-                devices.push({
-                    host: device.host,
-                    name: info.roomName || info.friendlyName || `Sonos (${device.host})`,
-                    deviceStr: device
-                })
-                notifyDevicesUpdated()
-            }
-        }).catch(err => {
-            console.error('[Sonos] discovery error for device:', device.host, err)
+    try {
+        // Use DeviceDiscovery for continuous listening
+        discoveryInstance = DeviceDiscovery((device: Sonos) => {
+            console.log(`[Sonos] Found potential device at ${device.host}`)
+            device.deviceDescription().then(info => {
+                console.log(`[Sonos] Device ${device.host} identified as: ${info.roomName || info.friendlyName || info.modelName}`)
+                const exists = devices.find(d => d.host === device.host)
+                if (!exists) {
+                    devices.push({
+                        host: device.host,
+                        name: info.roomName || info.friendlyName || `Sonos (${device.host})`,
+                        deviceStr: device
+                    })
+                    notifyDevicesUpdated()
+                }
+            }).catch(err => {
+                console.error('[Sonos] discovery error for device description:', device.host, err)
+                // Even without description, we can still add it
+                const exists = devices.find(d => d.host === device.host)
+                if (!exists) {
+                    devices.push({
+                        host: device.host,
+                        name: `Sonos (${device.host})`,
+                        deviceStr: device
+                    })
+                    notifyDevicesUpdated()
+                }
+            })
         })
-    })
 
-    // Search timeout if nothing found
-    setTimeout(() => {
-        if (devices.length === 0) {
-            console.log('[Sonos] No devices found after 10s of discovery. You might need to check your firewall.')
-        }
-    }, 10000)
+        // Search timeout check 
+        setTimeout(() => {
+            if (devices.length === 0) {
+                console.log('[Sonos] No devices found yet. Check if your speakers are on the same WiFi (2.4GHz vs 5GHz can sometimes matter) or if a firewall is blocking UDP port 1900/SSDP.')
+            } else {
+                console.log(`[Sonos] Currently found ${devices.length} devices.`)
+            }
+        }, 10000)
+    } catch (err) {
+        console.error('[Sonos] Failed to start discovery:', err)
+    }
 }
 
 export function stopSonosDiscovery() {
@@ -172,7 +202,9 @@ export async function sonosSetVolume(volume: number) {
 }
 
 function notifyDevicesUpdated() {
-    if (mainWindow) {
+    if (updateCallback) {
+        updateCallback()
+    } else if (mainWindow) {
         mainWindow.webContents.send('cast:devices', getDiscoveredSonosDevices())
     }
 }
