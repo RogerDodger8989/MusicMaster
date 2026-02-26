@@ -28,6 +28,8 @@
    - [Spelkö (Queue)](#spelkö-queue)
    - [Miniplayer – Kompakt vy](#miniplayer--kompakt-vy)
    - [AI DJ & Radio](#ai-dj--radio)
+   - [Theater Mode](#theater-mode)
+   - [Casting – Chromecast & Sonos](#casting--chromecast--sonos)
    - [Taskbar Media Controls](#taskbar-media-controls)
    - [Inställningar](#inställningar)
 3. [Kom igång](#-kom-igång)
@@ -100,16 +102,45 @@ MusicMaster är uppdelad i två separata appar som kommunicerar via REST:
 
 ---
 
+---
+
 ### AI DJ & Radio
 
-- **AI DJ** – En intelligent DJ som skapar dynamiska spellistor baserade på dina preferenser, lyssningshistorik och musikens metadata (t.ex. stämning, tempo, genre).
-  - **Personliga rekommendationer** – Få förslag på spår du sannolikt kommer att gilla.
-  - **Tematiska mixar** – Skapa spellistor för specifika aktiviteter eller stämningar.
-  - **Sömlösa övergångar** – AI:n försöker matcha spår för mjuka övergångar.
-- **Radio** – Starta en radiostation baserad på ett specifikt spår, album eller artist.
-  - **Artistradio** – Spela musik från liknande artister.
-  - **Spårradio** – Hitta spår som liknar det aktuella spåret.
-  - **Genre-radio** – Utforska musik inom en specifik genre.
+MusicMaster inkluderar en avancerad AI-driven lyssningsupplevelse:
+
+- **AI DJ** – En personlig musikvärd som curerar ditt bibliotek i realtid:
+  - **Tematiska block** – Musiken grupperas i teman som "Favoriter", "Nyligen tillagt", "Discovery", "Vibes" och "Artistfokus".
+  - **Röstintroduktioner** – DJ:n presenterar varje nytt block med en svensk röst via Web Speech API.
+  - **Smart köhantering** – DJ:n fyller på kön automatiskt när den börjar ta slut utan att avbryta pågående låt.
+  - **Premium UI** – Ett dedikerat DJ-kort på Dashboarden med LIVE-indikator och animationer.
+- **Artist Radio** – Starta en omedelbar radiostation baserad på valfri artist:
+  - **Seed-logik** – Väljer ut de bästa låtarna som startpunkt och låter AutoDJ fylla på med liknande musik.
+  - **Snabbåtkomst** – "RADIO"-knapp finns tillgänglig direkt i Artist- och Albumvyer samt i kontextmenyer.
+- **AutoDJ** – Förbättrad algoritmen för liknande musik som tar hänsyn till genre, artist och stämning för en mer sammanhängande upplevelse.
+
+---
+
+### Theater Mode
+
+Ett minimalistiskt och elegant läge fokuserat på det visuella, tillgängligt via Tv-ikonen uppe i titellisten:
+
+- **Dynamisk Ambient Bakgrund**: Bakgrunden plockar upp färgerna från albumomslaget och skapar en mjuk "glow".
+- **Visualizers**: Se musiken formas live!
+  - `Spectrum`: Klassiska frekvensstaplar.
+  - `Waveform`: En glödande reaktiv vågform.
+  - `Particles`: Bas-känsliga partiklar som rör sig pulserande.
+- **Relaterad Musik**: Upptäck liknande låtar dynamiskt medan du lyssnar. Dubbelklicka för att lägga dem näst i kön ("Play Next").
+
+---
+
+### Casting – Chromecast & Sonos
+
+Ta med din musik till hemmets alla högtalare direkt från MusicMaster:
+
+- **Unified Discovery**: Appen skannar ditt nätverk automatiskt efter både **Chromecast**-enheter och **Sonos**-högtalare och visar dem i en gemensam lista.
+- **Sömlös Handoff**: Vid anslutning pausas musiken lokalt och fortsätter exakt där den var på din externa enhet.
+- **Fjärrstyrning**: Styr volym, sökning (seek) och låtbyten direkt från MusicMasters gränssnitt.
+- **Realtidssynk**: Seekbaren i appen rör sig i takt med musiken på högtalaren tack vare aktiv positions-polling.
 
 ---
 
@@ -412,19 +443,7 @@ MusicMaster erbjuder en kraftfull och minimalistisk Miniplayer för de tillfäll
 
 ---
 
-### AI DJ & Radio
 
-MusicMaster inkluderar nu en avancerad AI-driven lyssningsupplevelse:
-
-- **AI DJ** – En personlig musikvärd som curerar ditt bibliotek i realtid:
-  - **Tematiska block** – Musiken grupperas i teman som "Favoriter", "Nyligen tillagt", "Discovery", "Vibes" och "Artistfokus".
-  - **Röstintroduktioner** – DJ:n presenterar varje nytt block med en svensk röst via Web Speech API.
-  - **Smart köhantering** – DJ:n fyller på kön automatiskt när den börjar ta slut utan att avbryta pågående låt.
-  - **Premium UI** – Ett dedikerat DJ-kort på Dashboarden med LIVE-indikator och animationer.
-- **Artist Radio** – Starta en omedelbar radiostation baserad på valfri artist:
-  - **Seed-logik** – Väljer ut de bästa låtarna som startpunkt och låter AutoDJ fylla på med liknande musik.
-  - **Snabbåtkomst** – "RADIO"-knapp finns tillgänglig direkt i Artist- och Albumvyer samt i kontextmenyer.
-- **AutoDJ** – Förbättrad algoritmen för liknande musik som tar hänsyn till genre, artist och stämning för en mer sammanhängande upplevelse.
 
 ---
 
