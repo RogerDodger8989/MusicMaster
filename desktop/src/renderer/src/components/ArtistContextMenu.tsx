@@ -1,8 +1,9 @@
-import { ListPlus, Play, UserCircle, ListMusic, Plus, ChevronRight, Check, Minus } from 'lucide-react'
+import { ListPlus, Play, UserCircle, ListMusic, Plus, ChevronRight, Check, Minus, Radio } from 'lucide-react'
 import { usePlaylists } from '../store/playlists'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
 import { useNavigation } from '../store/navigation'
+import { useRadio } from '../hooks/useRadio'
 import { Artist } from '../types'
 import { useEffect, useRef, useState } from 'react'
 
@@ -16,6 +17,7 @@ interface ArtistContextMenuProps {
 export default function ArtistContextMenu({ artist, x, y, onClose }: ArtistContextMenuProps) {
   const { playAlbum } = usePlayer()
   const { tracks: allTracks } = useLibrary()
+  const { startRadio } = useRadio()
   const { navigateTo } = useNavigation()
   const {
     playlists,
@@ -77,6 +79,12 @@ export default function ArtistContextMenu({ artist, x, y, onClose }: ArtistConte
         detail: { tracks, option: 'add_last' }
       })
     )
+    onClose()
+  }
+
+  const handleStartRadio = () => {
+    const tracks = getArtistTracks()
+    if (tracks.length > 0) startRadio(tracks)
     onClose()
   }
 
@@ -156,6 +164,13 @@ export default function ArtistContextMenu({ artist, x, y, onClose }: ArtistConte
       >
         <ListPlus size={16} className="rotate-180" />
         Add to Queue
+      </button>
+      <button
+        onClick={handleStartRadio}
+        className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
+      >
+        <Radio size={16} />
+        Start Radio
       </button>
 
       <div className="h-px bg-zinc-800 my-1 mx-2" />

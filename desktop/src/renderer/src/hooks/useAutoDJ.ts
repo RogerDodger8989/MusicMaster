@@ -33,7 +33,8 @@ function moodSimilarity(a: Track, b: Track): number {
         }
     }
 
-    return count > 0 ? total / count : 0
+    // Default to neutral 0.5 if no mood data exists to avoid penalizing tracks without analysis
+    return count > 0 ? total / count : 0.5
 }
 
 // BPM proximity score (±15 BPM = full score, tapers off beyond)
@@ -45,23 +46,53 @@ function bpmSimilarity(a: Track, b: Track): number {
     return 1 - (diff - 15) / 45
 }
 
-// Genre match (binary)
-function genreMatch(a: Track, b: Track): number {
-    if (!a.genre || !b.genre) return 0
-    return a.genre.toLowerCase() === b.genre.toLowerCase() ? 1 : 0
+// Genre similarity based on overlapping tags (e.g. "Synthpop / Pop" matches "Synthpop")
+function genreSimilarity(a: Track, b: Track): number {
+    if (!a.genre || !b.genre) return 0.2 // slight base for unknown genres
+
+    // Normalize and split by common separators
+    const splitRegex = /[;/\\,]/
+    const gA = new Set(a.genre.toLowerCase().split(splitRegex).map(s => s.trim()).filter(Boolean))
+    const gB = b.genre.toLowerCase().split(splitRegex).map(s => s.trim()).filter(Boolean)
+
+    if (gA.size === 0 || gB.length === 0) return 0.2
+
+    const intersection = gB.filter(g => gA.has(g))
+
+    // If any overlap, start at 0.7 and scale up to 1.0 based on overlap ratio
+    if (intersection.length > 0) {
+        return 0.7 + (0.3 * (intersection.length / Math.max(gA.size, gB.length)))
+    }
+
+    return 0
+}
+
+// Artist similarity (same artist is a strong signal for Radio)
+function artistSimilarity(a: Track, b: Track): number {
+    if (a.artist === b.artist) return 1
+    if (a.albumArtist && a.albumArtist === b.albumArtist) return 0.8
+    return 0
 }
 
 function scoreSimilarity(reference: Track, candidate: Track): number {
-    const mood = moodSimilarity(reference, candidate) // Weight: 0.6
-    const bpm = bpmSimilarity(reference, candidate) // Weight: 0.3
-    const genre = genreMatch(reference, candidate) // Weight: 0.1
-    return mood * 0.6 + bpm * 0.3 + genre * 0.1
+    const mood = moodSimilarity(reference, candidate)   // Weight: 0.40
+    const bpm = bpmSimilarity(reference, candidate)     // Weight: 0.15
+    const genre = genreSimilarity(reference, candidate) // Weight: 0.30
+    const artist = artistSimilarity(reference, candidate) // Weight: 0.15
+
+    return (mood * 0.40) + (bpm * 0.15) + (genre * 0.30) + (artist * 0.15)
 }
 
 export function useAutoDJ() {
     const { currentTrack, queue, currentIndex, addToQueue, history } = usePlayer()
     const { tracks: allTracks } = useLibrary()
-    const settings = useSettings()
+    const {
+        autoDjEnabled,
+        autoDjRatingFilter,
+        autoDjTriggerAt,
+        autoDjAddCount
+    } = useSettings()
+
     const recentlyPlayedRef = useRef<Set<string>>(new Set())
     const lastFilledRef = useRef<string | null>(null)
 
@@ -77,13 +108,6 @@ export function useAutoDJ() {
     }, [history])
 
     useEffect(() => {
-        const {
-            autoDjEnabled,
-            autoDjRatingFilter,
-            autoDjTriggerAt,
-            autoDjAddCount
-        } = settings
-
         if (!autoDjEnabled) return
         if (!currentTrack) return
 
@@ -122,8 +146,17 @@ export function useAutoDJ() {
 
         // Pick top N
         const toAdd = candidates.slice(0, autoDjAddCount)
-        toAdd.forEach((t) => addToQueue(t))
-
-        console.log(`[AutoDJ] Added ${toAdd.length} tracks to queue (${remaining} remaining)`)
-    }, [currentTrack?.id, queue.length, currentIndex])
+        if (toAdd.length > 0) {
+            toAdd.forEach((t) => addToQueue(t))
+            console.log(`[AutoDJ] Added ${toAdd.length} tracks to queue (${remaining} remaining)`)
+        }
+    }, [
+        currentTrack?.id,
+        queue.length,
+        currentIndex,
+        autoDjEnabled,
+        autoDjRatingFilter,
+        autoDjTriggerAt,
+        autoDjAddCount
+    ])
 }

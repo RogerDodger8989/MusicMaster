@@ -21,6 +21,7 @@ import { usePlaylists } from '../store/playlists'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
 import { useNavigation } from '../store/navigation'
+import { useRadio } from '../hooks/useRadio'
 import { Album } from '../types'
 import { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { RatingStars } from './RatingStars'
@@ -36,6 +37,7 @@ interface AlbumContextMenuProps {
 
 export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextMenuProps) {
   const { playAlbum } = usePlayer()
+  const { startRadio } = useRadio()
   const { tracks: allTracks, rateAlbum, toggleAlbumLoved, loadAlbums, loadTracks } = useLibrary()
   const { navigateTo } = useNavigation()
   const {
@@ -248,7 +250,8 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
   }
 
   const handleAutoDJ = async () => {
-    // Logic for Auto-DJ with album tracks
+    const tracks = await getAlbumTracks()
+    if (tracks.length > 0) startRadio(tracks)
     onClose()
   }
 
@@ -379,8 +382,8 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
               onClick={handleAutoDJ}
               className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
             >
-              <Sparkles size={14} />
-              Auto-DJ
+              <Radio size={14} />
+              Radio
             </button>
             <button
               onClick={handlePlayArtist}

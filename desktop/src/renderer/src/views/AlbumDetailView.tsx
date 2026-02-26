@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLibrary } from '../store/library'
 import { useNavigation } from '../store/navigation'
 import { usePlayer } from '../store/player'
-import { ArrowLeft, Play, Clock, Heart, Calendar, Hash, Music as MusicIcon, X, Users } from 'lucide-react'
+import { ArrowLeft, Play, Clock, Heart, Calendar, Hash, Music as MusicIcon, X, Users, Radio as RadioIcon } from 'lucide-react'
 import { RatingStars } from '../components/RatingStars'
 import { formatDuration } from '../utils/format'
 import { cn } from '../utils'
@@ -11,6 +11,7 @@ import { useTrackSelection } from '../hooks/useTrackSelection'
 import { QueueConfirmationModal } from '../components/QueueConfirmationModal'
 import AlbumContextMenu from '../components/AlbumContextMenu'
 import { client } from '../api/client'
+import { useRadio } from '../hooks/useRadio'
 import type { Album } from '../types'
 
 interface AlbumDetailViewProps {
@@ -30,6 +31,7 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
     queue,
     insertToQueue
   } = usePlayer()
+  const { startRadio } = useRadio()
   const [isZoomed, setIsZoomed] = useState(false)
   const [isBioExpanded, setIsBioExpanded] = useState(false)
   const [enrichedAlbum, setEnrichedAlbum] = useState<Album | null>(null)
@@ -239,6 +241,14 @@ export default function AlbumDetailView({ albumId, onBack }: AlbumDetailViewProp
               className="px-5 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 flex items-center gap-2 transition-all active:scale-95"
             >
               <Play size={14} fill="currentColor" /> Play All
+            </button>
+
+            <button
+              onClick={() => startRadio(albumTracks)}
+              className="px-5 py-1.5 rounded-full bg-purple-600/80 text-white text-xs font-bold hover:bg-purple-600 shadow-lg shadow-purple-900/30 flex items-center gap-2 transition-all active:scale-95"
+              title="Start Radio – plays a seed track and lets AutoDJ fill the queue with similar music"
+            >
+              <RadioIcon size={14} /> Radio
             </button>
 
             <div className="flex items-center gap-3 bg-white/5 py-1 px-3 rounded-full border border-white/5">

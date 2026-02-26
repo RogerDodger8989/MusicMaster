@@ -13,7 +13,8 @@ import {
   ChevronDown,
   MapPin,
   Calendar,
-  RefreshCw
+  RefreshCw,
+  Radio
 } from 'lucide-react'
 import { AlbumCard } from '../components/AlbumCard'
 import { RatingStars } from '../components/RatingStars'
@@ -23,6 +24,7 @@ import { QueueConfirmationModal } from '../components/QueueConfirmationModal'
 import { useTrackSelection } from '../hooks/useTrackSelection'
 import ArtistContextMenu from '../components/ArtistContextMenu'
 import { ArtistBioModal } from '../components/modals/ArtistBioModal'
+import { useRadio } from '../hooks/useRadio'
 import type { Artist } from '../types/index'
 
 interface ArtistDetailViewProps {
@@ -50,6 +52,7 @@ export default function ArtistDetailView({
     queue,
     insertToQueue
   } = usePlayer()
+  const { startRadio } = useRadio()
 
   const [sortBy, setSortBy] = useState<'year' | 'popularity'>('year')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
@@ -597,6 +600,19 @@ export default function ArtistDetailView({
                     className="group-hover:scale-110 transition-transform"
                   />
                   PLAY
+                </button>
+                <button
+                  onClick={() => {
+                    const allArtistTracks = tracks.filter(
+                      (t) => t.artist === artistName || t.albumArtist === artistName
+                    )
+                    startRadio(allArtistTracks)
+                  }}
+                  className="px-6 py-3 rounded-full bg-purple-600/80 text-white text-sm font-black hover:bg-purple-600 shadow-xl shadow-purple-900/30 flex items-center gap-2 transition-all active:scale-95"
+                  title="Start Radio – plays a seed track and lets AutoDJ fill the queue with similar music"
+                >
+                  <Radio size={16} />
+                  RADIO
                 </button>
                 <button
                   onClick={handleShuffleAll}
