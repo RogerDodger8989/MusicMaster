@@ -1,4 +1,4 @@
-import { Home, Disc3, Users, Music, ListMusic, Settings, FileQuestion, Heart, Mic2, Tags, ChevronDown, Sparkles } from 'lucide-react'
+import { Home, Disc3, Users, Music, ListMusic, Settings, FileQuestion, Heart, Mic2, Tags, ChevronDown, Sparkles, Waves } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '../lib/utils'
 import { useNavigation } from '../store/navigation'
@@ -6,6 +6,7 @@ import { useSettings } from '../store/settings'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
 import { useDJ } from '../store/dj'
+import { useTidal } from '../store/tidal'
 import { client } from '../api/client'
 
 type NavItem = {
@@ -24,11 +25,13 @@ const navItems: NavItem[] = [
   { id: 'favorites', label: 'Favorites', icon: <Heart className="w-5 h-5" /> },
   { id: 'virtual-dj', label: 'AI DJ', icon: <Sparkles className="w-5 h-5 text-purple-400" /> },
   { id: 'playlists', label: 'Playlists', icon: <ListMusic className="w-5 h-5" /> },
+  { id: 'tidal', label: 'Tidal', icon: <Waves className="w-5 h-5 text-blue-400" /> },
   { id: 'unsorted', label: 'Unsorted', icon: <FileQuestion className="w-5 h-5" /> }
 ]
 
 export default function Sidebar() {
   const { current, navigateTo } = useNavigation()
+  const { isAuthenticated } = useTidal()
   const { startDJ } = useDJ.getState()
   const activeView = current.view
   const setActiveView = (view: string) => {
@@ -66,20 +69,23 @@ export default function Sidebar() {
     <div className="w-64 border-r border-zinc-800 bg-zinc-950 flex flex-col h-full min-h-0">
       {/* Navigation Items */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar min-h-0">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveView(item.id)}
-            className={cn(
-              'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
-              'hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-500',
-              activeView === item.id ? 'bg-blue-600 text-white' : 'text-zinc-300'
-            )}
-          >
-            {item.icon}
-            <span className="font-medium">{item.label}</span>
-          </button>
-        ))}
+        {navItems.map((item) => {
+          if (item.id === 'tidal' && !isAuthenticated) return null
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveView(item.id)}
+              className={cn(
+                'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
+                'hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-500',
+                activeView === item.id ? 'bg-blue-600 text-white' : 'text-zinc-300'
+              )}
+            >
+              {item.icon}
+              <span className="font-medium">{item.label}</span>
+            </button>
+          )
+        })}
       </nav>
 
       {/* Settings at Bottom */}

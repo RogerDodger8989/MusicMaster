@@ -1,296 +1,298 @@
 import Database from 'better-sqlite3'
+
 import { app } from 'electron'
 import path from 'path'
-// import * as fs from 'fs' // Unused but kept for future use
+import * as fs from 'fs'
+
 
 let db: Database.Database | null = null
 
 // SQL Schema - Load MusicBrainz extended schema
 const SCHEMA_MB = `
 -- ============================================================================
--- MUSICBRAINZ EXTENDED SCHEMA - Module 1
+--MUSICBRAINZ EXTENDED SCHEMA - Module 1
 -- ============================================================================
 
--- Extended Artists table with MusicBrainz support
-CREATE TABLE IF NOT EXISTS artists (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    name_sort_order TEXT,
-    musicbrainz_artistid TEXT UNIQUE,
-    country TEXT,
-    area TEXT,
-    life_span_begin TEXT,
-    life_span_end TEXT,
-    artist_type TEXT,
-    gender TEXT,
-    gender_other TEXT,
-    website TEXT,
-    bio TEXT,
-    image_path TEXT,
-    album_count INTEGER DEFAULT 0,
-    track_count INTEGER DEFAULT 0,
-    loved INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(name, country)
+--Extended Artists table with MusicBrainz support
+CREATE TABLE IF NOT EXISTS artists(
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  name_sort_order TEXT,
+  musicbrainz_artistid TEXT UNIQUE,
+  country TEXT,
+  area TEXT,
+  life_span_begin TEXT,
+  life_span_end TEXT,
+  artist_type TEXT,
+  gender TEXT,
+  gender_other TEXT,
+  website TEXT,
+  bio TEXT,
+  image_path TEXT,
+  album_count INTEGER DEFAULT 0,
+  track_count INTEGER DEFAULT 0,
+  loved INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(name, country)
 );
 
--- Extended Albums table with MusicBrainz support
-CREATE TABLE IF NOT EXISTS albums (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    album_artist_id TEXT,
-    musicbrainz_albumid TEXT UNIQUE,
-    musicbrainz_releasegroupid TEXT,
-    album_type TEXT,
-    status TEXT,
-    year INTEGER,
-    release_date TEXT,
-    original_release_date TEXT,
-    release_country TEXT,
-    barcode TEXT,
-    asin TEXT,
-    script TEXT,
-    language TEXT,
-    release_text_language TEXT,
-    packaging TEXT,
-    disc_count INTEGER DEFAULT 1,
-    track_count INTEGER DEFAULT 0,
-    total_duration INTEGER,
-    cover_art_path TEXT,
-    rating REAL DEFAULT 0,
-    loved INTEGER DEFAULT 0,
-    play_count INTEGER DEFAULT 0,
-    last_played DATETIME,
-    genre TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (album_artist_id) REFERENCES artists(id) ON DELETE SET NULL
+--Extended Albums table with MusicBrainz support
+CREATE TABLE IF NOT EXISTS albums(
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  album_artist_id TEXT,
+  musicbrainz_albumid TEXT UNIQUE,
+  musicbrainz_releasegroupid TEXT,
+  album_type TEXT,
+  status TEXT,
+  year INTEGER,
+  release_date TEXT,
+  original_release_date TEXT,
+  release_country TEXT,
+  barcode TEXT,
+  asin TEXT,
+  script TEXT,
+  language TEXT,
+  release_text_language TEXT,
+  packaging TEXT,
+  disc_count INTEGER DEFAULT 1,
+  track_count INTEGER DEFAULT 0,
+  total_duration INTEGER,
+  cover_art_path TEXT,
+  rating REAL DEFAULT 0,
+  loved INTEGER DEFAULT 0,
+  play_count INTEGER DEFAULT 0,
+  last_played DATETIME,
+  genre TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(album_artist_id) REFERENCES artists(id) ON DELETE SET NULL
 );
 
--- Artist relationships for tracks
-CREATE TABLE IF NOT EXISTS track_artists (
-    id TEXT PRIMARY KEY,
-    track_id TEXT NOT NULL,
-    artist_id TEXT NOT NULL,
-    role TEXT,
-    instrument TEXT,
-    credited_as TEXT,
-    sort_position INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE,
-    FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE,
-    UNIQUE(track_id, artist_id, role, instrument)
+--Artist relationships for tracks
+CREATE TABLE IF NOT EXISTS track_artists(
+  id TEXT PRIMARY KEY,
+  track_id TEXT NOT NULL,
+  artist_id TEXT NOT NULL,
+  role TEXT,
+  instrument TEXT,
+  credited_as TEXT,
+  sort_position INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(track_id) REFERENCES tracks(id) ON DELETE CASCADE,
+  FOREIGN KEY(artist_id) REFERENCES artists(id) ON DELETE CASCADE,
+  UNIQUE(track_id, artist_id, role, instrument)
 );
 
--- Artist relationships for albums
-CREATE TABLE IF NOT EXISTS album_artists (
-    id TEXT PRIMARY KEY,
-    album_id TEXT NOT NULL,
-    artist_id TEXT NOT NULL,
-    role TEXT,
-    credited_as TEXT,
-    sort_position INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE,
-    FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE,
-    UNIQUE(album_id, artist_id, role)
+--Artist relationships for albums
+CREATE TABLE IF NOT EXISTS album_artists(
+  id TEXT PRIMARY KEY,
+  album_id TEXT NOT NULL,
+  artist_id TEXT NOT NULL,
+  role TEXT,
+  credited_as TEXT,
+  sort_position INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE,
+  FOREIGN KEY(artist_id) REFERENCES artists(id) ON DELETE CASCADE,
+  UNIQUE(album_id, artist_id, role)
 );
 
--- Performers info
-CREATE TABLE IF NOT EXISTS performers (
-    id TEXT PRIMARY KEY,
-    track_id TEXT NOT NULL,
-    artist_id TEXT NOT NULL,
-    role TEXT NOT NULL,
-    instrument TEXT,
-    credited_as TEXT,
-    sort_position INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE,
-    FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE
+--Performers info
+CREATE TABLE IF NOT EXISTS performers(
+  id TEXT PRIMARY KEY,
+  track_id TEXT NOT NULL,
+  artist_id TEXT NOT NULL,
+  role TEXT NOT NULL,
+  instrument TEXT,
+  credited_as TEXT,
+  sort_position INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(track_id) REFERENCES tracks(id) ON DELETE CASCADE,
+  FOREIGN KEY(artist_id) REFERENCES artists(id) ON DELETE CASCADE
 );
 
--- Album credits
-CREATE TABLE IF NOT EXISTS album_credits (
-    id TEXT PRIMARY KEY,
-    album_id TEXT NOT NULL,
-    artist_id TEXT NOT NULL,
-    role TEXT,
-    credited_as TEXT,
-    sort_position INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE,
-    FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE CASCADE
+--Album credits
+CREATE TABLE IF NOT EXISTS album_credits(
+  id TEXT PRIMARY KEY,
+  album_id TEXT NOT NULL,
+  artist_id TEXT NOT NULL,
+  role TEXT,
+  credited_as TEXT,
+  sort_position INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE,
+  FOREIGN KEY(artist_id) REFERENCES artists(id) ON DELETE CASCADE
 );
 
--- Release info for different pressings
-CREATE TABLE IF NOT EXISTS release_info (
-    id TEXT PRIMARY KEY,
-    album_id TEXT NOT NULL,
-    musicbrainz_releaseid TEXT UNIQUE,
-    title TEXT,
-    status TEXT,
-    release_date TEXT,
-    release_country TEXT,
-    packaging TEXT,
-    barcode TEXT,
-    asin TEXT,
-    script TEXT,
-    language TEXT,
-    disc_count INTEGER DEFAULT 1,
-    track_count INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+--Release info for different pressings
+CREATE TABLE IF NOT EXISTS release_info(
+  id TEXT PRIMARY KEY,
+  album_id TEXT NOT NULL,
+  musicbrainz_releaseid TEXT UNIQUE,
+  title TEXT,
+  status TEXT,
+  release_date TEXT,
+  release_country TEXT,
+  packaging TEXT,
+  barcode TEXT,
+  asin TEXT,
+  script TEXT,
+  language TEXT,
+  disc_count INTEGER DEFAULT 1,
+  track_count INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE
 );
 
--- Labels
-CREATE TABLE IF NOT EXISTS labels (
-    id TEXT PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    musicbrainz_labelid TEXT UNIQUE,
-    label_type TEXT,
-    country TEXT,
-    website TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+--Labels
+CREATE TABLE IF NOT EXISTS labels(
+  id TEXT PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  musicbrainz_labelid TEXT UNIQUE,
+  label_type TEXT,
+  country TEXT,
+  website TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Album labels
-CREATE TABLE IF NOT EXISTS album_labels (
-    id TEXT PRIMARY KEY,
-    album_id TEXT NOT NULL,
-    release_id TEXT,
-    label_id TEXT NOT NULL,
-    catalog_number TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE,
-    FOREIGN KEY (release_id) REFERENCES release_info(id) ON DELETE SET NULL,
-    FOREIGN KEY (label_id) REFERENCES labels(id) ON DELETE CASCADE
+--Album labels
+CREATE TABLE IF NOT EXISTS album_labels(
+  id TEXT PRIMARY KEY,
+  album_id TEXT NOT NULL,
+  release_id TEXT,
+  label_id TEXT NOT NULL,
+  catalog_number TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE,
+  FOREIGN KEY(release_id) REFERENCES release_info(id) ON DELETE SET NULL,
+  FOREIGN KEY(label_id) REFERENCES labels(id) ON DELETE CASCADE
 );
 
--- External links
-CREATE TABLE IF NOT EXISTS external_links (
-    id TEXT PRIMARY KEY,
-    entity_type TEXT NOT NULL,
-    entity_id TEXT NOT NULL,
-    link_type TEXT NOT NULL,
-    url TEXT NOT NULL,
-    description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(entity_type, entity_id, link_type)
+--External links
+CREATE TABLE IF NOT EXISTS external_links(
+  id TEXT PRIMARY KEY,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  link_type TEXT NOT NULL,
+  url TEXT NOT NULL,
+  description TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(entity_type, entity_id, link_type)
 );
 
--- External identifiers
-CREATE TABLE IF NOT EXISTS external_identifiers (
-    id TEXT PRIMARY KEY,
-    entity_type TEXT NOT NULL,
-    entity_id TEXT NOT NULL,
-    identifier_type TEXT NOT NULL,
-    value TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(entity_type, entity_id, identifier_type)
+--External identifiers
+CREATE TABLE IF NOT EXISTS external_identifiers(
+  id TEXT PRIMARY KEY,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  identifier_type TEXT NOT NULL,
+  value TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(entity_type, entity_id, identifier_type)
 );
 
--- Genres
-CREATE TABLE IF NOT EXISTS genres (
-    id TEXT PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    parent_genre_id TEXT,
-    musicbrainz_genreid TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (parent_genre_id) REFERENCES genres(id) ON DELETE SET NULL
+--Genres
+CREATE TABLE IF NOT EXISTS genres(
+  id TEXT PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  parent_genre_id TEXT,
+  musicbrainz_genreid TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(parent_genre_id) REFERENCES genres(id) ON DELETE SET NULL
 );
 
--- Genre tags
-CREATE TABLE IF NOT EXISTS genre_tags (
-    id TEXT PRIMARY KEY,
-    entity_type TEXT NOT NULL,
-    entity_id TEXT NOT NULL,
-    genre_id TEXT NOT NULL,
-    confidence REAL,
-    sort_position INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE CASCADE
+--Genre tags
+CREATE TABLE IF NOT EXISTS genre_tags(
+  id TEXT PRIMARY KEY,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  genre_id TEXT NOT NULL,
+  confidence REAL,
+  sort_position INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(genre_id) REFERENCES genres(id) ON DELETE CASCADE
 );
 
--- Works (for classical music)
-CREATE TABLE IF NOT EXISTS works (
-    id TEXT PRIMARY KEY,
-    musicbrainz_workid TEXT UNIQUE,
-    title TEXT NOT NULL,
-    artist_id TEXT,
-    work_type TEXT,
-    language TEXT,
-    description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (artist_id) REFERENCES artists(id) ON DELETE SET NULL
+--Works(for classical music)
+CREATE TABLE IF NOT EXISTS works(
+  id TEXT PRIMARY KEY,
+  musicbrainz_workid TEXT UNIQUE,
+  title TEXT NOT NULL,
+  artist_id TEXT,
+  work_type TEXT,
+  language TEXT,
+  description TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(artist_id) REFERENCES artists(id) ON DELETE SET NULL
 );
 
--- AcousticBrainz data
-CREATE TABLE IF NOT EXISTS acousticbrainz_data (
-    id TEXT PRIMARY KEY,
-    track_id TEXT NOT NULL,
-    musicbrainz_recordingid TEXT,
-    bpm INTEGER,
-    bpm_confidence REAL,
-    key TEXT,
-    key_confidence REAL,
-    energy REAL,
-    danceability REAL,
-    acousticness REAL,
-    instrumentalness REAL,
-    liveness REAL,
-    speechiness REAL,
-    valence REAL,
-    loudness_integrated REAL,
-    loudness_short_term REAL,
-    tempo_confidence REAL,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
+--AcousticBrainz data
+CREATE TABLE IF NOT EXISTS acousticbrainz_data(
+  id TEXT PRIMARY KEY,
+  track_id TEXT NOT NULL,
+  musicbrainz_recordingid TEXT,
+  bpm INTEGER,
+  bpm_confidence REAL,
+  key TEXT,
+  key_confidence REAL,
+  energy REAL,
+  danceability REAL,
+  acousticness REAL,
+  instrumentalness REAL,
+  liveness REAL,
+  speechiness REAL,
+  valence REAL,
+  loudness_integrated REAL,
+  loudness_short_term REAL,
+  tempo_confidence REAL,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(track_id) REFERENCES tracks(id) ON DELETE CASCADE
 );
 
--- Barcodes
-CREATE TABLE IF NOT EXISTS barcodes (
-    id TEXT PRIMARY KEY,
-    release_id TEXT NOT NULL,
-    barcode TEXT UNIQUE,
-    barcode_type TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (release_id) REFERENCES release_info(id) ON DELETE CASCADE
+--Barcodes
+CREATE TABLE IF NOT EXISTS barcodes(
+  id TEXT PRIMARY KEY,
+  release_id TEXT NOT NULL,
+  barcode TEXT UNIQUE,
+  barcode_type TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(release_id) REFERENCES release_info(id) ON DELETE CASCADE
 );
 
--- Discs
-CREATE TABLE IF NOT EXISTS discs (
-    id TEXT PRIMARY KEY,
-    release_id TEXT,
-    album_id TEXT NOT NULL,
-    disc_num INTEGER,
-    title TEXT,
-    disc_id TEXT,
-    track_count INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (release_id) REFERENCES release_info(id) ON DELETE SET NULL,
-    FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE CASCADE
+--Discs
+CREATE TABLE IF NOT EXISTS discs(
+  id TEXT PRIMARY KEY,
+  release_id TEXT,
+  album_id TEXT NOT NULL,
+  disc_num INTEGER,
+  title TEXT,
+  disc_id TEXT,
+  track_count INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(release_id) REFERENCES release_info(id) ON DELETE SET NULL,
+  FOREIGN KEY(album_id) REFERENCES albums(id) ON DELETE CASCADE
 );
 
--- Enrichment Logging
-CREATE TABLE IF NOT EXISTS enrichment_log (
-    id TEXT PRIMARY KEY,
-    musicbrainz_albumid TEXT,
-    status TEXT DEFAULT 'pending',
-    performers_fetched INTEGER DEFAULT 0,
-    acousticbrainz_fetched INTEGER DEFAULT 0,
-    relationships_fetched INTEGER DEFAULT 0,
-    tracks_updated INTEGER DEFAULT 0,
-    error_message TEXT,
-    started_at DATETIME,
-    completed_at DATETIME,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (musicbrainz_albumid) REFERENCES albums(musicbrainz_albumid) ON DELETE CASCADE
+--Enrichment Logging
+CREATE TABLE IF NOT EXISTS enrichment_log(
+  id TEXT PRIMARY KEY,
+  musicbrainz_albumid TEXT,
+  status TEXT DEFAULT 'pending',
+  performers_fetched INTEGER DEFAULT 0,
+  acousticbrainz_fetched INTEGER DEFAULT 0,
+  relationships_fetched INTEGER DEFAULT 0,
+  tracks_updated INTEGER DEFAULT 0,
+  error_message TEXT,
+  started_at DATETIME,
+  completed_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(musicbrainz_albumid) REFERENCES albums(musicbrainz_albumid) ON DELETE CASCADE
 );
 
--- Indexes for MusicBrainz data
+--Indexes for MusicBrainz data
 CREATE INDEX IF NOT EXISTS idx_artists_mbid ON artists(musicbrainz_artistid);
 CREATE INDEX IF NOT EXISTS idx_artists_country ON artists(country);
 CREATE INDEX IF NOT EXISTS idx_artists_name ON artists(name);
@@ -321,148 +323,152 @@ CREATE INDEX IF NOT EXISTS idx_acousticbrainz_key ON acousticbrainz_data(key);
 
 // Legacy schema (kept for backward compatibility)
 const SCHEMA = `
-CREATE TABLE IF NOT EXISTS music_folders (
-    id TEXT PRIMARY KEY,
-    path TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    watch_enabled INTEGER DEFAULT 0,
-    last_scanned DATETIME,
-    track_count INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS music_folders(
+  id TEXT PRIMARY KEY,
+  path TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  watch_enabled INTEGER DEFAULT 0,
+  last_scanned DATETIME,
+  track_count INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS tracks (
-    id TEXT PRIMARY KEY,
-    folder_id TEXT NOT NULL,
-    file_path TEXT UNIQUE NOT NULL,
-    file_hash TEXT,
-    title TEXT,
-    artist TEXT,
-    album TEXT,
-    album_artist TEXT,
-    year INTEGER,
-    genre TEXT,
-    track_num INTEGER,
-    disc_num INTEGER,
-    duration INTEGER,
-    bitrate INTEGER,
-    sample_rate INTEGER,
-    bit_depth INTEGER,
-    format TEXT CHECK(format IN ('flac', 'mp3')),
-    cover_art_path TEXT,
-    rating REAL DEFAULT 0,
-    loved INTEGER DEFAULT 0,
-    play_count INTEGER DEFAULT 0,
-    last_played DATETIME,
-    release_date TEXT,
-    musicbrainz_trackid TEXT,
-    musicbrainz_albumid TEXT,
-    musicbrainz_artistid TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (folder_id) REFERENCES music_folders(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS tracks(
+  id TEXT PRIMARY KEY,
+  folder_id TEXT NOT NULL,
+  file_path TEXT UNIQUE NOT NULL,
+  file_hash TEXT,
+  title TEXT,
+  artist TEXT,
+  album TEXT,
+  album_artist TEXT,
+  year INTEGER,
+  genre TEXT,
+  track_num INTEGER,
+  disc_num INTEGER,
+  duration INTEGER,
+  bitrate INTEGER,
+  sample_rate INTEGER,
+  bit_depth INTEGER,
+  format TEXT CHECK(format IN('flac', 'mp3')),
+  cover_art_path TEXT,
+  rating REAL DEFAULT 0,
+  loved INTEGER DEFAULT 0,
+  play_count INTEGER DEFAULT 0,
+  last_played DATETIME,
+  release_date TEXT,
+  musicbrainz_trackid TEXT,
+  musicbrainz_albumid TEXT,
+  musicbrainz_artistid TEXT,
+  provider TEXT DEFAULT 'local',
+  external_id TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(folder_id) REFERENCES music_folders(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS albums_cache (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    artist TEXT NOT NULL,
-    year INTEGER,
-    release_date TEXT,
-    genre TEXT,
-    disc_count INTEGER DEFAULT 1,
-    track_count INTEGER DEFAULT 0,
-    total_duration INTEGER DEFAULT 0,
-    cover_art_path TEXT,
-    musicbrainz_albumid TEXT,
-    lastfm_url TEXT,
-    rating REAL DEFAULT 0,
-    loved INTEGER DEFAULT 0,
-    play_count INTEGER DEFAULT 0,
-    last_played DATETIME,
-    bio TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(name, artist)
+CREATE TABLE IF NOT EXISTS albums_cache(
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  artist TEXT NOT NULL,
+  year INTEGER,
+  release_date TEXT,
+  genre TEXT,
+  disc_count INTEGER DEFAULT 1,
+  track_count INTEGER DEFAULT 0,
+  total_duration INTEGER DEFAULT 0,
+  cover_art_path TEXT,
+  musicbrainz_albumid TEXT,
+  lastfm_url TEXT,
+  rating REAL DEFAULT 0,
+  loved INTEGER DEFAULT 0,
+  play_count INTEGER DEFAULT 0,
+  last_played DATETIME,
+  bio TEXT,
+  provider TEXT DEFAULT 'local',
+  external_id TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(name, artist)
 );
 
-CREATE TABLE IF NOT EXISTS artists (
-    id TEXT PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    album_count INTEGER DEFAULT 0,
-    track_count INTEGER DEFAULT 0,
-    bio TEXT,
-    image_path TEXT,
-    musicbrainz_artistid TEXT,
-    country TEXT,
-    life_span_begin TEXT,
-    life_span_end TEXT,
-    type TEXT,
-    gender TEXT,
-    website TEXT,
-    loved INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS artists(
+  id TEXT PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  album_count INTEGER DEFAULT 0,
+  track_count INTEGER DEFAULT 0,
+  bio TEXT,
+  image_path TEXT,
+  musicbrainz_artistid TEXT,
+  country TEXT,
+  life_span_begin TEXT,
+  life_span_end TEXT,
+  type TEXT,
+  gender TEXT,
+  website TEXT,
+  loved INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS user_settings (
-    id TEXT PRIMARY KEY,
-    user_id TEXT DEFAULT 'default',
-    setting_key TEXT NOT NULL,
-    setting_value TEXT NOT NULL,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, setting_key)
+CREATE TABLE IF NOT EXISTS user_settings(
+  id TEXT PRIMARY KEY,
+  user_id TEXT DEFAULT 'default',
+  setting_key TEXT NOT NULL,
+  setting_value TEXT NOT NULL,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, setting_key)
 );
 
-CREATE TABLE IF NOT EXISTS playback_history (
-    id TEXT PRIMARY KEY,
-    track_id TEXT NOT NULL,
-    played_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    duration_played INTEGER,
-    FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS playback_history(
+  id TEXT PRIMARY KEY,
+  track_id TEXT NOT NULL,
+  played_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  duration_played INTEGER,
+  FOREIGN KEY(track_id) REFERENCES tracks(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS scan_history (
-    id TEXT PRIMARY KEY,
-    folder_id TEXT,
-    started_at DATETIME NOT NULL,
-    completed_at DATETIME,
-    files_scanned INTEGER DEFAULT 0,
-    files_added INTEGER DEFAULT 0,
-    files_updated INTEGER DEFAULT 0,
-    files_removed INTEGER DEFAULT 0,
-    errors TEXT,
-    FOREIGN KEY (folder_id) REFERENCES music_folders(id) ON DELETE SET NULL
+CREATE TABLE IF NOT EXISTS scan_history(
+  id TEXT PRIMARY KEY,
+  folder_id TEXT,
+  started_at DATETIME NOT NULL,
+  completed_at DATETIME,
+  files_scanned INTEGER DEFAULT 0,
+  files_added INTEGER DEFAULT 0,
+  files_updated INTEGER DEFAULT 0,
+  files_removed INTEGER DEFAULT 0,
+  errors TEXT,
+  FOREIGN KEY(folder_id) REFERENCES music_folders(id) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS playback_state (
-    id TEXT PRIMARY KEY DEFAULT 'default',
-    current_track_id TEXT,
-    queue_ids TEXT, -- JSON array of track IDs
-    current_index INTEGER DEFAULT -1,
-    volume REAL DEFAULT 1.0,
-    is_shuffle INTEGER DEFAULT 0,
-    repeat_mode TEXT DEFAULT 'normal',
-    current_time REAL DEFAULT 0,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (current_track_id) REFERENCES tracks(id) ON DELETE SET NULL
+CREATE TABLE IF NOT EXISTS playback_state(
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  current_track_id TEXT,
+  queue_ids TEXT, --JSON array of track IDs
+    current_index INTEGER DEFAULT - 1,
+  volume REAL DEFAULT 1.0,
+  is_shuffle INTEGER DEFAULT 0,
+  repeat_mode TEXT DEFAULT 'normal',
+  current_time REAL DEFAULT 0,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(current_track_id) REFERENCES tracks(id) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS playlists (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS playlists(
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS playlist_tracks (
-    id TEXT PRIMARY KEY,
-    playlist_id TEXT NOT NULL,
-    track_id TEXT NOT NULL,
-    position INTEGER NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
-    FOREIGN KEY (track_id) REFERENCES tracks(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS playlist_tracks(
+  id TEXT PRIMARY KEY,
+  playlist_id TEXT NOT NULL,
+  track_id TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
+  FOREIGN KEY(track_id) REFERENCES tracks(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_tracks_artist ON tracks(artist);
@@ -486,9 +492,16 @@ export function initDatabase(): Database.Database {
   if (db) return db
 
   try {
-    // Create database directory if it doesn't exist
-    const userDataPath = app.getPath('userData')
+    // Use environment variable or local data directory
+    const userDataPath = process.env.DATA_PATH || app.getPath('userData')
+
+    if (process.env.DATA_PATH && !fs.existsSync(userDataPath)) {
+      fs.mkdirSync(userDataPath, { recursive: true })
+    }
+
     const dbPath = path.join(userDataPath, 'musicmaster.db')
+    console.log(`[DB] Initializing database at: ${dbPath}`)
+    console.log(`[DB] Using DATA_PATH: ${process.env.DATA_PATH || 'not set'}`)
 
     console.log('Initializing database at:', dbPath)
 
@@ -613,7 +626,12 @@ export function initDatabase(): Database.Database {
       'ALTER TABLE acousticbrainz_data ADD COLUMN mood_happy REAL',
       'ALTER TABLE acousticbrainz_data ADD COLUMN mood_sad REAL',
       'ALTER TABLE acousticbrainz_data ADD COLUMN mood_relaxed REAL',
-      'ALTER TABLE acousticbrainz_data ADD COLUMN mood_party REAL'
+      'ALTER TABLE acousticbrainz_data ADD COLUMN mood_party REAL',
+      // Tidal Integration columns
+      "ALTER TABLE tracks ADD COLUMN provider TEXT DEFAULT 'local'",
+      "ALTER TABLE tracks ADD COLUMN external_id TEXT",
+      "ALTER TABLE albums_cache ADD COLUMN provider TEXT DEFAULT 'local'",
+      "ALTER TABLE albums_cache ADD COLUMN external_id TEXT"
     ]
 
     for (const migration of migrations) {
@@ -622,7 +640,7 @@ export function initDatabase(): Database.Database {
       } catch (error) {
         // Ignore "duplicate column name" errors
         if (!(error as Error).message.includes('duplicate column name')) {
-          console.log(`Migration validation: ${(error as Error).message}`)
+          console.log(`Migration validation: ${(error as Error).message} `)
         }
       }
     }
@@ -694,6 +712,8 @@ export interface DbTrack {
   musicbrainz_albumid: string | null
   musicbrainz_artistid: string | null
   isrc: string | null
+  provider: string
+  external_id: string | null
   created_at: string
   updated_at: string
   // AcousticBrainz enrichment data
@@ -729,6 +749,8 @@ export interface DbAlbumCache {
   play_count: number
   last_played: string | null
   bio: string | null
+  provider: string
+  external_id: string | null
   created_at: string
   updated_at: string
 }

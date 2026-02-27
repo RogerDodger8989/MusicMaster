@@ -185,8 +185,31 @@ export default function HomeView({ }: HomeViewProps) {
         return
       }
 
-      playAlbum(vibeTracks, 0)
-      console.log(`🎵 Started "${vibe.name}" playlist with ${vibeTracks.length} tracks`)
+      const normalize = (value?: string | null) => (value || '').toString().toLowerCase().trim()
+      const keyWithAlbum = (track: any) =>
+        `${normalize(track.title)}|${normalize(track.artist)}|${normalize(track.album)}`
+      const keyNoAlbum = (track: any) => `${normalize(track.title)}|${normalize(track.artist)}`
+
+      const localByKey = new Map<string, typeof tracks[number]>()
+      const localByKeyNoAlbum = new Map<string, typeof tracks[number]>()
+
+      for (const track of tracks) {
+        localByKey.set(keyWithAlbum(track), track)
+        localByKeyNoAlbum.set(keyNoAlbum(track), track)
+      }
+
+      const mappedTracks = vibeTracks
+        .map((track) => localByKey.get(keyWithAlbum(track)) || localByKeyNoAlbum.get(keyNoAlbum(track)))
+        .filter(Boolean) as typeof tracks
+
+      if (mappedTracks.length === 0) {
+        console.error('Vibe tracks not found in local library. Check server DB alignment.')
+        setIsLoading(false)
+        return
+      }
+
+      playAlbum(mappedTracks, 0)
+      console.log(`🎵 Started "${vibe.name}" playlist with ${mappedTracks.length} tracks`)
     } catch (error) {
       console.error('Error loading vibe playlist:', error)
       setSelectedVibe(null)

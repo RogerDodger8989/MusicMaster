@@ -167,10 +167,16 @@ export class LastFmService {
     return [...enrichedTop, ...mappedRest]
   }
 
-  async downloadImage(url: string, filename: string): Promise<string | null> {
+  async downloadImage(url: string, filename: string, baseDir?: string): Promise<string | null> {
     if (!url) return null
 
-    const filePath = path.join(CACHE_DIR, filename)
+    const targetDir = baseDir || CACHE_DIR
+
+    if (!existsSync(targetDir)) {
+      await fs.mkdir(targetDir, { recursive: true })
+    }
+
+    const filePath = path.join(targetDir, filename)
 
     // Return if already cached
     if (existsSync(filePath)) {
@@ -415,10 +421,12 @@ export class LastFmService {
    */
   async getAuthToken(): Promise<{ token: string; authUrl: string } | null> {
     const key = getApiKey()
-    console.log('🔐 Getting Last.fm auth token with API key:', key ? 'present' : 'missing')
+    console.log('\n📋 LastFmService.getAuthToken():')
+    console.log('   API Key present:', key ? `${key.substring(0, 8)}...` : '❌ MISSING')
+    console.log('   API Key value:', key)
 
     if (!key) {
-      console.error('LASTFM_API_KEY not found in getAuthToken')
+      console.error('❌ LASTFM_API_KEY is empty!')
       return null
     }
 
@@ -429,23 +437,42 @@ export class LastFmService {
         format: 'json'
       }
 
-      console.log('📤 Requesting auth token from Last.fm...', params)
-      const response = await axios.get(BASE_URL, { params })
-      console.log('📥 Last.fm auth token response:', response.data)
+      console.log('📤 Making axios GET request to:', BASE_URL)
+      console.log('   Params:', JSON.stringify(params, null, 2))
+      
+      const response = await axios.get(BASE_URL, { params, timeout: 10000 })
+      
+      console.log('✅ Axios response received')
+      console.log('   Status:', response.status)
+      console.log('   Data:', JSON.stringify(response.data, null, 2))
 
       if (response.data?.token) {
         const token = response.data.token
         const authUrl = `https://www.last.fm/api/auth/?api_key=${key}&token=${token}`
-        console.log('✅ Auth token obtained:', token.substring(0, 8) + '...')
+        console.log('✅ Token obtained:', token.substring(0, 8) + '...')
         return { token, authUrl }
       }
-      console.error('❌ No token in response:', response.data)
+      console.error('❌ Response missing token:', response.data)
       return null
     } catch (error) {
-      console.error('❌ Failed to get Last.fm auth token:', error)
+      console.error('❌ getAuthToken failed:')
       if (axios.isAxiosError(error)) {
-        console.error('Response data:', error.response?.data)
-        console.error('Response status:', error.response?.status)
+        console.error('   Type: Axios Error')
+        console.error('   Message:', error.message)
+        console.error('   Code:', error.code)
+        if (error.response) {
+          console.error('   Status:', error.response.status)
+          console.error('   Response:', error.response.data)
+        }
+        if (error.request && !error.response) {
+          console.error('   No response from server (network issue?)')
+        }
+      } else if (error instanceof Error) {
+        console.error('   Type: Regular Error')
+        console.error('   Message:', error.message)
+        console.error('   Stack:', error.stack)
+      } else {
+        console.error('   Unknown error:', error)
       }
       return null
     }

@@ -160,6 +160,37 @@ export function getAllTracks(): Track[] {
 }
 
 /**
+ * Get most played tracks
+ */
+export function getMostPlayed(limit: number = 50): Track[] {
+  const db = getDatabase()
+  const stmt = db.prepare(`
+    SELECT 
+      t.*,
+      COALESCE(a.bpm, null) as bpm,
+      COALESCE(a.key, null) as key,
+      COALESCE(a.energy, null) as energy,
+      COALESCE(a.danceability, null) as danceability,
+      COALESCE(a.acousticness, null) as acousticness,
+      COALESCE(a.mood_acoustic, null) as mood_acoustic,
+      COALESCE(a.mood_aggressive, null) as mood_aggressive,
+      COALESCE(a.mood_electronic, null) as mood_electronic,
+      COALESCE(a.mood_happy, null) as mood_happy,
+      COALESCE(a.mood_sad, null) as mood_sad,
+      COALESCE(a.mood_relaxed, null) as mood_relaxed,
+      COALESCE(a.mood_party, null) as mood_party
+    FROM tracks t
+    LEFT JOIN acousticbrainz_data a ON t.id = a.track_id
+    WHERE t.play_count > 0
+    ORDER BY t.play_count DESC
+    LIMIT ?
+  `)
+  const rows = stmt.all(limit) as DbTrack[]
+  return rows.map(dbTrackToTrack)
+}
+
+
+/**
  * Get tracks by folder ID
  */
 export function getTracksByFolder(folderId: string): Track[] {

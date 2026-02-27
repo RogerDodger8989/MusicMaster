@@ -98,6 +98,8 @@ export interface Track {
 
   createdAt: Date
   updatedAt: Date
+  provider: 'local' | 'tidal'
+  externalId?: string
   performers?: Array<{ name: string; role: string; id: string }>
 }
 
@@ -127,6 +129,8 @@ export interface Album {
   bio?: string
   createdAt: Date
   updatedAt: Date
+  provider: 'local' | 'tidal'
+  externalId?: string
 }
 
 export interface Artist {

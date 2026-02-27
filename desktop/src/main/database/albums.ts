@@ -5,6 +5,8 @@ import type { Album } from '../types'
 import { extractCoverArt } from '../services/coverArt'
 import { lastFmService } from '../services/lastfm'
 import { spotifyService } from '../services/spotify'
+import { app } from 'electron'
+import path from 'path'
 
 /**
  * Aggregate albums from tracks
@@ -200,7 +202,8 @@ export async function aggregateAlbums(): Promise<void> {
           if (imageUrl) {
             const cachedPath = await lastFmService.downloadImage(
               imageUrl,
-              `ext_album_${album.id}.jpg`
+              `${album.id}.jpg`,
+              path.join(app.getPath('userData'), 'covers')
             )
             if (cachedPath) {
               const finalPath = `asset:///${cachedPath.replace(/\\/g, '/')}`
@@ -221,6 +224,18 @@ export async function aggregateAlbums(): Promise<void> {
     const artistsData = db.prepare('SELECT id, name FROM artists').all() as any[]
     console.log(`👤 Processing external info for ${artistsData.length} artists...`)
 
+    // Load Last.fm API key from database (if available)
+    try {
+      const dbKey = db.prepare("SELECT setting_value FROM user_settings WHERE setting_key = 'lastfmApiKey'").get() as any
+      if (dbKey) {
+        const keyValue = JSON.parse(dbKey.setting_value)
+        lastFmService.setApiKey(keyValue)
+        console.log('🔑 Loaded Last.fm API key from database for artist enrichment')
+      }
+    } catch (e) {
+      console.log('ℹ️ No Last.fm API key found in database, using environment variable')
+    }
+
     for (const artist of artistsData) {
       try {
         const info = await lastFmService.getArtistInfo(artist.name)
@@ -238,7 +253,8 @@ export async function aggregateAlbums(): Promise<void> {
         if (imageUrl) {
           const cachedPath = await lastFmService.downloadImage(
             imageUrl,
-            `ext_artist_${artist.id}.jpg`
+            `artist-${artist.id}.jpg`,
+            path.join(app.getPath('userData'), 'covers')
           )
           if (cachedPath) {
             imagePath = `asset:///${cachedPath.replace(/\\/g, '/')}`

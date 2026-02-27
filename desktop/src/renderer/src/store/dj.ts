@@ -59,10 +59,23 @@ export const useDJ = create<DJStore>((set, get) => ({
                     if (data.success && data.data.length > 0) {
                         const vibe = data.data[Math.floor(Math.random() * data.data.length)]
                         const vibeTracks = await client.getVibePlaylist(vibe.id, 10)
+                        const normalize = (value?: string | null) => (value || '').toString().toLowerCase().trim()
+                        const keyWithAlbum = (track: any) =>
+                            `${normalize(track.title)}|${normalize(track.artist)}|${normalize(track.album)}`
+                        const keyNoAlbum = (track: any) => `${normalize(track.title)}|${normalize(track.artist)}`
+
+                        const localByKey = new Map<string, Track>()
+                        const localByKeyNoAlbum = new Map<string, Track>()
+
+                        for (const track of library.tracks) {
+                            localByKey.set(keyWithAlbum(track), track)
+                            localByKeyNoAlbum.set(keyNoAlbum(track), track)
+                        }
+
                         blockTracks = vibeTracks
-                            .map(t => library.tracks.find(lt => lt.id === t.id) || t)
-                            .sort(() => Math.random() - 0.5)
-                            .slice(0, 5)
+                            .map(t => localByKey.get(keyWithAlbum(t)) || localByKeyNoAlbum.get(keyNoAlbum(t)))
+                            .filter(Boolean) as Track[]
+                        blockTracks = blockTracks.sort(() => Math.random() - 0.5).slice(0, 5)
                         extraData.vibeName = vibe.name
                     }
                     break

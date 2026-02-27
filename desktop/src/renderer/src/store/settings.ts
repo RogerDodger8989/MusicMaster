@@ -36,6 +36,8 @@ interface SettingsStore {
   autoDjTriggerAt: AutoDjTriggerAt
   autoDjAddCount: AutoDjAddCount
   isCoverExpanded: boolean
+  tidalClientId: string
+  tidalClientSecret: string
 
   // Actions
   setViewMode: (mode: ViewMode) => void
@@ -64,6 +66,8 @@ interface SettingsStore {
   setAutoDjTriggerAt: (count: AutoDjTriggerAt) => void
   setAutoDjAddCount: (count: AutoDjAddCount) => void
   toggleCoverExpanded: () => void
+  setTidalClientId: (id: string) => void
+  setTidalClientSecret: (secret: string) => void
 
   // Persistence
   loadSettings: () => Promise<void>
@@ -96,6 +100,8 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   autoDjTriggerAt: 1,
   autoDjAddCount: 3,
   isCoverExpanded: false,
+  tidalClientId: '',
+  tidalClientSecret: '',
 
   setViewMode: (viewMode) => {
     set({ viewMode })
@@ -209,6 +215,14 @@ export const useSettings = create<SettingsStore>((set, get) => ({
     const current = get().isCoverExpanded
     set({ isCoverExpanded: !current })
     client.saveSetting('isCoverExpanded', !current)
+  },
+  setTidalClientId: (id) => {
+    set({ tidalClientId: id })
+    client.saveSetting('tidalClientId', id)
+  },
+  setTidalClientSecret: (secret) => {
+    set({ tidalClientSecret: secret })
+    client.saveSetting('tidalClientSecret', secret)
   },
 
   loadSettings: async () => {

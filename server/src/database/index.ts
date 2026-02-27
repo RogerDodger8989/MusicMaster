@@ -389,6 +389,8 @@ CREATE TABLE IF NOT EXISTS tracks (
     movement_num INTEGER,
     movement_total INTEGER,
     mood TEXT,
+    provider TEXT DEFAULT 'local',
+    external_id TEXT,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (folder_id) REFERENCES music_folders(id) ON DELETE CASCADE
@@ -425,6 +427,8 @@ CREATE TABLE IF NOT EXISTS albums_cache (
     enriched_at DATETIME,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     is_verified INTEGER DEFAULT 0,
+    provider TEXT DEFAULT 'local',
+    external_id TEXT,
     UNIQUE(name, artist)
 );
 
@@ -749,7 +753,12 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE tracks ADD COLUMN custom17 TEXT",
             "ALTER TABLE tracks ADD COLUMN custom18 TEXT",
             "ALTER TABLE tracks ADD COLUMN custom19 TEXT",
-            "ALTER TABLE tracks ADD COLUMN custom20 TEXT"
+            "ALTER TABLE tracks ADD COLUMN custom20 TEXT",
+            // Tidal Integration columns
+            "ALTER TABLE tracks ADD COLUMN provider TEXT DEFAULT 'local'",
+            "ALTER TABLE tracks ADD COLUMN external_id TEXT",
+            "ALTER TABLE albums_cache ADD COLUMN provider TEXT DEFAULT 'local'",
+            "ALTER TABLE albums_cache ADD COLUMN external_id TEXT"
         ]
 
         for (const migration of migrations) {
@@ -824,6 +833,8 @@ export interface DbTrack {
     rating: number
     loved: number
     play_count: number
+    provider: string
+    external_id: string | null
     last_played: string | null
     release_date: string | null
     musicbrainz_trackid: string | null
@@ -920,6 +931,8 @@ export interface DbAlbumCache {
     created_at: string
     updated_at: string
     is_verified: number
+    provider: string
+    external_id: string | null
 }
 
 export interface DbArtist {

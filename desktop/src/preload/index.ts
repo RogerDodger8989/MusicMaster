@@ -51,6 +51,7 @@ const api = {
   // Tracks
   tracks: {
     getAll: (): Promise<Track[]> => ipcRenderer.invoke('tracks:getAll'),
+    getById: (id: string): Promise<Track | null> => ipcRenderer.invoke('tracks:getById', id),
     getTracksByAlbum: (name: string, artist: string): Promise<Track[]> =>
       ipcRenderer.invoke('tracks:getTracksByAlbum', name, artist),
     getCoverBufferByAlbum: (albumId: string): Promise<{ data: Buffer; format: string } | null> =>
@@ -64,7 +65,11 @@ const api = {
       loved: boolean,
       mbData?: any
     ): Promise<boolean> =>
-      ipcRenderer.invoke('tracks:updateMetadata', trackId, filePath, rating, loved, mbData)
+      ipcRenderer.invoke('tracks:updateMetadata', trackId, filePath, rating, loved, mbData),
+    getMostPlayed: (limit?: number): Promise<Track[]> =>
+      ipcRenderer.invoke('tracks:getMostPlayed', limit),
+    getCoverage: (): Promise<any> => ipcRenderer.invoke('tracks:getCoverage'),
+    getArtistTop: (): Promise<any[]> => ipcRenderer.invoke('tracks:getArtistTop')
   },
 
   // Albums
@@ -96,6 +101,20 @@ const api = {
       ipcRenderer.invoke('library:tagAlbumMetadata', albumId, mbAlbumId)
   },
 
+  // Tidal
+  tidal: {
+    updateCredentials: (clientId: string, clientSecret: string): Promise<boolean> => ipcRenderer.invoke('tidal:updateCredentials', clientId, clientSecret),
+    getAuthUrl: (): Promise<string> => ipcRenderer.invoke('tidal:getAuthUrl'),
+    finishAuth: (code: string): Promise<boolean> => ipcRenderer.invoke('tidal:finishAuth', code),
+    search: (query: string): Promise<any[]> => ipcRenderer.invoke('tidal:search', query),
+    getStreamUrl: (trackId: string): Promise<string | null> => ipcRenderer.invoke('tidal:getStreamUrl', trackId),
+    onAuthCallback: (callback: (code: string) => void) => {
+      const listener = (_: any, code: string): void => callback(code)
+      ipcRenderer.on('tidal:auth-callback', listener)
+      return () => ipcRenderer.removeListener('tidal:auth-callback', listener)
+    }
+  },
+
   // Utils
   util: {
     openExternal: (url: string): Promise<void> => ipcRenderer.invoke('util:openExternal', url),
@@ -115,6 +134,7 @@ const api = {
     loadSession: (): Promise<any> => ipcRenderer.invoke('player:loadSession'),
     saveSession: (session: any): Promise<boolean> =>
       ipcRenderer.invoke('player:saveSession', session),
+    getSession: (): Promise<any> => ipcRenderer.invoke('player:getSession'),
     updateThumbarButtons: (isPlaying: boolean): Promise<boolean> =>
       ipcRenderer.invoke('player:updateThumbarButtons', isPlaying),
     onCommand: (callback: (command: 'togglePlay' | 'prev' | 'next') => void) => {
@@ -148,6 +168,7 @@ const api = {
       ipcRenderer.invoke('scrobble:submitToListenBrainz', scrobbleId),
     getPlayCount: (trackId: string): Promise<number> =>
       ipcRenderer.invoke('scrobble:getPlayCount', trackId),
+    getSyncStatus: (): Promise<any> => ipcRenderer.invoke('scrobble:getSyncStatus'),
     updateLastFmKey: (key: string): Promise<boolean> =>
       ipcRenderer.invoke('scrobble:updateLastFmKey', key),
     updateLastFmSecret: (secret: string): Promise<boolean> =>
@@ -229,7 +250,9 @@ const api = {
     exportMissingCSV: (tracks: any[]): Promise<string | null> =>
       ipcRenderer.invoke('metadata:exportMissingCSV', tracks),
     updateArtistFacts: (id: string, facts: any): Promise<boolean> =>
-      ipcRenderer.invoke('metadata:updateArtistFacts', id, facts)
+      ipcRenderer.invoke('metadata:updateArtistFacts', id, facts),
+    getArtistSimilar: (artist: string): Promise<any[]> =>
+      ipcRenderer.invoke('metadata:getArtistSimilar', artist)
   },
 
   // MusicBrainz Enhancement

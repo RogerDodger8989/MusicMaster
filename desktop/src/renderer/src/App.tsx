@@ -16,6 +16,7 @@ import HomeView from './views/HomeView'
 import FavoritesView from './views/FavoritesView'
 import AlbumArtistsView from './views/AlbumArtistsView'
 import GenresView from './views/GenresView'
+import TidalView from './views/TidalView'
 import { useTagging } from './store/tagging'
 import SearchModal from './components/SearchModal'
 import TaggingModal from './components/TaggingModal'
@@ -569,6 +570,8 @@ function App(): React.JSX.Element {
             onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
           />
         )
+      case 'tidal':
+        return <TidalView />
       case 'home':
       default:
         return <HomeView />

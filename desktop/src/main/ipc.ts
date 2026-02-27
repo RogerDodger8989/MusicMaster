@@ -80,6 +80,8 @@ import {
   setSonosUpdateCallback
 } from './services/cast/sonos'
 
+import { tidalService } from './services/tidal'
+
 export function registerIpcHandlers(): void {
   const logPath = path.join(process.cwd(), 'debug-ipc.log')
   fs.writeFileSync(logPath, `[${new Date().toISOString()}] Starting IPC handler registration...\n`)
@@ -248,6 +250,26 @@ export function registerIpcHandlers(): void {
     ipcMain.handle('tracks:getAll', async () => {
       console.log('📋 Getting all tracks...')
       return getAllTracks()
+    })
+
+    ipcMain.handle('tracks:getMostPlayed', async (_, _range: any, limit: any = 50) => {
+      // Ensure limit is a number to avoid SqliteError: datatype mismatch
+      const numericLimit = typeof limit === 'number' ? limit : parseInt(limit, 10) || 50
+      console.log(`📋 Getting ${numericLimit} most played tracks (range: ${_range})...`)
+      const { getMostPlayed } = await import('./database/tracks')
+      return getMostPlayed(numericLimit)
+    })
+
+    ipcMain.handle('tracks:getById', async (_, id: string) => {
+      return getTrackById(id)
+    })
+
+    ipcMain.handle('tracks:getInfo', async (_, id: string) => {
+      return getTrackById(id)
+    })
+
+    ipcMain.handle('tracks:getSimilar', async (_, _id: string) => {
+      return [] // Stub for now
     })
 
     ipcMain.handle('tracks:getTracksByAlbum', async (_, name: string, artist: string) => {
@@ -574,6 +596,16 @@ export function registerIpcHandlers(): void {
       }
     })
 
+    ipcMain.handle('library:getArtistSimilar', async (_, artist: string) => {
+      console.log(`👥 Fetching similar artists for: ${artist} `)
+      try {
+        return await lastFmService.getSimilarArtists(artist)
+      } catch (error) {
+        console.error('❌ Failed to get similar artists:', error)
+        return []
+      }
+    })
+
     ipcMain.handle('util:openExternal', async (_, url: string) => {
       await shell.openExternal(url)
     })
@@ -602,22 +634,21 @@ export function registerIpcHandlers(): void {
     })
 
     ipcMain.handle('settings:save', async (_, key: string, value: any) => {
-      console.log(`⚙️ Saving setting: ${key} `)
+      console.log(`⚙️ Saving setting: ${key}`)
       const db = getDatabase()
       const stringValue = JSON.stringify(value)
       db.prepare(
         `
-                INSERT INTO user_settings(id, setting_key, setting_value)
-VALUES(?, ?, ?)
-                ON CONFLICT(user_id, setting_key) DO UPDATE SET setting_value = excluded.setting_value, updated_at = CURRENT_TIMESTAMP
-  `
-      ).run(uuidv4(), key, stringValue)
+        INSERT INTO user_settings(id, user_id, setting_key, setting_value)
+        VALUES(?, ?, ?, ?)
+        ON CONFLICT(user_id, setting_key) DO UPDATE SET setting_value = excluded.setting_value, updated_at = CURRENT_TIMESTAMP
+        `
+      ).run(uuidv4(), 'default', key, stringValue)
       return true
     })
 
-    // Playback Session Persistence
-    ipcMain.handle('player:loadSession', async () => {
-      console.log('🎵 Loading playback session...')
+    // Playback Session Persistence Helper
+    const getPlaybackSession = async () => {
       const db = getDatabase()
       const row = db.prepare('SELECT * FROM playback_state WHERE id = ?').get('default') as
         | DbPlaybackState
@@ -653,6 +684,15 @@ VALUES(?, ?, ?)
         repeatMode: row.repeat_mode,
         currentTime: row.current_time
       }
+    }
+
+    ipcMain.handle('player:loadSession', async () => {
+      console.log('🎵 Loading playback session...')
+      return await getPlaybackSession()
+    })
+
+    ipcMain.handle('player:getSession', async () => {
+      return await getPlaybackSession()
     })
 
     ipcMain.handle('player:saveSession', async (_, session: any) => {
@@ -966,15 +1006,69 @@ current_track_id = excluded.current_track_id,
 
     // Last.fm authentication endpoints
     ipcMain.handle('scrobble:getLastFmAuthToken', async () => {
-      console.log('🔐 Getting Last.fm auth token...')
+      console.log('\n🔐 IPC: Getting Last.fm auth token...')
       try {
+        const db = getDatabase()
+        let apiKey = ''
+        let apiSecret = ''
+
+        // 1. Try database first
+        const dbKey = db.prepare("SELECT setting_value FROM user_settings WHERE setting_key = 'lastfmApiKey'").get() as any
+        if (dbKey) {
+          try {
+            apiKey = JSON.parse(dbKey.setting_value)
+            console.log('✅ IPC: Found API key in database:', apiKey.substring(0, 8) + '...')
+          } catch (e) {
+            console.warn('⚠️  Failed to parse API key from database')
+          }
+        }
+
+        // 2. Fallback to environment variable
+        if (!apiKey) {
+          apiKey = process.env.LASTFM_API_KEY || ''
+          if (apiKey) {
+            console.log('✅ IPC: Using API key from environment:', apiKey.substring(0, 8) + '...')
+          } else {
+            console.error('❌ IPC: No API key found in database OR environment!')
+            return null
+          }
+        }
+
+        // 3. Try database for secret
+        const dbSecret = db.prepare("SELECT setting_value FROM user_settings WHERE setting_key = 'lastfmApiSecret'").get() as any
+        if (dbSecret) {
+          try {
+            apiSecret = JSON.parse(dbSecret.setting_value)
+          } catch (e) {
+            console.warn('⚠️  Failed to parse API secret from database')
+          }
+        }
+
+        // 4. Fallback to environment for secret
+        if (!apiSecret) {
+          apiSecret = process.env.LASTFM_API_SECRET || ''
+        }
+
+        console.log('📤 IPC: Setting API key on lastFmService...')
+        lastFmService.setApiKey(apiKey)
+        if (apiSecret) {
+          lastFmService.setApiSecret(apiSecret)
+        }
+
+        console.log('📤 IPC: Calling getAuthToken()...')
         const result = await lastFmService.getAuthToken()
+        
         if (result) {
-          console.log('✅ Auth token obtained, user must authorize at:', result.authUrl)
+          console.log('✅ IPC: Auth token obtained successfully')
+          console.log('   Token:', result.token.substring(0, 8) + '...')
+          console.log('   Auth URL ready:', result.authUrl.substring(0, 50) + '...')
+        } else {
+          console.error('❌ IPC: getAuthToken returned null')
         }
         return result
       } catch (error) {
-        console.error('Failed to get Last.fm auth token:', error)
+        console.error('❌ IPC: Exception during getLastFmAuthToken:')
+        console.error('   ', error)
         return null
       }
     })
@@ -982,11 +1076,35 @@ current_track_id = excluded.current_track_id,
     ipcMain.handle('scrobble:getLastFmSession', async (_, token: string) => {
       console.log('🔑 Exchanging Last.fm auth token for session key...')
       try {
+        // Try to get API key from database first (override env)
+        const db = getDatabase()
+        const dbKey = db.prepare("SELECT setting_value FROM user_settings WHERE setting_key = 'lastfmApiKey'").get() as any
+        if (dbKey) {
+          try {
+            const keyValue = JSON.parse(dbKey.setting_value)
+            console.log('🔑 Using API key from database for session exchange')
+            lastFmService.setApiKey(keyValue)
+          } catch (e) {
+            console.warn('Failed to parse API key from database:', e)
+          }
+        }
+        
+        const dbSecret = db.prepare("SELECT setting_value FROM user_settings WHERE setting_key = 'lastfmApiSecret'").get() as any
+        if (dbSecret) {
+          try {
+            const secretValue = JSON.parse(dbSecret.setting_value)
+            lastFmService.setApiSecret(secretValue)
+          } catch (e) {
+            console.warn('Failed to parse API secret from database:', e)
+          }
+        }
+
         const sessionKey = await lastFmService.getSession(token)
         if (sessionKey) {
           console.log('✅ Last.fm session obtained')
+          return { sessionKey }
         }
-        return sessionKey || null
+        return null
       } catch (error) {
         console.error('Failed to get Last.fm session:', error)
         return null
@@ -2558,6 +2676,48 @@ current_track_id = excluded.current_track_id,
     // ============================================================================
     // END PHASE 9
     // ============================================================================
+
+    // --- Tidal Integration ---
+    ipcMain.handle('tidal:updateCredentials', async (_event, clientId: string, clientSecret: string) => {
+      tidalService.updateCredentials(clientId, clientSecret)
+      return true
+    })
+
+    ipcMain.handle('tidal:getAuthUrl', () => {
+      return tidalService.generateAuthUrl()
+    })
+
+    ipcMain.handle('tidal:finishAuth', async (_event, code: string) => {
+      return await tidalService.handleCallback(code)
+    })
+
+    ipcMain.handle('tidal:search', async (_event, query: string) => {
+      return await tidalService.search(query)
+    })
+
+    ipcMain.handle('tidal:getStreamUrl', async (_event, trackId: string) => {
+      return await tidalService.getStreamUrl(trackId)
+    })
+
+    // --- Alignment Aliases for Frontend ---
+    ipcMain.handle('scrobble:getSyncStatus', async () => ({
+      isSyncing: false,
+      lastSync: null,
+      pendingCount: 0
+    }))
+
+    ipcMain.handle('smartplaylists:getAll', async () => [])
+    ipcMain.handle('tracks:getArtistTop', async () => [])
+    ipcMain.handle('metadata:getCoverage', async () => {
+      const { getMBIDCoverageStats } = await import('./database/musicbrainz')
+      return getMBIDCoverageStats()
+    })
+    ipcMain.handle('metadata:getSyncStatus', async () => ({ status: 'idle' }))
+    ipcMain.handle('metadata:getEnhanceStatus', async () => ({ isEnhancing: false }))
+    ipcMain.handle('library:getArtist', async (_, id: string) => {
+      const db = getDatabase()
+      return db.prepare('SELECT * FROM artists WHERE id = ?').get(id)
+    })
 
     console.log('✅ All IPC handlers registered successfully!')
   } catch (error) {

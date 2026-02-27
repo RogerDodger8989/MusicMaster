@@ -98,8 +98,11 @@ if (typeof window !== 'undefined') {
 }
 
 export const usePlayer = create<PlayerState>((set, get) => {
-  const getTrackSrc = (track: Track) => {
+  const getTrackSrc = async (track: Track) => {
     if (!track.id) return ''
+    if (track.provider === 'tidal' && track.externalId) {
+      return await window.api.tidal.getStreamUrl(track.externalId)
+    }
     return client.getAudioUrl(track.id)
   }
 
@@ -224,7 +227,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
     return nextIndex
   }
 
-  const preloadNextTrack = () => {
+  const preloadNextTrack = async () => {
     const gaplessEnabled = useSettings.getState().gaplessEnabled
     const castStore = useCastStore.getState()
     if (!gaplessEnabled || castStore.activeDevice) {
@@ -244,7 +247,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
     }
 
     const nextTrack = queue[nextIndex]
-    const src = getTrackSrc(nextTrack)
+    const src = await getTrackSrc(nextTrack)
     if (!src) {
       preloadedTrackIndex = null
       preloadedTrack = null
@@ -262,8 +265,8 @@ export const usePlayer = create<PlayerState>((set, get) => {
   attachAudioListeners()
 
   // --- Helper to start playback ---
-  const loadAndPlay = (track: Track) => {
-    const src = getTrackSrc(track)
+  const loadAndPlay = async (track: Track) => {
+    const src = await getTrackSrc(track)
     if (!src) return
 
     const { volume, replayGainApplied } = get()
@@ -299,18 +302,16 @@ export const usePlayer = create<PlayerState>((set, get) => {
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          set({ isPlaying: true, duration: activeAudio.duration || 0 })
+          set({ isPlaying: true, currentTrack: track, duration: track.duration || 0 })
+          preloadNextTrack()
         })
-        .catch((err) => {
-          if (err.name !== 'AbortError') {
-            console.error(`[Player] Failed to play ${track.title}:`, err)
+        .catch((error) => {
+          if (error.name !== 'AbortError') {
+            console.error('[Player] Error playing audio:', error)
             set({ isPlaying: false })
           }
         })
     }
-
-    // Preload next track for gapless playback
-    preloadNextTrack()
   }
 
   return {
@@ -363,11 +364,11 @@ export const usePlayer = create<PlayerState>((set, get) => {
         })
     },
 
-    handOffToLocal: () => {
+    handOffToLocal: async () => {
       const { currentTrack, currentTime, isPlaying, volume, replayGainApplied } = get()
       if (!currentTrack) return
 
-      const src = getTrackSrc(currentTrack)
+      const src = await getTrackSrc(currentTrack)
       if (src) {
         activeAudio.src = src
         activeAudio.load()
@@ -859,7 +860,7 @@ export const usePlayer = create<PlayerState>((set, get) => {
           // Apply final volume with ReplayGain
           applyEffectiveVolume(volume ?? 1, replayGain)
           if (track) {
-            const src = getTrackSrc(track)
+            const src = await getTrackSrc(track)
             if (src) {
               activeAudio.src = src
               activeAudio.load()
