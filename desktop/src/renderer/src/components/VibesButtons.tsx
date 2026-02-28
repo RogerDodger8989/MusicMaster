@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { DEFAULT_VIBES } from '../constants/defaultVibes'
 
 export interface Vibe {
   id: string
@@ -29,7 +30,7 @@ export const VibesButtons: React.FC<VibesButtonsProps> = ({
   isLoading = false,
   vibes = []
 }) => {
-  const [allVibes, setAllVibes] = useState<Vibe[]>(vibes)
+  const [allVibes, setAllVibes] = useState<Vibe[]>(vibes.length > 0 ? vibes : DEFAULT_VIBES as Vibe[])
 
   // Fetch vibes from API if not provided
   useEffect(() => {
@@ -44,9 +45,12 @@ export const VibesButtons: React.FC<VibesButtonsProps> = ({
       const data = await response.json()
       if (data.success && data.data) {
         setAllVibes(data.data)
+      } else {
+        setAllVibes(DEFAULT_VIBES as Vibe[])
       }
     } catch (error) {
       console.error('Failed to fetch vibes:', error)
+      setAllVibes(DEFAULT_VIBES as Vibe[])
     }
   }
 

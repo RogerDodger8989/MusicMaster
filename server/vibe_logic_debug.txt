@@ -1232,3 +1232,811 @@
 2026-02-27T14:48:48.120Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
 2026-02-27T14:48:48.120Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
 2026-02-27T14:48:48.121Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-27T17:50:46.647Z: Checking Talley's Theme [chill] En:0.26063288964273906 Ar:0.3324430227499173 Va:0.85 Inst:1
+2026-02-27T17:50:46.650Z:   ✅ ACCEPTED (Strict mode) dist: 0.1416
+2026-02-27T17:50:46.651Z: Checking Screens & Shades [chill] En:0.25567953601379884 Ar:0.3289756752096592 Va:0.85 Inst:0.8500000000000001
+2026-02-27T17:50:46.652Z:   ✅ ACCEPTED (Strict mode) dist: 0.1383
+2026-02-27T17:50:46.653Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
+2026-02-27T17:50:46.653Z:   ✅ ACCEPTED (Strict mode) dist: 0.1239
+2026-02-27T17:50:46.654Z: Checking The House [chill] En:0.26659570985581604 Ar:0.3366169968990712 Va:0.85 Inst:0.8500000000000001
+2026-02-27T17:50:46.654Z:   ✅ ACCEPTED (Strict mode) dist: 0.1455
+2026-02-27T17:50:46.656Z: Checking Child's Spirit [chill] En:0.24133310754478524 Ar:0.3189331752813497 Va:0.85 Inst:1
+2026-02-27T17:50:46.656Z:   ✅ ACCEPTED (Strict mode) dist: 0.1290
+2026-02-27T17:50:46.657Z: Checking The Killer [chill] En:0.1738433096888721 Ar:0.27169031678221045 Va:0.85 Inst:1
+2026-02-27T17:50:46.658Z:   ✅ ACCEPTED (Strict mode) dist: 0.0874
+2026-02-27T17:50:46.659Z: Checking The Choice [chill] En:0.19278039301120578 Ar:0.28494627510784404 Va:0.85 Inst:1
+2026-02-27T17:50:46.662Z:   ✅ ACCEPTED (Strict mode) dist: 0.0986
+2026-02-27T17:50:46.663Z: ⚠️ Playlist too small (7). Running fallback fallback for chill...
+2026-02-27T17:50:46.664Z:   ✅ ACCEPTED (Fallback mode): The Watchman [Orchestral]
+2026-02-27T17:50:46.665Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-27T17:50:46.665Z:   ✅ ACCEPTED (Fallback mode): Hostage [Multi Test Genre]
+2026-02-28T06:38:00.949Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-28T06:38:00.952Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-02-28T06:38:00.953Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-28T06:38:00.955Z:   ✅ ACCEPTED (Fallback mode): Thetawaves [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:38:00.956Z:   ✅ ACCEPTED (Fallback mode): 36 [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:38:00.956Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:38:00.957Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:38:00.958Z:   ✅ ACCEPTED (Fallback mode): Revenga [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:38:00.959Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T06:38:00.960Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T06:38:00.961Z:   ✅ ACCEPTED (Fallback mode): Boom! [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:38:00.962Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:38:00.963Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T06:38:00.964Z:   ✅ ACCEPTED (Fallback mode): Bubbles [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:38:00.965Z:   ✅ ACCEPTED (Fallback mode): Violent Pornography [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:38:00.965Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:38:00.966Z:   ✅ ACCEPTED (Fallback mode): Soldier Side (intro) [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:38:00.967Z:   ✅ ACCEPTED (Fallback mode): A.D.D. [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:38:00.967Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:38:00.968Z:   ✅ ACCEPTED (Fallback mode): Mr. Jack [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:38:00.969Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T06:38:00.969Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T06:38:00.970Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:38:00.971Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T06:38:00.972Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:38:00.973Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:38:00.973Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:38:00.974Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T06:38:00.975Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T06:38:00.976Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:38:00.976Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T06:38:00.977Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T06:39:09.744Z: ⚠️ Playlist too small (0). Running fallback fallback for workout...
+2026-02-28T06:39:09.746Z:   ✅ ACCEPTED (Fallback mode): Highway Song [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:39:09.747Z:   ✅ ACCEPTED (Fallback mode): The Choice [Orchestral]
+2026-02-28T06:39:09.748Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:39:09.749Z:   ✅ ACCEPTED (Fallback mode): Mars's Theme [Orchestral]
+2026-02-28T06:39:09.749Z:   ✅ ACCEPTED (Fallback mode): Cigaro [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:39:09.750Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:39:09.750Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:39:09.751Z:   ✅ ACCEPTED (Fallback mode): Talley's Plan [Orchestral]
+2026-02-28T06:39:09.752Z:   ✅ ACCEPTED (Fallback mode): The House [Orchestral]
+2026-02-28T06:39:09.752Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:39:09.753Z:   ✅ ACCEPTED (Fallback mode): Boom! [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:39:09.753Z:   ✅ ACCEPTED (Fallback mode): Question! [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:39:09.754Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:39:09.754Z:   ✅ ACCEPTED (Fallback mode): Breaking In [Orchestral]
+2026-02-28T06:39:09.755Z:   ✅ ACCEPTED (Fallback mode): Bubbles [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:39:09.755Z:   ✅ ACCEPTED (Fallback mode): FBI [Orchestral]
+2026-02-28T06:39:09.756Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T06:39:09.756Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T06:39:09.757Z:   ✅ ACCEPTED (Fallback mode): Captain Wooba [Orchestral]
+2026-02-28T06:39:09.757Z:   ✅ ACCEPTED (Fallback mode): Drive [Orchestral]
+2026-02-28T06:39:09.757Z:   ✅ ACCEPTED (Fallback mode): The Watchman [Orchestral]
+2026-02-28T06:39:09.758Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:39:09.758Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T06:39:09.759Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T06:39:09.759Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:39:09.759Z:   ✅ ACCEPTED (Fallback mode): Hostage [Multi Test Genre]
+2026-02-28T06:39:09.760Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T06:39:09.761Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:39:09.762Z:   ✅ ACCEPTED (Fallback mode): 36 [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:39:09.762Z:   ✅ ACCEPTED (Fallback mode): Chic ’n’ Stu [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:39:09.763Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T06:39:09.763Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:39:09.763Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T06:39:09.764Z:   ✅ ACCEPTED (Fallback mode): Violent Pornography [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:39:09.764Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T06:39:09.765Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:39:09.765Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:39:09.766Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T06:39:09.766Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:39:09.767Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T06:40:38.771Z: ⚠️ Playlist too small (0). Running fallback fallback for sad...
+2026-02-28T06:40:38.773Z:   ✅ ACCEPTED (Fallback mode): The House [Orchestral]
+2026-02-28T06:40:38.774Z:   ✅ ACCEPTED (Fallback mode): Question! [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:40:38.774Z:   ✅ ACCEPTED (Fallback mode): Talley's Family [Orchestral]
+2026-02-28T06:40:38.775Z:   ✅ ACCEPTED (Fallback mode): Streamline [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:40:38.778Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:40:38.779Z:   ✅ ACCEPTED (Fallback mode): Canyon Inn [OrchestralSoundtrack TEST]
+2026-02-28T06:40:38.780Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T06:40:38.781Z:   ✅ ACCEPTED (Fallback mode): The Waterfall [Orchestral]
+2026-02-28T06:40:38.781Z:   ✅ ACCEPTED (Fallback mode): Crawl Space [Orchestral]
+2026-02-28T06:40:38.782Z:   ✅ ACCEPTED (Fallback mode): House On Fire [Orchestral]
+2026-02-28T06:40:38.783Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:40:38.783Z:   ✅ ACCEPTED (Fallback mode): Revenga [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:40:38.784Z:   ✅ ACCEPTED (Fallback mode): Mars's Theme [Orchestral]
+2026-02-28T06:40:38.784Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:40:38.784Z:   ✅ ACCEPTED (Fallback mode): Boom! [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:40:38.785Z:   ✅ ACCEPTED (Fallback mode): Screens & Shades [Orchestral]
+2026-02-28T06:40:38.785Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:40:38.786Z:   ✅ ACCEPTED (Fallback mode): Captain Wooba [Orchestral]
+2026-02-28T06:40:38.787Z:   ✅ ACCEPTED (Fallback mode): The Choice [Orchestral]
+2026-02-28T06:40:38.787Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T06:40:38.788Z:   ✅ ACCEPTED (Fallback mode): Roulette [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:40:38.788Z:   ✅ ACCEPTED (Fallback mode): A.D.D. [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:40:38.789Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T06:40:38.789Z:   ✅ ACCEPTED (Fallback mode): Pictures [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:40:38.790Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T06:40:38.790Z:   ✅ ACCEPTED (Fallback mode): Bubbles [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:40:38.791Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:40:38.792Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:40:38.794Z:   ✅ ACCEPTED (Fallback mode): Highway Song [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:40:38.795Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T06:40:38.796Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T06:40:38.797Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:40:38.798Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:40:38.798Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T06:40:38.799Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T06:40:38.800Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T06:40:38.800Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:40:38.800Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T06:40:38.801Z:   ✅ ACCEPTED (Fallback mode): My Friend of Misery [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:40:38.801Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:51:50.959Z: Checking Child's Spirit [chill] En:0.24133310754478524 Ar:0.3189331752813497 Va:0.85 Inst:1
+2026-02-28T06:51:50.961Z:   ✅ ACCEPTED (Strict mode) dist: 0.1290
+2026-02-28T06:51:50.962Z: Checking Screens & Shades [chill] En:0.25567953601379884 Ar:0.3289756752096592 Va:0.85 Inst:0.8500000000000001
+2026-02-28T06:51:50.962Z:   ✅ ACCEPTED (Strict mode) dist: 0.1383
+2026-02-28T06:51:50.963Z: Checking The Choice [chill] En:0.19278039301120578 Ar:0.28494627510784404 Va:0.85 Inst:1
+2026-02-28T06:51:50.963Z:   ✅ ACCEPTED (Strict mode) dist: 0.0986
+2026-02-28T06:51:50.964Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
+2026-02-28T06:51:50.964Z:   ✅ ACCEPTED (Strict mode) dist: 0.1239
+2026-02-28T06:51:50.965Z: Checking The House [chill] En:0.26659570985581604 Ar:0.3366169968990712 Va:0.85 Inst:0.8500000000000001
+2026-02-28T06:51:50.965Z:   ✅ ACCEPTED (Strict mode) dist: 0.1455
+2026-02-28T06:51:50.966Z: Checking The Killer [chill] En:0.1738433096888721 Ar:0.27169031678221045 Va:0.85 Inst:1
+2026-02-28T06:51:50.966Z:   ✅ ACCEPTED (Strict mode) dist: 0.0874
+2026-02-28T06:51:50.967Z: Checking Talley's Theme [chill] En:0.26063288964273906 Ar:0.3324430227499173 Va:0.85 Inst:1
+2026-02-28T06:51:50.968Z:   ✅ ACCEPTED (Strict mode) dist: 0.1416
+2026-02-28T06:51:50.969Z: ⚠️ Playlist too small (7). Running fallback fallback for chill...
+2026-02-28T06:51:50.971Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T06:51:50.972Z:   ✅ ACCEPTED (Fallback mode): Hostage [Multi Test Genre]
+2026-02-28T06:51:50.972Z:   ✅ ACCEPTED (Fallback mode): Crawl Space [Orchestral]
+2026-02-28T06:51:50.973Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T06:51:50.973Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T06:51:50.973Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T06:51:50.974Z:   ✅ ACCEPTED (Fallback mode): Breaking In [Orchestral]
+2026-02-28T06:51:50.974Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T06:51:50.975Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T06:51:50.975Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T06:51:50.976Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T06:51:50.976Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T06:51:50.977Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T06:59:57.776Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-28T06:59:57.777Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-02-28T06:59:57.779Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-28T06:59:57.781Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T06:59:57.782Z:   ✅ ACCEPTED (Fallback mode): Streamline [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:59:57.782Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:59:57.783Z:   ✅ ACCEPTED (Fallback mode): Ego Brain [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:59:57.783Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:59:57.783Z:   ✅ ACCEPTED (Fallback mode): Soldier Side (intro) [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:59:57.785Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:59:57.785Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T06:59:57.786Z:   ✅ ACCEPTED (Fallback mode): Bubbles [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:59:57.786Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:59:57.786Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:59:57.787Z:   ✅ ACCEPTED (Fallback mode): Radio/Video [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:59:57.787Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T06:59:57.788Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T06:59:57.790Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T06:59:57.791Z:   ✅ ACCEPTED (Fallback mode): Thetawaves [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:59:57.792Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T06:59:57.792Z:   ✅ ACCEPTED (Fallback mode): Highway Song [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T06:59:57.792Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:59:57.793Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T06:59:57.793Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:59:57.794Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:59:57.794Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:59:57.795Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T06:59:57.796Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:59:57.797Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T06:59:57.797Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T06:59:57.798Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T06:59:57.798Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:10:29.592Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-28T07:10:29.593Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-02-28T07:10:29.594Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-28T07:10:29.596Z:   ✅ ACCEPTED (Fallback mode): Streamline [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:10:29.597Z:   ✅ ACCEPTED (Fallback mode): Cigaro [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:10:29.598Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:10:29.599Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:10:29.599Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:10:29.600Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:10:29.602Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:10:29.603Z:   ✅ ACCEPTED (Fallback mode): Sad Statue [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:10:29.604Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:10:29.605Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:10:29.605Z:   ✅ ACCEPTED (Fallback mode): Revenga [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:10:29.606Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:10:29.606Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:10:29.606Z:   ✅ ACCEPTED (Fallback mode): Violent Pornography [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:10:29.607Z:   ✅ ACCEPTED (Fallback mode): Soldier Side (intro) [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:10:29.608Z:   ✅ ACCEPTED (Fallback mode): Chic ’n’ Stu [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:10:29.608Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:10:29.609Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:10:29.610Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:10:29.611Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:10:29.612Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:10:29.613Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:10:29.614Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:10:29.614Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:10:29.615Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:10:29.615Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:10:29.616Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:10:29.616Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:10:29.618Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:32:22.077Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-28T07:32:22.078Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-02-28T07:32:22.079Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-28T07:32:22.081Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:32:22.081Z:   ✅ ACCEPTED (Fallback mode): Streamline [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:32:22.082Z:   ✅ ACCEPTED (Fallback mode): Mr. Jack [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:32:22.082Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:32:22.083Z:   ✅ ACCEPTED (Fallback mode): 36 [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:32:22.083Z:   ✅ ACCEPTED (Fallback mode): Lost in Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:32:22.084Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:32:22.085Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:32:22.086Z:   ✅ ACCEPTED (Fallback mode): Violent Pornography [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:32:22.086Z:   ✅ ACCEPTED (Fallback mode): Ego Brain [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:32:22.087Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:32:22.087Z:   ✅ ACCEPTED (Fallback mode): This Cocaine Makes Me Feel Like I’m on This Song [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:32:22.088Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:32:22.088Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:32:22.089Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:32:22.089Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:32:22.090Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:32:22.090Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:32:22.090Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:32:22.091Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:32:22.091Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:32:22.092Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:32:22.092Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:32:22.093Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:32:22.093Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:32:22.094Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:32:22.095Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:32:22.095Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:32:22.096Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:43:54.775Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-28T07:43:54.777Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-02-28T07:43:54.778Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-28T07:43:54.780Z:   ✅ ACCEPTED (Fallback mode): 36 [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:43:54.782Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:43:54.783Z:   ✅ ACCEPTED (Fallback mode): This Cocaine Makes Me Feel Like I’m on This Song [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:43:54.783Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:43:54.784Z:   ✅ ACCEPTED (Fallback mode): Question! [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:43:54.784Z:   ✅ ACCEPTED (Fallback mode): Roulette [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:43:54.785Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:43:54.786Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:43:54.786Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:43:54.787Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:43:54.787Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:43:54.788Z:   ✅ ACCEPTED (Fallback mode): A.D.D. [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:43:54.789Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:43:54.789Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:43:54.790Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:43:54.790Z:   ✅ ACCEPTED (Fallback mode): Bubbles [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:43:54.791Z:   ✅ ACCEPTED (Fallback mode): Radio/Video [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:43:54.792Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:43:54.793Z:   ✅ ACCEPTED (Fallback mode): Chic ’n’ Stu [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:43:54.794Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:43:54.794Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:43:54.797Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:43:54.798Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:43:54.800Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:43:54.802Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:43:54.802Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:43:54.803Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:43:54.804Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:43:54.804Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:44:03.613Z: Checking The House [chill] En:0.26659570985581604 Ar:0.3366169968990712 Va:0.85 Inst:0.8500000000000001
+2026-02-28T07:44:03.615Z:   ✅ ACCEPTED (Strict mode) dist: 0.1455
+2026-02-28T07:44:03.616Z: Checking The Choice [chill] En:0.19278039301120578 Ar:0.28494627510784404 Va:0.85 Inst:1
+2026-02-28T07:44:03.617Z:   ✅ ACCEPTED (Strict mode) dist: 0.0986
+2026-02-28T07:44:03.617Z: Checking Child's Spirit [chill] En:0.24133310754478524 Ar:0.3189331752813497 Va:0.85 Inst:1
+2026-02-28T07:44:03.618Z:   ✅ ACCEPTED (Strict mode) dist: 0.1290
+2026-02-28T07:44:03.619Z: Checking Talley's Theme [chill] En:0.26063288964273906 Ar:0.3324430227499173 Va:0.85 Inst:1
+2026-02-28T07:44:03.619Z:   ✅ ACCEPTED (Strict mode) dist: 0.1416
+2026-02-28T07:44:03.620Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
+2026-02-28T07:44:03.620Z:   ✅ ACCEPTED (Strict mode) dist: 0.1239
+2026-02-28T07:44:03.621Z: Checking Screens & Shades [chill] En:0.25567953601379884 Ar:0.3289756752096592 Va:0.85 Inst:0.8500000000000001
+2026-02-28T07:44:03.621Z:   ✅ ACCEPTED (Strict mode) dist: 0.1383
+2026-02-28T07:44:03.622Z: Checking The Killer [chill] En:0.1738433096888721 Ar:0.27169031678221045 Va:0.85 Inst:1
+2026-02-28T07:44:03.622Z:   ✅ ACCEPTED (Strict mode) dist: 0.0874
+2026-02-28T07:44:03.623Z: ⚠️ Playlist too small (7). Running fallback fallback for chill...
+2026-02-28T07:44:03.624Z:   ✅ ACCEPTED (Fallback mode): The Secret Place [Orchestral]
+2026-02-28T07:44:03.625Z:   ✅ ACCEPTED (Fallback mode): Talley's Plan [Orchestral]
+2026-02-28T07:44:03.625Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:44:03.626Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:44:03.627Z:   ✅ ACCEPTED (Fallback mode): FBI [Orchestral]
+2026-02-28T07:44:03.628Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:44:03.629Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:44:03.629Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:44:03.630Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:44:03.631Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:44:03.631Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:44:03.632Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:44:03.632Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:46:22.481Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-28T07:46:22.483Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-02-28T07:46:22.484Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-28T07:46:22.485Z:   ✅ ACCEPTED (Fallback mode): Cigaro [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:46:22.485Z:   ✅ ACCEPTED (Fallback mode): This Cocaine Makes Me Feel Like I’m on This Song [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:46:22.486Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:46:22.487Z:   ✅ ACCEPTED (Fallback mode): 36 [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:22.487Z:   ✅ ACCEPTED (Fallback mode): Lost in Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:46:22.488Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:46:22.488Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:22.488Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:22.489Z:   ✅ ACCEPTED (Fallback mode): Bubbles [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:22.490Z:   ✅ ACCEPTED (Fallback mode): A.D.D. [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:22.491Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:46:22.492Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:46:22.493Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:22.493Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:46:22.494Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:22.494Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:22.495Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:22.496Z:   ✅ ACCEPTED (Fallback mode): Violent Pornography [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:46:22.496Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:22.497Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:46:22.497Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:46:22.498Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:46:22.498Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:22.499Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:46:22.499Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:22.500Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:22.500Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:46:22.501Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:46:22.501Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:25.042Z: Checking The Choice [chill] En:0.19278039301120578 Ar:0.28494627510784404 Va:0.85 Inst:1
+2026-02-28T07:46:25.044Z:   ✅ ACCEPTED (Strict mode) dist: 0.0986
+2026-02-28T07:46:25.046Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
+2026-02-28T07:46:25.047Z:   ✅ ACCEPTED (Strict mode) dist: 0.1239
+2026-02-28T07:46:25.048Z: Checking Child's Spirit [chill] En:0.24133310754478524 Ar:0.3189331752813497 Va:0.85 Inst:1
+2026-02-28T07:46:25.048Z:   ✅ ACCEPTED (Strict mode) dist: 0.1290
+2026-02-28T07:46:25.049Z: Checking Talley's Theme [chill] En:0.26063288964273906 Ar:0.3324430227499173 Va:0.85 Inst:1
+2026-02-28T07:46:25.049Z:   ✅ ACCEPTED (Strict mode) dist: 0.1416
+2026-02-28T07:46:25.050Z: Checking Screens & Shades [chill] En:0.25567953601379884 Ar:0.3289756752096592 Va:0.85 Inst:0.8500000000000001
+2026-02-28T07:46:25.051Z:   ✅ ACCEPTED (Strict mode) dist: 0.1383
+2026-02-28T07:46:25.051Z: Checking The Killer [chill] En:0.1738433096888721 Ar:0.27169031678221045 Va:0.85 Inst:1
+2026-02-28T07:46:25.052Z:   ✅ ACCEPTED (Strict mode) dist: 0.0874
+2026-02-28T07:46:25.052Z: Checking The House [chill] En:0.26659570985581604 Ar:0.3366169968990712 Va:0.85 Inst:0.8500000000000001
+2026-02-28T07:46:25.053Z:   ✅ ACCEPTED (Strict mode) dist: 0.1455
+2026-02-28T07:46:25.054Z: ⚠️ Playlist too small (7). Running fallback fallback for chill...
+2026-02-28T07:46:25.056Z:   ✅ ACCEPTED (Fallback mode): The Trade [Orchestral]
+2026-02-28T07:46:25.058Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:46:25.059Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:46:25.060Z:   ✅ ACCEPTED (Fallback mode): The Negotiation [Orchestral]
+2026-02-28T07:46:25.060Z:   ✅ ACCEPTED (Fallback mode): Talley's Family [Orchestral]
+2026-02-28T07:46:25.061Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:46:25.061Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:46:25.062Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:46:25.063Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:46:25.063Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:46:25.064Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:46:25.064Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:46:25.065Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:46:27.776Z: ⚠️ Playlist too small (0). Running fallback fallback for workout...
+2026-02-28T07:46:27.779Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:46:27.780Z:   ✅ ACCEPTED (Fallback mode): The Killer [Orchestral]
+2026-02-28T07:46:27.781Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:46:27.782Z:   ✅ ACCEPTED (Fallback mode): Highway Song [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:27.782Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:27.783Z:   ✅ ACCEPTED (Fallback mode): Talley's Family [Orchestral]
+2026-02-28T07:46:27.783Z:   ✅ ACCEPTED (Fallback mode): The Choice [Orchestral]
+2026-02-28T07:46:27.784Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:27.784Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:46:27.785Z:   ✅ ACCEPTED (Fallback mode): Pictures [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:27.785Z:   ✅ ACCEPTED (Fallback mode): House On Fire [Orchestral]
+2026-02-28T07:46:27.786Z:   ✅ ACCEPTED (Fallback mode): Child's Spirit [Multi Test Genre]
+2026-02-28T07:46:27.787Z:   ✅ ACCEPTED (Fallback mode): Innervision [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:27.788Z:   ✅ ACCEPTED (Fallback mode): Thetawaves [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:27.789Z:   ✅ ACCEPTED (Fallback mode): The House [Orchestral]
+2026-02-28T07:46:27.790Z:   ✅ ACCEPTED (Fallback mode): Talley's Plan [Orchestral]
+2026-02-28T07:46:27.790Z:   ✅ ACCEPTED (Fallback mode): Tommy's Theme [Orchestral]
+2026-02-28T07:46:27.791Z:   ✅ ACCEPTED (Fallback mode): My Friend of Misery [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:27.792Z:   ✅ ACCEPTED (Fallback mode): Mr. Jack [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:27.792Z:   ✅ ACCEPTED (Fallback mode): Sad Statue [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:46:27.793Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:46:27.793Z:   ✅ ACCEPTED (Fallback mode): The Negotiation [Orchestral]
+2026-02-28T07:46:27.793Z:   ✅ ACCEPTED (Fallback mode): Canyon Inn [OrchestralSoundtrack TEST]
+2026-02-28T07:46:27.794Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:46:27.794Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:27.795Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:46:27.796Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:46:27.796Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:46:27.797Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:27.797Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:46:27.798Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:27.798Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:46:27.799Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:27.799Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:27.800Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:27.801Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:46:27.801Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:27.802Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:46:27.803Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:46:27.803Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:47:29.107Z: ⚠️ Playlist too small (0). Running fallback fallback for workout...
+2026-02-28T07:47:29.112Z:   ✅ ACCEPTED (Fallback mode): Bubbles [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:47:29.114Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:47:29.114Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:47:29.115Z:   ✅ ACCEPTED (Fallback mode): Ego Brain [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:47:29.116Z:   ✅ ACCEPTED (Fallback mode): FBI [Orchestral]
+2026-02-28T07:47:29.117Z:   ✅ ACCEPTED (Fallback mode): Crawl Space [Orchestral]
+2026-02-28T07:47:29.117Z:   ✅ ACCEPTED (Fallback mode): Talley's Plan [Orchestral]
+2026-02-28T07:47:29.118Z:   ✅ ACCEPTED (Fallback mode): Question! [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:47:29.119Z:   ✅ ACCEPTED (Fallback mode): Streamline [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:47:29.120Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:47:29.122Z:   ✅ ACCEPTED (Fallback mode): The Secret Place [Orchestral]
+2026-02-28T07:47:29.124Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:47:29.125Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:47:29.126Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:47:29.127Z:   ✅ ACCEPTED (Fallback mode): Screens & Shades [Orchestral]
+2026-02-28T07:47:29.128Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:47:29.129Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:47:29.129Z:   ✅ ACCEPTED (Fallback mode): Violent Pornography [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:47:29.130Z:   ✅ ACCEPTED (Fallback mode): Talley's Family [Orchestral]
+2026-02-28T07:47:29.130Z:   ✅ ACCEPTED (Fallback mode): Revenga [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:47:29.131Z:   ✅ ACCEPTED (Fallback mode): Child's Spirit [Multi Test Genre]
+2026-02-28T07:47:29.131Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:47:29.132Z:   ✅ ACCEPTED (Fallback mode): Mr. Jack [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:47:29.132Z:   ✅ ACCEPTED (Fallback mode): Canyon Inn [OrchestralSoundtrack TEST]
+2026-02-28T07:47:29.133Z:   ✅ ACCEPTED (Fallback mode): The Negotiation [Orchestral]
+2026-02-28T07:47:29.133Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:47:29.134Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:47:29.134Z:   ✅ ACCEPTED (Fallback mode): Child's Spirit (extended) [Orchestral]
+2026-02-28T07:47:29.135Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:47:29.135Z:   ✅ ACCEPTED (Fallback mode): My Friend of Misery [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:47:29.136Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:47:29.136Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:47:29.137Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:47:29.137Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:47:29.138Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:47:29.138Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:47:29.138Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:47:29.139Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:47:29.149Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:47:29.149Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:47:30.657Z: Checking Screens & Shades [chill] En:0.25567953601379884 Ar:0.3289756752096592 Va:0.85 Inst:0.8500000000000001
+2026-02-28T07:47:30.659Z:   ✅ ACCEPTED (Strict mode) dist: 0.1383
+2026-02-28T07:47:30.660Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
+2026-02-28T07:47:30.661Z:   ✅ ACCEPTED (Strict mode) dist: 0.1239
+2026-02-28T07:47:30.662Z: Checking The House [chill] En:0.26659570985581604 Ar:0.3366169968990712 Va:0.85 Inst:0.8500000000000001
+2026-02-28T07:47:30.662Z:   ✅ ACCEPTED (Strict mode) dist: 0.1455
+2026-02-28T07:47:30.663Z: Checking The Choice [chill] En:0.19278039301120578 Ar:0.28494627510784404 Va:0.85 Inst:1
+2026-02-28T07:47:30.663Z:   ✅ ACCEPTED (Strict mode) dist: 0.0986
+2026-02-28T07:47:30.664Z: Checking Child's Spirit [chill] En:0.24133310754478524 Ar:0.3189331752813497 Va:0.85 Inst:1
+2026-02-28T07:47:30.664Z:   ✅ ACCEPTED (Strict mode) dist: 0.1290
+2026-02-28T07:47:30.664Z: Checking Talley's Theme [chill] En:0.26063288964273906 Ar:0.3324430227499173 Va:0.85 Inst:1
+2026-02-28T07:47:30.665Z:   ✅ ACCEPTED (Strict mode) dist: 0.1416
+2026-02-28T07:47:30.666Z: Checking The Killer [chill] En:0.1738433096888721 Ar:0.27169031678221045 Va:0.85 Inst:1
+2026-02-28T07:47:30.666Z:   ✅ ACCEPTED (Strict mode) dist: 0.0874
+2026-02-28T07:47:30.668Z: ⚠️ Playlist too small (7). Running fallback fallback for chill...
+2026-02-28T07:47:30.670Z:   ✅ ACCEPTED (Fallback mode): FBI [Orchestral]
+2026-02-28T07:47:30.671Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:47:30.671Z:   ✅ ACCEPTED (Fallback mode): Tommy's Theme [Orchestral]
+2026-02-28T07:47:30.672Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:47:30.672Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:47:30.673Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:47:30.673Z:   ✅ ACCEPTED (Fallback mode): The Negotiation [Orchestral]
+2026-02-28T07:47:30.674Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:47:30.675Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:47:30.675Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:47:30.676Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:47:30.677Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:47:30.678Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:48:37.067Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-28T07:48:37.069Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-02-28T07:48:37.070Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-28T07:48:37.072Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:48:37.072Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:48:37.073Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:48:37.073Z:   ✅ ACCEPTED (Fallback mode): Question! [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:48:37.074Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:48:37.074Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:48:37.075Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:48:37.075Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:48:37.076Z:   ✅ ACCEPTED (Fallback mode): Soldier Side (intro) [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:48:37.077Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:48:37.077Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:48:37.078Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:48:37.078Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:48:37.079Z:   ✅ ACCEPTED (Fallback mode): Mr. Jack [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:48:37.080Z:   ✅ ACCEPTED (Fallback mode): Lost in Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:48:37.083Z:   ✅ ACCEPTED (Fallback mode): Chic ’n’ Stu [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:48:37.083Z:   ✅ ACCEPTED (Fallback mode): Thetawaves [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:48:37.084Z:   ✅ ACCEPTED (Fallback mode): Boom! [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:48:37.085Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:48:37.085Z:   ✅ ACCEPTED (Fallback mode): This Cocaine Makes Me Feel Like I’m on This Song [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:48:37.086Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:48:37.087Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:48:37.087Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:48:37.088Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:48:37.088Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:48:37.089Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:48:37.089Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:48:37.090Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:48:37.091Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:48:40.056Z: Checking Screens & Shades [chill] En:0.25567953601379884 Ar:0.3289756752096592 Va:0.85 Inst:0.8500000000000001
+2026-02-28T07:48:40.057Z:   ✅ ACCEPTED (Strict mode) dist: 0.1383
+2026-02-28T07:48:40.058Z: Checking The House [chill] En:0.26659570985581604 Ar:0.3366169968990712 Va:0.85 Inst:0.8500000000000001
+2026-02-28T07:48:40.059Z:   ✅ ACCEPTED (Strict mode) dist: 0.1455
+2026-02-28T07:48:40.059Z: Checking The Killer [chill] En:0.1738433096888721 Ar:0.27169031678221045 Va:0.85 Inst:1
+2026-02-28T07:48:40.060Z:   ✅ ACCEPTED (Strict mode) dist: 0.0874
+2026-02-28T07:48:40.060Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
+2026-02-28T07:48:40.061Z:   ✅ ACCEPTED (Strict mode) dist: 0.1239
+2026-02-28T07:48:40.061Z: Checking The Choice [chill] En:0.19278039301120578 Ar:0.28494627510784404 Va:0.85 Inst:1
+2026-02-28T07:48:40.062Z:   ✅ ACCEPTED (Strict mode) dist: 0.0986
+2026-02-28T07:48:40.062Z: Checking Child's Spirit [chill] En:0.24133310754478524 Ar:0.3189331752813497 Va:0.85 Inst:1
+2026-02-28T07:48:40.062Z:   ✅ ACCEPTED (Strict mode) dist: 0.1290
+2026-02-28T07:48:40.063Z: Checking Talley's Theme [chill] En:0.26063288964273906 Ar:0.3324430227499173 Va:0.85 Inst:1
+2026-02-28T07:48:40.063Z:   ✅ ACCEPTED (Strict mode) dist: 0.1416
+2026-02-28T07:48:40.064Z: ⚠️ Playlist too small (7). Running fallback fallback for chill...
+2026-02-28T07:48:40.066Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:48:40.067Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:48:40.068Z:   ✅ ACCEPTED (Fallback mode): The Secret Place [Orchestral]
+2026-02-28T07:48:40.069Z:   ✅ ACCEPTED (Fallback mode): Child's Spirit (extended) [Orchestral]
+2026-02-28T07:48:40.070Z:   ✅ ACCEPTED (Fallback mode): The Waterfall [Orchestral]
+2026-02-28T07:48:40.070Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:48:40.071Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:48:40.072Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:48:40.072Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:48:40.072Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:48:40.073Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:48:40.073Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:48:40.074Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:49:19.147Z: ⚠️ Playlist too small (0). Running fallback fallback for workout...
+2026-02-28T07:49:19.150Z:   ✅ ACCEPTED (Fallback mode): Thetawaves [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:49:19.151Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:49:19.151Z:   ✅ ACCEPTED (Fallback mode): Breaking In [Orchestral]
+2026-02-28T07:49:19.152Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:49:19.153Z:   ✅ ACCEPTED (Fallback mode): Hostage [Multi Test Genre]
+2026-02-28T07:49:19.153Z:   ✅ ACCEPTED (Fallback mode): Streamline [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:49:19.154Z:   ✅ ACCEPTED (Fallback mode): Revenga [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:49:19.155Z:   ✅ ACCEPTED (Fallback mode): House On Fire [Orchestral]
+2026-02-28T07:49:19.156Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:49:19.157Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:49:19.159Z:   ✅ ACCEPTED (Fallback mode): FBI [Orchestral]
+2026-02-28T07:49:19.159Z:   ✅ ACCEPTED (Fallback mode): My Friend of Misery [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:49:19.160Z:   ✅ ACCEPTED (Fallback mode): Violent Pornography [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:49:19.160Z:   ✅ ACCEPTED (Fallback mode): The Killer [Orchestral]
+2026-02-28T07:49:19.161Z:   ✅ ACCEPTED (Fallback mode): The Trade [Orchestral]
+2026-02-28T07:49:19.161Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:49:19.162Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:49:19.162Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:49:19.163Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:49:19.163Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:49:19.164Z:   ✅ ACCEPTED (Fallback mode): Innervision [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:49:19.164Z:   ✅ ACCEPTED (Fallback mode): Lost in Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:49:19.165Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:49:19.165Z:   ✅ ACCEPTED (Fallback mode): The Secret Place [Orchestral]
+2026-02-28T07:49:19.165Z:   ✅ ACCEPTED (Fallback mode): Chic ’n’ Stu [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:49:19.166Z:   ✅ ACCEPTED (Fallback mode): Child's Spirit (extended) [Orchestral]
+2026-02-28T07:49:19.166Z:   ✅ ACCEPTED (Fallback mode): Tommy's Theme [Orchestral]
+2026-02-28T07:49:19.167Z:   ✅ ACCEPTED (Fallback mode): The House [Orchestral]
+2026-02-28T07:49:19.168Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:49:19.168Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:49:19.169Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:49:19.169Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:49:19.170Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:49:19.170Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:49:19.171Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:49:19.171Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:49:19.171Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:49:19.172Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:49:19.172Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:49:19.173Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:51:53.923Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-28T07:51:53.925Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-02-28T07:51:53.925Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-28T07:51:53.927Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:51:53.928Z:   ✅ ACCEPTED (Fallback mode): This Cocaine Makes Me Feel Like I’m on This Song [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:51:53.928Z:   ✅ ACCEPTED (Fallback mode): Chic ’n’ Stu [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:51:53.929Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:51:53.929Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:51:53.930Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:51:53.930Z:   ✅ ACCEPTED (Fallback mode): Pictures [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:51:53.931Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:51:53.931Z:   ✅ ACCEPTED (Fallback mode): Radio/Video [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:51:53.931Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:51:53.932Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:51:53.934Z:   ✅ ACCEPTED (Fallback mode): A.D.D. [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T07:51:53.936Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:51:53.937Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:51:53.938Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:51:53.939Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:51:53.940Z:   ✅ ACCEPTED (Fallback mode): Question! [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:51:53.940Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:51:53.941Z:   ✅ ACCEPTED (Fallback mode): Soldier Side (intro) [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T07:51:53.941Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:51:53.941Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:51:53.942Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:51:53.943Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:51:53.943Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:51:53.944Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:51:53.945Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:51:53.946Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:51:53.947Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T07:51:53.947Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T07:52:02.257Z: Checking The House [chill] En:0.26659570985581604 Ar:0.3366169968990712 Va:0.85 Inst:0.8500000000000001
+2026-02-28T07:52:02.259Z:   ✅ ACCEPTED (Strict mode) dist: 0.1455
+2026-02-28T07:52:02.260Z: Checking The Killer [chill] En:0.1738433096888721 Ar:0.27169031678221045 Va:0.85 Inst:1
+2026-02-28T07:52:02.261Z:   ✅ ACCEPTED (Strict mode) dist: 0.0874
+2026-02-28T07:52:02.261Z: Checking The Choice [chill] En:0.19278039301120578 Ar:0.28494627510784404 Va:0.85 Inst:1
+2026-02-28T07:52:02.262Z:   ✅ ACCEPTED (Strict mode) dist: 0.0986
+2026-02-28T07:52:02.262Z: Checking Screens & Shades [chill] En:0.25567953601379884 Ar:0.3289756752096592 Va:0.85 Inst:0.8500000000000001
+2026-02-28T07:52:02.263Z:   ✅ ACCEPTED (Strict mode) dist: 0.1383
+2026-02-28T07:52:02.263Z: Checking Talley's Theme [chill] En:0.26063288964273906 Ar:0.3324430227499173 Va:0.85 Inst:1
+2026-02-28T07:52:02.263Z:   ✅ ACCEPTED (Strict mode) dist: 0.1416
+2026-02-28T07:52:02.264Z: Checking Child's Spirit [chill] En:0.24133310754478524 Ar:0.3189331752813497 Va:0.85 Inst:1
+2026-02-28T07:52:02.264Z:   ✅ ACCEPTED (Strict mode) dist: 0.1290
+2026-02-28T07:52:02.265Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
+2026-02-28T07:52:02.266Z:   ✅ ACCEPTED (Strict mode) dist: 0.1239
+2026-02-28T07:52:02.266Z: ⚠️ Playlist too small (7). Running fallback fallback for chill...
+2026-02-28T07:52:02.268Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T07:52:02.269Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T07:52:02.270Z:   ✅ ACCEPTED (Fallback mode): Talley's Family [Orchestral]
+2026-02-28T07:52:02.270Z:   ✅ ACCEPTED (Fallback mode): Captain Wooba [Orchestral]
+2026-02-28T07:52:02.271Z:   ✅ ACCEPTED (Fallback mode): The Watchman [Orchestral]
+2026-02-28T07:52:02.271Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T07:52:02.272Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T07:52:02.272Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T07:52:02.273Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T07:52:02.273Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T07:52:02.274Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T07:52:02.274Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T07:52:02.275Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T10:29:01.743Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-28T10:29:01.746Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-02-28T10:29:01.749Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-28T10:29:01.751Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T10:29:01.752Z:   ✅ ACCEPTED (Fallback mode): Revenga [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T10:29:01.753Z:   ✅ ACCEPTED (Fallback mode): Roulette [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T10:29:01.758Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T10:29:01.759Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T10:29:01.760Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T10:29:01.760Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T10:29:01.761Z:   ✅ ACCEPTED (Fallback mode): This Cocaine Makes Me Feel Like I’m on This Song [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T10:29:01.762Z:   ✅ ACCEPTED (Fallback mode): Thetawaves [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T10:29:01.762Z:   ✅ ACCEPTED (Fallback mode): 36 [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T10:29:01.764Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T10:29:01.765Z:   ✅ ACCEPTED (Fallback mode): Sad Statue [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T10:29:01.766Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T10:29:01.766Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T10:29:01.767Z:   ✅ ACCEPTED (Fallback mode): Cigaro [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T10:29:01.768Z:   ✅ ACCEPTED (Fallback mode): Highway Song [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T10:29:01.768Z:   ✅ ACCEPTED (Fallback mode): Chic ’n’ Stu [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T10:29:01.769Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T10:29:01.769Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T10:29:01.770Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T10:29:01.771Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T10:29:01.773Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T10:29:01.774Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T10:29:01.774Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T10:29:01.775Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T10:29:01.775Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T10:29:01.776Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T10:29:01.777Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T10:29:01.777Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T19:43:33.984Z: Checking Child's Spirit [chill] En:0.24133310754478524 Ar:0.3189331752813497 Va:0.85 Inst:1
+2026-02-28T19:43:33.987Z:   ✅ ACCEPTED (Strict mode) dist: 0.1290
+2026-02-28T19:43:33.988Z: Checking The House [chill] En:0.26659570985581604 Ar:0.3366169968990712 Va:0.85 Inst:0.8500000000000001
+2026-02-28T19:43:33.989Z:   ✅ ACCEPTED (Strict mode) dist: 0.1455
+2026-02-28T19:43:33.989Z: Checking The Choice [chill] En:0.19278039301120578 Ar:0.28494627510784404 Va:0.85 Inst:1
+2026-02-28T19:43:33.990Z:   ✅ ACCEPTED (Strict mode) dist: 0.0986
+2026-02-28T19:43:33.990Z: Checking The Killer [chill] En:0.1738433096888721 Ar:0.27169031678221045 Va:0.85 Inst:1
+2026-02-28T19:43:33.991Z:   ✅ ACCEPTED (Strict mode) dist: 0.0874
+2026-02-28T19:43:33.991Z: Checking Talley's Theme [chill] En:0.26063288964273906 Ar:0.3324430227499173 Va:0.85 Inst:1
+2026-02-28T19:43:33.992Z:   ✅ ACCEPTED (Strict mode) dist: 0.1416
+2026-02-28T19:43:33.992Z: Checking Screens & Shades [chill] En:0.25567953601379884 Ar:0.3289756752096592 Va:0.85 Inst:0.8500000000000001
+2026-02-28T19:43:33.993Z:   ✅ ACCEPTED (Strict mode) dist: 0.1383
+2026-02-28T19:43:33.995Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
+2026-02-28T19:43:33.995Z:   ✅ ACCEPTED (Strict mode) dist: 0.1239
+2026-02-28T19:43:33.996Z: ⚠️ Playlist too small (7). Running fallback fallback for chill...
+2026-02-28T19:43:33.998Z:   ✅ ACCEPTED (Fallback mode): Talley's Family [Orchestral]
+2026-02-28T19:43:34.012Z:   ✅ ACCEPTED (Fallback mode): The Trade [Orchestral]
+2026-02-28T19:43:34.013Z:   ✅ ACCEPTED (Fallback mode): The Negotiation [Orchestral]
+2026-02-28T19:43:34.014Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T19:43:34.014Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T19:43:34.015Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T19:43:34.015Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T19:43:34.016Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T19:43:34.017Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T19:43:34.017Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T19:43:34.018Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T19:43:34.018Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T19:43:34.019Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T19:43:37.797Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-02-28T19:43:37.798Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-02-28T19:43:37.799Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-02-28T19:43:37.801Z:   ✅ ACCEPTED (Fallback mode): 36 [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:37.802Z:   ✅ ACCEPTED (Fallback mode): Sad Statue [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T19:43:37.802Z:   ✅ ACCEPTED (Fallback mode): Nüguns [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:37.803Z:   ✅ ACCEPTED (Fallback mode): Fuck the System [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:37.803Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T19:43:37.804Z:   ✅ ACCEPTED (Fallback mode): Radio/Video [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T19:43:37.804Z:   ✅ ACCEPTED (Fallback mode): A.D.D. [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:37.805Z:   ✅ ACCEPTED (Fallback mode): Boom! [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:37.805Z:   ✅ ACCEPTED (Fallback mode): Soldier Side (intro) [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T19:43:37.806Z:   ✅ ACCEPTED (Fallback mode): Violent Pornography [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T19:43:37.807Z:   ✅ ACCEPTED (Fallback mode): This Cocaine Makes Me Feel Like I’m on This Song [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T19:43:37.807Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T19:43:37.808Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:37.809Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:37.810Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T19:43:37.810Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T19:43:37.811Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T19:43:37.812Z:   ✅ ACCEPTED (Fallback mode): Of Wolf and Man [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:37.813Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T19:43:37.813Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:37.814Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T19:43:37.815Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T19:43:37.815Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:37.816Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T19:43:37.816Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:37.817Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T19:43:37.818Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:37.819Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:37.819Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.184Z: ⚠️ Playlist too small (0). Running fallback fallback for sad...
+2026-02-28T19:43:53.186Z:   ✅ ACCEPTED (Fallback mode): B.Y.O.B. [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T19:43:53.187Z:   ✅ ACCEPTED (Fallback mode): FBI [Orchestral]
+2026-02-28T19:43:53.187Z:   ✅ ACCEPTED (Fallback mode): Old School Hollywood [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T19:43:53.188Z:   ✅ ACCEPTED (Fallback mode): Crawl Space [Orchestral]
+2026-02-28T19:43:53.188Z:   ✅ ACCEPTED (Fallback mode): The Negotiation [Orchestral]
+2026-02-28T19:43:53.189Z:   ✅ ACCEPTED (Fallback mode): Wherever I May Roam [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.189Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T19:43:53.190Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T19:43:53.190Z:   ✅ ACCEPTED (Fallback mode): Canyon Inn [OrchestralSoundtrack TEST]
+2026-02-28T19:43:53.191Z:   ✅ ACCEPTED (Fallback mode): A.D.D. [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:53.192Z:   ✅ ACCEPTED (Fallback mode): Captain Wooba [Orchestral]
+2026-02-28T19:43:53.192Z:   ✅ ACCEPTED (Fallback mode): Child's Spirit [Multi Test Genre]
+2026-02-28T19:43:53.193Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T19:43:53.194Z:   ✅ ACCEPTED (Fallback mode): The House [Orchestral]
+2026-02-28T19:43:53.195Z:   ✅ ACCEPTED (Fallback mode): Highway Song [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:53.196Z:   ✅ ACCEPTED (Fallback mode): Pictures [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:53.196Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T19:43:53.197Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T19:43:53.197Z:   ✅ ACCEPTED (Fallback mode): Violent Pornography [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T19:43:53.198Z:   ✅ ACCEPTED (Fallback mode): Roulette [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:53.198Z:   ✅ ACCEPTED (Fallback mode): Radio/Video [Alternative Metal; Metal; Avant-Garde Metal]
+2026-02-28T19:43:53.199Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T19:43:53.199Z:   ✅ ACCEPTED (Fallback mode): Through the Never [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.200Z:   ✅ ACCEPTED (Fallback mode): Mr. Jack [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:53.201Z:   ✅ ACCEPTED (Fallback mode): Talley's Theme [Orchestral]
+2026-02-28T19:43:53.201Z:   ✅ ACCEPTED (Fallback mode): The Struggle Within [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.202Z:   ✅ ACCEPTED (Fallback mode): Ego Brain [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-02-28T19:43:53.202Z:   ✅ ACCEPTED (Fallback mode): My Friend of Misery [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.203Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.203Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T19:43:53.204Z:   ✅ ACCEPTED (Fallback mode): House On Fire [Orchestral]
+2026-02-28T19:43:53.204Z:   ✅ ACCEPTED (Fallback mode): The Waterfall [Orchestral]
+2026-02-28T19:43:53.205Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
+2026-02-28T19:43:53.206Z:   ✅ ACCEPTED (Fallback mode): The Unforgiven [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.207Z:   ✅ ACCEPTED (Fallback mode): Don’t Tread on Me [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.207Z:   ✅ ACCEPTED (Fallback mode): Enter Sandman [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.208Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.208Z:   ✅ ACCEPTED (Fallback mode): The God That Failed [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-02-28T19:43:53.209Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T19:43:53.209Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T19:48:48.736Z: Checking Mars's Theme [chill] En:0.23344119202844146 Ar:0.313408834419909 Va:0.85 Inst:1
+2026-02-28T19:48:48.738Z:   ✅ ACCEPTED (Strict mode) dist: 0.1239
+2026-02-28T19:48:48.739Z: Checking The House [chill] En:0.26659570985581604 Ar:0.3366169968990712 Va:0.85 Inst:0.8500000000000001
+2026-02-28T19:48:48.740Z:   ✅ ACCEPTED (Strict mode) dist: 0.1455
+2026-02-28T19:48:48.740Z: Checking Screens & Shades [chill] En:0.25567953601379884 Ar:0.3289756752096592 Va:0.85 Inst:0.8500000000000001
+2026-02-28T19:48:48.741Z:   ✅ ACCEPTED (Strict mode) dist: 0.1383
+2026-02-28T19:48:48.742Z: Checking The Choice [chill] En:0.19278039301120578 Ar:0.28494627510784404 Va:0.85 Inst:1
+2026-02-28T19:48:48.742Z:   ✅ ACCEPTED (Strict mode) dist: 0.0986
+2026-02-28T19:48:48.743Z: Checking Talley's Theme [chill] En:0.26063288964273906 Ar:0.3324430227499173 Va:0.85 Inst:1
+2026-02-28T19:48:48.743Z:   ✅ ACCEPTED (Strict mode) dist: 0.1416
+2026-02-28T19:48:48.744Z: Checking The Killer [chill] En:0.1738433096888721 Ar:0.27169031678221045 Va:0.85 Inst:1
+2026-02-28T19:48:48.744Z:   ✅ ACCEPTED (Strict mode) dist: 0.0874
+2026-02-28T19:48:48.745Z: Checking Child's Spirit [chill] En:0.24133310754478524 Ar:0.3189331752813497 Va:0.85 Inst:1
+2026-02-28T19:48:48.746Z:   ✅ ACCEPTED (Strict mode) dist: 0.1290
+2026-02-28T19:48:48.747Z: ⚠️ Playlist too small (7). Running fallback fallback for chill...
+2026-02-28T19:48:48.748Z:   ✅ ACCEPTED (Fallback mode): In The Mood [Synthpop;New Wave;Pop]
+2026-02-28T19:48:48.749Z:   ✅ ACCEPTED (Fallback mode): The Trade [Orchestral]
+2026-02-28T19:48:48.750Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-02-28T19:48:48.752Z:   ✅ ACCEPTED (Fallback mode): The Waterfall [Orchestral]
+2026-02-28T19:48:48.752Z:   ✅ ACCEPTED (Fallback mode): A Victory Of Love [Synthpop;New Wave;Pop]
+2026-02-28T19:48:48.753Z:   ✅ ACCEPTED (Fallback mode): Child's Spirit (extended) [Orchestral]
+2026-02-28T19:48:48.754Z:   ✅ ACCEPTED (Fallback mode): To Germany With Love [Synthpop;New Wave;Pop]
+2026-02-28T19:48:48.755Z:   ✅ ACCEPTED (Fallback mode): Summer In Berlin [Synthpop;New Wave;Pop]
+2026-02-28T19:48:48.755Z:   ✅ ACCEPTED (Fallback mode): Fallen Angel [Synthpop;New Wave;Pop]
+2026-02-28T19:48:48.756Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
+2026-02-28T19:48:48.757Z:   ✅ ACCEPTED (Fallback mode): The Jet Set [Synthpop;New Wave;Pop]
+2026-02-28T19:48:48.757Z:   ✅ ACCEPTED (Fallback mode): Lies [Synthpop;New Wave;Pop]
+2026-02-28T19:48:48.758Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]

@@ -108,6 +108,7 @@ const api = {
     finishAuth: (code: string): Promise<boolean> => ipcRenderer.invoke('tidal:finishAuth', code),
     search: (query: string): Promise<any[]> => ipcRenderer.invoke('tidal:search', query),
     getStreamUrl: (trackId: string): Promise<string | null> => ipcRenderer.invoke('tidal:getStreamUrl', trackId),
+    getLikedTracks: (limit?: number): Promise<any[]> => ipcRenderer.invoke('tidal:getLikedTracks', limit),
     onAuthCallback: (callback: (code: string) => void) => {
       const listener = (_: any, code: string): void => callback(code)
       ipcRenderer.on('tidal:auth-callback', listener)

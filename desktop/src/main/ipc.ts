@@ -41,8 +41,11 @@ import { getAllArtists, updateArtistLoved, updateArtistFacts } from './database/
 import { lastFmService } from './services/lastfm'
 import { listenBrainzService } from './services/listenbrainz'
 import { musicBrainzService } from './services/musicbrainz'
+import { storeAcousticBrainzData } from './database/musicbrainz'
 import {
-  writeMetadata
+  writeMetadata,
+  writeMusicBrainzDataToFile,
+  buildMusicBrainzDataFromDb
 } from './services/metadataWriter'
 import { advancedMatch, scoreReleaseCandidates, MatchConfidence } from './services/matcher'
 import { acousticBrainzService } from './services/acousticbrainz'
@@ -618,11 +621,32 @@ export function registerIpcHandlers(): void {
     ipcMain.handle('settings:getAll', async () => {
       console.log('⚙️ Getting all settings...')
       const db = getDatabase()
+
+      // Default settings for new installations
+      const defaults: Record<string, any> = {
+        showWaveform: true,
+        viewMode: 'grid',
+        sortField: 'title',
+        sortOrder: 'asc',
+        visibleSections: ['vibes', 'most_played', 'explore', 'newly_added', 'recently_played', 'recently_released'],
+        homeSectionsOrder: ['vibes', 'most_played', 'explore', 'newly_added', 'recently_played', 'recently_released'],
+        trackPlayBehavior: 'ask',
+        replayGainMode: 'track',
+        gaplessEnabled: true,
+        tracksViewMode: 'list',
+        autoDjEnabled: false,
+        autoDjRatingFilter: 'both',
+        autoDjTriggerAt: 1,
+        autoDjAddCount: 3,
+        isCoverExpanded: false
+      }
+
       const rows = db.prepare('SELECT setting_key, setting_value FROM user_settings').all() as {
         setting_key: string
         setting_value: string
       }[]
-      const settings: Record<string, any> = {}
+
+      const settings: Record<string, any> = { ...defaults }
       rows.forEach((row) => {
         try {
           settings[row.setting_key] = JSON.parse(row.setting_value)
@@ -1057,7 +1081,7 @@ current_track_id = excluded.current_track_id,
 
         console.log('📤 IPC: Calling getAuthToken()...')
         const result = await lastFmService.getAuthToken()
-        
+
         if (result) {
           console.log('✅ IPC: Auth token obtained successfully')
           console.log('   Token:', result.token.substring(0, 8) + '...')
@@ -1088,7 +1112,7 @@ current_track_id = excluded.current_track_id,
             console.warn('Failed to parse API key from database:', e)
           }
         }
-        
+
         const dbSecret = db.prepare("SELECT setting_value FROM user_settings WHERE setting_key = 'lastfmApiSecret'").get() as any
         if (dbSecret) {
           try {
@@ -1512,7 +1536,6 @@ current_track_id = excluded.current_track_id,
     ipcMain.handle('metadata:getAlbumDetails', async (_, albumId: string) => {
       console.log(`🔍 [IPC] Fetch MB Album: ${albumId}`)
       try {
-        const { musicBrainzService } = await import('./services/musicbrainz')
         const details = await musicBrainzService.getReleaseDetails(albumId)
 
         if (!details) {
@@ -2167,14 +2190,12 @@ current_track_id = excluded.current_track_id,
 
           // 4d. Update AcousticBrainz data
           if (audioAnalysis) {
-            const { storeAcousticBrainzData } = await import('./database/musicbrainz')
             storeAcousticBrainzData(track.id, audioAnalysis)
           }
 
           // 5. Write to file tags if requested
           if (writeToFile && track.filePath) {
             console.log(`   💾 Writing tags to file: ${track.filePath}`)
-            const { buildMusicBrainzDataFromDb } = await import('./services/metadataWriter')
 
             // Handle Cover Art
             let coverPath: string | undefined
@@ -2397,7 +2418,6 @@ current_track_id = excluded.current_track_id,
             }
 
             // Write to file
-            const { writeMusicBrainzDataToFile } = await import('./services/metadataWriter')
             await writeMusicBrainzDataToFile(db as any, trackId)
 
             results.refreshed++
@@ -2571,6 +2591,10 @@ current_track_id = excluded.current_track_id,
     ipcMain.handle('window:setSize', (event, width: number, height: number, animate: boolean = true) => {
       const win = BrowserWindow.fromWebContents(event.sender)
       if (win) {
+        // If window is maximized, restore it first so setSize actually works
+        if (win.isMaximized()) {
+          win.unmaximize()
+        }
         win.setSize(width, height, animate)
         // Center window after resizing to miniplayer? Or just keep current position?
         // Spotify stays in place. Let's keep it.
@@ -2697,6 +2721,10 @@ current_track_id = excluded.current_track_id,
 
     ipcMain.handle('tidal:getStreamUrl', async (_event, trackId: string) => {
       return await tidalService.getStreamUrl(trackId)
+    })
+
+    ipcMain.handle('tidal:getLikedTracks', async (_event, limit?: number) => {
+      return await tidalService.getLikedTracks(limit || 50)
     })
 
     // --- Alignment Aliases for Frontend ---

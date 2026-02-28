@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import path from 'path'
 import fs from 'fs'
+import { execSync } from 'child_process'
 import { getDatabase } from '../../database'
 
 // Helper to find cover art
@@ -13,6 +14,19 @@ const findCoverArt = (dir: string): string | null => {
         }
     }
     return null
+}
+
+// Helper to generate waveform using FFmpeg
+const generateWaveformForTrack = (filePath: string, outputPath: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        try {
+            const cmd = `ffmpeg -i "${filePath}" -f lavfi -i color=c=black:s=800x100:d=0 -filter_complex "[0:a]aformat=channel_layouts=mono,compand=gain=-7|showwavespic=s=800x100:colors=#3b82f6[fg];[1][fg]scale2ref[bg][fg];[bg][fg]overlay=format=auto,format=yuv420p[v]" -map "[v]" -vframes 1 -y "${outputPath}"`
+            execSync(cmd, { stdio: 'pipe' })
+            resolve()
+        } catch (error) {
+            reject(error)
+        }
+    })
 }
 
 export const getCover = (req: Request, res: Response) => {
@@ -146,16 +160,39 @@ export const streamTrack = (req: Request, res: Response) => {
     }
 }
 
-export const getWaveform = (req: Request, res: Response) => {
+export const getWaveform = async (req: Request, res: Response) => {
     try {
         const { id } = req.params
         const waveformDir = path.join(__dirname, '../../../data/waveforms')
         const waveformPath = path.join(waveformDir, `${id}.png`)
 
+        // If waveform exists, serve it
         if (fs.existsSync(waveformPath)) {
+            return res.sendFile(waveformPath)
+        }
+
+        // Otherwise, generate it on-demand
+        const db = getDatabase()
+        const track = db.prepare('SELECT file_path as path FROM tracks WHERE id = ?').get(id) as any
+
+        if (!track || !fs.existsSync(track.path)) {
+            return res.status(404).send('Track not found')
+        }
+
+        // Ensure waveform directory exists
+        if (!fs.existsSync(waveformDir)) {
+            fs.mkdirSync(waveformDir, { recursive: true })
+        }
+
+        try {
+            // Generate waveform
+            console.log(`[Media] Generating waveform for track ${id}: ${track.path}`)
+            await generateWaveformForTrack(track.path, waveformPath)
+            console.log(`[Media] ✅ Waveform generated: ${waveformPath}`)
             res.sendFile(waveformPath)
-        } else {
-            res.status(404).send('Waveform not found')
+        } catch (ffmpegError) {
+            console.error(`[Media] Failed to generate waveform for ${id}:`, ffmpegError)
+            res.status(500).send('Failed to generate waveform')
         }
     } catch (error) {
         console.error('Error serving waveform:', error)

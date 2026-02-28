@@ -182,14 +182,25 @@ export class TidalService {
 
     public async search(query: string) {
         const token = await this.ensureValidToken()
-        if (!token) return []
+        if (!token) {
+            logDebug('No valid Tidal token for search')
+            return []
+        }
 
         try {
             const res = await axios.get(`https://api.tidal.com/v1/search?query=${encodeURIComponent(query)}&limit=20&types=TRACKS`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-            return res.data.tracks.items
-        } catch (error) {
+            
+            if (!res.data || !res.data.tracks) {
+                logDebug(`Tidal search returned unexpected format: ${JSON.stringify(res.data)}`)
+                return []
+            }
+            
+            logDebug(`Tidal search found ${res.data.tracks.items?.length || 0} tracks`)
+            return res.data.tracks.items || []
+        } catch (error: any) {
+            logDebug(`Tidal search error for "${query}": ${error?.message || error}`)
             return []
         }
     }
@@ -208,6 +219,71 @@ export class TidalService {
         } catch (error) {
             logDebug(`Failed to get Tidal stream URL for ${trackId}`)
             return null
+        }
+    }
+
+    public async getUserInfo() {
+        const token = await this.ensureValidToken()
+        if (!token) {
+            console.error('[Tidal] No token for getUserInfo')
+            return null
+        }
+
+        try {
+            console.log('[Tidal] Getting user info...')
+            const res = await axios.get('https://api.tidal.com/v1/users/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            console.log('[Tidal] User info response:', res.data)
+            return res.data
+        } catch (error: any) {
+            console.error('[Tidal] Failed to get user info:')
+            console.error('  Message:', error?.message)
+            console.error('  Status:', error?.response?.status)
+            console.error('  Response:', error?.response?.data)
+            return null
+        }
+    }
+
+    public async getLikedTracks(limit: number = 50) {
+        const token = await this.ensureValidToken()
+        if (!token) {
+            logDebug('No token available for getLikedTracks')
+            console.error('[Tidal] No token available')
+            return []
+        }
+
+        try {
+            console.log('[Tidal] Fetching user info...')
+            const userInfo = await this.getUserInfo()
+            if (!userInfo) {
+                console.error('[Tidal] getUserInfo returned null')
+                return []
+            }
+            
+            console.log('[Tidal] User info:', userInfo)
+            
+            if (!userInfo.userId) {
+                console.error('[Tidal] No userId in user info. Keys:', Object.keys(userInfo))
+                return []
+            }
+
+            console.log(`[Tidal] Fetching liked tracks for user ${userInfo.userId}...`)
+            const res = await axios.get(`https://api.tidal.com/v1/users/${userInfo.userId}/favorites/tracks?limit=${limit}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            
+            console.log('[Tidal] Liked tracks response:', res.data)
+            const items = res.data.items || res.data.totalNumberOfItems ? (res.data.items || []) : []
+            console.log(`[Tidal] Returning ${items.length} liked tracks`)
+            return items
+        } catch (error: any) {
+            console.error('[Tidal] Error fetching liked tracks:')
+            console.error('  Message:', error?.message)
+            console.error('  Status:', error?.response?.status)
+            console.error('  Response:', error?.response?.data)
+            logDebug(`Failed to get Tidal liked tracks: ${error?.message} (status: ${error?.response?.status}) - Response: ${JSON.stringify(error?.response?.data)}`)
+            return []
         }
     }
 }

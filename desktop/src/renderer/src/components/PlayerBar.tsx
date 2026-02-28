@@ -17,6 +17,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { RatingStars } from './RatingStars'
 import { CastMenu } from './CastMenu'
+import { Waveform } from './Waveform'
 import { cn } from '../lib/utils'
 import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
@@ -250,6 +251,36 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                         )}
                     </AnimatePresence>
                     <div className="flex flex-col min-w-0">
+                        {/* Tech Info ABOVE title */}
+                        {currentTrack && (
+                            <div className="flex items-center gap-1 px-2 py-0.5 bg-zinc-900/40 rounded-md border border-white/10 text-[10px] font-bold whitespace-nowrap mb-1">
+                                {currentTrack.sampleRate && (
+                                    <span className="text-blue-400">
+                                        {(currentTrack.sampleRate / 1000).toFixed(1)}kHz
+                                    </span>
+                                )}
+                                {currentTrack.sampleRate && currentTrack.bitDepth && (
+                                    <span className="text-zinc-600 px-0.5">/</span>
+                                )}
+                                {currentTrack.bitDepth && (
+                                    <span className="text-zinc-400">{currentTrack.bitDepth}-bit</span>
+                                )}
+                                {(currentTrack.sampleRate || currentTrack.bitDepth) && (
+                                    <span className="text-zinc-600 mr-1">,</span>
+                                )}
+                                <span className="text-zinc-500 uppercase">{currentTrack.format}</span>
+                                {currentTrack.bitrate && (
+                                    <span className="text-zinc-600 ml-1">
+                                        {Math.round(currentTrack.bitrate / 1000)}k
+                                    </span>
+                                )}
+                                {useSettings.getState().gaplessEnabled && (
+                                    <span className="ml-2 text-[8px] font-black text-emerald-500/80 tracking-tighter border border-emerald-500/20 px-1 rounded-sm">
+                                        GAPLESS
+                                    </span>
+                                )}
+                            </div>
+                        )}
                         <span
                             className={cn(
                                 'font-bold text-base text-white truncate leading-tight',
@@ -346,8 +377,7 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                                 <div
                                     ref={progressRef}
                                     className={cn(
-                                        'flex-1 cursor-pointer relative group/bar overflow-hidden transition-all duration-300 mx-2',
-                                        showWaveform && !waveformError ? 'h-16' : 'h-1.5 bg-zinc-800/50 rounded-full'
+                                        'flex-1 cursor-pointer relative group/bar overflow-hidden transition-all duration-300 mx-2 h-16'
                                     )}
                                     onMouseDown={handleProgressMouseDown}
                                 >
@@ -355,53 +385,31 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
                                     <div className="absolute -inset-y-3 left-0 right-0 z-10" />
 
                                     {!showWaveform || waveformError ? (
-                                        <>
-                                            <div className="absolute inset-0 bg-zinc-800/50 rounded-full" />
-                                            <div
-                                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)] group-hover/bar:from-white group-hover/bar:to-white transition-all duration-300"
-                                                style={{
-                                                    width: `${Math.min(100, Math.max(0, (currentTime / (duration || 1) || 0) * 100))}%`
-                                                }}
-                                            />
-                                            <div
-                                                className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover/bar:scale-125 transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20"
-                                                style={{
-                                                    left: `${Math.min(100, Math.max(0, (currentTime / (duration || 1) || 0) * 100))}%`,
-                                                    transform: 'translate(-50%, -50%)'
-                                                }}
-                                            />
-                                        </>
-                                    ) : (
+                                        // Simple seekbar mode - centered bar in the h-16 container
                                         <div className="absolute inset-0 flex items-center">
-                                            {/* Unplayed Waveform */}
-                                            <div
-                                                className="absolute inset-0 opacity-20 pointer-events-none grayscale"
-                                                style={{
-                                                    backgroundImage: `url(${client.getWaveformUrl(currentTrack.id)})`,
-                                                    backgroundSize: '100% 100%',
-                                                    backgroundPosition: 'center'
-                                                }}
-                                            />
-                                            {/* Played portion */}
-                                            <div
-                                                className={cn(
-                                                    "absolute inset-0 bg-blue-500 pointer-events-none transition-[clip-path]",
-                                                    isScrubbing ? "duration-0" : "duration-100"
-                                                )}
-                                                style={{
-                                                    clipPath: `inset(0 ${100 - Math.min(100, Math.max(0, ((isScrubbing && scrubTime !== null ? scrubTime : currentTime) / (duration || 1) || 0) * 100))}% 0 0)`,
-                                                    WebkitMaskImage: `url(${client.getWaveformUrl(currentTrack.id)})`,
-                                                    WebkitMaskSize: '100% 100%',
-                                                    WebkitMaskPosition: 'center',
-                                                    maskImage: `url(${client.getWaveformUrl(currentTrack.id)})`,
-                                                    maskSize: '100% 100%',
-                                                    maskPosition: 'center'
-                                                }}
-                                            />
-                                            {/* Progress line - 50% height, centered */}
-                                            <div
-                                                className="absolute top-1/4 bottom-1/4 bg-white w-[1.5px] shadow-[0_0_15px_rgba(255,255,255,0.9)] z-20"
-                                                style={{ left: `${Math.min(100, Math.max(0, ((isScrubbing && scrubTime !== null ? scrubTime : currentTime) / (duration || 1) || 0) * 100))}%` }}
+                                            <div className="w-full h-1.5 bg-zinc-800/50 rounded-full relative">
+                                                <div
+                                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)] group-hover/bar:from-white group-hover/bar:to-white transition-all duration-300"
+                                                    style={{
+                                                        width: `${Math.min(100, Math.max(0, (currentTime / (duration || 1) || 0) * 100))}%`
+                                                    }}
+                                                />
+                                                <div
+                                                    className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover/bar:scale-125 transition-all shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20"
+                                                    style={{
+                                                        left: `${Math.min(100, Math.max(0, (currentTime / (duration || 1) || 0) * 100))}%`,
+                                                        transform: 'translate(-50%, -50%)'
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="absolute inset-0 flex items-center overflow-hidden rounded">
+                                            <Waveform
+                                                trackId={currentTrack.id}
+                                                currentTime={isScrubbing && scrubTime !== null ? scrubTime : currentTime}
+                                                duration={duration}
+                                                energy={currentTrack.energy}
                                             />
                                         </div>
                                     )}
@@ -418,59 +426,26 @@ export default function PlayerBar({ onQueueToggle, onAlbumClick, onArtistClick }
 
                 {/* Right: Rating, Tech Info, Volume, Scrobble, Queue */}
                 <div className="flex items-center gap-4 justify-end w-[30%] max-w-[400px]">
-
-                    {/* Rating & Loved */}
-                    {currentTrack && (
-                        <div className="flex items-center gap-3 px-3 py-1 bg-zinc-900/50 rounded-full border border-white/5">
-                            <RatingStars
-                                rating={currentTrack.rating}
-                                onChange={(r) => rateTrack(currentTrack.id, r)}
-                                size={10}
-                                className="hover:scale-110 transition-transform"
-                            />
-                            <div className="w-px h-3 bg-white/10" />
-                            <button
-                                onClick={() => toggleLoved(currentTrack.id)}
-                                className={cn(
-                                    'transition-all hover:scale-110 active:scale-95',
-                                    currentTrack.loved ? 'text-red-500' : 'text-zinc-400 hover:text-red-400'
-                                )}
-                            >
-                                <Heart size={12} fill={currentTrack.loved ? 'currentColor' : 'none'} />
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Auto-DJ + Tech Info + Volume (stacked vertically) */}
                     {currentTrack ? (
                         <div className="flex flex-col items-end gap-1.5">
-                            {/* Tech Info Badge above volume */}
-                            <div className="flex items-center gap-1 px-2 py-0.5 bg-zinc-900/40 rounded-md border border-white/10 text-[10px] font-bold whitespace-nowrap">
-                                {currentTrack.sampleRate && (
-                                    <span className="text-blue-400">
-                                        {(currentTrack.sampleRate / 1000).toFixed(1)}kHz
-                                    </span>
-                                )}
-                                {currentTrack.sampleRate && currentTrack.bitDepth && (
-                                    <span className="text-zinc-600 px-0.5">/</span>
-                                )}
-                                {currentTrack.bitDepth && (
-                                    <span className="text-zinc-400">{currentTrack.bitDepth}-bit</span>
-                                )}
-                                {(currentTrack.sampleRate || currentTrack.bitDepth) && (
-                                    <span className="text-zinc-600 mr-1">,</span>
-                                )}
-                                <span className="text-zinc-500 uppercase">{currentTrack.format}</span>
-                                {currentTrack.bitrate && (
-                                    <span className="text-zinc-600 ml-1">
-                                        {Math.round(currentTrack.bitrate / 1000)}k
-                                    </span>
-                                )}
-                                {useSettings.getState().gaplessEnabled && (
-                                    <span className="ml-2 text-[8px] font-black text-emerald-500/80 tracking-tighter border border-emerald-500/20 px-1 rounded-sm">
-                                        GAPLESS
-                                    </span>
-                                )}
+                            {/* Rating & Loved ABOVE Auto-DJ */}
+                            <div className="flex items-center gap-3 px-3 py-1 bg-zinc-900/50 rounded-full border border-white/5">
+                                <RatingStars
+                                    rating={currentTrack.rating}
+                                    onChange={(r) => rateTrack(currentTrack.id, r)}
+                                    size={10}
+                                    className="hover:scale-110 transition-transform"
+                                />
+                                <div className="w-px h-3 bg-white/10" />
+                                <button
+                                    onClick={() => toggleLoved(currentTrack.id)}
+                                    className={cn(
+                                        'transition-all hover:scale-110 active:scale-95',
+                                        currentTrack.loved ? 'text-red-500' : 'text-zinc-400 hover:text-red-400'
+                                    )}
+                                >
+                                    <Heart size={12} fill={currentTrack.loved ? 'currentColor' : 'none'} />
+                                </button>
                             </div>
 
                             {/* Volume Controls */}

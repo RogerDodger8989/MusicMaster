@@ -8,7 +8,9 @@ export default function TidalView() {
     const {
         isAuthenticated,
         isSearching,
+        isLoadingLiked,
         searchResults,
+        likedTracks,
         search,
         login,
         logout
@@ -151,23 +153,78 @@ export default function TidalView() {
                             <p>No results found for "{query}"</p>
                         </motion.div>
                     ) : !query ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-12">
-                            <div className="p-6 bg-gradient-to-br from-blue-900/20 to-zinc-900 rounded-3xl border border-blue-500/10">
-                                <Music className="w-8 h-8 text-blue-400 mb-4" />
-                                <h3 className="text-lg font-bold text-white mb-2">High Fidelity</h3>
-                                <p className="text-sm text-zinc-400">Experience music exactly as the artist intended with lossless audio quality.</p>
-                            </div>
-                            <div className="p-6 bg-gradient-to-br from-zinc-900 to-zinc-900 rounded-3xl border border-zinc-800">
-                                <Disc className="w-8 h-8 text-zinc-400 mb-4" />
-                                <h3 className="text-lg font-bold text-white mb-2">Huge Library</h3>
-                                <p className="text-sm text-zinc-400">Search through millions of tracks and add them to your MusicMaster collection.</p>
-                            </div>
-                            <div className="p-6 bg-gradient-to-br from-zinc-900 to-zinc-900 rounded-3xl border border-zinc-800">
-                                <User className="w-8 h-8 text-zinc-400 mb-4" />
-                                <h3 className="text-lg font-bold text-white mb-2">My Library</h3>
-                                <p className="text-sm text-zinc-400">Access your Tidal favorites and playlists directly in your main library view.</p>
-                            </div>
-                        </div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="space-y-8"
+                        >
+                            {/* Liked Tracks Section */}
+                            {isLoadingLiked ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                                </div>
+                            ) : likedTracks.length > 0 ? (
+                                <section>
+                                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                                        <Heart className="w-5 h-5 text-red-500" /> Your Favorites
+                                    </h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {likedTracks.slice(0, 12).map((track) => (
+                                            <div
+                                                key={track.id}
+                                                className="group flex items-center gap-4 p-3 bg-zinc-900/50 hover:bg-zinc-800 rounded-xl transition-all border border-zinc-800/30 hover:border-blue-500/30"
+                                            >
+                                                <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 shadow-lg">
+                                                    <img
+                                                        src={track.coverArtPath || ''}
+                                                        alt={track.album}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                    />
+                                                    <button
+                                                        onClick={() => playTrack(track)}
+                                                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                                                    >
+                                                        <Play className="w-6 h-6 fill-current" />
+                                                    </button>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-white font-semibold truncate group-hover:text-blue-400 transition-colors">{track.title}</div>
+                                                    <div className="text-zinc-500 text-sm truncate">{track.artist}</div>
+                                                </div>
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
+                                                    <button
+                                                        onClick={() => addToQueue(track)}
+                                                        className="p-2 hover:bg-zinc-700 rounded-full text-zinc-400 hover:text-white transition-colors"
+                                                        title="Add to queue"
+                                                    >
+                                                        <Plus className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-12">
+                                    <div className="p-6 bg-gradient-to-br from-blue-900/20 to-zinc-900 rounded-3xl border border-blue-500/10">
+                                        <Music className="w-8 h-8 text-blue-400 mb-4" />
+                                        <h3 className="text-lg font-bold text-white mb-2">High Fidelity</h3>
+                                        <p className="text-sm text-zinc-400">Experience music exactly as the artist intended with lossless audio quality.</p>
+                                    </div>
+                                    <div className="p-6 bg-gradient-to-br from-zinc-900 to-zinc-900 rounded-3xl border border-zinc-800">
+                                        <Disc className="w-8 h-8 text-zinc-400 mb-4" />
+                                        <h3 className="text-lg font-bold text-white mb-2">Huge Library</h3>
+                                        <p className="text-sm text-zinc-400">Search through millions of tracks and add them to your MusicMaster collection.</p>
+                                    </div>
+                                    <div className="p-6 bg-gradient-to-br from-zinc-900 to-zinc-900 rounded-3xl border border-zinc-800">
+                                        <User className="w-8 h-8 text-zinc-400 mb-4" />
+                                        <h3 className="text-lg font-bold text-white mb-2">My Library</h3>
+                                        <p className="text-sm text-zinc-400">Access your Tidal favorites and playlists directly in your main library view.</p>
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
                     ) : null}
                 </AnimatePresence>
             </div>

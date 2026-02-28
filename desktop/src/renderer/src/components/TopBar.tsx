@@ -16,6 +16,15 @@ export default function TopBar() {
   const { isMiniPlayer, toggleMiniPlayer, isAlwaysOnTop, setAlwaysOnTop, isTheaterMode, toggleTheaterMode, isFullScreen, setFullScreen } = useUI()
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
 
+  // Debug navigation state
+  useEffect(() => {
+    console.log('[TopBar] Navigation state updated:')
+    console.log('  History length:', history.length)
+    console.log('  Future length:', future.length)
+    console.log('  canGoBack:', canGoBack())
+    console.log('  canGoForward:', canGoForward())
+  }, [history, future, canGoBack, canGoForward])
+
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth)
     window.addEventListener('resize', handleResize)
@@ -86,7 +95,10 @@ export default function TopBar() {
           {/* Navigation Arrows */}
           <div className="flex items-center gap-1">
             <button
-              onClick={goBack}
+              onClick={() => {
+                console.log('[TopBar] Back button clicked. canGoBack:', canGoBack())
+                goBack()
+              }}
               onContextMenu={(e) => handleContextMenu(e, history, false)}
               disabled={!canGoBack()}
               className="p-1.5 rounded-md hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent text-white transition-colors relative"
@@ -95,7 +107,10 @@ export default function TopBar() {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={goForward}
+              onClick={() => {
+                console.log('[TopBar] Forward button clicked. canGoForward:', canGoForward())
+                goForward()
+              }}
               onContextMenu={(e) => handleContextMenu(e, future, true)}
               disabled={!canGoForward()}
               className="p-1.5 rounded-md hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent text-white transition-colors relative"

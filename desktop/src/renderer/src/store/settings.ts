@@ -92,7 +92,7 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   musicbrainzPassword: '',
   lastfmEnabled: false,
   listenbrainzEnabled: false,
-  showWaveform: false,
+  showWaveform: true,
   tracksViewMode: 'list',
   tracksColumns: ['index', 'title', 'artist', 'album', 'vibe', 'played', 'rating', 'time'],
   autoDjEnabled: false,

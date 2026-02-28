@@ -14,6 +14,7 @@ import { initCoverCache } from './services/coverArt'
 import { startCastServer } from './services/cast/server'
 import { getTrackById } from './database/tracks'
 import fs from 'fs'
+import { execSync } from 'child_process'
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason)
@@ -79,11 +80,11 @@ function createWindow(): void {
     console.log('[Window] Window closed')
   })
 
-  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+  mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
     console.error('[Window] did-fail-load:', errorCode, errorDescription)
   })
 
-  mainWindow.webContents.on('crashed', () => {
+  mainWindow.webContents.on('render-process-gone', () => {
     console.error('[Window] Renderer process crashed')
   })
 
@@ -230,8 +231,34 @@ app.whenReady().then(() => {
       }
 
       if (decodedPath.startsWith('waveform/')) {
-        // Waveform not implemented yet - return empty
-        console.log(`[AssetProtocol] Waveform not implemented`)
+        const trackId = decodedPath.substring(9) // Remove 'waveform/'
+        const waveformDir = path.join(app.getPath('userData'), 'waveforms')
+        const waveformPath = path.join(waveformDir, `${trackId}.png`)
+
+        if (fs.existsSync(waveformPath)) {
+          return callback({ path: waveformPath })
+        }
+
+        const track = getTrackById(trackId)
+        if (!track?.filePath || !fs.existsSync(track.filePath)) {
+          console.error(`[AssetProtocol] Waveform track not found: ${trackId}`)
+          return callback({ path: '' })
+        }
+
+        if (!fs.existsSync(waveformDir)) {
+          fs.mkdirSync(waveformDir, { recursive: true })
+        }
+
+        try {
+          const cmd = `ffmpeg -i "${track.filePath}" -filter_complex "aformat=channel_layouts=mono,showwavespic=s=1200x64:colors=#3b82f6" -frames:v 1 -y "${waveformPath}"`
+          execSync(cmd, { stdio: 'ignore' })
+          if (fs.existsSync(waveformPath)) {
+            return callback({ path: waveformPath })
+          }
+        } catch (error) {
+          console.error(`[AssetProtocol] Failed to generate waveform for ${trackId}:`, error)
+        }
+
         return callback({ path: '' })
       }
 

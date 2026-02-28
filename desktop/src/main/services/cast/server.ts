@@ -63,7 +63,7 @@ app.get('/stream/:trackId/:filename', (req, res) => {
 
     console.log(`[Cast Server] Serving file: ${filePath}`)
     // express.sendFile automatically handles Range requests for seeking!
-    res.sendFile(filePath, (err) => {
+    return res.sendFile(filePath, (err) => {
         if (err) {
             console.error(`[Cast Server] Error sending file:`, err)
         }
@@ -71,7 +71,7 @@ app.get('/stream/:trackId/:filename', (req, res) => {
 })
 
 // Route for serving the cover art (useful for Chromecast display)
-app.get('/cover/:trackId', async (req, res) => {
+app.get('/cover/:trackId', async (_req, res) => {
     // We can let the renderer pass the cover URL when casting.
     return res.status(404).send('Not implemented yet')
 })

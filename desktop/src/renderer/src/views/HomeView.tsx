@@ -6,6 +6,7 @@ import { usePlayer } from '../store/player'
 import { useLibrary } from '../store/library'
 import { useSettings } from '../store/settings'
 import { client } from '../api/client'
+import { DEFAULT_VIBES } from '../constants/defaultVibes'
 import { AlbumCard } from '../components/AlbumCard'
 import TrackList from '../components/TrackList'
 import { useNavigation } from '../store/navigation'
@@ -65,9 +66,12 @@ export default function HomeView({ }: HomeViewProps) {
       const data = await response.json()
       if (data.success && data.data) {
         setVibes(data.data)
+      } else {
+        setVibes(DEFAULT_VIBES as Vibe[])
       }
     } catch (error) {
       console.error('Failed to fetch vibes:', error)
+      setVibes(DEFAULT_VIBES as Vibe[])
     }
   }
 
@@ -493,7 +497,7 @@ export default function HomeView({ }: HomeViewProps) {
                     {mostPlayedTracks.length > 0 ? (
                       <div className="flex flex-col gap-4">
                         <TrackList
-                          tracks={mostPlayedTracks}
+                          tracks={mostPlayedTracks.slice(0, mostPlayedLimit)}
                           hideHeader
                           onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
                           onAlbumClick={(id) => navigateTo('album-detail', { albumId: id })}

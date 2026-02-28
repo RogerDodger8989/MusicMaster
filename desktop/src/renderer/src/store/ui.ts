@@ -25,20 +25,23 @@ export const useUI = create<UIState>()(
                 toggleMiniPlayer: async () => {
                     const current = get().isMiniPlayer
                     const next = !current
+                    const isTheater = get().isTheaterMode
 
                     // If moving to mini player, exit theater mode
                     if (next) {
-                        set({ isTheaterMode: false })
-                    }
-
-                    set({ isMiniPlayer: next })
-
-                    if (next) {
+                        set({ isTheaterMode: false, isMiniPlayer: true })
+                        
                         // Switch to MiniPlayer size
                         await window.api.window.setSize(400, 500)
                     } else {
-                        // Restore to main size
-                        await window.api.window.setSize(1400, 900)
+                        set({ isMiniPlayer: false })
+                        
+                        // Restore to appropriate size based on theater mode
+                        if (isTheater) {
+                            await window.api.window.setSize(1920, 1080)
+                        } else {
+                            await window.api.window.setSize(1400, 900)
+                        }
                     }
                 },
 
@@ -47,16 +50,29 @@ export const useUI = create<UIState>()(
                     await window.api.window.setAlwaysOnTop(flag)
                 },
 
-                toggleTheaterMode: () => {
+                toggleTheaterMode: async () => {
                     const current = get().isTheaterMode
                     const next = !current
+                    const wasMiniPlayer = get().isMiniPlayer
 
                     // If entering theater mode, exit mini player
                     if (next) {
-                        set({ isMiniPlayer: false })
+                        set({ isMiniPlayer: false, isTheaterMode: true })
+                        
+                        // Set to fullscreen/large size for theater mode
+                        if (wasMiniPlayer) {
+                            // Coming from mini player - maximize or use large size
+                            await window.api.window.setSize(1920, 1080)
+                        } else {
+                            // Already in main window - just maximize
+                            await window.api.window.setSize(1920, 1080)
+                        }
+                    } else {
+                        set({ isTheaterMode: false })
+                        
+                        // Restore to normal main window size
+                        await window.api.window.setSize(1400, 900)
                     }
-
-                    set({ isTheaterMode: next })
                 },
 
                 setFullScreen: async (flag: boolean) => {

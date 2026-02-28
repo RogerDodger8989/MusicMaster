@@ -27,11 +27,17 @@ export const useNavigation = create<NavigationStore>((set, get) => ({
   navigateTo: (view, params) => {
     const { current, history } = get()
 
+    console.log('[Navigation] navigateTo called:', view, params)
+    console.log('[Navigation] Current:', current.view, 'History length:', history.length)
+
     // Don't navigate to the same exact state
     if (current.view === view && JSON.stringify(current.params) === JSON.stringify(params)) {
+      console.log('[Navigation] Same view/params - not navigating')
       return
     }
 
+    console.log('[Navigation] Adding to history:', current.view)
+    
     set({
       history: [...history, current],
       current: { view, params },
@@ -41,11 +47,17 @@ export const useNavigation = create<NavigationStore>((set, get) => ({
 
   goBack: () => {
     const { history, current, future } = get()
-    if (history.length === 0) return
+    console.log('[Navigation] goBack called. History length:', history.length)
+    if (history.length === 0) {
+      console.log('[Navigation] Cannot go back - no history')
+      return
+    }
 
     const previous = history[history.length - 1]
     const newHistory = history.slice(0, -1)
 
+    console.log('[Navigation] Going back from', current.view, 'to', previous.view)
+    
     set({
       history: newHistory,
       current: previous,
@@ -55,10 +67,16 @@ export const useNavigation = create<NavigationStore>((set, get) => ({
 
   goForward: () => {
     const { history, current, future } = get()
-    if (future.length === 0) return
+    console.log('[Navigation] goForward called. Future length:', future.length)
+    if (future.length === 0) {
+      console.log('[Navigation] Cannot go forward - no future')
+      return
+    }
 
     const next = future[0]
     const newFuture = future.slice(1)
+
+    console.log('[Navigation] Going forward from', current.view, 'to', next.view)
 
     set({
       history: [...history, current],
