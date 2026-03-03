@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { Search, X, User, Disc, Music, Waves } from 'lucide-react'
+import { Search, X, User, Disc, Music } from 'lucide-react'
 import { useDraggable } from '../hooks/useDraggable'
 import { useSearch } from '../store/search'
-import { useTidal } from '../store/tidal'
 import { useNavigation } from '../store/navigation'
 import { cn } from '../utils'
 import { client } from '../api/client'
 
 export default function SearchModal() {
   const { query, setQuery, results, isSearching, isOpen, setIsOpen } = useSearch()
-  const { searchResults: tidalResults, search: searchTidal, isAuthenticated } = useTidal()
 
   const { navigateTo } = useNavigation()
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -20,8 +18,7 @@ export default function SearchModal() {
   const flatResults = [
     ...results.artists.map((a) => ({ type: 'artist', ...a })),
     ...results.albums.map((a) => ({ type: 'album', ...a })),
-    ...results.tracks.map((t) => ({ type: 'track', ...t })),
-    ...tidalResults.map((t) => ({ type: 'tidal', ...t }))
+    ...results.tracks.map((t) => ({ type: 'track', ...t }))
   ]
 
   useEffect(() => {
@@ -30,12 +27,6 @@ export default function SearchModal() {
       setSelectedIndex(0)
     }
   }, [isOpen])
-
-  useEffect(() => {
-    if (query.trim().length >= 2 && isAuthenticated) {
-      searchTidal(query)
-    }
-  }, [query, isAuthenticated, searchTidal])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -89,10 +80,6 @@ export default function SearchModal() {
           new CustomEvent('request-track-play', { detail: { track: item } })
         )
       }
-    } else if (type === 'tidal') {
-      window.dispatchEvent(
-        new CustomEvent('request-track-play', { detail: { track: item } })
-      )
     }
   }
 
@@ -280,58 +267,10 @@ export default function SearchModal() {
                 </section>
               )}
 
-              {/* Tidal Tracks */}
-              {tidalResults.length > 0 && (
-                <section>
-                  <h3 className="px-3 py-1 text-xs font-semibold text-blue-500 uppercase tracking-wider mb-1 flex items-center gap-2">
-                    <Waves className="w-3 h-3" /> Tidal Tracks
-                  </h3>
-                  <div className="space-y-1">
-                    {tidalResults.map((track, idx) => {
-                      const isSelected =
-                        selectedIndex ===
-                        results.artists.length + results.albums.length + results.tracks.length + idx
-                      return (
-                        <button
-                          key={track.id}
-                          onClick={() => handleSelect('tidal', track)}
-                          className={cn(
-                            'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors group',
-                            isSelected ? 'bg-blue-900/20 ring-1 ring-blue-800/50' : 'hover:bg-zinc-800/50'
-                          )}
-                        >
-                          <div className="w-10 h-10 rounded bg-zinc-800 overflow-hidden flex items-center justify-center text-zinc-500 group-hover:bg-zinc-700 transition-colors">
-                            {track.coverArtPath ? (
-                              <img
-                                src={track.coverArtPath}
-                                alt={track.album}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Waves className="w-5 h-5" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-white font-medium truncate flex items-center gap-2">
-                              {track.title}
-                              <span className="px-1 py-0.5 bg-blue-500/10 text-blue-400 text-[8px] rounded border border-blue-500/20 uppercase">Tidal</span>
-                            </div>
-                            <div className="text-xs text-zinc-500 truncate">
-                              {track.artist} — {track.album}
-                            </div>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </section>
-              )}
-
               {/* Empty Results */}
               {results.artists.length === 0 &&
                 results.albums.length === 0 &&
-                results.tracks.length === 0 &&
-                tidalResults.length === 0 && (
+                results.tracks.length === 0 && (
                   <div className="p-8 text-center text-zinc-500">
                     No results found for "{query}"
                   </div>

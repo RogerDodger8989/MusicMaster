@@ -160,6 +160,24 @@ export function getAllTracks(): Track[] {
 }
 
 /**
+ * Get top tracks for an artist
+ */
+export function getArtistTopTracks(artist: string, limit: number = 50): Track[] {
+  const db = getDatabase()
+  const rows = db
+    .prepare(
+      `
+      SELECT * FROM tracks 
+      WHERE (artist = ? OR album_artist = ?)
+      ORDER BY play_count DESC 
+      LIMIT ?
+      `
+    )
+    .all(artist, artist, limit) as DbTrack[]
+  return rows.map(dbTrackToTrack)
+}
+
+/**
  * Get most played tracks
  */
 export function getMostPlayed(limit: number = 50): Track[] {
@@ -334,6 +352,34 @@ export function updateTrackLoved(id: string, loved: boolean): void {
     'UPDATE tracks SET loved = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
   )
   stmt.run(loved ? 1 : 0, id)
+}
+
+/**
+ * Bulk update tracks
+ */
+export function bulkUpdateTracks(trackIds: string[], updates: any): void {
+  const db = getDatabase()
+  const fields = Object.keys(updates)
+  if (fields.length === 0) return
+
+  const setClause = fields.map((f) => `${f.replace(/[A-Z]/g, (l) => `_${l.toLowerCase()}`)} = ?`).join(', ')
+  const values = Object.values(updates)
+
+  const stmt = db.prepare(`UPDATE tracks SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+  const transaction = db.transaction((ids: string[]) => {
+    for (const id of ids) {
+      stmt.run(...values, id)
+    }
+  })
+  transaction(trackIds)
+}
+
+/**
+ * Delete track
+ */
+export function deleteTrack(id: string): void {
+  const db = getDatabase()
+  db.prepare('DELETE FROM tracks WHERE id = ?').run(id)
 }
 
 /**

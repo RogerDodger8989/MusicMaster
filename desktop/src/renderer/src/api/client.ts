@@ -8,6 +8,8 @@ export interface MusicClient {
   getAlbum(id: string): Promise<Album | null>;
   getAlbumPerformers(id: string): Promise<any[]>;
   updateAlbum(id: string, updates: Partial<Album>): Promise<void>;
+  deleteAlbum(id: string): Promise<void>;
+  pasteAlbumArtwork(id: string, imageBase64: string): Promise<{ path: string }>;
   getGenres(): Promise<{ genre: string; count: number }[]>;
 
   // Artists
@@ -111,9 +113,6 @@ export interface MusicClient {
   getAudioUrl(id: string): string;
   getWaveformUrl(id: string): string;
   getVibePlaylist(vibeId: string, limit?: number): Promise<Track[]>;
-  updateTidalCredentials(clientId: string, clientSecret: string): Promise<boolean>;
-  getAuthUrl(): Promise<string>;
-  finishAuth(code: string): Promise<boolean>;
 }
 
 // IPC client for Desktop (Electron) – calls main process via window.api
@@ -259,7 +258,10 @@ export class IpcClient implements MusicClient {
   // System
   async getDrives(): Promise<any[]> { return this.call('system:getDrives'); }
   async getDirectory(path: string): Promise<any[]> { return this.call('system:getDirectory', path); }
-  async browseNative(type?: 'file' | 'folder'): Promise<{ path: string | null }> { return this.call('folders:browse'); }
+  async browseNative(type?: 'file' | 'folder'): Promise<{ path: string | null }> {
+    const path = await this.call<string | null>('folders:browse', type)
+    return { path }
+  }
   async showItemInFolder(path: string): Promise<void> { await this.call('util:showItemInFolder', path); }
 
   // Media URLs
@@ -268,9 +270,6 @@ export class IpcClient implements MusicClient {
   getAudioUrl(id: string): string { return `asset://stream/${id}`; }
   getWaveformUrl(id: string): string { return `asset://waveform/${id}`; }
   async getVibePlaylist(vibeId: string, limit?: number): Promise<Track[]> { return this.call('vibes:get', vibeId, limit); }
-  async updateTidalCredentials(clientId: string, clientSecret: string): Promise<boolean> { return await this.call('tidal:updateCredentials', clientId, clientSecret); }
-  async getAuthUrl(): Promise<string> { return await this.call('tidal:getAuthUrl'); }
-  async finishAuth(code: string): Promise<boolean> { return await this.call('tidal:finishAuth', code); }
 }
 
 // REST client – uses fetch to talk to backend API
@@ -926,9 +925,6 @@ export class HybridClient implements MusicClient {
   getAudioUrl(id: string) { return this.isElectron ? this.ipc.getAudioUrl(id) : this.rest.getAudioUrl(id); }
   getWaveformUrl(id: string) { return this.isElectron ? this.ipc.getWaveformUrl(id) : this.rest.getWaveformUrl(id); }
   getVibePlaylist(id: string, l?: number) { return this.rest.getVibePlaylist(id, l); }
-  updateTidalCredentials(cid: string, cs: string) { return this.isElectron ? this.ipc.updateTidalCredentials(cid, cs) : this.rest.updateTidalCredentials(cid, cs); }
-  getAuthUrl() { return this.isElectron ? this.ipc.getAuthUrl() : this.rest.getAuthUrl(); }
-  finishAuth(code: string) { return this.isElectron ? this.ipc.finishAuth(code) : this.rest.finishAuth(code); }
 }
 
 // Export a singleton client instance for the application

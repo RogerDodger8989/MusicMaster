@@ -139,27 +139,17 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
         newRating = 0
       }
 
-      // Optimistic update
+      // Optimistic update – do NOT forcibly set loved here, it's an independent state
       const tracks = get().tracks.map((t) =>
-        (t.id === trackId ? { ...t, rating: newRating, loved: newRating > 0 } : t)
+        (t.id === trackId ? { ...t, rating: newRating } : t)
       )
       set({ tracks })
 
       // Update Player Store
-      usePlayer.getState().updateTrack(trackId, {
-        rating: newRating,
-        loved: newRating > 0
-      })
+      usePlayer.getState().updateTrack(trackId, { rating: newRating })
 
       // Call API
       await client.rateTrack(trackId, newRating)
-
-      // Toggle Loved if it changed as a result of rating
-      if (newRating > 0 && !currentTrack.loved) {
-        await client.toggleTrackLoved(trackId, true)
-      } else if (newRating === 0 && currentTrack.loved) {
-        await client.toggleTrackLoved(trackId, false)
-      }
     } catch (error) {
       console.error('Failed to rate track:', error)
     }
@@ -206,7 +196,7 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
       // Update Player Store
       usePlayer.getState().updateTrack(trackId, { loved: newLoved })
 
-      await client.toggleTrackLoved(trackId, newLoved)
+      await client.loveTrack(trackId, newLoved)
     } catch (error) {
       console.error('Failed to toggle loved:', error)
     }

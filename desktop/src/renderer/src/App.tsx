@@ -16,7 +16,6 @@ import HomeView from './views/HomeView'
 import FavoritesView from './views/FavoritesView'
 import AlbumArtistsView from './views/AlbumArtistsView'
 import GenresView from './views/GenresView'
-import TidalView from './views/TidalView'
 import { useTagging } from './store/tagging'
 import SearchModal from './components/SearchModal'
 import TaggingModal from './components/TaggingModal'
@@ -26,7 +25,6 @@ import TrackContextMenu from './components/TrackContextMenu'
 import AlbumContextMenu from './components/AlbumContextMenu'
 import { TrackPlayOptionModal } from './components/modals/TrackPlayOptionModal'
 import { CreatePlaylistModal } from './components/modals/CreatePlaylistModal'
-import TrackInfoModal from './components/modals/TrackInfoModal'
 import TagEditorModal from './components/modals/TagEditorModal'
 import { client } from './api/client'
 import { useLibrary } from './store/library'
@@ -91,8 +89,6 @@ function App(): React.JSX.Element {
     type: 'track' | 'album'
   } | null>(null)
 
-  const [infoModalTrack, setInfoModalTrack] = useState<Track | null>(null)
-
   const [isTagEditorOpen, setIsTagEditorOpen] = useState(false)
   const [tagEditorTracks, setTagEditorTracks] = useState<Track[]>([])
   const [tagEditorContext, setTagEditorContext] = useState<'track' | 'album' | undefined>(undefined)
@@ -144,6 +140,8 @@ function App(): React.JSX.Element {
   useEffect(() => {
     const initApp = async () => {
       console.log('🚀 Initializing App...')
+      // Load library data first so views are populated as early as possible
+      initialize()
       await loadSettings()
       await loadSession()
 
@@ -215,7 +213,6 @@ function App(): React.JSX.Element {
     return () => {
       clearInterval(syncPollInterval)
       scrobbleService.stop()
-      initialize()
     }
   }, [initialize, loadSettings, loadSession])
 
@@ -232,7 +229,6 @@ function App(): React.JSX.Element {
     onEscapePress: () => {
       setPlayModalOpen(false)
       setTaggingModalOpen(false)
-      setInfoModalTrack(null) // Close info modal on escape
       setIsTagEditorOpen(false) // Close tag editor on escape
       if (isQueueOpen) {
         setIsQueueOpen(false)
@@ -310,13 +306,6 @@ function App(): React.JSX.Element {
       }
     }
 
-    const handleTrackInfoRequest = (e: CustomEvent) => {
-      const { track } = e.detail
-      if (track) {
-        setInfoModalTrack(track)
-      }
-    }
-
     const handleTrackEditRequest = (e: CustomEvent) => {
       const { tracks, context } = e.detail
       if (tracks && tracks.length > 0) {
@@ -328,13 +317,11 @@ function App(): React.JSX.Element {
 
     window.addEventListener('request-track-tagging', handleTrackTaggingRequest as EventListener)
     window.addEventListener('request-album-tagging', handleAlbumTaggingRequest as EventListener)
-    window.addEventListener('request-track-info', handleTrackInfoRequest as EventListener)
     window.addEventListener('request-track-edit', handleTrackEditRequest as EventListener)
 
     return () => {
       window.removeEventListener('request-track-tagging', handleTrackTaggingRequest as EventListener)
       window.removeEventListener('request-album-tagging', handleAlbumTaggingRequest as EventListener)
-      window.removeEventListener('request-track-info', handleTrackInfoRequest as EventListener)
       window.removeEventListener('request-track-edit', handleTrackEditRequest as EventListener)
     }
   }, [])
@@ -570,8 +557,6 @@ function App(): React.JSX.Element {
             onArtistClick={(name) => navigateTo('artist-detail', { artistName: name })}
           />
         )
-      case 'tidal':
-        return <TidalView />
       case 'home':
       default:
         return <HomeView />
@@ -712,10 +697,6 @@ function App(): React.JSX.Element {
 
       {/* Sync Progress Toast */}
       <SyncProgressToast />
-
-      {infoModalTrack && (
-        <TrackInfoModal track={infoModalTrack} onClose={() => setInfoModalTrack(null)} />
-      )}
 
       {isTagEditorOpen && (
         <TagEditorModal

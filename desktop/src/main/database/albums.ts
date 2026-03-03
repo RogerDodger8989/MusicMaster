@@ -413,6 +413,41 @@ export function updateAlbumLoved(albumId: string, loved: boolean): void {
 }
 
 /**
+ * Update album metadata
+ */
+export function updateAlbum(id: string, updates: Partial<Album>): void {
+  const db = getDatabase()
+  const fields = Object.keys(updates)
+  if (fields.length === 0) return
+
+  const setClause = fields.map((f) => {
+    // Convert camelCase to snake_case for DB
+    const dbField = f.replace(/[A-Z]/g, (l) => `_${l.toLowerCase()}`)
+    return `${dbField} = ?`
+  }).join(', ')
+  const values = Object.values(updates)
+
+  db.prepare(`UPDATE albums_cache SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+    .run(...values, id)
+}
+
+/**
+ * Delete album
+ */
+export function deleteAlbum(id: string): void {
+  const db = getDatabase()
+  db.prepare('DELETE FROM albums_cache WHERE id = ?').run(id)
+}
+
+/**
+ * Get album performers (mock/stub for now)
+ */
+export function getAlbumPerformers(_id: string): any[] {
+  // In a real app, this might join with a performers table
+  return []
+}
+
+/**
  * Update album bio
  */
 export function updateAlbumBio(albumId: string, bio: string): void {

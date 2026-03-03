@@ -75,9 +75,12 @@ export class TidalService {
         }
     }
 
-    private saveTokens(tokens: { access_token: string, refresh_token: string, expires_in: number }) {
+    private saveTokens(tokens: { access_token: string, refresh_token: string, expires_in?: number }) {
         const db = getDatabase()
-        const expiresAt = Date.now() + (tokens.expires_in * 1000)
+        const expiresIn = tokens.expires_in || 86400
+        const expiresAt = Date.now() + (expiresIn * 1000)
+
+        logDebug(`Saving tokens... Access: ${!!tokens.access_token}, Refresh: ${!!tokens.refresh_token}, ExpiresIn: ${tokens.expires_in}, ExpiresAt: ${expiresAt}`)
 
         const upsert = db.prepare(`
             INSERT INTO user_settings (id, setting_key, setting_value) 
@@ -102,13 +105,13 @@ export class TidalService {
         const challenge = crypto.createHash('sha256').update(verifier).digest('base64url')
 
         logDebug(`Using Redirect URI: "${this.redirectUri}" (length: ${this.redirectUri.length})`)
-        logDebug(`Using Scopes: "user.read collection.read playlists.read search.read playback"`)
+        logDebug(`Using Scopes: "r_usr user.read collection.read playlists.read search.read playback"`)
 
         const params = new URLSearchParams({
             client_id: this.clientId!,
             response_type: 'code',
             redirect_uri: this.redirectUri,
-            scope: 'user.read collection.read playlists.read search.read playback',
+            scope: 'r_usr user.read collection.read playlists.read search.read playback',
             code_challenge_method: 'S256',
             code_challenge: challenge
         })
@@ -133,7 +136,6 @@ export class TidalService {
                 code_verifier: this.authCodeVerifier
             })
 
-            // Tidal often requires Basic Auth with ClientID:ClientSecret if secret is provided
             const headers: any = { 'Content-Type': 'application/x-www-form-urlencoded' }
             if (this.clientSecret) {
                 headers['Authorization'] = 'Basic ' + Buffer.from(this.clientId + ':' + this.clientSecret).toString('base64')
@@ -141,23 +143,55 @@ export class TidalService {
 
             const res = await axios.post('https://auth.tidal.com/v1/oauth2/token', params, { headers })
 
+            console.log('[Tidal] Full Tidal Token Response:', res.data)
+
             this.saveTokens(res.data)
+            // Save user ID if it's in the token response
+            if (res.data.user) {
+                const db = getDatabase()
+                const upsert = db.prepare(`
+                    INSERT INTO user_settings (id, setting_key, setting_value) 
+                    VALUES (?, ?, ?) 
+                    ON CONFLICT(user_id, setting_key) DO UPDATE SET setting_value = excluded.setting_value
+                `)
+                try {
+                    upsert.run(crypto.randomUUID(), 'tidal_user_id', JSON.stringify(res.data.user.userId || res.data.user.id))
+                } catch (e) { }
+            } else if (res.data.user_id) {
+                const db = getDatabase()
+                const upsert = db.prepare(`
+                    INSERT INTO user_settings (id, setting_key, setting_value) 
+                    VALUES (?, ?, ?) 
+                    ON CONFLICT(user_id, setting_key) DO UPDATE SET setting_value = excluded.setting_value
+                `)
+                try {
+                    upsert.run(crypto.randomUUID(), 'tidal_user_id', JSON.stringify(res.data.user_id))
+                } catch (e) { }
+            }
+
             return true
         } catch (error: any) {
             logDebug(`Tidal Auth Error: ${error.message} - ${JSON.stringify(error.response?.data)}`)
+            console.error('[Tidal] Auth Error:', error.message, error.response?.data)
             return false
         }
     }
 
     private async ensureValidToken() {
         const tokens = this.getTokens()
-        if (!tokens.accessToken) return null
+        logDebug(`ensureValidToken: DB has access: ${!!tokens.accessToken}, refresh: ${!!tokens.refreshToken}, expiresAt: ${tokens.expiresAt}, now: ${Date.now()}`)
+
+        if (!tokens.accessToken) {
+            logDebug('ensureValidToken: No access token found in DB')
+            return null
+        }
 
         if (Date.now() < tokens.expiresAt - 60000) {
+            logDebug('ensureValidToken: Token is still valid')
             return tokens.accessToken
         }
 
-        // Refresh token
+        logDebug('ensureValidToken: Token expired, attempting refresh...')
         try {
             const params = new URLSearchParams({
                 client_id: this.clientId!,
@@ -180,6 +214,15 @@ export class TidalService {
         }
     }
 
+    private getCountryCode(token: string): string {
+        try {
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf8'))
+            return payload.cc || 'SE'
+        } catch (e) {
+            return 'SE'
+        }
+    }
+
     public async search(query: string) {
         const token = await this.ensureValidToken()
         if (!token) {
@@ -188,15 +231,16 @@ export class TidalService {
         }
 
         try {
-            const res = await axios.get(`https://api.tidal.com/v1/search?query=${encodeURIComponent(query)}&limit=20&types=TRACKS`, {
+            const countryCode = this.getCountryCode(token)
+            const res = await axios.get(`https://api.tidal.com/v1/search?query=${encodeURIComponent(query)}&limit=20&types=TRACKS&countryCode=${countryCode}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-            
+
             if (!res.data || !res.data.tracks) {
                 logDebug(`Tidal search returned unexpected format: ${JSON.stringify(res.data)}`)
                 return []
             }
-            
+
             logDebug(`Tidal search found ${res.data.tracks.items?.length || 0} tracks`)
             return res.data.tracks.items || []
         } catch (error: any) {
@@ -210,9 +254,10 @@ export class TidalService {
         if (!token) return null
 
         try {
+            const countryCode = this.getCountryCode(token)
             // Tidal API for stream URLs requires specific permissions/account type
             // This is a placeholder for the actual Tidal stream endpoint
-            const res = await axios.get(`https://api.tidal.com/v1/tracks/${trackId}/urlpostpaywall?playbackmode=STREAM&assetpresentation=FULL`, {
+            const res = await axios.get(`https://api.tidal.com/v1/tracks/${trackId}/urlpostpaywall?playbackmode=STREAM&assetpresentation=FULL&countryCode=${countryCode}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             return res.data.url
@@ -241,6 +286,20 @@ export class TidalService {
             console.error('  Message:', error?.message)
             console.error('  Status:', error?.response?.status)
             console.error('  Response:', error?.response?.data)
+
+            // Fallback: check database for saved user ID
+            try {
+                const db = getDatabase()
+                const entry = db.prepare("SELECT setting_value FROM user_settings WHERE setting_key = 'tidal_user_id'").get() as any
+                if (entry && entry.setting_value) {
+                    const userId = JSON.parse(entry.setting_value)
+                    console.log(`[Tidal] Fallback: Retrieved user ID ${userId} from database`)
+                    return { userId }
+                }
+            } catch (dbError) {
+                console.error('[Tidal] Fallback failed to read user ID from database', dbError)
+            }
+
             return null
         }
     }
@@ -260,19 +319,20 @@ export class TidalService {
                 console.error('[Tidal] getUserInfo returned null')
                 return []
             }
-            
+
             console.log('[Tidal] User info:', userInfo)
-            
+
             if (!userInfo.userId) {
                 console.error('[Tidal] No userId in user info. Keys:', Object.keys(userInfo))
                 return []
             }
 
             console.log(`[Tidal] Fetching liked tracks for user ${userInfo.userId}...`)
-            const res = await axios.get(`https://api.tidal.com/v1/users/${userInfo.userId}/favorites/tracks?limit=${limit}`, {
+            const countryCode = this.getCountryCode(token)
+            const res = await axios.get(`https://api.tidal.com/v1/users/${userInfo.userId}/favorites/tracks?limit=${limit}&countryCode=${countryCode}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-            
+
             console.log('[Tidal] Liked tracks response:', res.data)
             const items = res.data.items || res.data.totalNumberOfItems ? (res.data.items || []) : []
             console.log(`[Tidal] Returning ${items.length} liked tracks`)

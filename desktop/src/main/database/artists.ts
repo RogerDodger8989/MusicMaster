@@ -36,6 +36,25 @@ export function updateArtistLoved(id: string, loved: boolean): void {
   const stmt = db.prepare('UPDATE artists SET loved = ? WHERE id = ?')
   stmt.run(loved ? 1 : 0, id)
 }
+
+/**
+ * Update artist metadata
+ */
+export function updateArtist(id: string, updates: Partial<Artist>): void {
+  const db = getDatabase()
+  const fields = Object.keys(updates)
+  if (fields.length === 0) return
+
+  const setClause = fields.map((f) => {
+    // Convert camelCase to snake_case for DB
+    const dbField = f.replace(/[A-Z]/g, (l) => `_${l.toLowerCase()}`)
+    return `${dbField} = ?`
+  }).join(', ')
+  const values = Object.values(updates)
+
+  db.prepare(`UPDATE artists SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+    .run(...values, id)
+}
 export function updateArtistFacts(
   id: string,
   facts: {

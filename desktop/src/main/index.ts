@@ -99,7 +99,7 @@ function createWindow(): void {
 
   const rendererUrl = process.env['ELECTRON_RENDERER_URL']
   console.log('[Window] Creating window with is.dev:', is.dev, 'ELECTRON_RENDERER_URL:', rendererUrl)
-  
+
   if (is.dev && rendererUrl) {
     console.log('[Window] Loading dev URL:', rendererUrl)
     mainWindow.loadURL(rendererUrl).catch(err => {
@@ -316,14 +316,33 @@ app.on('before-quit', async () => {
 
 function handleDeepLink(url: string) {
   console.log('Received deep link:', url)
+  try {
+    const logPath = require('path').join(process.cwd(), 'debug-tidal.log')
+    require('fs').appendFileSync(logPath, `[${new Date().toISOString()}] handleDeepLink REACHED with URL: ${url}\n`)
+  } catch (e) { }
+
   const parsedUrl = new URL(url)
   if (parsedUrl.host === 'auth') {
     const code = parsedUrl.searchParams.get('code')
     if (code) {
       const mainWindow = BrowserWindow.getAllWindows()[0]
       if (mainWindow) {
+        try {
+          const logPath = require('path').join(process.cwd(), 'debug-tidal.log')
+          require('fs').appendFileSync(logPath, `[${new Date().toISOString()}] handleDeepLink SENDING CODE to renderer via IPC\n`)
+        } catch (e) { }
         mainWindow.webContents.send('tidal:auth-callback', code)
+      } else {
+        try {
+          const logPath = require('path').join(process.cwd(), 'debug-tidal.log')
+          require('fs').appendFileSync(logPath, `[${new Date().toISOString()}] handleDeepLink NO mainWindow found!\n`)
+        } catch (e) { }
       }
+    } else {
+      try {
+        const logPath = require('path').join(process.cwd(), 'debug-tidal.log')
+        require('fs').appendFileSync(logPath, `[${new Date().toISOString()}] handleDeepLink NO CODE IN URL!\n`)
+      } catch (e) { }
     }
   }
 }

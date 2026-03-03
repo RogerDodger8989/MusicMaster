@@ -4,7 +4,7 @@ import { useLibrary } from '../store/library'
 import { useSettings, TrackPlayBehavior, ReplayGainMode, AutoDjRatingFilter, AutoDjTriggerAt, AutoDjAddCount } from '../store/settings'
 import { useSyncStore } from '../store/sync'
 import { cn } from '../lib/utils'
-import { useTidal } from '../store/tidal'
+import { db } from '../database/db'
 import {
   FolderOpen,
   Trash2,
@@ -36,8 +36,8 @@ export default function SettingsView() {
     scanFolder
   } = useFolders()
   const settings = useSettings()
-  const tidal = useTidal()
-  const { progress, startSync, completeSync } = useSyncStore()
+  const progress = useSyncStore((state) => state.progress)
+  const isSyncing = useLibrary((state) => state.isLoading)
   const [lastfmAuthToken, setLastfmAuthToken] = useState('')
   const [lastfmAuthUrl, setLastfmAuthUrl] = useState('')
   const [lastfmAuthInProgress, setLastfmAuthInProgress] = useState(false)
@@ -133,13 +133,6 @@ export default function SettingsView() {
   useEffect(() => {
     loadMbCoverage()
   }, [])
-
-  // Sync Tidal credentials to main process when they change in settings
-  useEffect(() => {
-    if (settings.tidalClientId && settings.tidalClientSecret) {
-      client.updateTidalCredentials(settings.tidalClientId, settings.tidalClientSecret)
-    }
-  }, [settings.tidalClientId, settings.tidalClientSecret])
 
   // Poll for Enhancement Progress
   useEffect(() => {
@@ -266,7 +259,7 @@ export default function SettingsView() {
       await useLibrary.getState().loadTracks()
     } catch (error) {
       console.error('ListenBrainz JSON import failed:', error)
-      alert(`❌ Failed to import ListenBrainz JSON: ${error}`)
+      alert(`❌ Failed to import ListenBrainz JSON: ${error} `)
     } finally {
       setIsListenBrainzImporting(false)
     }
@@ -282,7 +275,7 @@ export default function SettingsView() {
       console.log('🔐 Requesting Last.fm auth token...')
       const result = await client.getLastFmAuthToken()
       console.log('📥 Auth token response:', result)
-      
+
       if (result && result.token) {
         console.log('✅ Auth token received:', result.token.substring(0, 8) + '...')
         setLastfmAuthToken(result.token)
@@ -387,7 +380,7 @@ export default function SettingsView() {
 
     if (
       !confirm(
-        `This will write MusicBrainz metadata to ${mbCoverage.tracksWithMBID} audio files. Continue?`
+        `This will write MusicBrainz metadata to ${mbCoverage.tracksWithMBID} audio files.Continue ? `
       )
     ) {
       return
@@ -456,7 +449,7 @@ export default function SettingsView() {
       }
     } catch (error) {
       console.error('handleAddFolder error:', error)
-      alert(`Error adding folder: ${error}`)
+      alert(`Error adding folder: ${error} `)
     }
   }
 
@@ -833,99 +826,6 @@ export default function SettingsView() {
           </p>
         </div>
 
-        {/* Tidal Integration */}
-        <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <Waves className="w-5 h-5 text-blue-500" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white">Tidal</h3>
-              <p className="text-[11px] text-zinc-500">Stream high-quality music and sync your Tidal favorites.</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-zinc-400">Tidal Client ID</label>
-                <input
-                  type="text"
-                  value={settings.tidalClientId}
-                  onChange={(e) => settings.setTidalClientId(e.target.value)}
-                  placeholder="Paste your Tidal Client ID..."
-                  className="w-full mt-1 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-zinc-400">Tidal Client Secret</label>
-                <input
-                  type="password"
-                  value={settings.tidalClientSecret}
-                  onChange={(e) => settings.setTidalClientSecret(e.target.value)}
-                  placeholder="Paste your Tidal Client Secret..."
-                  className="w-full mt-1 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-200 text-xs focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            {(!settings.tidalClientId || !settings.tidalClientSecret) && (
-              <div className="p-3 bg-blue-900/10 border border-blue-900/30 rounded-lg">
-                <p className="text-xs text-blue-300">
-                  <strong>ℹ️ Setup Required:</strong> To use Tidal, you must first create a <strong>Web App</strong> in the Tidal Developer Dashboard.
-                  <br />
-                  1. Go to <a href="https://developer.tidal.com/dashboard" target="_blank" rel="noreferrer" className="underline hover:text-blue-100">developer.tidal.com/dashboard</a>.
-                  <br />
-                  2. Create a new app and set the <strong>Redirect URI</strong> to: <code className="bg-zinc-800 px-1 rounded text-blue-400">musicmaster://auth/</code>
-                  <br />
-                  3. In the <strong>Scopes</strong> section, enable: <code className="text-blue-400">user.read</code>, <code className="text-blue-400">collection.read</code>, <code className="text-blue-400">playlists.read</code>, <code className="text-blue-400">search.read</code>, and <code className="text-blue-400">playback</code>.
-                  <br />
-                  4. Paste the Client ID and Secret above.
-                </p>
-              </div>
-            )}
-            {!tidal.isAuthenticated ? (
-              <div className="flex items-center justify-between p-4 bg-zinc-900/50 rounded-xl border border-white/5">
-                <div>
-                  <p className="text-sm font-medium text-white">Application Configured</p>
-                  <p className="text-xs text-zinc-500 mt-1">Now, click "Connect Tidal" to sign in with your personal account.</p>
-                </div>
-                <button
-                  onClick={async () => {
-                    if (!settings.tidalClientId || !settings.tidalClientSecret) {
-                      alert('Please enter your Client ID and Client Secret first.')
-                      return
-                    }
-                    // Explicitly sync to main process before opening browser
-                    await client.updateTidalCredentials(settings.tidalClientId, settings.tidalClientSecret)
-                    await tidal.login()
-                  }}
-                  disabled={tidal.isConnecting}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-all shadow-lg shadow-blue-500/20"
-                >
-                  {tidal.isConnecting ? 'Waiting for Tidal...' : 'Connect Tidal'}
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between p-4 bg-green-900/10 border border-green-900/30 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <div>
-                    <p className="text-sm font-medium text-green-400">Connected to Tidal</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">Your library is ready to sync and stream.</p>
-                  </div>
-                </div>
-                <button
-                  onClick={tidal.logout}
-                  className="px-4 py-2 bg-zinc-800 hover:bg-red-900/30 text-zinc-400 hover:text-red-400 text-xs font-medium rounded-lg transition-all"
-                >
-                  Disconnect
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
         <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
           <h3 className="text-lg font-semibold text-white mb-4">Scrobbling</h3>
 
@@ -1170,7 +1070,7 @@ export default function SettingsView() {
                   <div className="w-full bg-zinc-800 rounded-full h-2.5 overflow-hidden">
                     <div
                       className="bg-blue-600 h-2.5 transition-all duration-300 ease-out"
-                      style={{ width: `${progress.percentage}%` }}
+                      style={{ width: `${progress.percentage}% ` }}
                     ></div>
                   </div>
                   <p className="text-xs text-zinc-500 mt-1 text-center">{progress.percentage}%</p>

@@ -13,7 +13,7 @@ const api = {
     updateWatch: (folderId: string, watchEnabled: boolean): Promise<void> =>
       ipcRenderer.invoke('folders:updateWatch', folderId, watchEnabled),
     scan: (folderId: string): Promise<void> => ipcRenderer.invoke('folders:scan', folderId),
-    browse: (): Promise<string | null> => ipcRenderer.invoke('folders:browse')
+    browse: (type?: 'file' | 'folder'): Promise<string | null> => ipcRenderer.invoke('folders:browse', type)
   },
 
   // Scanner
@@ -68,8 +68,13 @@ const api = {
       ipcRenderer.invoke('tracks:updateMetadata', trackId, filePath, rating, loved, mbData),
     getMostPlayed: (limit?: number): Promise<Track[]> =>
       ipcRenderer.invoke('tracks:getMostPlayed', limit),
+    getInfo: (id: string): Promise<any> => ipcRenderer.invoke('tracks:getInfo', id),
     getCoverage: (): Promise<any> => ipcRenderer.invoke('tracks:getCoverage'),
-    getArtistTop: (): Promise<any[]> => ipcRenderer.invoke('tracks:getArtistTop')
+    getArtistTop: (artist: string, limit?: number): Promise<any[]> => ipcRenderer.invoke('tracks:getArtistTop', artist, limit),
+    bulkUpdate: (trackIds: string[], data: any): Promise<void> =>
+      ipcRenderer.invoke('tracks:bulkUpdate', trackIds, data),
+    delete: (id: string): Promise<void> => ipcRenderer.invoke('tracks:delete', id),
+    getSimilar: (id: string): Promise<Track[]> => ipcRenderer.invoke('tracks:getSimilar', id)
   },
 
   // Albums
@@ -80,7 +85,13 @@ const api = {
     aggregate: (): Promise<boolean> => ipcRenderer.invoke('albums:aggregate'),
     rate: (id: string, rating: number): Promise<void> =>
       ipcRenderer.invoke('albums:rate', id, rating),
-    getById: (id: string): Promise<Album | null> => ipcRenderer.invoke('albums:getById', id)
+    getById: (id: string): Promise<Album | null> => ipcRenderer.invoke('albums:getById', id),
+    update: (id: string, updates: Partial<Album>): Promise<void> =>
+      ipcRenderer.invoke('albums:update', id, updates),
+    delete: (id: string): Promise<void> => ipcRenderer.invoke('albums:delete', id),
+    getPerformers: (id: string): Promise<any[]> => ipcRenderer.invoke('albums:getPerformers', id),
+    pasteArtwork: (id: string, imageBase64: string): Promise<{ path: string }> =>
+      ipcRenderer.invoke('albums:pasteArtwork', id, imageBase64)
   },
 
   // Library
@@ -98,23 +109,12 @@ const api = {
     ): Promise<{ name: string; image: string; match: string }[]> =>
       ipcRenderer.invoke('library:getSimilarArtists', artist),
     tagAlbumMetadata: (albumId: string, mbAlbumId: string): Promise<number> =>
-      ipcRenderer.invoke('library:tagAlbumMetadata', albumId, mbAlbumId)
+      ipcRenderer.invoke('library:tagAlbumMetadata', albumId, mbAlbumId),
+    updateArtist: (id: string, updates: Partial<any>): Promise<void> =>
+      ipcRenderer.invoke('library:updateArtist', id, updates)
   },
 
-  // Tidal
-  tidal: {
-    updateCredentials: (clientId: string, clientSecret: string): Promise<boolean> => ipcRenderer.invoke('tidal:updateCredentials', clientId, clientSecret),
-    getAuthUrl: (): Promise<string> => ipcRenderer.invoke('tidal:getAuthUrl'),
-    finishAuth: (code: string): Promise<boolean> => ipcRenderer.invoke('tidal:finishAuth', code),
-    search: (query: string): Promise<any[]> => ipcRenderer.invoke('tidal:search', query),
-    getStreamUrl: (trackId: string): Promise<string | null> => ipcRenderer.invoke('tidal:getStreamUrl', trackId),
-    getLikedTracks: (limit?: number): Promise<any[]> => ipcRenderer.invoke('tidal:getLikedTracks', limit),
-    onAuthCallback: (callback: (code: string) => void) => {
-      const listener = (_: any, code: string): void => callback(code)
-      ipcRenderer.on('tidal:auth-callback', listener)
-      return () => ipcRenderer.removeListener('tidal:auth-callback', listener)
-    }
-  },
+  // TIDAL REMOVED
 
   // Utils
   util: {
@@ -151,12 +151,27 @@ const api = {
     create: (name: string, trackIds: string[]): Promise<string> =>
       ipcRenderer.invoke('playlists:create', name, trackIds),
     delete: (id: string): Promise<boolean> => ipcRenderer.invoke('playlists:delete', id),
-    addTrack: (playlistId: string, trackId: string): Promise<boolean> =>
-      ipcRenderer.invoke('playlists:addTrack', playlistId, trackId),
-    removeTrack: (playlistId: string, trackId: string, position: number): Promise<boolean> =>
-      ipcRenderer.invoke('playlists:removeTrack', playlistId, trackId, position),
+    add: (playlistId: string, trackId: string): Promise<boolean> =>
+      ipcRenderer.invoke('playlists:add', playlistId, trackId),
+    remove: (playlistId: string, trackId: string, position: number): Promise<boolean> =>
+      ipcRenderer.invoke('playlists:remove', playlistId, trackId, position),
     rename: (id: string, name: string): Promise<boolean> =>
-      ipcRenderer.invoke('playlists:rename', id, name)
+      ipcRenderer.invoke('playlists:rename', id, name),
+    removeById: (id: string, trackId: string): Promise<void> =>
+      ipcRenderer.invoke('playlists:removeById', id, trackId),
+    reorder: (id: string, trackIds: string[]): Promise<void> =>
+      ipcRenderer.invoke('playlists:reorder', id, trackIds)
+  },
+
+  // Smart Playlists
+  smartplaylists: {
+    getAll: (): Promise<any[]> => ipcRenderer.invoke('smartplaylists:getAll'),
+    getById: (id: string): Promise<any> => ipcRenderer.invoke('smartplaylists:getById', id),
+    create: (data: any): Promise<any> => ipcRenderer.invoke('smartplaylists:create', data),
+    update: (id: string, data: any): Promise<any> => ipcRenderer.invoke('smartplaylists:update', id, data),
+    delete: (id: string): Promise<void> => ipcRenderer.invoke('smartplaylists:delete', id),
+    resolve: (id: string): Promise<{ tracks: any[]; total: number }> => ipcRenderer.invoke('smartplaylists:resolve', id),
+    preview: (data: any): Promise<{ tracks: any[]; total: number }> => ipcRenderer.invoke('smartplaylists:preview', data)
   },
 
   scrobble: {
@@ -235,7 +250,14 @@ const api = {
       const listener = (_: any, progress: any): void => callback(progress)
       ipcRenderer.on('scrobble:listenBrainzSyncProgress', listener)
       return () => ipcRenderer.removeListener('scrobble:listenBrainzSyncProgress', listener)
-    }
+    },
+    track: (artist: string, track: string, album?: string, duration?: number, timestamp?: number): Promise<void> =>
+      ipcRenderer.invoke('scrobble:track', artist, track, album, duration, timestamp),
+    updateNowPlaying: (artist: string, track: string, album?: string, duration?: number): Promise<void> =>
+      ipcRenderer.invoke('scrobble:updateNowPlaying', artist, track, album, duration),
+    sync: (lastfmUsername: string, listenbrainzUsername: string, writeToFile?: boolean): Promise<void> =>
+      ipcRenderer.invoke('scrobble:sync', lastfmUsername, listenbrainzUsername, writeToFile),
+    syncMusicBrainz: (): Promise<void> => ipcRenderer.invoke('scrobble:syncMusicBrainz')
   },
 
   // Metadata & MusicBrainz
@@ -253,7 +275,13 @@ const api = {
     updateArtistFacts: (id: string, facts: any): Promise<boolean> =>
       ipcRenderer.invoke('metadata:updateArtistFacts', id, facts),
     getArtistSimilar: (artist: string): Promise<any[]> =>
-      ipcRenderer.invoke('metadata:getArtistSimilar', artist)
+      ipcRenderer.invoke('metadata:getArtistSimilar', artist),
+    sync: (): Promise<void> => ipcRenderer.invoke('metadata:sync'),
+    getSyncStatus: (): Promise<any> => ipcRenderer.invoke('metadata:getSyncStatus'),
+    enhance: (writeToFiles?: boolean): Promise<void> => ipcRenderer.invoke('metadata:enhance', writeToFiles),
+    getEnhanceStatus: (): Promise<any> => ipcRenderer.invoke('metadata:getEnhanceStatus'),
+    getArtistMembers: (id: string): Promise<any[]> => ipcRenderer.invoke('metadata:getArtistMembers', id),
+    previewMatchAlbum: (albumId: string, mbAlbumId: string): Promise<any[]> => ipcRenderer.invoke('metadata:previewMatchAlbum', albumId, mbAlbumId)
   },
 
   // MusicBrainz Enhancement
@@ -315,7 +343,11 @@ const api = {
       const listener = (_: any, progress: any): void => callback(progress)
       ipcRenderer.on('musicbrainz:refreshProgress', listener)
       return () => ipcRenderer.removeListener('musicbrainz:refreshProgress', listener)
-    }
+    },
+    tag: (albumId: string, mbAlbumId: string): Promise<number> =>
+      ipcRenderer.invoke('musicbrainz:tag', albumId, mbAlbumId),
+    apply: (trackId: string, candidate: any, options: any): Promise<void> =>
+      ipcRenderer.invoke('musicbrainz:apply', trackId, candidate, options)
   },
 
   // Enrichment Worker (Phase 9)
@@ -337,7 +369,8 @@ const api = {
       const listener = (_: any, error: string): void => callback(error)
       ipcRenderer.on('enrichment:error', listener)
       return () => ipcRenderer.removeListener('enrichment:error', listener)
-    }
+    },
+    artists: (artistIds: string[]): Promise<void> => ipcRenderer.invoke('enrich:artists', artistIds)
   },
   // Window Controls
   window: {
@@ -374,6 +407,12 @@ const api = {
       ipcRenderer.on('cast:status', listener)
       return () => ipcRenderer.removeListener('cast:status', listener)
     }
+  },
+
+  // System
+  system: {
+    getDrives: (): Promise<any[]> => ipcRenderer.invoke('system:getDrives'),
+    getDirectory: (path: string): Promise<any[]> => ipcRenderer.invoke('system:getDirectory', path)
   }
 }
 

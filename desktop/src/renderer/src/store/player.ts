@@ -77,32 +77,11 @@ export const getAnalyser = () => {
   return analyser
 }
 
-// DEBUG ALERT - REMOVE AFTER FIXING
-if (typeof window !== 'undefined') {
-  // console.error to be visible
-  console.error('PLAYER SCRIPT LOADED')
-    // window.alert("PLAYER LOADED - IF YOU SEE THIS, UPDATE WORKED")
 
-    // Expose Debug Helper
-    ; (window as any).DEBUG_PLAY_TRACK = (path: string) => {
-      console.error('DEBUG: Manual Play Triggered for', path)
-      const audio = new Audio()
-      const src = `asset:///${encodeURI(path.replace(/\\/g, '/'))}`
-      console.error('DEBUG: Manual Source of Audio:', src)
-      audio.src = src
-      audio
-        .play()
-        .then(() => console.error('DEBUG: Manual Play SUCCESS'))
-        .catch((e) => console.error('DEBUG: Manual Play FAILED', e))
-    }
-}
 
 export const usePlayer = create<PlayerState>((set, get) => {
   const getTrackSrc = async (track: Track) => {
     if (!track.id) return ''
-    if (track.provider === 'tidal' && track.externalId) {
-      return await window.api.tidal.getStreamUrl(track.externalId)
-    }
     return client.getAudioUrl(track.id)
   }
 

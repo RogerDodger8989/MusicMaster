@@ -13,7 +13,6 @@ import {
   Radio,
   Mic2,
   Sparkles,
-  Info,
   FolderOpen,
   Image as ImageIcon
 } from 'lucide-react'
@@ -51,7 +50,6 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
   const menuRef = useRef<HTMLDivElement>(null)
   const [coords, setCoords] = useState({ left: x, top: y })
   const [subMenuSide, setSubMenuSide] = useState<'right' | 'left'>('right')
-  const [showInfoSub, setShowInfoSub] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleMouseEnter = (setter: (v: boolean) => void) => {
@@ -169,18 +167,6 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
         detail: { album }
       })
     )
-    onClose()
-  }
-
-  const handleShowInfo = async () => {
-    const tracks = await getAlbumTracks()
-    if (tracks.length > 0) {
-      window.dispatchEvent(
-        new CustomEvent('request-track-info', {
-          detail: { track: tracks[0] }
-        })
-      )
-    }
     onClose()
   }
 
@@ -526,45 +512,15 @@ export default function AlbumContextMenu({ album, x, y, onClose }: AlbumContextM
       </button>
 
       <div className="h-px bg-zinc-800 my-1 mx-2" />
-
-      {/* Info Submenu */}
-      <div
-        className="relative group/info"
-        onMouseEnter={() => handleMouseEnter(setShowInfoSub)}
-        onMouseLeave={() => handleMouseLeave(setShowInfoSub)}
+      <button
+        onClick={handleEditInfo}
+        className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
       >
-        <button className="w-full px-4 py-2.5 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center justify-between transition-colors">
-          <div className="flex items-center gap-3">
-            <Info size={16} />
-            Info
-          </div>
-          <ChevronRight size={14} className="text-zinc-500 group-hover/info:text-white" />
-        </button>
+        <Plus size={16} />
+        Edit Info
+      </button>
 
-        {showInfoSub && (
-          <div
-            className={cn(
-              'absolute top-0 w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-2 animate-in fade-in duration-100',
-              subMenuSide === 'right' ? 'left-full slide-in-from-left-2' : 'right-full slide-in-from-right-2'
-            )}
-          >
-            <button
-              onClick={handleShowInfo}
-              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
-            >
-              <Info size={14} />
-              Properties
-            </button>
-            <button
-              onClick={handleEditInfo}
-              className="w-full px-4 py-2 text-left text-sm font-medium text-zinc-200 hover:bg-blue-600 hover:text-white flex items-center gap-3 transition-colors"
-            >
-              <Plus size={14} />
-              Edit Info
-            </button>
-          </div>
-        )}
-      </div>
+      <div className="h-px bg-zinc-800 my-1 mx-2" />
 
       <button
         onClick={handleIdentify}

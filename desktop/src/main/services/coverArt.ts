@@ -132,6 +132,24 @@ export function getCoverArtPath(albumId: string): string | null {
 }
 
 /**
+ * Save album artwork from base64 string
+ */
+export async function saveAlbumArtwork(albumId: string, imageBase64: string): Promise<{ path: string }> {
+  try {
+    const buffer = Buffer.from(imageBase64.split(',')[1] || imageBase64, 'base64')
+    const fileName = `${albumId}.jpg`
+    const filePath = path.join(COVER_CACHE_DIR, fileName)
+
+    await fs.writeFile(filePath, buffer)
+    console.log(`✅ Saved album artwork for album ${albumId}`)
+    return { path: filePath }
+  } catch (error) {
+    console.error('Error saving album artwork:', error)
+    throw error
+  }
+}
+
+/**
  * Delete cover art from cache
  */
 export async function deleteCoverArt(albumId: string): Promise<void> {

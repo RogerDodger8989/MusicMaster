@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { X, Save, Music, Image as ImageIcon, CheckSquare, ExternalLink, Settings2, Trash2, Star, Heart, ChevronLeft, ChevronRight, RotateCcw, Wand2, Copy, Check } from 'lucide-react'
-import { Track } from '../../types'
+import { X, Save, Music, Image as ImageIcon, CheckSquare, ExternalLink, Settings2, Trash2, Star, Heart, ChevronLeft, ChevronRight, RotateCcw, Wand2, Copy, Check, HardDrive } from 'lucide-react'
 import { client } from '../../api/client'
+import { useLibrary } from '../../store/library'
+import type { Track } from '../../types'
 import { cn } from '../../lib/utils'
 import { motion } from 'framer-motion'
-import { useLibrary } from '../../store/library'
 import { useDraggable } from '../../hooks/useDraggable'
 import TaggingModal from '../TaggingModal'
 
@@ -15,12 +15,25 @@ interface TagEditorModalProps {
     onClose: () => void
 }
 
-type Tab = 'tags' | 'tags2' | 'artwork'
+type Tab = 'tags' | 'extended' | 'artwork' | 'lyrics' | 'info'
 
 export default function TagEditorModal({ tracks, context, initialTrackIndex = 0, onClose }: TagEditorModalProps) {
-    const { initialize } = useLibrary()
+    const { albums, initialize } = useLibrary()
+    const [editedTracks, setEditedTracks] = useState<Track[]>([])
     const [activeTab, setActiveTab] = useState<Tab>('tags')
     const [isSaving, setIsSaving] = useState(false)
+
+    // Helper to resolve album ID from store if missing in track
+    const getResolvedAlbumId = (track: Track) => {
+        if (!track) return ''
+        if (track.albumId) return track.albumId
+        const album = albums.find(
+            (a) =>
+                a.name === track.album &&
+                a.artist === (track.albumArtist || track.artist)
+        )
+        return album?.id || ''
+    }
     const { position, handleMouseDown } = useDraggable()
     const [currentIndex, setCurrentIndex] = useState(initialTrackIndex)
     const [initialFields, setInitialFields] = useState<Record<string, string>>({})
@@ -51,6 +64,56 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
 
     const isMulti = tracks.length > 1
     const isAlbumContext = context === 'album'
+
+    const [trackInfo, setTrackInfo] = useState<any>(null)
+    const [infoLoading, setInfoLoading] = useState(false)
+    const [infoError, setInfoError] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (activeTab === 'info') {
+            const fetchInfo = async () => {
+                try {
+                    setInfoLoading(true)
+                    const data = await client.getTrackInfo(tracks[currentIndex].id)
+                    setTrackInfo(data)
+                } catch (err) {
+                    setInfoError('Failed to load track information.')
+                } finally {
+                    setInfoLoading(false)
+                }
+            }
+            fetchInfo()
+        }
+    }, [activeTab, currentIndex, tracks])
+
+    const formatDuration = (ms: number) => {
+        if (!ms) return ''
+        const sec = Math.floor(ms / 1000)
+        const m = Math.floor(sec / 60)
+        const s = sec % 60
+        return `${m}:${s.toString().padStart(2, '0')}`
+    }
+
+    const formatSize = (bytes: number) => {
+        if (!bytes) return ''
+        if (bytes < 1024) return bytes + ' B'
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'
+        else return (bytes / 1048576).toFixed(2) + ' MB'
+    }
+
+    const openPath = async () => {
+        if (trackInfo && trackInfo.path && (window as any).api?.util?.showItemInFolder) {
+            (window as any).api.util.showItemInFolder(trackInfo.path)
+        } else if (trackInfo && trackInfo.path) {
+            await client.showItemInFolder(trackInfo.path)
+        }
+    }
+
+    const copyPath = () => {
+        if (trackInfo?.path) {
+            navigator.clipboard.writeText(trackInfo.path)
+        }
+    }
 
     // Initialize fields
     useEffect(() => {
@@ -100,6 +163,7 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
         setFields(initialFieldsObj)
         setInitialFields({ ...initialFieldsObj })
         setSelectedFields(initialSelected)
+        setEditedTracks(tracks) // Initialize editedTracks with the original tracks
     }, [tracks, isMulti, currentIndex])
 
     const handleFieldChange = (key: string, value: string) => {
@@ -511,14 +575,14 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
                         {activeTab === 'tags' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
                     </button>
                     <button
-                        onClick={() => setActiveTab('tags2')}
+                        onClick={() => setActiveTab('extended')}
                         className={cn(
                             "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative",
-                            activeTab === 'tags2' ? "text-blue-400" : "text-zinc-500 hover:text-zinc-300"
+                            activeTab === 'extended' ? "text-blue-400" : "text-zinc-500 hover:text-zinc-300"
                         )}
                     >
                         Extended
-                        {activeTab === 'tags2' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
+                        {activeTab === 'extended' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
                     </button>
                     <button
                         onClick={() => setActiveTab('artwork')}
@@ -529,6 +593,16 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
                     >
                         Artwork
                         {activeTab === 'artwork' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('info')}
+                        className={cn(
+                            "px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all relative",
+                            activeTab === 'info' ? "text-blue-400" : "text-zinc-500 hover:text-zinc-300"
+                        )}
+                    >
+                        File Info
+                        {activeTab === 'info' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
                     </button>
                 </div>
 
@@ -543,8 +617,8 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
                                     <div className="w-48 h-48 bg-zinc-800 rounded-lg border border-zinc-800 overflow-hidden shadow-xl ring-1 ring-white/5 group relative">
                                         {pendingArtwork.front ? (
                                             <img src={pendingArtwork.front.data} className="w-full h-full object-cover" alt="Front Preview" />
-                                        ) : tracks[currentIndex].albumId ? (
-                                            <img src={client.getCoverUrl(tracks[currentIndex].albumId)} className="w-full h-full object-cover" alt="Front Cover" />
+                                        ) : editedTracks[currentIndex] ? (
+                                            <img src={client.getCoverUrl(getResolvedAlbumId(editedTracks[currentIndex]))} className="w-full h-full object-cover" alt="Front Cover" />
                                         ) : (
                                             <div className="w-full h-full flex flex-col items-center justify-center text-zinc-700 bg-zinc-900/50">
                                                 <ImageIcon size={40} />
@@ -664,7 +738,7 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
                         </motion.div>
                     )}
 
-                    {activeTab === 'tags2' && (
+                    {activeTab === 'extended' && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                             <section>
                                 <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-3">
@@ -740,11 +814,11 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
                                                     <Trash2 className="text-white hover:text-red-500 transition-colors" onClick={(e) => { e.stopPropagation(); setPendingArtwork(p => ({ ...p, front: undefined })) }} />
                                                 </div>
                                             </>
-                                        ) : tracks[0].albumId ? (
+                                        ) : editedTracks[currentIndex] ? (
                                             <img
-                                                src={client.getCoverUrl(tracks[0].albumId)}
+                                                src={client.getCoverUrl(getResolvedAlbumId(editedTracks[currentIndex]))}
                                                 className="w-full h-full object-cover"
-                                                alt="Front Cover"
+                                                alt="Current Front Cover"
                                             />
                                         ) : (
                                             <>
@@ -841,6 +915,94 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
 
                         </motion.div>
                     )}
+
+                    {activeTab === 'info' && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-6 max-h-full pr-4 custom-scrollbar">
+                            {infoLoading ? (
+                                <div className="text-zinc-400 text-sm py-10 flex items-center justify-center gap-3">
+                                    <div className="w-4 h-4 border-2 border-zinc-500/30 border-t-zinc-500 rounded-full animate-spin" />
+                                    Loading file information...
+                                </div>
+                            ) : infoError ? (
+                                <div className="text-red-400 text-sm text-center py-10">{infoError}</div>
+                            ) : trackInfo ? (
+                                <div className="space-y-6">
+                                    {/* Path Container */}
+                                    <div className="bg-zinc-950 rounded-lg border border-zinc-800 p-4 shadow-inner">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <HardDrive size={14} className="text-zinc-500" />
+                                            <div className="text-xs font-bold text-zinc-400 uppercase tracking-widest">File Location</div>
+                                        </div>
+                                        <div className="flex items-start gap-4">
+                                            <div className="flex-1 text-xs text-zinc-300 font-mono break-all whitespace-pre-wrap select-text leading-relaxed">
+                                                {trackInfo.path}
+                                            </div>
+                                            <div className="flex flex-col gap-2 shrink-0">
+                                                <button onClick={copyPath} title="Copy Path" className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors border border-zinc-800 hover:border-zinc-700">
+                                                    <Copy size={14} />
+                                                </button>
+                                                <button onClick={openPath} title="Open in Explorer" className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors border border-zinc-800 hover:border-zinc-700">
+                                                    <ExternalLink size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Data Grid */}
+                                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 bg-zinc-800/20 p-6 rounded-xl border border-zinc-800/50">
+                                        <InfoField label="Title" value={tracks[currentIndex].title} />
+                                        <InfoField label="Artist" value={trackInfo.artist} />
+                                        <InfoField label="Album Artist" value={trackInfo.albumArtist} />
+                                        <InfoField label="Album" value={tracks[currentIndex].album} />
+
+                                        <div className="col-span-2 h-px bg-zinc-800/50 my-1" />
+
+                                        <InfoField label="Release Year" value={trackInfo.releaseYear} />
+                                        <InfoField label="Disc" value={trackInfo.discTotal ? `${trackInfo.disc || '-'} / ${trackInfo.discTotal}` : trackInfo.disc} />
+                                        <InfoField label="Track" value={trackInfo.trackTotal ? `${trackInfo.trackNum || '-'} / ${trackInfo.trackTotal}` : trackInfo.trackNum} />
+                                        <InfoField label="Duration" value={trackInfo.duration ? formatDuration(trackInfo.duration) : '-'} />
+                                        <InfoField label="Genres" value={trackInfo.genres} className="col-span-2" />
+
+                                        <div className="col-span-2 h-px bg-zinc-800/50 my-1" />
+
+                                        <InfoField label="Codec" value={trackInfo.codec ? trackInfo.codec.toUpperCase() : '-'} />
+                                        <InfoField label="Bitrate" value={trackInfo.bitrate ? `${Math.round(trackInfo.bitrate / 1000)} kbps` : '-'} />
+                                        <InfoField label="Sample Rate" value={trackInfo.sampleRate ? `${trackInfo.sampleRate} Hz` : '-'} />
+                                        <InfoField label="Bit Depth" value={trackInfo.bitDepth ? `${trackInfo.bitDepth} bit` : '-'} />
+                                        <InfoField label="Channels" value={trackInfo.channels} />
+                                        <InfoField label="Size" value={formatSize(trackInfo.size)} />
+
+                                        <div className="col-span-2 h-px bg-zinc-800/50 my-1" />
+
+                                        <InfoField label="Composer" value={trackInfo.composer} className="col-span-2" />
+                                        <InfoField label="Lyricist" value={trackInfo.lyricist} className="col-span-2" />
+                                        <InfoField label="Producer" value={trackInfo.producer} className="col-span-2" />
+                                        <InfoField label="Compilation" value={trackInfo.isCompilation ? 'Yes' : 'No'} />
+                                        <InfoField label="ISRC" value={trackInfo.isrc} />
+                                        <InfoField label="Record Label" value={trackInfo.recordLabel} />
+                                        <InfoField label="Media" value={trackInfo.media} />
+                                        <InfoField label="Release Country" value={trackInfo.releaseCountry} />
+                                        <InfoField label="Release Status" value={trackInfo.releaseStatus} />
+                                        <InfoField label="Release Type" value={trackInfo.releaseType} />
+
+                                        <InfoField
+                                            label="MusicBrainz ID"
+                                            value={trackInfo.musicbrainzId}
+                                            className="col-span-2"
+                                            valueClass="font-mono text-[10px]"
+                                        />
+
+                                        <div className="col-span-2 h-px bg-zinc-800/50 my-1" />
+
+                                        <InfoField label="Rating" value={trackInfo.rating > 0 ? `${trackInfo.rating} / 5` : 'Unrated'} />
+                                        <InfoField label="Playcount" value={trackInfo.playcount} />
+                                        <InfoField label="Loved" value={trackInfo.favorites ? 'Yes' : 'No'} />
+                                        <InfoField label="Modified" value={trackInfo.modified ? new Date(trackInfo.modified).toLocaleString('sv-SE') : '-'} />
+                                    </div>
+                                </div>
+                            ) : null}
+                        </motion.div>
+                    )}
                 </div>
 
                 {/* Footer */}
@@ -928,6 +1090,16 @@ export default function TagEditorModal({ tracks, context, initialTrackIndex = 0,
                     onSave={handleTaggingSave}
                 />
             )}
-        </div >
+        </div>
+    )
+}
+
+function InfoField({ label, value, className, valueClass }: { label: string, value: any, className?: string, valueClass?: string }) {
+    if (value === undefined || value === null || value === '') return null
+    return (
+        <div className={cn("flex flex-col gap-1", className)}>
+            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{label}</span>
+            <span className={cn("text-[11px] text-zinc-300 select-text font-medium leading-relaxed", valueClass)}>{String(value)}</span>
+        </div>
     )
 }
