@@ -152,6 +152,7 @@ Ta med din musik till hemmets alla högtalare direkt från MusicMaster:
 - **Tags** – Alla grundläggande och utökade textfält
 - **Extended** – Katalognummer, ISRC, Media, Streckkod, Skript, Språk, Utgivningsinfo
 - **Artwork** – Visa, byt ut eller ladda ned omslagsbilder
+- **File Info** – Teknisk filinformation (codec, bitrate, storlek, filsökväg, tidslängd m.m.)
 
 **Masskedigering** – Välj flera spår → högerklicka → "Redigera taggar" för att ändra samma fält på alla spår samtidigt. En kryssruta per fält avgör vilka fält som skrivs.
 

@@ -193,13 +193,15 @@ export function Waveform({ trackId, currentTime, duration, energy }: WaveformPro
     return (
         <>
             {/* Hidden image for loading */}
-            <img
-                src={imageSrc}
-                onLoad={handleImageLoad}
-                onError={handleImageError}
-                style={{ display: 'none' }}
-                alt="waveform"
-            />
+            {imageSrc && (
+                <img
+                    src={imageSrc}
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                    style={{ display: 'none' }}
+                    alt="waveform"
+                />
+            )}
             {/* Canvas for rendering */}
             <canvas
                 ref={canvasRef}

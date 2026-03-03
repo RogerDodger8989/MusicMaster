@@ -17,6 +17,86 @@ import { DJCard } from '../components/DJCard'
 
 interface HomeViewProps { }
 
+interface SectionProps {
+  title: string
+  children: React.ReactNode
+  isVisible: boolean
+  isConfigMode: boolean
+  isFirst: boolean
+  isLast: boolean
+  onMoveUp: () => void
+  onMoveDown: () => void
+  onToggle: () => void
+}
+
+const Section = ({
+  title,
+  children,
+  isVisible,
+  isConfigMode,
+  isFirst,
+  isLast,
+  onMoveUp,
+  onMoveDown,
+  onToggle
+}: SectionProps) => {
+  return (
+    <div className={cn(
+      "mb-12 transition-all p-4 rounded-2xl",
+      !isVisible && isConfigMode ? "opacity-40 bg-zinc-950/20 grayscale" : "opacity-100",
+      isConfigMode && "border border-white/5 bg-white/2"
+    )}>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          {isConfigMode && (
+            <div className="flex items-center gap-1 bg-zinc-900 rounded-lg p-1">
+              <button
+                onClick={onMoveUp}
+                disabled={isFirst}
+                className="p-1 text-zinc-500 hover:text-white disabled:opacity-20"
+              >
+                <ChevronUp size={16} />
+              </button>
+              <div className="w-px h-4 bg-white/10" />
+              <button
+                onClick={onMoveDown}
+                disabled={isLast}
+                className="p-1 text-zinc-500 hover:text-white disabled:opacity-20"
+              >
+                <ChevronDown size={16} />
+              </button>
+            </div>
+          )}
+          <h2 className="text-2xl font-bold text-white tracking-tight">{title}</h2>
+        </div>
+
+        {isConfigMode && (
+          <button
+            onClick={onToggle}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+              isVisible ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-zinc-800 text-zinc-500 border border-zinc-700"
+            )}
+          >
+            {isVisible ? (
+              <>
+                <Check size={12} />
+                Visible
+              </>
+            ) : (
+              <>
+                <EyeOff size={12} />
+                Hidden
+              </>
+            )}
+          </button>
+        )}
+      </div>
+      {children}
+    </div>
+  )
+}
+
 /**
  * HOME VIEW - Configurable Dashboard
  */
@@ -54,6 +134,7 @@ export default function HomeView({ }: HomeViewProps) {
   const fetchMostPlayed = async () => {
     try {
       const data = await client.getMostPlayedTracks(selectedTimeRange, mostPlayedLimit)
+      console.log('[DEBUG] First 2 MostPlayedTracks received from backend:', data?.slice(0, 2))
       setMostPlayedTracks(data)
     } catch (error) {
       console.error('Failed to fetch most played tracks:', error)
@@ -276,70 +357,6 @@ export default function HomeView({ }: HomeViewProps) {
     setHomeSectionsOrder(newOrder)
   }
 
-  const Section = ({ id, title, children }: { id: string, title: string, children: React.ReactNode }) => {
-    const isVisible = visibleSections.includes(id)
-    const index = homeSectionsOrder.indexOf(id)
-
-    // Notice: we moved the isVisible and isConfigMode check to the outer mapping loop
-    // so AnimatePresence can handle unmounting properly.
-
-    return (
-      <div className={cn(
-        "mb-12 transition-all p-4 rounded-2xl",
-        !isVisible && isConfigMode ? "opacity-40 bg-zinc-950/20 grayscale" : "opacity-100",
-        isConfigMode && "border border-white/5 bg-white/2"
-      )}>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            {isConfigMode && (
-              <div className="flex items-center gap-1 bg-zinc-900 rounded-lg p-1">
-                <button
-                  onClick={() => moveSection(id, 'up')}
-                  disabled={index === 0}
-                  className="p-1 text-zinc-500 hover:text-white disabled:opacity-20"
-                >
-                  <ChevronUp size={16} />
-                </button>
-                <div className="w-px h-4 bg-white/10" />
-                <button
-                  onClick={() => moveSection(id, 'down')}
-                  disabled={index === homeSectionsOrder.length - 1}
-                  className="p-1 text-zinc-500 hover:text-white disabled:opacity-20"
-                >
-                  <ChevronDown size={16} />
-                </button>
-              </div>
-            )}
-            <h2 className="text-2xl font-bold text-white tracking-tight">{title}</h2>
-          </div>
-
-          {isConfigMode && (
-            <button
-              onClick={() => toggleSection(id)}
-              className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all",
-                isVisible ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-zinc-800 text-zinc-500 border border-zinc-700"
-              )}
-            >
-              {isVisible ? (
-                <>
-                  <Check size={12} />
-                  Visible
-                </>
-              ) : (
-                <>
-                  <EyeOff size={12} />
-                  Hidden
-                </>
-              )}
-            </button>
-          )}
-        </div>
-        {children}
-      </div>
-    )
-  }
-
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 to-slate-950 px-8 py-8 overflow-y-auto overflow-x-hidden custom-scrollbar">
       {/* Header */}
@@ -376,7 +393,17 @@ export default function HomeView({ }: HomeViewProps) {
 
           if (sectionId === 'vibes') {
             content = (
-              <Section key="vibes" id="vibes" title="🎵 Vibes">
+              <Section
+                key="vibes"
+                title="🎵 Vibes"
+                isVisible={isVisible}
+                isConfigMode={isConfigMode}
+                isFirst={homeSectionsOrder.indexOf('vibes') === 0}
+                isLast={homeSectionsOrder.indexOf('vibes') === homeSectionsOrder.length - 1}
+                onMoveUp={() => moveSection('vibes', 'up')}
+                onMoveDown={() => moveSection('vibes', 'down')}
+                onToggle={() => toggleSection('vibes')}
+              >
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-slate-400">
@@ -437,7 +464,17 @@ export default function HomeView({ }: HomeViewProps) {
 
           if (sectionId === 'most_played') {
             content = (
-              <Section key="most_played" id="most_played" title="🔝 Most Played Tracks">
+              <Section
+                key="most_played"
+                title="🔝 Most Played Tracks"
+                isVisible={isVisible}
+                isConfigMode={isConfigMode}
+                isFirst={homeSectionsOrder.indexOf('most_played') === 0}
+                isLast={homeSectionsOrder.indexOf('most_played') === homeSectionsOrder.length - 1}
+                onMoveUp={() => moveSection('most_played', 'up')}
+                onMoveDown={() => moveSection('most_played', 'down')}
+                onToggle={() => toggleSection('most_played')}
+              >
                 <div className="flex flex-col gap-4" ref={mostPlayedRef}>
                   <div className="flex items-center justify-between gap-4 flex-wrap">
                     <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -544,7 +581,17 @@ export default function HomeView({ }: HomeViewProps) {
 
           if (sectionId === 'explore') {
             content = (
-              <Section key="explore" id="explore" title="🔭 Explore from your library">
+              <Section
+                key="explore"
+                title="🔭 Explore from your library"
+                isVisible={isVisible}
+                isConfigMode={isConfigMode}
+                isFirst={homeSectionsOrder.indexOf('explore') === 0}
+                isLast={homeSectionsOrder.indexOf('explore') === homeSectionsOrder.length - 1}
+                onMoveUp={() => moveSection('explore', 'up')}
+                onMoveDown={() => moveSection('explore', 'down')}
+                onToggle={() => toggleSection('explore')}
+              >
                 <div className="flex flex-col gap-4">
                   <div className="flex justify-end">
                     <button
@@ -571,7 +618,17 @@ export default function HomeView({ }: HomeViewProps) {
 
           if (sectionId === 'newly_added') {
             content = (
-              <Section key="newly_added" id="newly_added" title="🔥 Newly added releases">
+              <Section
+                key="newly_added"
+                title="🔥 Newly added releases"
+                isVisible={isVisible}
+                isConfigMode={isConfigMode}
+                isFirst={homeSectionsOrder.indexOf('newly_added') === 0}
+                isLast={homeSectionsOrder.indexOf('newly_added') === homeSectionsOrder.length - 1}
+                onMoveUp={() => moveSection('newly_added', 'up')}
+                onMoveDown={() => moveSection('newly_added', 'down')}
+                onToggle={() => toggleSection('newly_added')}
+              >
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                   {newlyAddedAlbums.map(album => (
                     <AlbumCard
@@ -587,7 +644,17 @@ export default function HomeView({ }: HomeViewProps) {
 
           if (sectionId === 'recently_played') {
             content = (
-              <Section key="recently_played" id="recently_played" title="🎧 Recently played">
+              <Section
+                key="recently_played"
+                title="🎧 Recently played"
+                isVisible={isVisible}
+                isConfigMode={isConfigMode}
+                isFirst={homeSectionsOrder.indexOf('recently_played') === 0}
+                isLast={homeSectionsOrder.indexOf('recently_played') === homeSectionsOrder.length - 1}
+                onMoveUp={() => moveSection('recently_played', 'up')}
+                onMoveDown={() => moveSection('recently_played', 'down')}
+                onToggle={() => toggleSection('recently_played')}
+              >
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                   {recentlyPlayedAlbums.map(album => (
                     <AlbumCard
@@ -603,7 +670,17 @@ export default function HomeView({ }: HomeViewProps) {
 
           if (sectionId === 'recently_released') {
             content = (
-              <Section key="recently_released" id="recently_released" title="✨ Recently released">
+              <Section
+                key="recently_released"
+                title="✨ Recently released"
+                isVisible={isVisible}
+                isConfigMode={isConfigMode}
+                isFirst={homeSectionsOrder.indexOf('recently_released') === 0}
+                isLast={homeSectionsOrder.indexOf('recently_released') === homeSectionsOrder.length - 1}
+                onMoveUp={() => moveSection('recently_released', 'up')}
+                onMoveDown={() => moveSection('recently_released', 'down')}
+                onToggle={() => toggleSection('recently_released')}
+              >
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                   {recentlyReleasedAlbums.map(album => (
                     <AlbumCard

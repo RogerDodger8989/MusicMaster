@@ -88,8 +88,8 @@ export interface MusicClient {
   enhanceLibrary(writeToFiles?: boolean): Promise<void>;
   getEnhanceStatus(): Promise<any>;
   getCoverage(): Promise<any>;
-  searchMetadata(artist: string, title?: string, album?: string): Promise<any[]>;
-  searchAlbums(artist: string, album: string): Promise<any[]>;
+  searchMetadata(artist: string, title?: string, album?: string, queryMbid?: string, currentTrackMbid?: string | null, currentAlbumMbid?: string | null): Promise<any[]>;
+  searchAlbums(artist: string, album: string, queryMbid?: string, currentAlbumMbid?: string | null): Promise<any[]>;
   getArtistDetails(id: string): Promise<any>;
   getArtistMembers(id: string): Promise<any[]>;
   getArtistTopTracks(artist: string, limit?: number): Promise<{ name: string; playcount: string }[]>;
@@ -242,8 +242,8 @@ export class IpcClient implements MusicClient {
   async enhanceLibrary(writeToFiles?: boolean): Promise<void> { await this.call('metadata:enhance', writeToFiles); }
   async getEnhanceStatus(): Promise<any> { return this.call('metadata:getEnhanceStatus'); }
   async getCoverage(): Promise<any> { return this.call('metadata:getCoverage'); }
-  async searchMetadata(artist: string, title?: string, album?: string): Promise<any[]> { return this.call('metadata:search', artist, title, album); }
-  async searchAlbums(artist: string, album: string): Promise<any[]> { return this.call('metadata:searchAlbums', artist, album); }
+  async searchMetadata(artist: string, title?: string, album?: string, queryMbid?: string, currentTrackMbid?: string | null, currentAlbumMbid?: string | null): Promise<any[]> { return this.call('metadata:search', artist, title, album, queryMbid, currentTrackMbid, currentAlbumMbid); }
+  async searchAlbums(artist: string, album: string, queryMbid?: string, currentAlbumMbid?: string | null): Promise<any[]> { return this.call('metadata:searchAlbums', artist, album, queryMbid, currentAlbumMbid); }
   async getArtistDetails(id: string): Promise<any> { return this.call('metadata:getArtistDetails', id); }
   async getArtistMembers(id: string): Promise<any[]> { return this.call('metadata:getArtistMembers', id); }
   async getArtistTopTracks(artist: string, limit?: number): Promise<{ name: string; playcount: string }[]> { return this.call('tracks:getArtistTop', artist, limit); }

@@ -17,18 +17,21 @@ export function useMediaSession() {
         if (!('mediaSession' in navigator)) return
 
         if (currentTrack) {
+            const coverUrl = client.getCoverUrl(currentTrack.albumId || currentTrack.id)
+            const isValidArt = coverUrl.startsWith('http') || coverUrl.startsWith('data:') || coverUrl.startsWith('blob:')
+
             // Update metadata
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: currentTrack.title,
                 artist: currentTrack.artist,
                 album: currentTrack.album,
-                artwork: [
+                artwork: isValidArt ? [
                     {
-                        src: client.getCoverUrl(currentTrack.albumId || currentTrack.id),
+                        src: coverUrl,
                         sizes: '512x512',
                         type: 'image/png'
                     }
-                ]
+                ] : []
             })
 
             // Update playback state

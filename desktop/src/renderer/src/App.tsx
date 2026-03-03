@@ -247,6 +247,7 @@ function App(): React.JSX.Element {
   useEffect(() => {
     const handleRequest = (e: CustomEvent) => {
       const track = e.detail.track as Track
+      console.log('[DEBUG] request-track-play event received in App.tsx:', track?.title, track)
       if (track) {
         const behavior = useSettings.getState().trackPlayBehavior
         const hasQueue = usePlayer.getState().queue.length > 0
@@ -255,8 +256,9 @@ function App(): React.JSX.Element {
           setSelectedTrackForPlay(track)
           setPlayModalOpen(true)
         } else {
-          // If behavior is 'ask' but no queue, just play it
-          const effectiveBehavior = behavior === 'ask' ? 'replace' : behavior
+          // If there is no queue, queuing it next or last doesn't make sense, just play it
+          const effectiveBehavior = (!hasQueue || behavior === 'ask') ? 'replace' : behavior
+
           switch (effectiveBehavior) {
             case 'replace':
               playTrack(track)

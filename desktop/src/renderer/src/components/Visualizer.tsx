@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { getAnalyser } from '../store/player'
 import { cn } from '../lib/utils'
 
@@ -12,10 +12,11 @@ interface VisualizerProps {
 
 export default function Visualizer({ mode, className, color = 'rgba(59, 130, 246, 1)' }: VisualizerProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const requestRef = useRef<number>()
+    const requestRef = useRef<number>(0)
 
     // Particles state
-    const particlesRef = useRef<{ x: number, y: number, vx: number, vy: number, life: number, maxLife: number, size: number }[]>([])
+    interface Particle { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; size: number; }
+    const particlesRef = useRef<Particle[]>([])
 
     useEffect(() => {
         const canvas = canvasRef.current
@@ -184,7 +185,7 @@ export default function Visualizer({ mode, className, color = 'rgba(59, 130, 246
                 // Update and draw particles
                 ctx.fillStyle = color
 
-                const nextParticles = []
+                const nextParticles: Particle[] = []
                 for (const p of particlesRef.current) {
                     p.x += p.vx
                     p.y += p.vy

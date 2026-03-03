@@ -41,7 +41,7 @@ export default function TrackList({
     onAlbumClick
 }: TrackListProps) {
     const { toggleLoved, rateTrack, tracks: allTracks } = useLibrary()
-    const { currentTrack, playTrack, isPlaying } = usePlayer()
+    const { currentTrack, isPlaying } = usePlayer()
 
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
@@ -77,7 +77,9 @@ export default function TrackList({
                                 onClick={(e) => handleTrackClick(e, track.id, idx)}
                                 onDoubleClick={(e) => {
                                     e.stopPropagation()
-                                    playTrack(track)
+                                    window.dispatchEvent(
+                                        new CustomEvent('request-track-play', { detail: { track } })
+                                    )
                                 }}
                                 onContextMenu={(e) => {
                                     e.preventDefault()
@@ -115,7 +117,9 @@ export default function TrackList({
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation()
-                                                        playTrack(track)
+                                                        window.dispatchEvent(
+                                                            new CustomEvent('request-track-play', { detail: { track } })
+                                                        )
                                                     }}
                                                     className="p-1.5 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg transform transition-all duration-200 hover:scale-110 active:scale-95"
                                                 >
@@ -291,6 +295,7 @@ export default function TrackList({
                             onClick={(e) => handleTrackClick(e, track.id, idx)}
                             onDoubleClick={(e) => {
                                 e.stopPropagation()
+                                console.log('[DEBUG] Dispatching request-track-play from list view TrackList for track:', track.title)
                                 window.dispatchEvent(new CustomEvent('request-track-play', { detail: { track } }))
                             }}
                             onContextMenu={(e) => {

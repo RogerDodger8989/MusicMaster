@@ -4,7 +4,6 @@ import { useLibrary } from '../store/library'
 import { useSettings, TrackPlayBehavior, ReplayGainMode, AutoDjRatingFilter, AutoDjTriggerAt, AutoDjAddCount } from '../store/settings'
 import { useSyncStore } from '../store/sync'
 import { cn } from '../lib/utils'
-import { db } from '../database/db'
 import {
   FolderOpen,
   Trash2,
@@ -18,8 +17,7 @@ import {
   Play,
   Keyboard,
   Wand2,
-  UploadCloud,
-  Waves
+  UploadCloud
 } from 'lucide-react'
 import MusicBrainzProgressModal from '../components/modals/MusicBrainzProgressModal'
 import { client } from '../api/client'
@@ -36,8 +34,7 @@ export default function SettingsView() {
     scanFolder
   } = useFolders()
   const settings = useSettings()
-  const progress = useSyncStore((state) => state.progress)
-  const isSyncing = useLibrary((state) => state.isLoading)
+  const { progress, completeSync, startSync } = useSyncStore()
   const [lastfmAuthToken, setLastfmAuthToken] = useState('')
   const [lastfmAuthUrl, setLastfmAuthUrl] = useState('')
   const [lastfmAuthInProgress, setLastfmAuthInProgress] = useState(false)
@@ -629,10 +626,10 @@ export default function SettingsView() {
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {[
-                  { id: 'ask', label: 'Ask' },
-                  { id: 'play_next', label: 'Play Next' },
-                  { id: 'add_last', label: 'Add to Queue' },
-                  { id: 'replace', label: 'Play Now' }
+                  { id: 'replace', label: 'Clear queue and play' },
+                  { id: 'play_next', label: 'Queue next' },
+                  { id: 'add_last', label: 'Queue last' },
+                  { id: 'ask', label: 'Ask' }
                 ].map((opt) => (
                   <button
                     key={opt.id}

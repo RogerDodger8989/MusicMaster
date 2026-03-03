@@ -18,7 +18,7 @@ import { PageHeader } from '../components/PageHeader'
 
 export default function UnsortedView() {
   const { tracks } = useLibrary()
-  const { playTrack } = usePlayer()
+  const { } = usePlayer()
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set())
   const [contextMenu, setContextMenu] = useState<{ track: Track; x: number; y: number } | null>(
@@ -144,7 +144,9 @@ export default function UnsortedView() {
                           onClick={(e) => handleTrackClick(e, track.id, globalIndex)}
                           onDoubleClick={(e) => {
                             e.stopPropagation()
-                            playTrack(track)
+                            window.dispatchEvent(
+                              new CustomEvent('request-track-play', { detail: { track } })
+                            )
                           }}
                           onContextMenu={(e) => {
                             e.preventDefault()

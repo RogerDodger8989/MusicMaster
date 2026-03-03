@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Cast, Monitor, Speaker, X, Check, Loader2 } from 'lucide-react'
 import { useCastStore } from '../store/cast'
 import { cn } from '../lib/utils'
