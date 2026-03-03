@@ -79,6 +79,7 @@ export default function ArtistDetailView({
   const [similarArtists, setSimilarArtists] = useState<
     { name: string; image: string; match: string }[]
   >([])
+  const [syncAttempted, setSyncAttempted] = useState(false)
 
   // Fetch remote artist if not found locally
   useEffect(() => {
@@ -127,6 +128,7 @@ export default function ArtistDetailView({
     }
 
     fetchRemote()
+    setSyncAttempted(false) // Reset attempt flag when artist changes
     return () => { mounted = false }
   }, [artistName, localArtist])
 
@@ -190,7 +192,7 @@ export default function ArtistDetailView({
       if (!mbArtistId) {
         console.log(`🔍 [UI] Searching MusicBrainz for artist: ${artistName}`)
 
-        const artistResults = await (client as any).req(`/api/metadata/search?artist=${encodeURIComponent(artistName)}&type=artist`)
+        const artistResults = await client.searchMetadata(artistName)
 
         if (artistResults && artistResults.length > 0) {
           // Find exact name match (ignore case)
@@ -225,9 +227,9 @@ export default function ArtistDetailView({
           }
 
           // Update image if missing OR if it's a local cache path (prefer high-res remote URL)
-          // Also check for 'lastfm_' which might be another indicator of cached files
           const isLocal = artist?.imagePath && (
             artist.imagePath.includes('external_cache') ||
+            artist.imagePath.includes('covers') ||
             artist.imagePath.includes('lastfm_') ||
             !artist.imagePath.startsWith('http')
           )
@@ -237,8 +239,10 @@ export default function ArtistDetailView({
             facts.imagePath = details.image
           }
 
-          await updateArtist(artist!.id, facts)
-          console.log('✅ [UI] Artist facts synced successfully')
+          if (artist && artist.id && !artist.id.startsWith('virtual-')) {
+            await updateArtist(artist.id, facts)
+            console.log('✅ [UI] Artist facts synced successfully')
+          }
           // The library store should ideally be refreshed here
           // For now, we rely on the next visit or manual refresh
         }
@@ -252,10 +256,11 @@ export default function ArtistDetailView({
 
   // Auto-sync if missing facts (MBID or Image)
   useEffect(() => {
-    if (artist && (!artist.musicbrainzArtistId || !artist.imagePath) && !isSyncing) {
+    if (artist && (!artist.musicbrainzArtistId || !artist.imagePath) && !isSyncing && !syncAttempted) {
+      setSyncAttempted(true)
       syncArtistFacts()
     }
-  }, [artist, isSyncing, syncArtistFacts])
+  }, [artist, isSyncing, syncArtistFacts, syncAttempted])
 
   const handlePlayAll = useCallback(() => {
     // Collect all tracks for this artist
@@ -434,19 +439,19 @@ export default function ArtistDetailView({
 
     if (lastfmTopTracks.length === 0) {
       // Fallback: sort by playcount if Last.fm data not available
-      return artistTracks
+      return [...artistTracks]
         .sort((a, b) => {
-          if (b.playCount !== a.playCount) return b.playCount - a.playCount
-          return a.title.localeCompare(b.title)
+          if ((b.playCount || 0) !== (a.playCount || 0)) return (b.playCount || 0) - (a.playCount || 0)
+          return (a.title || '').localeCompare(b.title || '')
         })
         .slice(0, 5)
     }
 
     // Sort by Last.fm global ranking
-    return artistTracks
+    return [...artistTracks]
       .sort((a, b) => {
-        const aIndex = (lastfmTopTracks || []).findIndex(t => t.name.toLowerCase() === a.title.toLowerCase())
-        const bIndex = (lastfmTopTracks || []).findIndex(t => t.name.toLowerCase() === b.title.toLowerCase())
+        const aIndex = (lastfmTopTracks || []).findIndex(t => t?.name && a?.title && t.name.toLowerCase() === a.title.toLowerCase())
+        const bIndex = (lastfmTopTracks || []).findIndex(t => t?.name && b?.title && t.name.toLowerCase() === b.title.toLowerCase())
 
         // Both found in Last.fm list - sort by Last.fm ranking
         if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
@@ -455,7 +460,7 @@ export default function ArtistDetailView({
         // Only b found - b comes first
         if (bIndex !== -1) return 1
         // Neither found - sort by playcount
-        return b.playCount - a.playCount
+        return (b.playCount || 0) - (a.playCount || 0)
       })
       .slice(0, 5)
   }, [tracks, artistName, lastfmTopTracks])

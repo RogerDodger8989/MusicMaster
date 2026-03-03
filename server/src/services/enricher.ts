@@ -118,7 +118,7 @@ export class BackgroundEnricher {
 
                 // Download and save image
                 if (imageUrl) {
-                    const filename = `artist_${artistId}.jpg`
+                    const filename = `artist-${artistId}.jpg`
                     const localPath = await lastFmService.downloadImage(imageUrl, filename)
                     if (localPath) {
                         db.prepare('UPDATE artists SET image_path = ? WHERE id = ?').run(localPath, artistId)

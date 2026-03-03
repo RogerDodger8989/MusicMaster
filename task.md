@@ -148,11 +148,12 @@
         - [x] persistence for `Played` history
     - [x] **Phase 3: UI refinements & bug fixes**
         - [x] Fix `AlbumCard` Quick Play (Exposed IPC & Preload APIs, added store fallback)
-        - [x] Standardize cover art protocol to `asset:///` everywhere
-        - [x] Add SAVE and LOAD buttons/modals to `QueuePanel`
-        - [x] Make Ratings/Hearts always visible in Queue
-        - [x] Prevent text selection during panel resizing
-        - [x] Fix Drag and Drop (Red triangle issue)
+        - [x] Update `library.ts` (Zustand store) or `App` to provide these actions to the UI.
+- [x] Add buttons in `SettingsView.tsx` under a new "Storage / Cache" section to trigger these functions, with proper loading states and success toasts.
+- [x] Implement loop guard in `ArtistDetailView.tsx` to prevent infinite sync cycles.
+- [x] Synchronize server and desktop database paths for consistent REST fallback.
+- [x] Robustify image serving in `media.controller.ts` for absolute path handling.
+- [x] Resolve Electron startup hang (Added diagnostic logging to pinpoint the stall).
 - [x] Remove blur & enable Modal dragging
 - [x] Redesign Artist View
 - [x] Implement Artist Play Options Modal

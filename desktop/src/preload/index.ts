@@ -94,11 +94,15 @@ const api = {
       ipcRenderer.invoke('albums:pasteArtwork', id, imageBase64)
   },
 
-  // Library
+  // Artists & Library Extensions
   library: {
     reset: (): Promise<boolean> => ipcRenderer.invoke('library:reset'),
     reanalyze: (): Promise<void> => ipcRenderer.invoke('library:reanalyze'),
-    search: (query: string): Promise<any> => ipcRenderer.invoke('library:search', query),
+    getStats: (): Promise<any> => ipcRenderer.invoke('library:getStats'),
+    cleanup: (): Promise<void> => ipcRenderer.invoke('library:cleanup'),
+    getSimilar: (id: string): Promise<any[]> => ipcRenderer.invoke('library:getSimilar', id),
+    tagAlbumMetadata: (albumId: string, mbAlbumId: string): Promise<any> =>
+      ipcRenderer.invoke('library:tagAlbumMetadata', albumId, mbAlbumId),
     getArtists: (): Promise<any[]> => ipcRenderer.invoke('library:getArtists'),
     toggleAlbumLoved: (id: string): Promise<void> =>
       ipcRenderer.invoke('library:toggleAlbumLoved', id),
@@ -108,13 +112,17 @@ const api = {
       artist: string
     ): Promise<{ name: string; image: string; match: string }[]> =>
       ipcRenderer.invoke('library:getSimilarArtists', artist),
-    tagAlbumMetadata: (albumId: string, mbAlbumId: string): Promise<number> =>
-      ipcRenderer.invoke('library:tagAlbumMetadata', albumId, mbAlbumId),
     updateArtist: (id: string, updates: Partial<any>): Promise<void> =>
-      ipcRenderer.invoke('library:updateArtist', id, updates)
+      ipcRenderer.invoke('library:updateArtist', id, updates),
+    search: (query: string): Promise<any> => ipcRenderer.invoke('library:search', query)
   },
 
-  // TIDAL REMOVED
+  // Cache
+  cache: {
+    clearImages: (): Promise<{ success: boolean; error?: string }> => ipcRenderer.invoke('cache:clearImages'),
+    refetchMissingImages: (): Promise<{ success: boolean; fetched?: number; error?: string }> =>
+      ipcRenderer.invoke('cache:refetchMissingImages')
+  },
 
   // Utils
   util: {
@@ -262,92 +270,71 @@ const api = {
 
   // Metadata & MusicBrainz
   metadata: {
-    search: (artist: string, title: string, album?: string): Promise<any[]> =>
-      ipcRenderer.invoke('metadata:searchMusicBrainz', artist, title, album),
-    searchAlbums: (artist: string, album: string): Promise<any[]> =>
-      ipcRenderer.invoke('metadata:searchAlbumsMusicBrainz', artist, album),
-    getArtistDetails: (artistId: string): Promise<any> =>
-      ipcRenderer.invoke('metadata:getArtistDetails', artistId),
-    getAlbumDetails: (albumId: string): Promise<any> =>
-      ipcRenderer.invoke('metadata:getAlbumDetails', albumId),
-    exportMissingCSV: (tracks: any[]): Promise<string | null> =>
-      ipcRenderer.invoke('metadata:exportMissingCSV', tracks),
-    updateArtistFacts: (id: string, facts: any): Promise<boolean> =>
-      ipcRenderer.invoke('metadata:updateArtistFacts', id, facts),
-    getArtistSimilar: (artist: string): Promise<any[]> =>
-      ipcRenderer.invoke('metadata:getArtistSimilar', artist),
     sync: (): Promise<void> => ipcRenderer.invoke('metadata:sync'),
     getSyncStatus: (): Promise<any> => ipcRenderer.invoke('metadata:getSyncStatus'),
-    enhance: (writeToFiles?: boolean): Promise<void> => ipcRenderer.invoke('metadata:enhance', writeToFiles),
+    enhance: (writeToFiles?: boolean): Promise<void> =>
+      ipcRenderer.invoke('metadata:enhance', writeToFiles),
     getEnhanceStatus: (): Promise<any> => ipcRenderer.invoke('metadata:getEnhanceStatus'),
+    getCoverage: (): Promise<any> => ipcRenderer.invoke('metadata:getCoverage'),
+    search: (
+      artist: string,
+      title?: string,
+      album?: string,
+      queryMbid?: string,
+      currentTrackMbid?: string | null,
+      currentAlbumMbid?: string | null
+    ): Promise<any[]> =>
+      ipcRenderer.invoke(
+        'metadata:search',
+        artist,
+        title,
+        album,
+        queryMbid,
+        currentTrackMbid,
+        currentAlbumMbid
+      ),
+    searchAlbums: (
+      artist: string,
+      album: string,
+      queryMbid?: string,
+      currentAlbumMbid?: string | null
+    ): Promise<any[]> =>
+      ipcRenderer.invoke('metadata:searchAlbums', artist, album, queryMbid, currentAlbumMbid),
+    getArtistDetails: (id: string): Promise<any> => ipcRenderer.invoke('metadata:getArtistDetails', id),
+    getAlbumDetails: (albumId: string): Promise<any> =>
+      ipcRenderer.invoke('metadata:getAlbumDetails', albumId),
     getArtistMembers: (id: string): Promise<any[]> => ipcRenderer.invoke('metadata:getArtistMembers', id),
-    previewMatchAlbum: (albumId: string, mbAlbumId: string): Promise<any[]> => ipcRenderer.invoke('metadata:previewMatchAlbum', albumId, mbAlbumId)
-  },
+    getArtistSimilar: (artist: string): Promise<any[]> =>
+      ipcRenderer.invoke('metadata:getArtistSimilar', artist),
+    updateArtistFacts: (id: string, facts: any): Promise<boolean> =>
+      ipcRenderer.invoke('metadata:updateArtistFacts', id, facts),
+    previewMatchAlbum: (albumId: string, mbAlbumId: string): Promise<any[]> =>
+      ipcRenderer.invoke('metadata:previewMatchAlbum', albumId, mbAlbumId),
+    exportMissingCSV: (tracks: any[]): Promise<string | null> =>
+      ipcRenderer.invoke('metadata:exportMissingCSV', tracks),
 
-  // MusicBrainz Enhancement
-  musicbrainz: {
-    getCoverage: () => ipcRenderer.invoke('musicbrainz:getCoverage'),
-    searchTrack: (params: {
-      artist: string
-      title: string
-      album?: string
-      duration?: number
-      isrc?: string
-    }) => ipcRenderer.invoke('musicbrainz:searchTrack', params),
-    getRecordingDetails: (recordingMBID: string) =>
-      ipcRenderer.invoke('musicbrainz:getRecordingDetails', recordingMBID),
-    getAcousticBrainz: (recordingMBID: string) =>
-      ipcRenderer.invoke('musicbrainz:getAcousticBrainz', recordingMBID),
-    enhanceTrack: (trackId: number, writeToFile = true) =>
-      ipcRenderer.invoke('musicbrainz:enhanceTrack', trackId, writeToFile),
-    enhanceTracks: (trackIds: number[], writeToFiles = true) =>
-      ipcRenderer.invoke('musicbrainz:enhanceTracks', trackIds, writeToFiles),
-    enhanceLibrary: (writeToFiles = true) =>
-      ipcRenderer.invoke('musicbrainz:enhanceLibrary', writeToFiles),
-    getCandidates: (trackId: number) => ipcRenderer.invoke('musicbrainz:getCandidates', trackId),
-    applyCandidate: (
-      trackId: number,
+    // MusicBrainz Specific / Legacy bridging
+    getCandidates: (trackId: string): Promise<{ candidates: any[] }> =>
+      ipcRenderer.invoke('musicbrainz:getCandidates', trackId),
+    apply: (
+      trackId: string,
       candidate: any,
-      options: { writeToFile?: boolean; selectedFields?: string[] } = {}
-    ) => ipcRenderer.invoke('musicbrainz:applyCandidate', trackId, candidate, options),
-    syncToFiles: (trackIds?: number[]) => ipcRenderer.invoke('musicbrainz:syncToFiles', trackIds),
-    refreshMetadata: (trackIds: number[]) =>
-      ipcRenderer.invoke('musicbrainz:refreshMetadata', trackIds),
-    onEnhanceProgress: (
-      callback: (progress: {
-        current: number
-        total: number
-        trackId: number
-        trackName: string
-      }) => void
-    ) => {
+      options: { writeToFile: boolean; selectedFields?: string[] }
+    ): Promise<void> => ipcRenderer.invoke('musicbrainz:apply', trackId, candidate, options),
+    tag: (albumId: string, mbAlbumId: string): Promise<number> =>
+      ipcRenderer.invoke('musicbrainz:tag', albumId, mbAlbumId),
+
+    // Progress Listeners
+    onEnhanceProgress: (callback: (progress: any) => void) => {
       const listener = (_: any, progress: any): void => callback(progress)
       ipcRenderer.on('musicbrainz:enhanceProgress', listener)
       return () => ipcRenderer.removeListener('musicbrainz:enhanceProgress', listener)
     },
-    onSyncProgress: (
-      callback: (progress: { current: number; total: number; trackPath: string }) => void
-    ) => {
+    onSyncProgress: (callback: (progress: any) => void) => {
       const listener = (_: any, progress: any): void => callback(progress)
       ipcRenderer.on('musicbrainz:syncProgress', listener)
       return () => ipcRenderer.removeListener('musicbrainz:syncProgress', listener)
-    },
-    onRefreshProgress: (
-      callback: (progress: {
-        current: number
-        total: number
-        trackId: number
-        trackName: string
-      }) => void
-    ) => {
-      const listener = (_: any, progress: any): void => callback(progress)
-      ipcRenderer.on('musicbrainz:refreshProgress', listener)
-      return () => ipcRenderer.removeListener('musicbrainz:refreshProgress', listener)
-    },
-    tag: (albumId: string, mbAlbumId: string): Promise<number> =>
-      ipcRenderer.invoke('musicbrainz:tag', albumId, mbAlbumId),
-    apply: (trackId: string, candidate: any, options: any): Promise<void> =>
-      ipcRenderer.invoke('musicbrainz:apply', trackId, candidate, options)
+    }
   },
 
   // Enrichment Worker (Phase 9)
@@ -420,7 +407,7 @@ const api = {
 try {
   contextBridge.exposeInMainWorld('electron', electronAPI)
   contextBridge.exposeInMainWorld('api', api)
-  console.log('Preload: APIs exposed successfully')
+  console.log('Preload: APIs exposed successfully. Namespaces:', Object.keys(api))
 } catch (error) {
   console.error('Preload: Error exposing APIs', error)
 }

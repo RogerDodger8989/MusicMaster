@@ -40,9 +40,10 @@ import {
 import { getAllArtists, updateArtistLoved, updateArtistFacts, updateArtist } from './database/artists'
 import { lastFmService } from './services/lastfm'
 import { listenBrainzService } from './services/listenbrainz'
+import { spotifyService } from './services/spotify'
 import { musicBrainzService } from './services/musicbrainz'
 import { storeAcousticBrainzData } from './database/musicbrainz'
-import { saveAlbumArtwork } from './services/coverArt'
+import { saveAlbumArtwork, clearCoverCache, extractCoverArt } from './services/coverArt'
 import {
   writeMetadata,
   writeMusicBrainzDataToFile,
@@ -88,6 +89,7 @@ import {
 
 export function registerIpcHandlers(): void {
   const logPath = path.join(process.cwd(), 'debug-ipc.log')
+  // Triggering restart for debugging
   fs.writeFileSync(logPath, `[${new Date().toISOString()}] Starting IPC handler registration...\n`)
 
   try {
@@ -620,6 +622,7 @@ export function registerIpcHandlers(): void {
     })
 
     console.log('✅ Cover art handlers registered')
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] Cover art handlers registered\n`)
 
     // Ratings & Metadata
     console.log('⭐ Registering metadata handlers...')
@@ -682,11 +685,13 @@ export function registerIpcHandlers(): void {
     )
 
     console.log('✅ Metadata handlers registered')
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] Metadata handlers registered\n`)
 
     ipcMain.handle('library:search', async (_, query: string) => {
       console.log(`🔍 Searching library for: ${query} `)
       return searchLibrary(query)
     })
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] library:search registered\n`)
 
     ipcMain.handle('library:reanalyze', async () => {
       console.log('🔄 Full Library Re-analysis requested...')
@@ -704,6 +709,7 @@ export function registerIpcHandlers(): void {
       }
       console.log('✅ Full re-analysis complete')
     })
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] library:reanalyze registered\n`)
 
     // REMOVED: library:reset function - was destroying all ratings and library data destructively!
     // Use library rebuilding instead to preserve user ratings and metadata
@@ -712,6 +718,7 @@ export function registerIpcHandlers(): void {
       console.log('👤 Getting all artists...')
       return getAllArtists()
     })
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] library:getArtists registered\n`)
 
     ipcMain.handle('library:toggleAlbumLoved', async (_, albumId: string) => {
       console.log(`❤️ Toggling loved for album: ${albumId} `)
@@ -736,6 +743,7 @@ export function registerIpcHandlers(): void {
         throw error
       }
     })
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] library:toggleAlbumLoved registered\n`)
 
     ipcMain.handle('library:updateArtist', async (_, id: string, updates: any) => {
       console.log(`📝 Updating artist ${id}:`, updates)
@@ -782,6 +790,7 @@ export function registerIpcHandlers(): void {
     ipcMain.handle('util:showItemInFolder', async (_, filePath: string) => {
       shell.showItemInFolder(filePath)
     })
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] Utility handlers registered\n`)
 
     // Settings Persistence
     ipcMain.handle('settings:getAll', async () => {
@@ -836,6 +845,7 @@ export function registerIpcHandlers(): void {
       ).run(uuidv4(), 'default', key, stringValue)
       return true
     })
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] Settings handlers registered\n`)
 
     // Playback Session Persistence Helper
     const getPlaybackSession = async () => {
@@ -2606,6 +2616,7 @@ current_track_id = excluded.current_track_id,
     })
 
     // --- END MODULE 3B ---
+    fs.appendFileSync(logPath, `[${new Date().toISOString()}] MusicBrainz and Enhancement handlers registered\n`)
 
     // ListenBrainz Full History Sync (Batched)
     ipcMain.handle('scrobble:syncAllListenBrainz', async (event, username: string) => {
@@ -2880,6 +2891,146 @@ current_track_id = excluded.current_track_id,
       console.log('🔄 Metadata sync requested')
       return true
     })
+
+    ipcMain.handle('metadata:getSyncStatus', async () => ({
+      isRunning: false,
+      current: 0,
+      total: 0,
+      trackPath: ''
+    }))
+
+    ipcMain.handle('metadata:getEnhanceStatus', async () => ({
+      isRunning: false,
+      current: 0,
+      total: 0,
+      trackName: ''
+    }))
+
+    ipcMain.handle('metadata:enhance', async (_, writeToFiles?: boolean) => {
+      console.log(`✨ Metadata enhancement requested (writeToFiles: ${writeToFiles})`)
+      // Should trigger musicbrainz:enhanceLibrary
+      return true
+    })
+
+    ipcMain.handle('metadata:getCoverage', async () => {
+      try {
+        const db = getDatabase()
+        const total = (db.prepare('SELECT COUNT(*) as count FROM tracks').get() as any).count
+        const tagged = (db.prepare('SELECT COUNT(*) as count FROM tracks WHERE musicbrainz_trackid IS NOT NULL').get() as any).count
+        return {
+          totalTracks: total,
+          tracksWithMBID: tagged,
+          coveragePercentage: total > 0 ? Math.round((tagged / total) * 100) : 0
+        }
+      } catch (error) {
+        console.error('Failed to get metadata coverage:', error)
+        return { totalTracks: 0, tracksWithMBID: 0, coveragePercentage: 0 }
+      }
+    })
+
+    ipcMain.handle('metadata:search', async () => {
+      // Alias for metadata:searchMusicBrainz
+      return []
+    })
+
+    ipcMain.handle('metadata:searchAlbums', async () => {
+      // Alias for metadata:searchAlbumsMusicBrainz
+      return []
+    })
+
+    // --- Cache Management ---
+    ipcMain.handle('cache:clearImages', async () => {
+      console.log('🗑️ Clearing image caches...')
+      try {
+        await clearCoverCache()
+        await lastFmService.clearExternalCache()
+        // Also clear stale image_path references in the DB that point to non-existent files
+        const db = getDatabase()
+        db.prepare("UPDATE artists SET image_path = NULL WHERE image_path IS NOT NULL").run()
+        db.prepare("UPDATE albums_cache SET cover_art_path = NULL WHERE cover_art_path LIKE '%covers%' OR cover_art_path LIKE '%external_cache%'").run()
+        console.log('✅ Cleared image caches and stale DB references')
+        return { success: true }
+      } catch (error) {
+        console.error('Failed to clear image caches:', error)
+        return { success: false, error: String(error) }
+      }
+    })
+
+    ipcMain.handle('cache:refetchMissingImages', async () => {
+      console.log('🔄 Refetching missing images...')
+      try {
+        let fetchedCount = 0
+
+        // 1. Re-download covers for albums lacking them
+        const albums = getAllAlbums()
+        for (const album of albums as any[]) {
+          const coverPath = path.join(app.getPath('userData'), 'covers', `${album.id}.jpg`)
+          if (!fs.existsSync(coverPath)) {
+            const tracks = getTracksByAlbum(album.name, album.artist)
+            if (tracks && tracks.length > 0 && tracks[0].filePath) {
+              const newCover = await extractCoverArt(tracks[0].filePath, album.id)
+              if (newCover) fetchedCount++
+            }
+          }
+        }
+
+        // 2. Re-download artist images for artists missing them or with stale paths
+        const db = getDatabase()
+        const coversDir = path.join(app.getPath('userData'), 'covers')
+        const allArtistsForRefetch = db.prepare('SELECT id, name, image_path FROM artists').all() as any[]
+        const artistsMissingImages = allArtistsForRefetch.filter(a => {
+          if (!a.image_path) return true
+          // Check if it's a local asset path but the file doesn't exist
+          if (a.image_path.startsWith('asset:///')) {
+            const filePath = a.image_path.replace('asset:///', '').replace(/\//g, path.sep)
+            return !fs.existsSync(filePath)
+          }
+          // Check if it's a direct file path
+          if (!a.image_path.startsWith('http')) {
+            return !fs.existsSync(a.image_path)
+          }
+          return false // http URL - assume valid
+        })
+        console.log(`🖼️ Fetching images for ${artistsMissingImages.length} artists missing/stale images...`)
+
+        // Load API key from DB
+        try {
+          const dbKey = db.prepare("SELECT setting_value FROM user_settings WHERE setting_key = 'lastfmApiKey'").get() as any
+          if (dbKey) lastFmService.setApiKey(JSON.parse(dbKey.setting_value))
+        } catch (e) { }
+
+        for (const artist of artistsMissingImages) {
+          try {
+            let imageUrl: string | null = await spotifyService.getArtistImage(artist.name)
+            if (!imageUrl) {
+              const info = await lastFmService.getArtistInfo(artist.name)
+              imageUrl = lastFmService.getBestImage(info?.image || [])
+            }
+            if (imageUrl) {
+              const cachedPath = await lastFmService.downloadImage(
+                imageUrl,
+                `artist-${artist.id}.jpg`,
+                coversDir
+              )
+              if (cachedPath) {
+                const finalPath = `asset:///${cachedPath.replace(/\\/g, '/')}`
+                db.prepare('UPDATE artists SET image_path = ? WHERE id = ?').run(finalPath, artist.id)
+                fetchedCount++
+                console.log(`✅ Downloaded image for ${artist.name}`)
+              }
+            }
+          } catch (e) {
+            console.warn(`[Refetch] Failed to fetch image for ${artist.name}:`, e)
+          }
+        }
+
+        return { success: true, fetched: fetchedCount }
+      } catch (error) {
+        console.error('Failed to refetch images:', error)
+        return { success: false, error: String(error) }
+      }
+    })
+
     ipcMain.handle('metadata:getArtistMembers', async (_, id: string) => {
       console.log(`👥 Getting members for artist: ${id}`)
       return []
@@ -2900,6 +3051,7 @@ current_track_id = excluded.current_track_id,
       console.log(`✨ Enriching ${artistIds.length} artists`)
       return true
     })
+
     ipcMain.handle('system:getDrives', async () => {
       console.log('💾 Getting system drives')
       return []

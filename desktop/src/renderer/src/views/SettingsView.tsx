@@ -22,6 +22,7 @@ import {
 import MusicBrainzProgressModal from '../components/modals/MusicBrainzProgressModal'
 import { client } from '../api/client'
 import { FileBrowserModal } from '../components/FileBrowserModal'
+import { ConfirmModal } from '../components/modals/ConfirmModal'
 
 export default function SettingsView() {
   const {
@@ -81,6 +82,19 @@ export default function SettingsView() {
   } | null>(null)
   const [enrichmentStatus, setEnrichmentStatus] = useState<'idle' | 'running' | 'completed' | 'error'>('idle')
 
+  // Image Cache State
+  const [isClearingCache, setIsClearingCache] = useState(false)
+  const [isRefetchingImages, setIsRefetchingImages] = useState(false)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    confirmText?: string
+    isDangerous?: boolean
+    hideCancel?: boolean
+    onConfirm?: () => void
+  }>({ isOpen: false, title: '', message: '' })
+
   const enrichmentPollRef = useRef<NodeJS.Timeout | null>(null)
   const enhancePollRef = useRef<NodeJS.Timeout | null>(null)
   const fileSyncPollRef = useRef<NodeJS.Timeout | null>(null)
@@ -94,8 +108,7 @@ export default function SettingsView() {
   useEffect(() => {
     const fetchEnrichmentStatus = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/enrichment/status')
-        const data = await response.json()
+        const data = await client.getEnrichmentStatus()
 
         if (data.coverage) {
           setEnrichmentCoverage(data.coverage)
@@ -125,6 +138,84 @@ export default function SettingsView() {
   }, [])
 
   // Left blank intentionally, polling moved to global App.tsx so it persists across views
+
+  // --- Image Cache Handlers ---
+  const handleClearImageCache = async () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Clear Image Cache',
+      message: 'Are you sure you want to clear the locally cached artwork?\nNew artwork will need to be downloaded or extracted during playback/scanning.',
+      isDangerous: true,
+      confirmText: 'Clear Cache',
+      onConfirm: async () => {
+        try {
+          setIsClearingCache(true)
+          const res = await client.clearImageCache()
+          if (res.success) {
+            setConfirmModal({
+              isOpen: true,
+              title: 'Success',
+              message: 'Image cache cleared successfully.',
+              hideCancel: true,
+              confirmText: 'OK'
+            })
+          } else {
+            setConfirmModal({
+              isOpen: true,
+              title: 'Error',
+              message: `Failed to clear cache: ${res.error}`,
+              hideCancel: true,
+              confirmText: 'OK'
+            })
+          }
+        } catch (e) {
+          setConfirmModal({
+            isOpen: true,
+            title: 'Error',
+            message: `Error clearing cache: ${String(e)}`,
+            hideCancel: true,
+            confirmText: 'OK'
+          })
+        } finally {
+          setIsClearingCache(false)
+        }
+      }
+    })
+  }
+
+  const handleRefetchMissingImages = async () => {
+    try {
+      setIsRefetchingImages(true)
+      const res = await client.refetchMissingImages()
+      if (res.success) {
+        setConfirmModal({
+          isOpen: true,
+          title: 'Success',
+          message: `Successfully fetched ${res.fetched} missing covers!`,
+          hideCancel: true,
+          confirmText: 'OK'
+        })
+      } else {
+        setConfirmModal({
+          isOpen: true,
+          title: 'Error',
+          message: `Error refetching imagery: ${res.error}`,
+          hideCancel: true,
+          confirmText: 'OK'
+        })
+      }
+    } catch (e) {
+      setConfirmModal({
+        isOpen: true,
+        title: 'Error',
+        message: `Error refetching imagery: ${String(e)}`,
+        hideCancel: true,
+        confirmText: 'OK'
+      })
+    } finally {
+      setIsRefetchingImages(false)
+    }
+  }
 
   // Load MusicBrainz coverage stats
   useEffect(() => {
@@ -313,111 +404,141 @@ export default function SettingsView() {
 
   const handleEnhanceLibrary = async () => {
     if (mbEnhanceProgress.isOpen && !mbEnhanceProgress.isComplete) {
-      alert('Enhancement is already running!')
+      setConfirmModal({
+        isOpen: true,
+        title: 'Already Running',
+        message: 'Enhancement is already running!',
+        hideCancel: true,
+        confirmText: 'OK'
+      })
       return
     }
 
-    if (
-      !confirm(
-        'This will search MusicBrainz for all tracks without MBIDs and update your library. This may take several minutes.\n\nContinue?'
-      )
-    ) {
-      return
-    }
-
-    setMbEnhanceProgress({
+    setConfirmModal({
       isOpen: true,
-      current: 0,
-      total: 0,
-      isComplete: false,
-      operation: 'enhance'
-    })
+      title: 'Enhance Library',
+      message: 'This will search MusicBrainz for all tracks without MBIDs and update your library. This may take several minutes.\n\nContinue?',
+      confirmText: 'Enhance',
+      onConfirm: async () => {
+        setMbEnhanceProgress({
+          isOpen: true,
+          current: 0,
+          total: 0,
+          isComplete: false,
+          operation: 'enhance'
+        })
 
-    try {
-      await client.enhanceLibrary(mbWriteToFiles)
+        try {
+          await client.enhanceLibrary(mbWriteToFiles)
 
-      // Poll for completion
-      const checkDone = setInterval(async () => {
-        const status = await client.getEnhanceStatus()
-        if (!status.isRunning) {
-          clearInterval(checkDone)
+          // Poll for completion
+          const checkDone = setInterval(async () => {
+            const status = await client.getEnhanceStatus()
+            if (!status.isRunning) {
+              clearInterval(checkDone)
+              setMbEnhanceProgress((prev) => ({
+                ...prev,
+                isComplete: true,
+                results: {
+                  enhanced: status.enhanced,
+                  failed: status.failed,
+                  noMatch: status.noMatch
+                }
+              }))
+              await loadMbCoverage()
+              await useLibrary.getState().loadTracks()
+            }
+          }, 2000)
+        } catch (error) {
+          console.error('Failed to enhance library:', error)
+          setConfirmModal({
+            isOpen: true,
+            title: 'Error',
+            message: `Failed to enhance library: ${error}`,
+            hideCancel: true,
+            confirmText: 'OK'
+          })
           setMbEnhanceProgress((prev) => ({
             ...prev,
-            isComplete: true,
-            results: {
-              enhanced: status.enhanced,
-              failed: status.failed,
-              noMatch: status.noMatch
-            }
+            isOpen: false
           }))
-          await loadMbCoverage()
-          await useLibrary.getState().loadTracks()
         }
-      }, 2000)
-    } catch (error) {
-      console.error('Failed to enhance library:', error)
-      alert('❌ Failed to enhance library: ' + error)
-      setMbEnhanceProgress((prev) => ({
-        ...prev,
-        isOpen: false
-      }))
-    }
+      }
+    })
   }
 
   const handleSyncToFiles = async () => {
     if (mbEnhanceProgress.isOpen && !mbEnhanceProgress.isComplete) {
-      alert('Operation is already running!')
+      setConfirmModal({
+        isOpen: true,
+        title: 'Already Running',
+        message: 'Operation is already running!',
+        hideCancel: true,
+        confirmText: 'OK'
+      })
       return
     }
 
     if (!mbCoverage || mbCoverage.tracksWithMBID === 0) {
-      alert('No tracks with MBIDs found. Please enhance your library first.')
+      setConfirmModal({
+        isOpen: true,
+        title: 'No Work to Do',
+        message: 'No tracks with MBIDs found. Please enhance your library first.',
+        hideCancel: true,
+        confirmText: 'OK'
+      })
       return
     }
 
-    if (
-      !confirm(
-        `This will write MusicBrainz metadata to ${mbCoverage.tracksWithMBID} audio files.Continue ? `
-      )
-    ) {
-      return
-    }
-
-    setMbEnhanceProgress({
+    setConfirmModal({
       isOpen: true,
-      current: 0,
-      total: 0,
-      isComplete: false,
-      operation: 'sync'
-    })
+      title: 'Sync to Files',
+      message: `This will write MusicBrainz metadata to ${mbCoverage.tracksWithMBID} audio files. Continue?`,
+      confirmText: 'Sync Files',
+      onConfirm: async () => {
+        setMbEnhanceProgress({
+          isOpen: true,
+          current: 0,
+          total: 0,
+          isComplete: false,
+          operation: 'sync'
+        })
 
-    try {
-      await client.syncMetadata()
+        try {
+          await client.syncMetadata()
 
-      // Poll for completion
-      const checkDone = setInterval(async () => {
-        const status = await client.getFileSyncStatus()
-        if (!status.isRunning) {
-          clearInterval(checkDone)
+          // Poll for completion
+          const checkDone = setInterval(async () => {
+            const status = await client.getFileSyncStatus()
+            if (!status.isRunning) {
+              clearInterval(checkDone)
+              setMbEnhanceProgress((prev) => ({
+                ...prev,
+                isComplete: true,
+                results: {
+                  success: status.success,
+                  failed: status.failed,
+                  skipped: status.skipped
+                }
+              }))
+            }
+          }, 2000)
+        } catch (error) {
+          console.error('Failed to sync to files:', error)
+          setConfirmModal({
+            isOpen: true,
+            title: 'Error',
+            message: `Failed to sync to files: ${error}`,
+            hideCancel: true,
+            confirmText: 'OK'
+          })
           setMbEnhanceProgress((prev) => ({
             ...prev,
-            isComplete: true,
-            results: {
-              success: status.success,
-              failed: status.failed,
-              skipped: status.skipped
-            }
+            isOpen: false
           }))
         }
-      }, 2000)
-    } catch (error) {
-      console.error('Failed to sync to files:', error)
-      alert('❌ Failed to sync to files: ' + error)
-      setMbEnhanceProgress((prev) => ({
-        ...prev,
-        isOpen: false
-      }))
-    }
+      }
+    })
   }
 
   const handleAddFolder = async () => {
@@ -1147,6 +1268,38 @@ export default function SettingsView() {
           </div>
         </div>
 
+        {/* Image Cache Management */}
+        <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <RefreshCw className="w-5 h-5 text-purple-500" />
+            Storage / Cache
+          </h3>
+          <div className="space-y-4">
+            <p className="text-sm text-zinc-500">
+              Manage locally extracted artist pictures, album covers, and waveform previews. Clear this if you are experiencing stale/incorrect imagery. Refetch will try to parse covers from existing tracks that are missing them.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleClearImageCache}
+                disabled={isClearingCache}
+                className="w-full px-4 py-2 bg-red-900/40 hover:bg-red-900/60 disabled:bg-zinc-800 disabled:text-zinc-500 text-red-400 border border-red-900/50 rounded-lg transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                {isClearingCache ? 'Clearing...' : 'Clear Image Cache'}
+              </button>
+
+              <button
+                onClick={handleRefetchMissingImages}
+                disabled={isRefetchingImages}
+                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-zinc-800 disabled:text-zinc-500 text-white rounded-lg transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+              >
+                <Database className="w-4 h-4" />
+                {isRefetchingImages ? 'Refetching...' : 'Refetch Missing Images'}
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Phase 9: Automated Enrichment Status */}
         <div className="p-6 bg-zinc-950 border border-zinc-800 rounded-lg">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -1277,6 +1430,16 @@ export default function SettingsView() {
         </div>
 
       </div>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm || (() => { })}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        isDangerous={confirmModal.isDangerous}
+        hideCancel={confirmModal.hideCancel}
+      />
     </div>
   )
 }

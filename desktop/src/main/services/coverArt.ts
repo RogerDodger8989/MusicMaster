@@ -149,9 +149,6 @@ export async function saveAlbumArtwork(albumId: string, imageBase64: string): Pr
   }
 }
 
-/**
- * Delete cover art from cache
- */
 export async function deleteCoverArt(albumId: string): Promise<void> {
   try {
     const cachedPath = path.join(COVER_CACHE_DIR, `${albumId}.jpg`)
@@ -161,5 +158,22 @@ export async function deleteCoverArt(albumId: string): Promise<void> {
     }
   } catch (error) {
     console.error('Error deleting cover art:', error)
+  }
+}
+
+/**
+ * Clear the entire cover art cache directory
+ */
+export async function clearCoverCache(): Promise<void> {
+  try {
+    if (existsSync(COVER_CACHE_DIR)) {
+      const files = await fs.readdir(COVER_CACHE_DIR)
+      for (const file of files) {
+        await fs.unlink(path.join(COVER_CACHE_DIR, file))
+      }
+      console.log('✅ Cleared cover art cache directory')
+    }
+  } catch (error) {
+    console.error('Error clearing cover art cache:', error)
   }
 }

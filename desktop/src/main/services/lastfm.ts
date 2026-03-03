@@ -7,7 +7,7 @@ import { createHash } from 'crypto'
 import { spotifyService } from './spotify'
 
 const BASE_URL = 'http://ws.audioscrobbler.com/2.0/'
-const CACHE_DIR = path.join(app.getPath('userData'), 'external_cache')
+const CACHE_DIR = path.join(app.getPath('userData'), 'covers')
 
 // Store API key and secret in memory with fallback to env
 let apiKey = process.env.LASTFM_API_KEY || ''
@@ -55,6 +55,20 @@ export class LastFmService {
       }
     } catch (error) {
       console.error('Failed to init LastFM cache:', error)
+    }
+  }
+
+  async clearExternalCache() {
+    try {
+      if (existsSync(CACHE_DIR)) {
+        const files = await fs.readdir(CACHE_DIR)
+        for (const file of files) {
+          await fs.unlink(path.join(CACHE_DIR, file))
+        }
+        console.log('✅ Cleared external cache directory (Last.fm/Spotify images)')
+      }
+    } catch (error) {
+      console.error('Error clearing external cache:', error)
     }
   }
 
@@ -145,7 +159,7 @@ export class LastFmService {
             try {
               const deezerImage = await this.getDeezerArtistImage(a.name)
               if (deezerImage) image = deezerImage
-            } catch (e) {}
+            } catch (e) { }
           }
         }
 
@@ -439,9 +453,9 @@ export class LastFmService {
 
       console.log('📤 Making axios GET request to:', BASE_URL)
       console.log('   Params:', JSON.stringify(params, null, 2))
-      
+
       const response = await axios.get(BASE_URL, { params, timeout: 10000 })
-      
+
       console.log('✅ Axios response received')
       console.log('   Status:', response.status)
       console.log('   Data:', JSON.stringify(response.data, null, 2))

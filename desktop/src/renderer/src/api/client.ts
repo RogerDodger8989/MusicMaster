@@ -1,5 +1,6 @@
 // Types shared between renderer and server
 import { Album, Artist, Track, MusicFolder, ScanProgress } from '../types';
+import axios from 'axios';
 
 // Interface defining the contract for both Desktop and Server clients
 export interface MusicClient {
@@ -65,6 +66,10 @@ export interface MusicClient {
   resolveSmartPlaylist(id: string): Promise<{ tracks: any[]; total: number }>;
   previewSmartPlaylist(data: any): Promise<{ tracks: any[]; total: number }>;
 
+  // Cache
+  clearImageCache(): Promise<{ success: boolean; error?: string }>;
+  refetchMissingImages(): Promise<{ success: boolean; fetched?: number; error?: string }>;
+
   // Settings
   getSettings(): Promise<any>;
   saveSetting(key: string, value: any): Promise<void>;
@@ -100,6 +105,7 @@ export interface MusicClient {
   getSimilarArtists(artist: string): Promise<any[]>;
   openExternal(url: string): Promise<void>;
   enrichArtists(artistIds: string[]): Promise<void>;
+  getEnrichmentStatus(): Promise<any>;
 
   // System
   getDrives(): Promise<any[]>;
@@ -122,17 +128,21 @@ export class IpcClient implements MusicClient {
   }
 
   private async call<T>(channel: string, ...args: any[]): Promise<T> {
+    console.log(`[IPC Client] Calling channel: ${channel} with args:`, args);
     const api = this.api;
     if (!api) {
       console.warn(`IPC API not available for channel: ${channel}. Falling back to empty.`);
       return [] as any;
     }
-    // Access nested API e.g. "folders:getAll" -> this.api.folders.getAll
     const [namespace, method] = channel.split(':');
     if (api[namespace] && api[namespace][method]) {
       return await api[namespace][method](...args);
     }
-    console.error(`IPC Method not found: ${namespace}.${method}`);
+    console.error(`[IPC DEBUG] Method not found: ${namespace}.${method}`);
+    console.log('[IPC DEBUG] Available namespaces:', Object.keys(api));
+    if (api[namespace]) {
+      console.log(`[IPC DEBUG] Available methods in ${namespace}:`, Object.keys(api[namespace]));
+    }
     return [] as any;
   }
 
@@ -253,7 +263,8 @@ export class IpcClient implements MusicClient {
   async previewMatchAlbum(albumId: string, mbAlbumId: string): Promise<any[]> { return this.call('metadata:previewMatchAlbum', albumId, mbAlbumId); }
   async getSimilarArtists(artist: string): Promise<any[]> { return this.call('library:getSimilarArtists', artist); }
   async openExternal(url: string): Promise<void> { await this.call('util:openExternal', url); }
-  async enrichArtists(artistIds: string[]): Promise<void> { await this.call('enrich:artists', artistIds); }
+  async enrichArtists(artistIds: string[]): Promise<void> { await this.call('enrichment:artists', artistIds); }
+  async getEnrichmentStatus(): Promise<any> { return this.call('enrichment:getStatus'); }
 
   // System
   async getDrives(): Promise<any[]> { return this.call('system:getDrives'); }
@@ -270,6 +281,10 @@ export class IpcClient implements MusicClient {
   getAudioUrl(id: string): string { return `asset://stream/${id}`; }
   getWaveformUrl(id: string): string { return `asset://waveform/${id}`; }
   async getVibePlaylist(vibeId: string, limit?: number): Promise<Track[]> { return this.call('vibes:get', vibeId, limit); }
+
+  // Cache
+  async clearImageCache(): Promise<{ success: boolean; error?: string }> { return this.call('cache:clearImages'); }
+  async refetchMissingImages(): Promise<{ success: boolean; fetched?: number; error?: string }> { return this.call('cache:refetchMissingImages'); }
 }
 
 // REST client – uses fetch to talk to backend API
@@ -746,6 +761,10 @@ export class RestClient implements MusicClient {
     });
   }
 
+  async getEnrichmentStatus(): Promise<any> {
+    return this.req<any>(`/api/enrichment/status`);
+  }
+
   // System
   async getDrives(): Promise<any[]> {
     return this.req<any[]>(`/api/system/drives`);
@@ -795,6 +814,24 @@ export class RestClient implements MusicClient {
 
   async finishAuth(_code: string): Promise<boolean> {
     return false;
+  }
+
+  // Cache
+  async clearImageCache(): Promise<{ success: boolean; error?: string }> {
+    try {
+      const resp = await axios.post(`${this.baseUrl}/api/cache/clear`);
+      return resp.data;
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
+  }
+  async refetchMissingImages(): Promise<{ success: boolean; fetched?: number; error?: string }> {
+    try {
+      const resp = await axios.post(`${this.baseUrl}/api/cache/refetch`);
+      return resp.data;
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
   }
 }
 
@@ -914,6 +951,7 @@ export class HybridClient implements MusicClient {
   getSimilarArtists(a: string) { return this.isElectron ? this.ipc.getSimilarArtists(a) : this.rest.getSimilarArtists(a); }
   openExternal(url: string) { return this.isElectron ? this.ipc.openExternal(url) : this.rest.openExternal(url); }
   enrichArtists(ids: string[]) { return this.isElectron ? this.ipc.enrichArtists(ids) : this.rest.enrichArtists(ids); }
+  getEnrichmentStatus() { return this.isElectron ? this.ipc.getEnrichmentStatus() : this.rest.getEnrichmentStatus(); }
 
   getDrives() { return this.isElectron ? this.ipc.getDrives() : this.rest.getDrives(); }
   getDirectory(p: string) { return this.isElectron ? this.ipc.getDirectory(p) : this.rest.getDirectory(p); }
@@ -925,6 +963,10 @@ export class HybridClient implements MusicClient {
   getAudioUrl(id: string) { return this.isElectron ? this.ipc.getAudioUrl(id) : this.rest.getAudioUrl(id); }
   getWaveformUrl(id: string) { return this.isElectron ? this.ipc.getWaveformUrl(id) : this.rest.getWaveformUrl(id); }
   getVibePlaylist(id: string, l?: number) { return this.rest.getVibePlaylist(id, l); }
+
+  // Cache
+  clearImageCache() { return this.isElectron ? this.ipc.clearImageCache() : this.rest.clearImageCache(); }
+  refetchMissingImages() { return this.isElectron ? this.ipc.refetchMissingImages() : this.rest.refetchMissingImages(); }
 }
 
 // Export a singleton client instance for the application

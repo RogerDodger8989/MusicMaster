@@ -75,7 +75,7 @@ export function ArtistCard({ artist, onClick, onPlayOptions, className }: Artist
             {artist.imagePath && (
               <img
                 src={
-                  artist.imagePath.startsWith('http')
+                  artist.imagePath.startsWith('http') || artist.imagePath.startsWith('asset:///')
                     ? artist.imagePath
                     : client.getArtistImageUrl(artist.id)
                 }
@@ -83,9 +83,6 @@ export function ArtistCard({ artist, onClick, onPlayOptions, className }: Artist
                 className={cn(
                   "absolute inset-0 h-full w-full object-cover transition-all duration-500",
                   "group-hover:scale-105 filter grayscale-[0.2] group-hover:grayscale-0",
-                  // Fade in when loaded. If hot-reloaded/cached it might flash, but better than layout shift.
-                  // Actually without state it's hard to animate on mount if already cached.
-                  // But standard 'img' behavior over a background is fine.
                 )}
                 loading="lazy"
                 onError={(e) => {

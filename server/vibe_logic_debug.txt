@@ -2072,3 +2072,15 @@
 2026-03-02T16:28:30.775Z:   ✅ ACCEPTED (Fallback mode): Forever Young [Synthpop;New Wave;Pop]
 2026-03-02T16:28:30.776Z:   ✅ ACCEPTED (Fallback mode): Sounds Like a Melody [Synthpop]
 2026-03-02T16:28:30.776Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-03-03T05:58:08.903Z: Checking My Friend of Misery [party] En:0.6948641319267126 Ar:0.7264048923486988 Va:0.35 Inst:0.05
+2026-03-03T05:58:08.905Z:   ✅ ACCEPTED (Strict mode) dist: 0.4560
+2026-03-03T05:58:08.907Z: ⚠️ Playlist too small (1). Running fallback fallback for party...
+2026-03-03T05:58:08.909Z:   ✅ ACCEPTED (Fallback mode): Sad but True [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-03-03T05:58:08.910Z:   ✅ ACCEPTED (Fallback mode): Sad Statue [Alternative Metal; Metal; Avant-Garde Metal]
+2026-03-03T05:58:08.911Z:   ✅ ACCEPTED (Fallback mode): Radio/Video [Alternative Metal; Metal; Avant-Garde Metal]
+2026-03-03T05:58:08.911Z:   ✅ ACCEPTED (Fallback mode): Nothing Else Matters [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]
+2026-03-03T05:58:08.912Z:   ✅ ACCEPTED (Fallback mode): Big In Japan [Synthpop;New Wave;Pop]
+2026-03-03T05:58:08.912Z:   ✅ ACCEPTED (Fallback mode): Question! [Alternative Metal; Metal; Avant-Garde Metal]
+2026-03-03T05:58:08.913Z:   ✅ ACCEPTED (Fallback mode): Streamline [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-03-03T05:58:08.914Z:   ✅ ACCEPTED (Fallback mode): I‐E‐A‐I‐A‐I‐O [Alternative Metal; Metal; Alternative Rock; Avant-Garde Metal; Heavy Metal; Nu Metal]
+2026-03-03T05:58:08.914Z:   ✅ ACCEPTED (Fallback mode): Holier Than Thou [Heavy Metal; Hard Rock; Metal; Rock; Thrash Metal]

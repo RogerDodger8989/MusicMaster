@@ -6,7 +6,7 @@ import { spotifyService } from './spotify'
 
 const BASE_URL = 'http://ws.audioscrobbler.com/2.0/'
 const DATA_PATH = process.env.DATA_PATH || path.join(process.cwd(), 'data')
-const CACHE_DIR = path.join(DATA_PATH, 'external_cache')
+const CACHE_DIR = path.join(DATA_PATH, 'covers')
 
 // Store API key and secret in memory with fallback to env
 if (!process.env.LASTFM_API_KEY) {

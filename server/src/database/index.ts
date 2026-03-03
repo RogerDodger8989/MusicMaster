@@ -557,7 +557,22 @@ export function initDatabase(): Database.Database {
 
     try {
         // Use environment variable or local data directory
-        const userDataPath = process.env.DATA_PATH || path.join(process.cwd(), 'data')
+        let userDataPath = process.env.DATA_PATH
+
+        if (!userDataPath && process.platform === 'win32') {
+            // Try to find Electron userData path for music-master
+            const roaming = process.env.APPDATA || path.join(require('os').homedir(), 'AppData', 'Roaming')
+            const candidate = path.join(roaming, 'music-master')
+            if (fs.existsSync(candidate)) {
+                userDataPath = candidate
+                console.log('[DB] Found Electron userData path:', userDataPath)
+            }
+        }
+
+        if (!userDataPath) {
+            userDataPath = path.join(process.cwd(), 'data')
+            console.log('[DB] Using default data path:', userDataPath)
+        }
 
         if (!fs.existsSync(userDataPath)) {
             fs.mkdirSync(userDataPath, { recursive: true })

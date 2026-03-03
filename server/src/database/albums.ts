@@ -260,7 +260,7 @@ export async function aggregateAlbums(): Promise<void> {
                 let imagePath: string | null = null
 
                 if (imageUrl) {
-                    const cachedPath = await lastFmService.downloadImage(imageUrl, `artist_${artist.id}.jpg`)
+                    const cachedPath = await lastFmService.downloadImage(imageUrl, `artist-${artist.id}.jpg`)
                     if (cachedPath) {
                         imagePath = cachedPath
                     }

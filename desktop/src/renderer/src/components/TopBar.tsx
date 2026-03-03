@@ -93,7 +93,7 @@ export default function TopBar() {
           </div>
 
           {/* Navigation Arrows */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" style={{ WebkitAppRegion: 'no-drag' } as any}>
             <button
               onClick={() => {
                 console.log('[TopBar] Back button clicked. canGoBack:', canGoBack())
