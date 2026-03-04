@@ -674,11 +674,28 @@ export class MusicBrainzService {
                 'genres'
             ])
 
-            const website = (artist as any).relations?.find(
-                (rel: any) =>
-                    rel['target-type'] === 'url' &&
-                    rel.type === 'official homepage'
-            )?.url?.resource
+            // Extract all relevant URLs from url-rels
+            const urls: Record<string, string> = {}
+            if ((artist as any).relations) {
+                for (const rel of (artist as any).relations) {
+                    if (rel['target-type'] === 'url' && rel.url?.resource) {
+                        const url = rel.url.resource
+                        const type = rel.type
+
+                        if (type === 'official homepage') urls.website = url
+                        else if (type === 'discogs') urls.discogs = url
+                        else if (type === 'last.fm') urls.lastfm = url
+                        else if (type === 'social network' && url.includes('twitter.com')) urls.twitter = url
+                        else if (type === 'social network' && url.includes('instagram.com')) urls.instagram = url
+                        else if (type === 'social network' && url.includes('facebook.com')) urls.facebook = url
+                        else if (type === 'youtube') urls.youtube = url
+                        else if (url.includes('spotify.com')) urls.spotify = url
+                        else if (type === 'wikipedia') urls.wikipedia = url
+                    }
+                }
+            }
+
+            urls.musicbrainz = `https://musicbrainz.org/artist/${artistId}`
 
             const result = {
                 id: (artist as any).id,
@@ -688,7 +705,8 @@ export class MusicBrainzService {
                 lifeSpan: (artist as any)['life-span'],
                 type: (artist as any).type,
                 gender: (artist as any).gender,
-                website,
+                website: urls.website,
+                urls,
                 genres: (artist as any).genres?.map((g: any) => g.name),
                 tags: (artist as any).tags?.map((t: any) => t.name),
                 area: (artist as any).area?.name

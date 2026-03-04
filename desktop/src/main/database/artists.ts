@@ -18,6 +18,7 @@ export function getAllArtists(): Artist[] {
             type,
             gender,
             website,
+            urls,
             loved
         FROM artists 
         ORDER BY name ASC
@@ -46,6 +47,8 @@ export function updateArtist(id: string, updates: Partial<Artist>): void {
   if (fields.length === 0) return
 
   const setClause = fields.map((f) => {
+    if (f === 'musicbrainzArtistId') return 'musicbrainz_artistid = ?'
+    if (f === 'imagePath') return 'image_path = ?'
     // Convert camelCase to snake_case for DB
     const dbField = f.replace(/[A-Z]/g, (l) => `_${l.toLowerCase()}`)
     return `${dbField} = ?`
@@ -65,12 +68,13 @@ export function updateArtistFacts(
     type?: string
     gender?: string
     website?: string
+    urls?: string
     bio?: string
   }
 ): void {
   const db = getDatabase()
   const stmt = db.prepare(`
-        UPDATE artists 
+        UPDATE artists
         SET musicbrainz_artistid = COALESCE(?, musicbrainz_artistid),
             country = COALESCE(?, country),
             life_span_begin = COALESCE(?, life_span_begin),
@@ -78,6 +82,7 @@ export function updateArtistFacts(
             type = COALESCE(?, type),
             gender = COALESCE(?, gender),
             website = COALESCE(?, website),
+            urls = COALESCE(?, urls),
             bio = COALESCE(?, bio)
         WHERE id = ?
     `)
@@ -89,7 +94,40 @@ export function updateArtistFacts(
     facts.type || null,
     facts.gender || null,
     facts.website || null,
+    facts.urls || null,
     facts.bio || null,
     id
   )
+}
+export function getArtistById(id: string): Artist | null {
+  const db = getDatabase()
+  const row = db
+    .prepare(
+      `
+        SELECT 
+            id, name, bio, 
+            album_count as albumCount, 
+            track_count as trackCount, 
+            image_path as imagePath,
+            musicbrainz_artistid as musicbrainzArtistId,
+            country,
+            life_span_begin as lifeSpanBegin,
+            life_span_end as lifeSpanEnd,
+            type,
+            gender,
+            website,
+            urls,
+            loved
+        FROM artists 
+        WHERE id = ? OR musicbrainz_artistid = ?
+    `
+    )
+    .get(id, id) as any
+
+  if (!row) return null
+
+  return {
+    ...row,
+    loved: row.loved === 1
+  }
 }

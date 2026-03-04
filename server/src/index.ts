@@ -42,8 +42,8 @@ app.get('/health', (req, res) => {
 app.get('/api/fix-paths', (req, res) => {
     try {
         const db = require('./database').getDatabase();
-        const oldPath = 'C:\\\\Users\\\\denni\\\\Desktop\\\\Apps\\\\MusicMaster';
-        const newPath = 'C:\\\\Users\\\\denni\\\\Desktop\\\\Egna appar\\\\MusicMaster';
+        const oldPath = process.env.OLD_MUSIC_PATH || 'C:\\\\Users\\\\denni\\\\Desktop\\\\Apps\\\\MusicMaster';
+        const newPath = process.env.NEW_MUSIC_PATH || 'C:\\\\Users\\\\denni\\\\Desktop\\\\Egna appar\\\\MusicMaster';
 
         let changed = 0;
         const updates = [

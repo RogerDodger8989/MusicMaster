@@ -10,6 +10,18 @@ import { writeMusicBrainzDataToFile } from '../../services/metadataWriter'
 import { lastFmService } from '../../services/lastfm'
 import { spotifyService } from '../../services/spotify'
 
+// ---------------------------------------------------------------------------
+// Lightweight input validation helpers (no external deps required)
+// ---------------------------------------------------------------------------
+
+/** Strip control characters and limit length to prevent injection/oversized payloads */
+function sanitizeString(value: unknown, maxLength = 200): string {
+    if (typeof value !== 'string') return ''
+    return value.replace(/[\x00-\x1F\x7F]/g, '').trim().slice(0, maxLength)
+}
+
+const VALID_MB_TYPES = new Set(['recording', 'release', 'artist'])
+
 export const identifyTrack = async (req: Request, res: Response) => {
     const { trackId } = req.params
 
@@ -29,19 +41,21 @@ export const identifyTrack = async (req: Request, res: Response) => {
 }
 
 export const searchMusicBrainz = async (req: Request, res: Response) => {
-    const artist = (req.query.artist as string) || ''
-    const title = (req.query.title as string) || ''
-    const album = (req.query.album as string) || undefined
-    const type = (req.query.type as string) || 'recording'
-    const mbid = (req.query.mbid as string) || undefined
-    const trackMbid = (req.query.trackMbid as string) || undefined
-    const albumMbid = (req.query.albumMbid as string) || undefined
+    const artist = sanitizeString(req.query.artist)
+    const title = sanitizeString(req.query.title)
+    const album = sanitizeString(req.query.album) || undefined
+    const rawType = sanitizeString(req.query.type) || 'recording'
+    const type = VALID_MB_TYPES.has(rawType) ? rawType : 'recording'
+    const mbid = sanitizeString(req.query.mbid) || undefined
+    const trackMbid = sanitizeString(req.query.trackMbid) || undefined
+    const albumMbid = sanitizeString(req.query.albumMbid) || undefined
 
     try {
         if (type === 'release') {
-            const results = await musicBrainzService.searchAlbum(artist, String(req.query.album || ''), mbid, albumMbid)
+            const results = await musicBrainzService.searchAlbum(artist, album || '', mbid, albumMbid)
             return res.json(results)
         } else if (type === 'artist' || (artist && !title)) {
+            if (!artist) return res.status(400).json({ error: 'artist is required for artist search' })
             const results = await musicBrainzService.searchArtist(artist)
             return res.json(results)
         } else {
@@ -54,9 +68,11 @@ export const searchMusicBrainz = async (req: Request, res: Response) => {
 }
 
 export const getMusicBrainzDetails = async (req: Request, res: Response) => {
-    const id = req.params.id as string
-    const type = req.params.type as string
+    const id = sanitizeString(req.params.id, 50)
+    const type = sanitizeString(req.params.type, 20)
 
+    if (!id) return res.status(400).json({ error: 'id is required' })
+    if (!VALID_MB_TYPES.has(type)) return res.status(400).json({ error: `type must be one of: ${[...VALID_MB_TYPES].join(', ')}` })
     try {
         if (type === 'release') {
             const details = await musicBrainzService.getReleaseDetails(id)
@@ -80,8 +96,8 @@ export const getMusicBrainzDetails = async (req: Request, res: Response) => {
 }
 
 export const getArtistDetails = async (req: Request, res: Response) => {
-    const id = req.params.id as string
-    console.log(`[DEBUG] getArtistDetails called for artist ID: ${id}`)
+    const id = sanitizeString(req.params.id, 50)
+    if (!id) return res.status(400).json({ error: 'Artist id is required' })
     try {
         const db = getDatabase()
         const mbResult: any = await musicBrainzService.getArtistDetails(id)
@@ -181,7 +197,7 @@ export const getArtistDetails = async (req: Request, res: Response) => {
             let ext = urlWithoutParams.split('.').pop() || 'jpg'
             if (ext.length > 5 || ext.includes('/') || ext.includes('\\')) ext = 'jpg'
 
-            const filename = `artist_${id}.${ext}`
+            const filename = `artist-${id}.${ext}`
             const localPath = await lastFmService.downloadImage(bestImage, filename)
 
             if (localPath) {

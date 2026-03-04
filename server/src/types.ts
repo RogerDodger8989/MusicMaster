@@ -143,6 +143,7 @@ export interface Artist {
     type?: string
     gender?: string
     website?: string
+    urls?: string
     loved: boolean
 }
 

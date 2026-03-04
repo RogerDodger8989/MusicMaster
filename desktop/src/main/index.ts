@@ -13,6 +13,7 @@ import { musicScanner } from './scanner'
 import { initCoverCache } from './services/coverArt'
 import { startCastServer } from './services/cast/server'
 import { getTrackById } from './database/tracks'
+import { getArtistById } from './database/artists'
 import fs from 'fs'
 import { execSync } from 'child_process'
 
@@ -172,14 +173,13 @@ app.whenReady().then(() => {
     // Robustly handle different URL formats:
     // asset:///C:/Users... -> C:/Users... (3 slashes)
     // asset://C:/Users...  -> C:/Users... (2 slashes)
-    // asset://stream/ID -> lookup track by ID
-    // asset://album-cover/ID -> lookup album cover
-    // asset://artist-image/ID -> lookup artist image
-    const url = request.url.replace(/^asset:\/{2,3}/, '')
+    const rawPath = request.url.replace(/^asset:\/\//, '')
+    // Remove leading slash if it exists (for 3-slash format)
+    const normalizedRawPath = rawPath.startsWith('/') ? rawPath.substring(1) : rawPath
 
     try {
       // Decode URL (handles spaces e.g. %20 -> space)
-      let decodedPath = decodeURIComponent(url)
+      let decodedPath = decodeURIComponent(normalizedRawPath)
 
       console.log(`[AssetProtocol] ${request.url} -> ${decodedPath}`)
 
@@ -214,8 +214,21 @@ app.whenReady().then(() => {
       }
 
       if (decodedPath.startsWith('artist-image/')) {
-        // Get artist image from cache
+        // Get artist image from cache or database path
         const artistId = decodedPath.substring(13) // Remove 'artist-image/'
+        const artist = getArtistById(artistId)
+
+        if (artist && artist.imagePath) {
+          // If it's a URL, we can't serve it via file protocol (renderer should handle it, but for safety:)
+          if (artist.imagePath.startsWith('http')) {
+            return callback({ path: '' }) // Renderer handles URLs
+          }
+          if (fs.existsSync(artist.imagePath)) {
+            return callback({ path: artist.imagePath })
+          }
+        }
+
+        // Fallback: Check local cache for legacy naming
         const coversCacheDir = path.join(app.getPath('userData'), 'covers')
         const artistPath = path.join(coversCacheDir, `artist-${artistId}.jpg`)
         if (fs.existsSync(artistPath)) {
@@ -226,7 +239,7 @@ app.whenReady().then(() => {
         if (fs.existsSync(artistPathPng)) {
           return callback({ path: artistPathPng })
         }
-        console.error(`[AssetProtocol] Artist image not found: ${artistId}`)
+        console.error(`[AssetProtocol] Artist image not found in DB or cache: ${artistId}`)
         return callback({ path: '' })
       }
 
@@ -263,15 +276,14 @@ app.whenReady().then(() => {
       }
 
       // Handle absolute file paths
-      // FIX: Handle "c/Users" -> "c:/Users"
       if (process.platform === 'win32') {
-        // Case 1: "c/Users..."
-        if (/^[a-zA-Z]\//.test(decodedPath)) {
+        // Ensure drive letter is correct (e.g., "C:/..." not "/C:/" or "C/...")
+        if (decodedPath.match(/^[a-zA-Z]\//)) {
           decodedPath = decodedPath[0] + ':' + decodedPath.substring(1)
-        }
-        // Case 2: "/c/Users..."
-        else if (/^\/[a-zA-Z]\//.test(decodedPath)) {
-          decodedPath = decodedPath[1] + ':' + decodedPath.substring(2)
+        } else if (decodedPath.match(/^\/[a-zA-Z]:/)) {
+          decodedPath = decodedPath.substring(1)
+        } else if (decodedPath.match(/^[a-zA-Z]:/)) {
+          // Already correct
         }
       }
 

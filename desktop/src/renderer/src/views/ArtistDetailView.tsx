@@ -14,7 +14,8 @@ import {
   MapPin,
   Calendar,
   RefreshCw,
-  Radio
+  Radio,
+  ExternalLink
 } from 'lucide-react'
 import { AlbumCard } from '../components/AlbumCard'
 import { RatingStars } from '../components/RatingStars'
@@ -40,8 +41,7 @@ export default function ArtistDetailView({
   onAlbumClick,
   onArtistClick
 }: ArtistDetailViewProps) {
-  const { albums, artists, tracks, rateTrack, toggleLoved, toggleArtistLoved, updateArtist } =
-    useLibrary()
+  const { albums, artists, tracks, rateTrack, toggleLoved, toggleArtistLoved, updateArtist, loadArtists } = useLibrary()
   const {
     playTrack,
     playAlbum,
@@ -175,6 +175,9 @@ export default function ArtistDetailView({
     }
   }, [artistName])
 
+  // State for social links dropdown
+  const [isLinksDropdownOpen, setIsLinksDropdownOpen] = useState(false)
+
   // State for queue confirmation
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [pendingTracks, setPendingTracks] = useState<any[]>([])
@@ -192,18 +195,23 @@ export default function ArtistDetailView({
       if (!mbArtistId) {
         console.log(`🔍 [UI] Searching MusicBrainz for artist: ${artistName}`)
 
-        const artistResults = await client.searchMetadata(artistName)
+        const artistResults: any[] = await client.searchMetadata(artistName)
 
         if (artistResults && artistResults.length > 0) {
+          console.log(`🔍 [UI] Found ${artistResults.length} search results for "${artistName}"`)
           // Find exact name match (ignore case)
           const match = artistResults.find((r: any) =>
             r.name.toLowerCase() === artistName.toLowerCase()
-          ) || (artistResults[0].score >= 90 ? artistResults[0] : null)
+          ) || (artistResults[0].score >= 80 ? artistResults[0] : null)
 
           if (match) {
             mbArtistId = match.id
-            console.log(`✅ [UI] Found MBID for ${artistName}: ${mbArtistId} (Match: ${match.name})`)
+            console.log(`✅ [UI] Matched artist ${artistName} to MBID: ${mbArtistId} (Name: ${match.name}, Score: ${match.score})`)
+          } else {
+            console.warn(`⚠️ [UI] No high-confidence match found for "${artistName}" among ${artistResults.length} results`)
           }
+        } else {
+          console.warn(`⚠️ [UI] Search returned no results for "${artistName}"`)
         }
       }
 
@@ -219,6 +227,7 @@ export default function ArtistDetailView({
             type: details.type,
             gender: details.gender,
             website: details.website,
+            urls: details.urls ? JSON.stringify(details.urls) : undefined,
             bio: details.biography || details.bio
           }
 
@@ -238,14 +247,20 @@ export default function ArtistDetailView({
             console.log(`📸 [UI] Upgrading artist image to remote URL: ${details.image}`)
             facts.imagePath = details.image
           }
-
           if (artist && artist.id && !artist.id.startsWith('virtual-')) {
+            console.log("🔍 [UI] Saving facts to DB for:", artistName, facts)
             await updateArtist(artist.id, facts)
             console.log('✅ [UI] Artist facts synced successfully')
+            // Refresh the library to fetch the newly parsed JSON urls string
+            await loadArtists()
+          } else {
+            console.warn('⚠️ [UI] Artist ID is missing or virtual, skipping DB update')
           }
-          // The library store should ideally be refreshed here
-          // For now, we rely on the next visit or manual refresh
+        } else {
+          console.warn('⚠️ [UI] No details found for MBID:', mbArtistId)
         }
+      } else {
+        console.warn('⚠️ [UI] No MusicBrainz ID found for artist:', artistName)
       }
     } catch (error) {
       console.error('❌ [UI] Failed to sync artist facts:', error)
@@ -362,7 +377,7 @@ export default function ArtistDetailView({
     const fetchArtistData = async () => {
       if (!artist?.musicbrainzArtistId) return
 
-      console.log(`[UI] Fetching members for ${artistName}. Artist has MBID: ${artist.musicbrainzArtistId}. Current Image: ${artist.imagePath}`)
+      console.log(`[UI] Fetching members/details for ${artistName}. Artist has MBID: ${artist.musicbrainzArtistId}. Current Image: ${artist.imagePath}`)
 
       setArtistMembers([]) // Clear previous members to avoid stale data
       try {
@@ -372,8 +387,8 @@ export default function ArtistDetailView({
         ])
         setArtistMembers(members)
 
-        // improved auto-sync for image
-        if (!artist.imagePath && details.image) {
+        // improved auto-sync for image: only update if missing to avoid overwriting local cache with broken URLs
+        if (details.image && !artist.imagePath) {
           console.log('[AutoSync] Updating artist image from MusicBrainz', details.image)
           await updateArtist(artist.id, { imagePath: details.image })
         }
@@ -383,7 +398,7 @@ export default function ArtistDetailView({
     }
 
     fetchArtistData()
-  }, [artist?.musicbrainzArtistId, artist?.imagePath, artist?.id, updateArtist])
+  }, [artist?.musicbrainzArtistId, artist?.id, updateArtist])
 
   // Process appearances (from other artists' albums in local library)
   useEffect(() => {
@@ -444,7 +459,6 @@ export default function ArtistDetailView({
           if ((b.playCount || 0) !== (a.playCount || 0)) return (b.playCount || 0) - (a.playCount || 0)
           return (a.title || '').localeCompare(b.title || '')
         })
-        .slice(0, 5)
     }
 
     // Sort by Last.fm global ranking
@@ -457,12 +471,9 @@ export default function ArtistDetailView({
         if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
         // Only a found - a comes first
         if (aIndex !== -1) return -1
-        // Only b found - b comes first
-        if (bIndex !== -1) return 1
         // Neither found - sort by playcount
         return (b.playCount || 0) - (a.playCount || 0)
       })
-      .slice(0, 5)
   }, [tracks, artistName, lastfmTopTracks])
 
   const totalTracks = useMemo(
@@ -525,9 +536,11 @@ export default function ArtistDetailView({
             <div className="relative w-full h-full">
               <img
                 src={
-                  artist.imagePath && artist.imagePath.startsWith('http')
+                  artist.imagePath?.startsWith('http') || artist.imagePath?.startsWith('asset://') || artist.imagePath?.startsWith('/')
                     ? artist.imagePath
-                    : client.getArtistImageUrl(artist.id)
+                    : (artist.imagePath && artist.imagePath.includes(':')
+                      ? `asset://${artist.imagePath}`
+                      : client.getArtistImageUrl(artist.id))
                 }
                 alt={artistName}
                 className="w-full h-full object-cover object-top grayscale-[0.1] contrast-[1.1]"
@@ -706,62 +719,98 @@ export default function ArtistDetailView({
                   )}
 
                   {/* MusicBrainz Link */}
-                  {artist?.musicbrainzArtistId && (
-                    <a
-                      href={`https://musicbrainz.org/artist/${artist.musicbrainzArtistId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group/link flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/40 hover:text-[#BA478F] hover:bg-white/10 transition-all"
-                      title="View on MusicBrainz"
-                    >
-                      <img
-                        src="https://www.google.com/s2/favicons?domain=musicbrainz.org&sz=64"
-                        className="w-4 h-4 grayscale group-hover/link:grayscale-0 transition-all opacity-60 group-hover/link:opacity-100"
-                        alt="MB"
-                      />
-                      <span className="text-[10px] font-bold uppercase tracking-wider hidden md:inline">MusicBrainz</span>
-                    </a>
-                  )}
+                  {/* Social Links Dropdown */}
+                  {(() => {
+                    const availableLinks: { label: string; url: string; domain: string }[] = []
+                    let parsedUrls: any = {}
+                    if (artist?.urls) {
+                      try {
+                        parsedUrls = JSON.parse(artist.urls)
+                      } catch (e) {
+                        /* ignore */
+                      }
+                    }
 
-                  {/* Last.fm Link */}
-                  <a
-                    href={`https://www.last.fm/music/${encodeURIComponent(artistName)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group/link flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/40 hover:text-[#D51007] hover:bg-white/10 transition-all"
-                    title="View on Last.fm"
-                  >
-                    <img
-                      src="https://www.google.com/s2/favicons?domain=last.fm&sz=64"
-                      className="w-4 h-4 grayscale group-hover/link:grayscale-0 transition-all opacity-60 group-hover/link:opacity-100"
-                      alt="Last.fm"
-                    />
-                    <span className="text-[10px] font-bold uppercase tracking-wider hidden md:inline">Last.fm</span>
-                  </a>
+                    // Collect and normalize
+                    if (artist?.musicbrainzArtistId) {
+                      availableLinks.push({
+                        label: 'MusicBrainz',
+                        url: `https://musicbrainz.org/artist/${artist.musicbrainzArtistId}`,
+                        domain: 'musicbrainz.org'
+                      })
+                    }
+                    if (parsedUrls.website || artist?.website) {
+                      const url = parsedUrls.website || artist?.website
+                      availableLinks.push({ label: 'Website', url, domain: new URL(url).hostname })
+                    }
+                    if (parsedUrls.lastfm || artistName) {
+                      const url = parsedUrls.lastfm || `https://www.last.fm/music/${encodeURIComponent(artistName)}`
+                      availableLinks.push({ label: 'Last.fm', url, domain: 'last.fm' })
+                    }
+                    if (parsedUrls.spotify) availableLinks.push({ label: 'Spotify', url: parsedUrls.spotify, domain: 'spotify.com' })
+                    if (parsedUrls.discogs) availableLinks.push({ label: 'Discogs', url: parsedUrls.discogs, domain: 'discogs.com' })
+                    if (parsedUrls.facebook) availableLinks.push({ label: 'Facebook', url: parsedUrls.facebook, domain: 'facebook.com' })
+                    if (parsedUrls.twitter) availableLinks.push({ label: 'Twitter', url: parsedUrls.twitter, domain: 'twitter.com' })
+                    if (parsedUrls.instagram) availableLinks.push({ label: 'Instagram', url: parsedUrls.instagram, domain: 'instagram.com' })
+                    if (parsedUrls.youtube) availableLinks.push({ label: 'YouTube', url: parsedUrls.youtube, domain: 'youtube.com' })
+                    if (parsedUrls.wikipedia) availableLinks.push({ label: 'Wikipedia', url: parsedUrls.wikipedia, domain: 'wikipedia.org' })
 
-                  {/* Official Website - with accuracy fix */}
-                  {(artist?.website || artistName.toLowerCase() === 'metallica') && (
-                    <a
-                      href={artistName.toLowerCase() === 'metallica' ? 'https://www.metallica.com' : artist!.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group/link flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/40 hover:text-blue-400 hover:bg-white/10 transition-all"
-                      title="Official Website"
-                    >
-                      <img
-                        src={`https://www.google.com/s2/favicons?domain=${(() => {
-                          try {
-                            return new URL(artistName.toLowerCase() === 'metallica' ? 'https://www.metallica.com' : (artist?.website || '')).hostname
-                          } catch {
-                            return 'website'
-                          }
-                        })()}&sz=64`}
-                        className="w-4 h-4 grayscale group-hover/link:grayscale-0 transition-all opacity-60 group-hover/link:opacity-100"
-                        alt="Official"
-                      />
-                      <span className="text-[10px] font-bold uppercase tracking-wider hidden md:inline">Official Website</span>
-                    </a>
-                  )}
+                    if (availableLinks.length === 0) return null
+
+                    // Sort alphabetically by label
+                    const sortedLinks = [...availableLinks].sort((a, b) => a.label.localeCompare(b.label))
+
+                    return (
+                      <div className="relative">
+                        <button
+                          onClick={() => setIsLinksDropdownOpen(!isLinksDropdownOpen)}
+                          onBlur={() => setTimeout(() => setIsLinksDropdownOpen(false), 200)}
+                          className={cn(
+                            'group/btn flex items-center gap-2 px-4 py-2 rounded-full transition-all border font-bold uppercase tracking-wider text-[10px]',
+                            isLinksDropdownOpen
+                              ? 'bg-white/20 border-white/30 text-white shadow-xl shadow-black/20'
+                              : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:border-white/20 hover:text-white'
+                          )}
+                        >
+                          <ChevronDown
+                            size={14}
+                            className={cn('transition-transform duration-300', isLinksDropdownOpen ? 'rotate-180' : 'rotate-0')}
+                          />
+                          Links
+                          <span className="ml-1 opacity-50">({sortedLinks.length})</span>
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {isLinksDropdownOpen && (
+                          <div className="absolute top-full left-0 mt-2 min-w-[180px] py-2 rounded-2xl bg-black/80 backdrop-blur-xl border border-white/10 shadow-2xl z-[100] animate-in fade-in zoom-in duration-200 origin-top">
+                            {sortedLinks.map((link) => (
+                              <a
+                                key={link.label}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group/item flex items-center gap-3 px-4 py-2.5 hover:bg-white/10 transition-colors"
+                              >
+                                <img
+                                  src={`https://www.google.com/s2/favicons?domain=${link.domain}&sz=64`}
+                                  className="w-4 h-4 grayscale group-hover/item:grayscale-0 transition-grayscale opacity-60 group-hover/item:opacity-100 object-contain"
+                                  alt=""
+                                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                                />
+                                <span className="text-xs font-medium text-white/60 group-hover/item:text-white transition-colors">
+                                  {link.label}
+                                </span>
+                                <ExternalLink
+                                  size={10}
+                                  className="ml-auto opacity-0 group-hover/item:opacity-40 transition-opacity"
+                                />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
 
                   <button
                     onClick={syncArtistFacts}
@@ -792,7 +841,14 @@ export default function ArtistDetailView({
                   </h3>
                 </div>
 
-                <div className="space-y-0.5">
+                <div
+                  className="space-y-0.5 overflow-y-auto pr-1"
+                  style={{
+                    maxHeight: '420px',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: 'rgba(255,255,255,0.12) transparent',
+                  }}
+                >
                   {topTracks.map((track, i) => {
                     const isCurrentTrack = currentTrack?.id === track.id
                     const isCurrentPlaying = isCurrentTrack && isPlaying

@@ -93,8 +93,13 @@ export const getArtistImage = (req: Request, res: Response) => {
         const db = getDatabase()
         const artist = db.prepare('SELECT image_path as imagePath FROM artists WHERE id = ? OR musicbrainz_artistid = ?').get(id, id) as any
 
-        if (artist && artist.imagePath && fs.existsSync(artist.imagePath)) {
-            return res.sendFile(artist.imagePath)
+        if (artist && artist.imagePath) {
+            if (artist.imagePath.startsWith('http')) {
+                return res.redirect(artist.imagePath)
+            }
+            if (fs.existsSync(artist.imagePath)) {
+                return res.sendFile(artist.imagePath)
+            }
         }
 
         // Fallback: Check local cache for downloaded images (e.g. for remote artists)

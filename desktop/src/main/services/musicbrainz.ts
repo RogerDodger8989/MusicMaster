@@ -1,4 +1,5 @@
 import { MusicBrainzApi } from 'musicbrainz-api'
+import { lastFmService } from './lastfm'
 // import { MBArtistResponse, MBReleaseResponse, MBRecordingResponse } from '../database/types.musicbrainz' // Unused
 
 const mbApi = new MusicBrainzApi({
@@ -439,10 +440,41 @@ export class MusicBrainzService {
         'genres'
       ])
 
-      // Extract website from url-rels
-      const website = (artist as any).relations?.find(
-        (rel: any) => rel['target-type'] === 'url' && rel.type === 'official homepage'
-      )?.url?.resource
+      // Extract all relevant URLs from url-rels
+      const urls: Record<string, string> = {}
+      if ((artist as any).relations) {
+        for (const rel of (artist as any).relations) {
+          if (rel['target-type'] === 'url' && rel.url?.resource) {
+            const url = rel.url.resource
+            const type = rel.type
+
+            if (type === 'official homepage') urls.website = url
+            else if (type === 'discogs') urls.discogs = url
+            else if (type === 'last.fm') urls.lastfm = url
+            else if (type === 'social network' && url.includes('twitter.com')) urls.twitter = url
+            else if (type === 'social network' && url.includes('instagram.com')) urls.instagram = url
+            else if (type === 'social network' && url.includes('facebook.com')) urls.facebook = url
+            else if (type === 'youtube') urls.youtube = url
+            else if (url.includes('spotify.com')) urls.spotify = url
+            else if (type === 'wikipedia') urls.wikipedia = url
+          }
+        }
+      }
+
+      urls.musicbrainz = `https://musicbrainz.org/artist/${artistId}`
+
+      // Fetch additional data from Last.fm (Bio and better image fallback)
+      let biography = ''
+      let image = ''
+      try {
+        const lastfmInfo = await lastFmService.getArtistInfo((artist as any).name)
+        if (lastfmInfo) {
+          biography = lastfmInfo.bio?.summary || ''
+          image = lastFmService.getBestImage(lastfmInfo.image || []) || ''
+        }
+      } catch (e) {
+        console.warn(`[MB] Failed to fetch Last.fm augmentation for ${(artist as any).name}`, e)
+      }
 
       const result = {
         id: (artist as any).id,
@@ -452,7 +484,10 @@ export class MusicBrainzService {
         lifeSpan: (artist as any)['life-span'],
         type: (artist as any).type,
         gender: (artist as any).gender,
-        website,
+        website: urls.website,
+        urls,
+        biography,
+        image,
         genres: (artist as any).genres?.map((g: any) => g.name),
         tags: (artist as any).tags?.map((t: any) => t.name),
         area: (artist as any).area?.name
@@ -463,6 +498,40 @@ export class MusicBrainzService {
     } catch (error) {
       console.error('MB artist lookup failed:', error)
       return null
+    }
+  }
+
+  /**
+   * Get artist members (for bands)
+   */
+  async getArtistMembers(artistId: string): Promise<any[]> {
+    try {
+      const cacheKey = `artist_members:${artistId}`
+      const cached = getFromCache(cacheKey)
+      if (cached) {
+        console.log(`📦 MB Cache hit: ${cacheKey}`)
+        return cached
+      }
+
+      console.log(`👥 MB: Fetching members for: ${artistId}`)
+      await applyRateLimit()
+      const artist = await mbApi.lookup('artist', artistId, ['artist-rels'])
+      const members = ((artist as any).relations || [])
+        .filter((rel: any) => rel.type === 'member of band' && rel.direction === 'backward')
+        .map((rel: any) => ({
+          id: rel.artist.id,
+          name: rel.artist.name,
+          type: rel.type,
+          begin: rel.begin,
+          end: rel.end,
+          active: rel.ended === false
+        }))
+
+      cacheResult(cacheKey, members)
+      return members
+    } catch (error) {
+      console.error('MB artist members lookup failed:', error)
+      return []
     }
   }
 

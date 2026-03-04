@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS artists (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     name_sort_order TEXT,
-    musicbrainz_artistid TEXT UNIQUE,
+    musicbrainz_artistid TEXT,
     country TEXT,
     area TEXT,
     life_span_begin TEXT,
@@ -532,7 +532,7 @@ CREATE INDEX IF NOT EXISTS idx_playback_history_played_at ON playback_history(pl
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS enrichment_log (
     id TEXT PRIMARY KEY,
-    album_mbid TEXT,
+    musicbrainz_albumid TEXT,
     status TEXT DEFAULT 'pending',
     performers_fetched INTEGER DEFAULT 0,
     acousticbrainz_fetched INTEGER DEFAULT 0,
@@ -544,10 +544,35 @@ CREATE TABLE IF NOT EXISTS enrichment_log (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_enrichment_log_album ON enrichment_log(album_mbid);
+CREATE INDEX IF NOT EXISTS idx_enrichment_log_album ON enrichment_log(musicbrainz_albumid);
 CREATE INDEX IF NOT EXISTS idx_enrichment_log_status ON enrichment_log(status);
 CREATE INDEX IF NOT EXISTS idx_enrichment_log_created ON enrichment_log(created_at DESC);
 `
+
+/**
+ * Get the standardized data directory path
+ */
+export function getUserDataPath(): string {
+    let userDataPath = process.env.DATA_PATH
+
+    if (!userDataPath && process.platform === 'win32') {
+        const roaming = process.env.APPDATA || path.join(require('os').homedir(), 'AppData', 'Roaming')
+        const candidate = path.join(roaming, 'music-master')
+        if (fs.existsSync(candidate)) {
+            userDataPath = candidate
+        }
+    }
+
+    if (!userDataPath) {
+        userDataPath = path.join(process.cwd(), 'data')
+    }
+
+    if (!fs.existsSync(userDataPath)) {
+        fs.mkdirSync(userDataPath, { recursive: true })
+    }
+
+    return userDataPath
+}
 
 /**
  * Initialize the SQLite database
@@ -556,34 +581,17 @@ export function initDatabase(): Database.Database {
     if (db) return db
 
     try {
-        // Use environment variable or local data directory
-        let userDataPath = process.env.DATA_PATH
-
-        if (!userDataPath && process.platform === 'win32') {
-            // Try to find Electron userData path for music-master
-            const roaming = process.env.APPDATA || path.join(require('os').homedir(), 'AppData', 'Roaming')
-            const candidate = path.join(roaming, 'music-master')
-            if (fs.existsSync(candidate)) {
-                userDataPath = candidate
-                console.log('[DB] Found Electron userData path:', userDataPath)
-            }
-        }
-
-        if (!userDataPath) {
-            userDataPath = path.join(process.cwd(), 'data')
-            console.log('[DB] Using default data path:', userDataPath)
-        }
-
-        if (!fs.existsSync(userDataPath)) {
-            fs.mkdirSync(userDataPath, { recursive: true })
-        }
-
+        const userDataPath = getUserDataPath()
         const dbPath = path.join(userDataPath, 'musicmaster.db')
+
 
         console.log('Initializing database at:', dbPath)
 
         // Create database connection
         db = new Database(dbPath)
+
+        // Enable WAL mode for better concurrency
+        db.pragma('journal_mode = WAL')
 
         // Enable foreign keys
         db.pragma('foreign_keys = ON')
@@ -646,6 +654,9 @@ export function initDatabase(): Database.Database {
             "ALTER TABLE albums_cache ADD COLUMN musicbrainz_albumid TEXT",
             "ALTER TABLE albums_cache ADD COLUMN musicbrainz_releasegroupid TEXT",
             "ALTER TABLE artists ADD COLUMN musicbrainz_artistid TEXT",
+            "ALTER TABLE artists ADD COLUMN urls TEXT",
+            "DROP INDEX IF EXISTS idx_artists_musicbrainzid_unique",
+            "CREATE INDEX IF NOT EXISTS idx_artists_musicbrainzid_common ON artists(musicbrainz_artistid)",
 
             // Extended MusicBrainz tracks columns
             "ALTER TABLE tracks ADD COLUMN movement_num INTEGER",

@@ -16,6 +16,7 @@ export function getAllArtists(): Artist[] {
             type,
             gender,
             website,
+            urls,
             loved
         FROM artists 
         ORDER BY name ASC
@@ -30,8 +31,8 @@ export function getAllArtists(): Artist[] {
 export function dbArtistToArtist(row: any): Artist {
     let imagePath = row.image_path || row.imagePath || undefined
 
-    // Transform local file paths to server URLs
-    if (imagePath && !imagePath.startsWith('http')) {
+    // Transform local file paths to server URLs, but LEAVE remote URLs as is
+    if (imagePath && !imagePath.startsWith('http') && !imagePath.startsWith('asset://')) {
         imagePath = `/api/cover/artist/${row.id}?t=${Date.now()}`
     }
 
@@ -45,10 +46,9 @@ export function dbArtistToArtist(row: any): Artist {
         musicbrainzArtistId: row.musicbrainz_artistid || row.musicbrainzArtistId || undefined,
         country: row.country || undefined,
         lifeSpanBegin: row.life_span_begin || row.lifeSpanBegin || undefined,
-        lifeSpanEnd: row.life_span_end || row.lifeSpanEnd || undefined,
-        type: row.type || undefined,
         gender: row.gender || undefined,
         website: row.website || undefined,
+        urls: row.urls || undefined,
         loved: row.loved === 1
     }
 }
@@ -68,6 +68,7 @@ export function getArtistById(id: string): Artist | null {
             type,
             gender,
             website,
+            urls,
             loved
         FROM artists 
         WHERE id = ?
@@ -86,12 +87,14 @@ export function updateArtistLoved(id: string, loved: boolean): void {
 
 export function updateArtistFacts(id: string, facts: {
     musicbrainzArtistId?: string,
+    imagePath?: string,
     country?: string,
     lifeSpanBegin?: string,
     lifeSpanEnd?: string,
     type?: string,
     gender?: string,
     website?: string,
+    urls?: string,
     bio?: string
 }): void {
     const db = getDatabase()
@@ -105,30 +108,39 @@ export function updateArtistFacts(id: string, facts: {
         mbidToUpdate = existing.musicbrainz_artistid
     }
 
-    const stmt = db.prepare(`
-        UPDATE artists 
-        SET musicbrainz_artistid = COALESCE(?, musicbrainz_artistid),
-            country = COALESCE(?, country),
-            life_span_begin = COALESCE(?, life_span_begin),
-            life_span_end = COALESCE(?, life_span_end),
-            type = COALESCE(?, type),
-            gender = COALESCE(?, gender),
-            website = COALESCE(?, website),
-            bio = COALESCE(?, bio),
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-    `)
-    stmt.run(
-        mbidToUpdate || null,
-        facts.country || null,
-        facts.lifeSpanBegin || null,
-        facts.lifeSpanEnd || null,
-        facts.type || null,
-        facts.gender || null,
-        facts.website || null,
-        facts.bio || null,
-        id
-    )
+    // Build dynamic SQL to only update provided fields
+    const updates: string[] = []
+    const params: any[] = []
+
+    const fieldMap: Record<string, string> = {
+        musicbrainzArtistId: 'musicbrainz_artistid',
+        imagePath: 'image_path',
+        country: 'country',
+        lifeSpanBegin: 'life_span_begin',
+        lifeSpanEnd: 'life_span_end',
+        type: 'type',
+        gender: 'gender',
+        website: 'website',
+        urls: 'urls',
+        bio: 'bio'
+    }
+
+    for (const [key, columnName] of Object.entries(fieldMap)) {
+        const value = key === 'musicbrainzArtistId' ? mbidToUpdate : (facts as any)[key]
+        if (value !== undefined) {
+            updates.push(`${columnName} = ?`)
+            params.push(value === '' ? null : value)
+        }
+    }
+
+    if (updates.length === 0) return
+
+    updates.push('updated_at = CURRENT_TIMESTAMP')
+    params.push(id)
+
+    const sql = `UPDATE artists SET ${updates.join(', ')} WHERE id = ?`
+    const stmt = db.prepare(sql)
+    stmt.run(...params)
 }
 
 export function updateArtist(id: string, updates: Partial<Artist>): void {
@@ -137,7 +149,7 @@ export function updateArtist(id: string, updates: Partial<Artist>): void {
     }
 
     // Check if any fact fields are present
-    const factFields = ['musicbrainzArtistId', 'country', 'lifeSpanBegin', 'lifeSpanEnd', 'type', 'gender', 'website', 'bio']
+    const factFields = ['musicbrainzArtistId', 'imagePath', 'country', 'lifeSpanBegin', 'lifeSpanEnd', 'type', 'gender', 'website', 'urls', 'bio']
     const hasFacts = factFields.some(field => field in updates)
 
     if (hasFacts) {

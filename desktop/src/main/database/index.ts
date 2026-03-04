@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS artists(
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   name_sort_order TEXT,
-  musicbrainz_artistid TEXT UNIQUE,
+  musicbrainz_artistid TEXT,
   country TEXT,
   area TEXT,
   life_span_begin TEXT,
@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS artists(
   gender TEXT,
   gender_other TEXT,
   website TEXT,
+  urls TEXT,
   bio TEXT,
   image_path TEXT,
   album_count INTEGER DEFAULT 0,
@@ -508,6 +509,9 @@ export function initDatabase(): Database.Database {
     // Create database connection
     db = new Database(dbPath)
 
+    // Enable WAL mode for better concurrency
+    db.pragma('journal_mode = WAL')
+
     // Enable foreign keys
     db.pragma('foreign_keys = ON')
 
@@ -591,13 +595,15 @@ export function initDatabase(): Database.Database {
       'ALTER TABLE artists ADD COLUMN type TEXT',
       'ALTER TABLE artists ADD COLUMN gender TEXT',
       'ALTER TABLE artists ADD COLUMN website TEXT',
+      'ALTER TABLE artists ADD COLUMN urls TEXT',
 
-      // Extended artists columns
       'ALTER TABLE artists ADD COLUMN name_sort_order TEXT',
       'ALTER TABLE artists ADD COLUMN musicbrainz_artistid TEXT',
       'ALTER TABLE artists ADD COLUMN area TEXT',
       'ALTER TABLE artists ADD COLUMN artist_type TEXT',
       'ALTER TABLE artists ADD COLUMN gender_other TEXT',
+      'ALTER TABLE artists ADD COLUMN urls TEXT',
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_artists_musicbrainzid_unique ON artists(musicbrainz_artistid)',
 
       // Playback tables
       "CREATE TABLE IF NOT EXISTS playback_state (id TEXT PRIMARY KEY DEFAULT 'default', current_track_id TEXT, queue_ids TEXT, current_index INTEGER DEFAULT -1, volume REAL DEFAULT 1.0, is_shuffle INTEGER DEFAULT 0, repeat_mode TEXT DEFAULT 'normal', current_time REAL DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)",

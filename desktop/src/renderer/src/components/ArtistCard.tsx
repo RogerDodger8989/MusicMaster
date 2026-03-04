@@ -72,13 +72,14 @@ export function ArtistCard({ artist, onClick, onPlayOptions, className }: Artist
             </div>
 
             {/* Actual Image (Overlays placeholder) */}
-            {artist.imagePath && (
+            {(artist.imagePath || artist.id) && (
               <img
                 src={
-                  artist.imagePath.startsWith('http') || artist.imagePath.startsWith('asset:///')
+                  artist.imagePath?.startsWith('http')
                     ? artist.imagePath
                     : client.getArtistImageUrl(artist.id)
                 }
+
                 alt={artist.name}
                 className={cn(
                   "absolute inset-0 h-full w-full object-cover transition-all duration-500",

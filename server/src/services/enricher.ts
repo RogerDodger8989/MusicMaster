@@ -54,9 +54,17 @@ export class BackgroundEnricher {
 
         const artists = db.prepare(query).all() as { id: string, name: string, musicbrainz_artistid: string | null }[]
 
-        if (artists.length === 0) return
+        const totalMissing = db.prepare("SELECT COUNT(*) as count FROM artists WHERE (image_path IS NULL OR bio IS NULL OR bio = '')").get() as { count: number }
 
-        console.log(`🤖 Enriching metadata for ${artists.length} artists...`)
+        if (artists.length === 0) {
+            if (totalMissing.count === 0 && !force) {
+                // No more artists to enrich
+            }
+            return
+        }
+
+        console.log(`🤖 [Enricher] Processing ${artists.length} artists (${totalMissing.count} remaining)...`)
+
 
         for (const artist of artists) {
             await this.enrichArtistById(artist.id, artist.name, force)

@@ -15,6 +15,10 @@ import {
 import {
   getAllTracks,
   getTrackById,
+  getMostPlayed,
+  getArtistTopTracks,
+  bulkUpdateTracks,
+  deleteTrack,
   updateTrackRating,
   updateTrackLoved,
   updateTrackMusicBrainz,
@@ -33,6 +37,9 @@ import {
   getAllGenres,
   getAlbumsSortedBy,
   getAlbumById,
+  updateAlbum,
+  deleteAlbum,
+  getAlbumPerformers,
   updateAlbumRating,
   updateAlbumLoved,
   updateAlbumBio
@@ -42,11 +49,18 @@ import { lastFmService } from './services/lastfm'
 import { listenBrainzService } from './services/listenbrainz'
 import { spotifyService } from './services/spotify'
 import { musicBrainzService } from './services/musicbrainz'
-import { storeAcousticBrainzData } from './database/musicbrainz'
+import {
+  storeAcousticBrainzData,
+  upsertArtistWithMBID,
+  upsertAlbumWithMBID,
+  updateTrackWithMBID,
+  addTrackArtist
+} from './database/musicbrainz'
 import { saveAlbumArtwork, clearCoverCache, extractCoverArt } from './services/coverArt'
 import {
   writeMetadata,
   writeMusicBrainzDataToFile,
+  bulkWriteMusicBrainzData,
   buildMusicBrainzDataFromDb
 } from './services/metadataWriter'
 import { advancedMatch, scoreReleaseCandidates, MatchConfidence } from './services/matcher'
@@ -265,8 +279,7 @@ export function registerIpcHandlers(): void {
       // Ensure limit is a number to avoid SqliteError: datatype mismatch
       const numericLimit = typeof limit === 'number' ? limit : parseInt(limit, 10) || 50
       console.log(`📋 Getting ${numericLimit} most played tracks (range: ${_range})...`)
-      // const { getMostPlayed } = await import('./database/tracks') // Already imported
-      return (await import('./database/tracks')).getMostPlayed(numericLimit)
+      return getMostPlayed(numericLimit)
     })
 
     ipcMain.handle('tracks:getById', async (_, id: string) => {
@@ -275,14 +288,12 @@ export function registerIpcHandlers(): void {
 
     ipcMain.handle('tracks:getArtistTop', async (_, artist: string, limit: number = 50) => {
       console.log(`📋 Getting top tracks for artist: ${artist}`)
-      // const { getArtistTopTracks } = await import('./database/tracks') // Already imported
-      return (await import('./database/tracks')).getArtistTopTracks(artist, limit)
+      return getArtistTopTracks(artist, limit)
     })
 
     ipcMain.handle('tracks:bulkUpdate', async (_, trackIds: string[], data: any) => {
       console.log(`📝 Bulk updating ${trackIds.length} tracks...`)
-      // const { bulkUpdateTracks } = await import('./database/tracks') // Already imported
-      await (await import('./database/tracks')).bulkUpdateTracks(trackIds, data)
+      await bulkUpdateTracks(trackIds, data)
       return true
     })
 
@@ -292,8 +303,7 @@ export function registerIpcHandlers(): void {
       if (track && fs.existsSync(track.filePath)) {
         fs.unlinkSync(track.filePath)
       }
-      // const { deleteTrack } = await import('./database/tracks') // Already imported
-      ; (await import('./database/tracks')).deleteTrack(id)
+      deleteTrack(id)
       return true
     })
 
@@ -553,22 +563,19 @@ export function registerIpcHandlers(): void {
 
     ipcMain.handle('albums:update', async (_, id: string, updates: any) => {
       console.log(`📝 Updating album ${id}:`, updates)
-        // const { updateAlbum } = await import('./database/albums') // Already imported
-        ; (await import('./database/albums')).updateAlbum(id, updates)
+      updateAlbum(id, updates)
       return true
     })
 
     ipcMain.handle('albums:delete', async (_, id: string) => {
       console.log(`🗑️ Deleting album: ${id}`)
-        // const { deleteAlbum } = await import('./database/albums') // Already imported
-        ; (await import('./database/albums')).deleteAlbum(id)
+      deleteAlbum(id)
       return true
     })
 
     ipcMain.handle('albums:getPerformers', async (_, id: string) => {
       console.log(`👤 Getting performers for album: ${id}`)
-      // const { getAlbumPerformers } = await import('./database/albums') // Already imported
-      return (await import('./database/albums')).getAlbumPerformers(id)
+      return getAlbumPerformers(id)
     })
 
     ipcMain.handle('albums:pasteArtwork', async (_, id: string, imageBase64: string) => {
@@ -2261,12 +2268,6 @@ current_track_id = excluded.current_track_id,
           }
 
           const db = getDatabase()
-          const {
-            updateTrackWithMBID,
-            upsertAlbumWithMBID,
-            upsertArtistWithMBID,
-            addTrackArtist
-          } = await import('./database/musicbrainz')
 
           const recordingMbid = candidate.recordingMbid || candidate.id
           const releaseMbid = candidate.releaseMbid || candidate.albumId
@@ -2500,7 +2501,7 @@ current_track_id = excluded.current_track_id,
         console.log(`   Syncing ${idsToSync.length} tracks to files...`)
 
         // Use bulk writer with progress callback
-        const { bulkWriteMusicBrainzData } = await import('./services/metadataWriter')
+        // bulkWriteMusicBrainzData is statically imported at the top
 
         const results = await bulkWriteMusicBrainzData(
           db,
@@ -2573,7 +2574,7 @@ current_track_id = excluded.current_track_id,
             }
 
             // Update database
-            const { updateTrackWithMBID } = await import('./database/musicbrainz')
+            // updateTrackWithMBID is statically imported at the top
             await updateTrackWithMBID(
               trackId,
               recording.id,
@@ -2928,14 +2929,14 @@ current_track_id = excluded.current_track_id,
       }
     })
 
-    ipcMain.handle('metadata:search', async () => {
-      // Alias for metadata:searchMusicBrainz
-      return []
+    ipcMain.handle('metadata:search', async (_, artist: string, title?: string, album?: string) => {
+      console.log(`🔍 [IPC] Metadata search: ${artist} - ${title} - ${album}`)
+      return musicBrainzService.searchArtist(artist)
     })
 
-    ipcMain.handle('metadata:searchAlbums', async () => {
-      // Alias for metadata:searchAlbumsMusicBrainz
-      return []
+    ipcMain.handle('metadata:searchAlbums', async (_, artist: string, album: string) => {
+      console.log(`🔍 [IPC] Metadata album search: ${artist} - ${album}`)
+      return musicBrainzService.searchAlbum(artist, album)
     })
 
     // --- Cache Management ---
@@ -3033,7 +3034,7 @@ current_track_id = excluded.current_track_id,
 
     ipcMain.handle('metadata:getArtistMembers', async (_, id: string) => {
       console.log(`👥 Getting members for artist: ${id}`)
-      return []
+      return musicBrainzService.getArtistMembers(id)
     })
     ipcMain.handle('metadata:previewMatchAlbum', async (_, albumId: string, mbAlbumId: string) => {
       console.log(`🔍 Previewing MB match for album ${albumId} -> ${mbAlbumId}`)

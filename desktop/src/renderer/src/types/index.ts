@@ -147,6 +147,7 @@ export interface Artist {
   type?: string
   gender?: string
   website?: string
+  urls?: string
   listeners?: string | number
   loved: boolean
 }
